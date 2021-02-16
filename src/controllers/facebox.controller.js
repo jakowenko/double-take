@@ -10,7 +10,7 @@ const config = {
   lastMatchCamera: '',
 };
 const ids = [];
-
+const matchIds = [];
 const { FACEBOX_URL, FRIGATE_URL } = process.env;
 
 module.exports.start = async (req, res) => {
@@ -56,30 +56,50 @@ module.exports.start = async (req, res) => {
     perf.start('request');
     config.processing = true;
 
-    const results = [];
-    const latest = await this.polling({
-      retries: 10,
-      attributes,
-      type: 'latest',
-      url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=500&bbox=1`,
-    });
-    results.push(latest);
+    // const results = [];
+    // const latest = await this.polling({
+    //   retries: 10,
+    //   attributes,
+    //   type: 'latest',
+    //   url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=500&bbox=1`,
+    // });
+    // results.push(latest);
 
-    if (!latest.matches.length) {
-      results.push(
-        await this.polling({
-          retries: 3,
-          attributes,
-          type: 'snapshot',
-          url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=500&bbox=1`,
-        })
-      );
-    }
+    // if (!latest.matches.length) {
+    // results.push(
+    //   await this.polling({
+    //     retries: 5,
+    //     attributes,
+    //     type: 'snapshot',
+    //     url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=500&bbox=1`,
+    //   })
+    // );
+    // }
+
+    const promises = [];
+    promises.push(
+      this.polling({
+        retries: 10,
+        attributes,
+        type: 'snapshot',
+        url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=500&bbox=1`,
+      })
+    );
+    promises.push(
+      this.polling({
+        retries: 10,
+        attributes,
+        type: 'latest',
+        url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=500&bbox=1`,
+      })
+    );
+    const results = await Promise.all(promises);
 
     const filteredMatches = {};
+    const totalAttempts = results.reduce((a, b) => a.attempts + b.attempts);
     results.forEach((result) => {
       result.matches.forEach((match) => {
-        match.attempts = result.attempts;
+        match.attempts = totalAttempts;
         match.type = result.type;
         match.time = result.time;
         match.camera = camera;
@@ -144,9 +164,9 @@ module.exports.polling = async ({ retries, attributes, type, url }) => {
   const matches = [];
   const { id } = attributes;
   let attempts = 0;
-  let attemptTime;
+  perf.start(type);
   for (let i = 0; i < retries; i++) {
-    perf.start();
+    if (matchIds.includes(id)) break;
     attempts = i + 1;
     // console.log(`${type} attempt ${i + 1}`);
     const response = await axios({
@@ -180,9 +200,8 @@ module.exports.polling = async ({ retries, attributes, type, url }) => {
         matches.push(face);
       }
     });
-    const { time } = perf.stop();
-    attemptTime = parseFloat((time / 1000).toFixed(2));
     if (matches.length) {
+      matchIds.push(id);
       if (!fs.existsSync('matches')) {
         fs.mkdirSync('matches');
       }
@@ -191,6 +210,9 @@ module.exports.polling = async ({ retries, attributes, type, url }) => {
     }
     // await sleep(0.25);
   }
+
+  const { time } = perf.stop(type);
+  const attemptTime = parseFloat((time / 1000).toFixed(2));
 
   return { time: attemptTime, type, matches, attempts };
 };
