@@ -11,7 +11,13 @@ const config = {
 };
 const ids = [];
 const matchIds = [];
-const { FACEBOX_URL, FRIGATE_URL, SNAPSHOT_RETRIES, LATEST_RETRIES } = process.env;
+const {
+  FACEBOX_URL,
+  FRIGATE_URL,
+  SNAPSHOT_RETRIES,
+  LATEST_RETRIES,
+  FACEBOX_CONFIDENCE,
+} = process.env;
 
 module.exports.start = async (req, res) => {
   try {
@@ -196,8 +202,9 @@ module.exports.polling = async ({ retries, attributes, type, url }) => {
         delete face.rect;
         face.attempt = i + 1;
         face.confidence = parseFloat((face.confidence * 100).toFixed(2));
-        // if (face.confidence >= 60)
-        matches.push(face);
+        if (!FACEBOX_CONFIDENCE || face.confidence >= FACEBOX_CONFIDENCE) {
+          matches.push(face);
+        }
       }
     });
     if (matches.length) {
