@@ -11,7 +11,7 @@ const config = {
 };
 const ids = [];
 const matchIds = [];
-const { FACEBOX_URL, FRIGATE_URL } = process.env;
+const { FACEBOX_URL, FRIGATE_URL, SNAPSHOT_RETRIES, LATEST_RETRIES } = process.env;
 
 module.exports.start = async (req, res) => {
   try {
@@ -79,7 +79,7 @@ module.exports.start = async (req, res) => {
     const promises = [];
     promises.push(
       this.polling({
-        retries: 10,
+        retries: SNAPSHOT_RETRIES || 10,
         attributes,
         type: 'snapshot',
         url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=500&bbox=1`,
@@ -87,7 +87,7 @@ module.exports.start = async (req, res) => {
     );
     promises.push(
       this.polling({
-        retries: 10,
+        retries: LATEST_RETRIES || 10,
         attributes,
         type: 'latest',
         url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=500&bbox=1`,
