@@ -109,11 +109,9 @@ module.exports.start = async (req, res) => {
       );
     });
     const results = await Promise.all(promises);
-    console.log(results);
 
     const filteredMatches = {};
     const totalAttempts = results.reduce((a, { attempts }) => a + attempts, 0);
-    console.log(totalAttempts);
     results.forEach((result) => {
       result.matches.forEach((match) => {
         match.detector = result.detector;
