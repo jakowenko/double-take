@@ -1,0 +1,7 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    target-branch: 'beta'
+    directory: '/'
+    schedule:
+      interval: 'daily'
