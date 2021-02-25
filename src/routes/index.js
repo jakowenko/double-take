@@ -1,8 +1,8 @@
 const express = require('express');
-const facebox = require('../controllers/facebox.controller');
+const recognize = require('../controllers/recognize.controller');
 
 const router = express.Router();
 
-router.post('/facebox', facebox.start);
+router.post('/recognize', recognize.start);
 
 module.exports = router;

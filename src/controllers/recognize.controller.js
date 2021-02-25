@@ -4,14 +4,24 @@ const axios = require('axios');
 const moment = require('moment-timezone');
 const FormData = require('form-data');
 const perf = require('execution-time')();
+const {
+  FACEBOX_URL,
+  COMPREFACE_URL,
+  FRIGATE_URL,
+  COMPREFACE_API_KEY,
+  SNAPSHOT_RETRIES,
+  LATEST_RETRIES,
+  CONFIDENCE,
+} = require('../constants');
 
 const config = {
   processing: false,
-  lastMatchCamera: '',
+  lastMatchCamera: null,
 };
 const ids = [];
 const matchIds = [];
-const { FACEBOX_URL, FRIGATE_URL, SNAPSHOT_RETRIES, LATEST_RETRIES } = process.env;
+
+const DETECTORS = process.env.DETECTORS ? process.env.DETECTORS.replace(/ /g, '').split(',') : [];
 
 module.exports.start = async (req, res) => {
   try {
@@ -56,49 +66,34 @@ module.exports.start = async (req, res) => {
     perf.start('request');
     config.processing = true;
 
-    // const results = [];
-    // const latest = await this.polling({
-    //   retries: 10,
-    //   attributes,
-    //   type: 'latest',
-    //   url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=500&bbox=1`,
-    // });
-    // results.push(latest);
-
-    // if (!latest.matches.length) {
-    // results.push(
-    //   await this.polling({
-    //     retries: 5,
-    //     attributes,
-    //     type: 'snapshot',
-    //     url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=500&bbox=1`,
-    //   })
-    // );
-    // }
-
     const promises = [];
-    promises.push(
-      this.polling({
-        retries: SNAPSHOT_RETRIES || 10,
-        attributes,
-        type: 'snapshot',
-        url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=500&bbox=1`,
-      })
-    );
-    promises.push(
-      this.polling({
-        retries: LATEST_RETRIES || 10,
-        attributes,
-        type: 'latest',
-        url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=500&bbox=1`,
-      })
-    );
+    DETECTORS.forEach((detector) => {
+      promises.push(
+        this.polling({
+          detector,
+          retries: SNAPSHOT_RETRIES,
+          attributes,
+          type: 'snapshot',
+          url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=500&bbox=1`,
+        })
+      );
+      promises.push(
+        this.polling({
+          detector,
+          retries: LATEST_RETRIES,
+          attributes,
+          type: 'latest',
+          url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=500&bbox=1`,
+        })
+      );
+    });
     const results = await Promise.all(promises);
 
     const filteredMatches = {};
-    const totalAttempts = results.reduce((a, b) => a.attempts + b.attempts);
+    const totalAttempts = results.reduce((a, { attempts }) => a + attempts, 0);
     results.forEach((result) => {
       result.matches.forEach((match) => {
+        match.detector = result.detector;
         match.attempts = totalAttempts;
         match.type = result.type;
         match.time = result.time;
@@ -160,7 +155,7 @@ module.exports.clean = () => {
   });
 };
 
-module.exports.polling = async ({ retries, attributes, type, url }) => {
+module.exports.polling = async ({ detector, retries, attributes, type, url }) => {
   const matches = [];
   const { id } = attributes;
   let attempts = 0;
@@ -168,8 +163,8 @@ module.exports.polling = async ({ retries, attributes, type, url }) => {
   for (let i = 0; i < retries; i++) {
     if (matchIds.includes(id)) break;
     attempts = i + 1;
-    // console.log(`${type} attempt ${i + 1}`);
-    const response = await axios({
+    // console.log(`${detector}: ${type} attempt ${i + 1}`);
+    const cameraStream = await axios({
       method: 'get',
       url,
       responseType: 'stream',
@@ -177,27 +172,52 @@ module.exports.polling = async ({ retries, attributes, type, url }) => {
     const tmp = `/tmp/${id}-${type}.jpg`;
     const file = `matches/${id}-${type}.jpg`;
 
-    await this.writeFile(response.data, tmp);
+    await this.writeFile(cameraStream.data, tmp);
     const formData = new FormData();
     formData.append('file', fs.createReadStream(tmp));
-    const recognize = await axios({
-      method: 'post',
-      headers: {
-        ...formData.getHeaders(),
-      },
-      url: `${FACEBOX_URL}/facebox/check`,
-      data: formData,
-    });
+    const recognize =
+      detector === 'compreface'
+        ? await axios({
+            method: 'post',
+            headers: {
+              ...formData.getHeaders(),
+              'x-api-key': COMPREFACE_API_KEY,
+            },
+            url: `${COMPREFACE_URL}/api/v1/faces/recognize`,
+            data: formData,
+          })
+        : await axios({
+            method: 'post',
+            headers: {
+              ...formData.getHeaders(),
+            },
+            url: `${FACEBOX_URL}/facebox/check`,
+            data: formData,
+          });
 
-    const { faces } = recognize.data;
+    const { faces } = detector === 'facebox' ? recognize.data : { faces: [] };
+    if (detector === 'compreface') {
+      const { result } = recognize.data;
+      result.forEach((obj) => {
+        if (obj.faces.length) {
+          const [face] = obj.faces;
+          faces.push({
+            matched: true,
+            name: face.face_name,
+            confidence: face.similarity,
+          });
+        }
+      });
+    }
 
     faces.forEach((face) => {
       if (face.matched) {
         delete face.rect;
         face.attempt = i + 1;
         face.confidence = parseFloat((face.confidence * 100).toFixed(2));
-        // if (face.confidence >= 60)
-        matches.push(face);
+        if (face.confidence >= CONFIDENCE) {
+          matches.push(face);
+        }
       }
     });
     if (matches.length) {
@@ -208,13 +228,12 @@ module.exports.polling = async ({ retries, attributes, type, url }) => {
       await this.writeFile(fs.createReadStream(tmp), file);
       break;
     }
-    // await sleep(0.25);
   }
 
   const { time } = perf.stop(type);
   const attemptTime = parseFloat((time / 1000).toFixed(2));
 
-  return { time: attemptTime, type, matches, attempts };
+  return { time: attemptTime, type, matches, attempts, detector };
 };
 
 module.exports.writeFile = async (stream, file) => {
