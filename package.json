@@ -12,7 +12,7 @@
     "execution-time": "^1.4.1",
     "express": "^4.16.1",
     "express-validator": "^6.10.0",
-    "form-data": "^3.0.1",
+    "form-data": "^4.0.0",
     "fs": "0.0.1-security",
     "moment-timezone": "^0.5.33",
     "morgan": "^1.10.0",
