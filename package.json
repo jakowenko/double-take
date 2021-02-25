@@ -2,7 +2,8 @@
   "name": "frigate-events",
   "version": "0.0.0",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "train": "node train.js"
   },
   "dependencies": {
     "axios": "^0.21.1",
@@ -10,11 +11,13 @@
     "dotenv": "^8.1.0",
     "execution-time": "^1.4.1",
     "express": "^4.16.1",
-    "express-validator": "^6.9.2",
-    "form-data": "^3.0.0",
+    "express-validator": "^6.10.0",
+    "form-data": "^3.0.1",
     "fs": "0.0.1-security",
     "moment-timezone": "^0.5.33",
     "morgan": "^1.10.0",
+    "mqtt": "^4.2.6",
+    "node-schedule": "^2.0.0",
     "path": "^0.12.7",
     "stream": "0.0.2"
   },

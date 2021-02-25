@@ -4,14 +4,6 @@ const axios = require('axios');
 const moment = require('moment-timezone');
 const FormData = require('form-data');
 const perf = require('execution-time')();
-
-const config = {
-  processing: false,
-  lastMatchCamera: '',
-};
-const ids = [];
-const matchIds = [];
-
 const {
   FACEBOX_URL,
   COMPREFACE_URL,
@@ -19,8 +11,15 @@ const {
   COMPREFACE_API_KEY,
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
-  FACEBOX_CONFIDENCE,
-} = process.env;
+  CONFIDENCE,
+} = require('../constants');
+
+const config = {
+  processing: false,
+  lastMatchCamera: null,
+};
+const ids = [];
+const matchIds = [];
 
 const DETECTORS = process.env.DETECTORS ? process.env.DETECTORS.replace(/ /g, '').split(',') : [];
 
@@ -67,32 +66,12 @@ module.exports.start = async (req, res) => {
     perf.start('request');
     config.processing = true;
 
-    // const results = [];
-    // const latest = await this.polling({
-    //   retries: 10,
-    //   attributes,
-    //   type: 'latest',
-    //   url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=500&bbox=1`,
-    // });
-    // results.push(latest);
-
-    // if (!latest.matches.length) {
-    // results.push(
-    //   await this.polling({
-    //     retries: 5,
-    //     attributes,
-    //     type: 'snapshot',
-    //     url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=500&bbox=1`,
-    //   })
-    // );
-    // }
-
     const promises = [];
     DETECTORS.forEach((detector) => {
       promises.push(
         this.polling({
           detector,
-          retries: SNAPSHOT_RETRIES || 10,
+          retries: SNAPSHOT_RETRIES,
           attributes,
           type: 'snapshot',
           url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=500&bbox=1`,
@@ -101,7 +80,7 @@ module.exports.start = async (req, res) => {
       promises.push(
         this.polling({
           detector,
-          retries: LATEST_RETRIES || 10,
+          retries: LATEST_RETRIES,
           attributes,
           type: 'latest',
           url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=500&bbox=1`,
@@ -185,7 +164,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
     if (matchIds.includes(id)) break;
     attempts = i + 1;
     // console.log(`${detector}: ${type} attempt ${i + 1}`);
-    const response = await axios({
+    const cameraStream = await axios({
       method: 'get',
       url,
       responseType: 'stream',
@@ -193,7 +172,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
     const tmp = `/tmp/${id}-${type}.jpg`;
     const file = `matches/${id}-${type}.jpg`;
 
-    await this.writeFile(response.data, tmp);
+    await this.writeFile(cameraStream.data, tmp);
     const formData = new FormData();
     formData.append('file', fs.createReadStream(tmp));
     const recognize =
@@ -216,8 +195,6 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
             data: formData,
           });
 
-    // console.log(recognize.data);
-
     const { faces } = detector === 'facebox' ? recognize.data : { faces: [] };
     if (detector === 'compreface') {
       const { result } = recognize.data;
@@ -238,7 +215,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
         delete face.rect;
         face.attempt = i + 1;
         face.confidence = parseFloat((face.confidence * 100).toFixed(2));
-        if (!FACEBOX_CONFIDENCE || face.confidence >= FACEBOX_CONFIDENCE) {
+        if (face.confidence >= CONFIDENCE) {
           matches.push(face);
         }
       }
@@ -251,7 +228,6 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
       await this.writeFile(fs.createReadStream(tmp), file);
       break;
     }
-    // await sleep(0.25);
   }
 
   const { time } = perf.stop(type);

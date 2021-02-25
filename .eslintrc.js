@@ -21,6 +21,7 @@ module.exports = {
       'newline-per-chained-call': 0,
       'prettier/prettier': 'error',
       'no-param-reassign': 0,
-      'no-restricted-syntax': 0
+      'no-restricted-syntax': 0,
+      'no-nested-ternary': 0
     },
   };
