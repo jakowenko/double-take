@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const router = require('./routes');
+const { STORAGE_PATH } = require('./constants');
 
 const app = express();
 
@@ -16,7 +16,7 @@ app.get('/_healthz', (req, res) => {
   }
 });
 
-app.use('/matches', express.static(path.join(__dirname, '/../matches')));
+app.use('/matches', express.static(`${STORAGE_PATH}/matches/`));
 
 app.use(router);
 

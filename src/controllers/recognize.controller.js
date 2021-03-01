@@ -12,6 +12,7 @@ const {
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
   CONFIDENCE,
+  STORAGE_PATH,
 } = require('../constants');
 
 const config = {
@@ -170,7 +171,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
       responseType: 'stream',
     });
     const tmp = `/tmp/${id}-${type}.jpg`;
-    const file = `matches/${id}-${type}.jpg`;
+    const file = `${STORAGE_PATH}/matches/${id}-${type}.jpg`;
 
     await this.writeFile(cameraStream.data, tmp);
     const formData = new FormData();
@@ -222,9 +223,6 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
     });
     if (matches.length) {
       matchIds.push(id);
-      if (!fs.existsSync('matches')) {
-        fs.mkdirSync('matches');
-      }
       await this.writeFile(fs.createReadStream(tmp), file);
       break;
     }

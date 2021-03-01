@@ -28,6 +28,7 @@ const constants = {
   SNAPSHOT_RETRIES: FRIGATE_URL ? parseInt(SNAPSHOT_RETRIES, 10) || 10 : null,
   LATEST_RETRIES: FRIGATE_URL ? parseInt(LATEST_RETRIES, 10) || 10 : null,
   CONFIDENCE: FRIGATE_URL ? parseInt(CONFIDENCE, 10) || 50 : null,
+  STORAGE_PATH: './.storage',
 };
 
 for (const [key, value] of Object.entries(constants)) {
