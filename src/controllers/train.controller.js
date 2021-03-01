@@ -51,6 +51,7 @@ const train = async ({ name, file, detector }) => {
       },
       data: formData,
     });
+    request.data.file = file;
     return request.data;
   }
 
@@ -71,6 +72,7 @@ const train = async ({ name, file, detector }) => {
       },
       data: formData,
     });
+    request.data.file = file;
     return request.data;
   }
 };
@@ -147,6 +149,15 @@ module.exports.camera = async (req, res) => {
       const results = await Promise.all(promises);
       output.push(results);
     }
+
+    output.forEach((run) => {
+      run.forEach((attempt) => {
+        if (!attempt.success || attempt.code === 28) {
+          attempt.delete = true;
+          if (fs.existsSync(attempt.file)) fs.unlinkSync(attempt.file);
+        }
+      });
+    });
 
     res.json({
       camera,

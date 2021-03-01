@@ -16,7 +16,8 @@ app.get('/_healthz', (req, res) => {
   }
 });
 
-app.use('/matches', express.static(`${STORAGE_PATH}/matches/`));
+app.use('/matches', express.static(`${STORAGE_PATH}/matches`));
+app.use('/names', express.static(`${STORAGE_PATH}/names`));
 
 app.use(router);
 
