@@ -13,6 +13,7 @@ const {
   LATEST_RETRIES,
   CONFIDENCE,
   STORAGE_PATH,
+  DETECTORS,
 } = require('../constants');
 
 const config = {
@@ -21,8 +22,6 @@ const config = {
 };
 const ids = [];
 const matchIds = [];
-
-const DETECTORS = process.env.DETECTORS ? process.env.DETECTORS.replace(/ /g, '').split(',') : [];
 
 module.exports.start = async (req, res) => {
   try {

@@ -1,124 +1,19 @@
 const fs = require('fs');
 const axios = require('axios');
-const FormData = require('form-data');
 const { v4: uuidv4 } = require('uuid');
-const path = require('path');
 const writer = require('../util/writer.util');
+const sleep = require('../util/sleep.util');
+const train = require('../util/train.util');
 
-const {
-  FRIGATE_URL,
-  COMPREFACE_URL,
-  FACEBOX_URL,
-  COMPREFACE_API_KEY,
-  STORAGE_PATH,
-} = require('../constants');
-
-const trainingData = async () => {
-  const tmpImages = [];
-  let tmpFolders = await fs.promises.readdir(`${STORAGE_PATH}/names`);
-  tmpFolders = tmpFolders.filter((folder) => folder.toUpperCase() !== '.DS_STORE');
-  for (const folder of tmpFolders) {
-    const files = await fs.promises.readdir(`${STORAGE_PATH}/names/${folder}`);
-    const images = files.filter(
-      (file) => file.toLowerCase().includes('.jpg') || file.toLowerCase().includes('.png')
-    );
-    images.forEach((image) => {
-      tmpImages.push(image);
-    });
-  }
-
-  return { names: tmpFolders, files: tmpImages };
-};
-
-const train = async ({ name, file, detector }) => {
-  const formData = new FormData();
-
-  if (detector === 'compreface') {
-    formData.append('file', fs.createReadStream(file));
-    const request = await axios({
-      method: 'post',
-      headers: {
-        ...formData.getHeaders(),
-        'x-api-key': COMPREFACE_API_KEY,
-      },
-      url: `${COMPREFACE_URL}/api/v1/faces`,
-      params: {
-        subject: name,
-      },
-      validateStatus() {
-        // if no face is found don't break loop HTTP 400
-        return true;
-      },
-      data: formData,
-    });
-    request.data.file = file;
-    return request.data;
-  }
-
-  if (detector === 'facebox') {
-    formData.append('file', fs.createReadStream(file));
-    const request = await axios({
-      method: 'post',
-      headers: {
-        ...formData.getHeaders(),
-      },
-      url: `${FACEBOX_URL}/facebox/teach`,
-      params: {
-        name,
-        id: path.basename(file),
-      },
-      validateStatus() {
-        return true;
-      },
-      data: formData,
-    });
-    request.data.file = file;
-    return request.data;
-  }
-};
-
-const remove = async ({ names, detector, files }) => {
-  if (detector === 'compreface') {
-    const output = [];
-    for (let i = 0; i < names.length; i++) {
-      const request = await axios({
-        method: 'delete',
-        headers: {
-          'x-api-key': COMPREFACE_API_KEY,
-        },
-        url: `${COMPREFACE_URL}/api/v1/faces`,
-        params: {
-          subject: names[i],
-        },
-      });
-      output.push(request.data);
-    }
-    return output;
-  }
-  if (detector === 'facebox') {
-    const output = [];
-    for (let i = 0; i < files.length; i++) {
-      console.log(files[i]);
-      const request = await axios({
-        method: 'delete',
-        url: `${FACEBOX_URL}/facebox/teach/${files[i]}`,
-        validateStatus() {
-          return true;
-        },
-      });
-      console.log(request.data);
-      output.push(request.data);
-    }
-    return output;
-  }
-};
+const { FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
 
 module.exports.delete = async (req, res) => {
-  const { names, files } = await trainingData();
+  const { names, files } = await train.data();
   const promises = [];
 
-  if (FACEBOX_URL) promises.push(remove({ detector: 'facebox', names, files }));
-  if (COMPREFACE_URL) promises.push(remove({ detector: 'compreface', names }));
+  DETECTORS.forEach((detector) => {
+    promises.push(train.remove({ detector, names, files }));
+  });
   const results = await Promise.all(promises);
 
   res.json(results);
@@ -133,7 +28,8 @@ module.exports.camera = async (req, res) => {
   }
 
   try {
-    const output = [];
+    const showHTML = req.query.html === '';
+    const files = [];
     for (let i = 0; i < count; i++) {
       const cameraStream = await axios({
         method: 'get',
@@ -142,45 +38,81 @@ module.exports.camera = async (req, res) => {
       });
       const file = `${STORAGE_PATH}/names/${name}/frigate-events-${uuidv4()}.jpg`;
       await writer(cameraStream.data, file);
-
-      const promises = [];
-      if (FACEBOX_URL) promises.push(train({ name, file, detector: 'facebox' }));
-      if (COMPREFACE_URL) promises.push(train({ name, file, detector: 'compreface' }));
-      const results = await Promise.all(promises);
-      output.push(results);
+      files.push({ name, file });
+      await sleep(1);
     }
 
-    output.forEach((run) => {
-      run.forEach((attempt) => {
-        if (!attempt.success || attempt.code === 28) {
-          attempt.delete = true;
-          if (fs.existsSync(attempt.file)) fs.unlinkSync(attempt.file);
-        }
+    const outputs = await train.queue(files);
+
+    let html = `
+      <html>
+      <head>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <style>
+          body { background: #eaeaea; }
+          .wrapper {
+            width: 95%;
+            max-width: 1000px;
+            margin: auto;
+            font-size: 12px;
+            margin-top: 15px;
+          }
+          .wrapper:first-child {
+            margin-top: 0;
+          }
+          .wrapper > img {
+            width: 100%;
+          }
+          .detector {
+            background: #fff;
+            padding: 10px;
+          }
+        </style>
+      </head>
+      <body>`;
+
+    outputs.forEach((attempt) => {
+      const bitmap = fs.readFileSync(attempt.file);
+      const buffer = Buffer.from(bitmap).toString('base64');
+      html += `<div class='wrapper'>`;
+      html += `<img src='data:image/jpg;base64,${buffer}'>`;
+
+      const notFound = [];
+      DETECTORS.forEach((detector) => {
+        const { success, code } = attempt[detector];
+        if (success === false || code === 28) notFound.push(true);
+        html += `<div class='detector'>
+                    <strong>${detector}</strong>
+                    <br>
+                    ${JSON.stringify(attempt[detector])}
+                  </div>
+                `;
       });
+      html += `</div>`;
+
+      if (notFound.length === DETECTORS.length && fs.existsSync(attempt.file)) {
+        fs.unlinkSync(attempt.file);
+      }
     });
+
+    html += `</body></html>`;
+
+    if (showHTML) {
+      return res.send(html);
+    }
 
     res.json({
       camera,
       name,
-      results: output,
+      results: outputs,
     });
   } catch (error) {
-    console.log(error);
     return res.status(400).json({ message: error.message });
   }
 };
 
-// const init = async () => {
-//   let folders = await fs.promises.readdir('./faces');
-//   folders = folders.filter((folder) => folder.toUpperCase() !== '.DS_STORE');
-//   for (const folder of folders) {
-//     const files = await fs.promises.readdir(`./faces/${folder}`);
-//     const images = files.filter(
-//       (file) => file.toLowerCase().includes('.jpg') || file.toLowerCase().includes('.png')
-//     );
-
-//     for (const image of images) {
-//       await train({ subject: folder, image });
-//     }
-//   }
-// };
+module.exports.init = async (req, res) => {
+  const { files } = await train.data();
+  const outputs = await train.queue(files);
+  res.json(outputs);
+};
