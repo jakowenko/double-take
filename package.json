@@ -23,7 +23,6 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "apidoc": "^0.17.7",
     "eslint": "^7.21.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^6.15.0",
