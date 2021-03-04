@@ -18,6 +18,9 @@ module.exports.process = async (detector, tmp) => {
               'x-api-key': COMPREFACE_API_KEY,
             },
             url: `${COMPREFACE_URL}/api/v1/faces/recognize`,
+            params: {
+              det_prob_threshold: 0.8,
+            },
             data: formData,
           })
         : await axios({
@@ -48,10 +51,12 @@ module.exports.normalize = (detector, data) => {
     const { faces } = data;
 
     faces.forEach((face) => {
-      results.push({
-        name: face.name,
-        confidence: parseFloat((face.confidence * 100).toFixed(2)),
-      });
+      if (face.matched) {
+        results.push({
+          name: face.name,
+          confidence: parseFloat((face.confidence * 100).toFixed(2)),
+        });
+      }
     });
   }
 
