@@ -34,8 +34,8 @@ module.exports.queue = async (files) => {
   const outputs = [];
   logger.log(`queuing ${files.length} file(s) for training`);
   for (let i = 0; i < files.length; i++) {
-    logger.log(`file ${i + 1}`);
     const file = files[i];
+    logger.log(`file ${i + 1}: ${file.name} - ${path.basename(file.file)}`);
     const output = { file: file.file };
     const promises = [];
     DETECTORS.forEach((detector) => {
@@ -47,6 +47,7 @@ module.exports.queue = async (files) => {
     });
     outputs.push(output);
   }
+  logger.log('training complete');
   return outputs;
 };
 
