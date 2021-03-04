@@ -13,9 +13,11 @@ const {
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
   CONFIDENCE,
+  LOGS,
+  TZ,
 } = process.env;
 
-const constants = {
+let constants = {
   PORT: PORT || 3000,
   DETECTORS: DETECTORS ? DETECTORS.replace(/ /g, '').split(',') : null,
   MQTT_HOST: MQTT_HOST ? `mqtt://${MQTT_HOST}` : null,
@@ -29,6 +31,8 @@ const constants = {
   LATEST_RETRIES: FRIGATE_URL ? parseInt(LATEST_RETRIES, 10) || 10 : null,
   CONFIDENCE: FRIGATE_URL ? parseInt(CONFIDENCE, 10) || 50 : null,
   STORAGE_PATH: './.storage',
+  LOGS: LOGS || null,
+  TZ: TZ || 'America/Detroit',
 };
 
 for (const [key, value] of Object.entries(constants)) {
@@ -36,5 +40,12 @@ for (const [key, value] of Object.entries(constants)) {
     delete constants[key];
   }
 }
+
+constants = Object.keys(constants)
+  .sort()
+  .reduce((obj, key) => {
+    obj[key] = constants[key];
+    return obj;
+  }, {});
 
 module.exports = constants;

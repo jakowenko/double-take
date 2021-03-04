@@ -2,7 +2,7 @@ const axios = require('axios');
 const fs = require('fs');
 const FormData = require('form-data');
 const path = require('path');
-const sleep = require('./sleep.util');
+const logger = require('./logger.util');
 
 const {
   COMPREFACE_URL,
@@ -86,7 +86,7 @@ module.exports.train = async ({ name, file, detector }) => {
       return request.data;
     }
   } catch (error) {
-    console.log(`${detector} training error: ${error.message}`);
+    logger.log(`${detector} training error: ${error.message}`);
   }
 };
 
