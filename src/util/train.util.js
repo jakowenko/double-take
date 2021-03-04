@@ -32,7 +32,9 @@ module.exports.data = async () => {
 
 module.exports.queue = async (files) => {
   const outputs = [];
+  logger.log(`queuing ${files.length} file(s) for training`);
   for (let i = 0; i < files.length; i++) {
+    logger.log(`file ${i + 1}`);
     const file = files[i];
     const output = { file: file.file };
     const promises = [];
@@ -87,6 +89,11 @@ module.exports.train = async ({ name, file, detector }) => {
     }
   } catch (error) {
     logger.log(`${detector} training error: ${error.message}`);
+    if (error.response.data.message) {
+      logger.log(error.response.data.message);
+    } else if (error.response.data.error) {
+      logger.log(error.response.data.error);
+    }
   }
 };
 
