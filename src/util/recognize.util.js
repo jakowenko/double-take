@@ -3,7 +3,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const logger = require('./logger.util');
 
-const { FACEBOX_URL, COMPREFACE_URL, COMPREFACE_API_KEY, CONFIDENCE } = require('../constants');
+const { FACEBOX_URL, COMPREFACE_URL, COMPREFACE_API_KEY } = require('../constants');
 
 module.exports.process = async (detector, tmp) => {
   try {
@@ -76,20 +76,18 @@ module.exports.filter = ({ id, camera, results = [] }) => {
   const totalAttempts = results.reduce((a, { attempts }) => a + attempts, 0);
   results.forEach((result) => {
     result.matches.forEach((match) => {
-      if (match.confidence >= CONFIDENCE) {
-        match.detector = result.detector;
-        match.attempts = totalAttempts;
-        match.type = result.type;
-        match.time = result.time;
-        match.camera = camera;
-        match.room = camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-        match.id = id;
-        if (matches[match.name] === undefined) {
-          matches[match.name] = match;
-        }
-        if (matches[match.name].confidence < match.confidence) {
-          matches[match.name] = match;
-        }
+      match.detector = result.detector;
+      match.attempts = totalAttempts;
+      match.type = result.type;
+      match.time = result.time;
+      match.camera = camera;
+      match.room = camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+      match.id = id;
+      if (matches[match.name] === undefined) {
+        matches[match.name] = match;
+      }
+      if (matches[match.name].confidence < match.confidence) {
+        matches[match.name] = match;
       }
     });
   });

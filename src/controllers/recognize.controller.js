@@ -9,6 +9,7 @@ const {
   FRIGATE_URL,
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
+  CONFIDENCE,
   STORAGE_PATH,
   DETECTORS,
   TZ,
@@ -71,7 +72,7 @@ module.exports.start = async (req, res) => {
         promises.push(
           this.polling({
             detector,
-            retries: 1,
+            retries: 3,
             attributes,
             type: 'test',
             url: test,
@@ -110,29 +111,32 @@ module.exports.start = async (req, res) => {
 
     matchIds.splice(matchIds.indexOf(id), 1);
 
-    logger.log('all results');
+    logger.log('all matches');
     results.forEach((result) => {
-      logger.log(result);
+      result.results.forEach((face) => {
+        logger.log(face);
+      });
     });
-    logger.log('filtered & best results');
+    logger.log('filtered & best matches');
     logger.log(matches);
     logger.log(`done processing ${id} in ${seconds} sec`);
 
     config.processing = false;
+
     res.status(200).json(matches);
 
     if (matches.length) {
       config.lastMatchCamera = camera;
       ids.push(id);
       setTimeout(() => {
-        config.lastMatchCamera = '';
+        delete config.lastMatchCamera;
       }, 3 * 60 * 1000);
       return;
     }
   } catch (error) {
     logger.log(error.message);
-    config.lastMatchCamera = '';
     config.processing = false;
+    delete config.lastMatchCamera;
     res.status(500).json({ error: error.message });
   }
 };
@@ -151,6 +155,7 @@ module.exports.clean = () => {
 };
 
 module.exports.polling = async ({ detector, retries, attributes, type, url }) => {
+  const results = [];
   const matches = [];
   const { id } = attributes;
   let attempts = 0;
@@ -174,7 +179,10 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
 
         faces.forEach((face) => {
           face.attempt = i + 1;
-          matches.push(face);
+          results.push({ ...face, detector, type });
+          if (face.confidence >= CONFIDENCE) {
+            matches.push(face);
+          }
         });
         if (matches.length) {
           matchIds.push(id);
@@ -188,5 +196,5 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
   const { time } = perf.stop(type);
   const attemptTime = parseFloat((time / 1000).toFixed(2));
 
-  return { time: attemptTime, type, matches, attempts, detector };
+  return { time: attemptTime, type, results, matches, attempts, detector };
 };

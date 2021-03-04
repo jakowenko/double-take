@@ -95,6 +95,7 @@ module.exports.train = async ({ name, file, detector }) => {
     } else {
       logger.log(`${detector} training error: ${error.message}`);
     }
+    return error.response.data;
   }
 };
 
