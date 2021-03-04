@@ -9,7 +9,6 @@ const {
   FRIGATE_URL,
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
-  CONFIDENCE,
   STORAGE_PATH,
   DETECTORS,
   TZ,
@@ -100,10 +99,6 @@ module.exports.start = async (req, res) => {
       }
     });
     const results = await Promise.all(promises);
-    results.forEach((result) => {
-      logger.log(result, { verbose: true });
-    });
-
     const filteredMatches = await recognize.filter({ id, camera, results });
     const seconds = parseFloat((perf.stop('request').time / 1000).toFixed(2));
 
@@ -115,8 +110,14 @@ module.exports.start = async (req, res) => {
 
     matchIds.splice(matchIds.indexOf(id), 1);
 
-    logger.log(`done processing ${id} in ${seconds} sec`);
+    logger.log('all results');
+    results.forEach((result) => {
+      logger.log(result);
+    });
+    logger.log('filtered & best results');
     logger.log(matches);
+    logger.log(`done processing ${id} in ${seconds} sec`);
+
     config.processing = false;
     res.status(200).json(matches);
 
@@ -173,9 +174,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
 
         faces.forEach((face) => {
           face.attempt = i + 1;
-          if (face.confidence >= CONFIDENCE) {
-            matches.push(face);
-          }
+          matches.push(face);
         });
         if (matches.length) {
           matchIds.push(id);

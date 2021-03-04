@@ -88,11 +88,12 @@ module.exports.train = async ({ name, file, detector }) => {
       return request.data;
     }
   } catch (error) {
-    logger.log(`${detector} training error: ${error.message}`);
     if (error.response.data.message) {
-      logger.log(error.response.data.message);
+      logger.log(`${detector} training error: ${error.response.data.message}`);
     } else if (error.response.data.error) {
-      logger.log(error.response.data.error);
+      logger.log(`${detector} training error: ${error.response.data.error}`);
+    } else {
+      logger.log(`${detector} training error: ${error.message}`);
     }
   }
 };
