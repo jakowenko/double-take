@@ -2,6 +2,7 @@ const axios = require('axios');
 const fs = require('fs');
 const FormData = require('form-data');
 const path = require('path');
+const sleep = require('./sleep.util');
 
 const {
   COMPREFACE_URL,
@@ -50,45 +51,42 @@ module.exports.queue = async (files) => {
 module.exports.train = async ({ name, file, detector }) => {
   const formData = new FormData();
 
-  if (detector === 'compreface') {
-    formData.append('file', fs.createReadStream(file));
-    const request = await axios({
-      method: 'post',
-      headers: {
-        ...formData.getHeaders(),
-        'x-api-key': COMPREFACE_API_KEY,
-      },
-      url: `${COMPREFACE_URL}/api/v1/faces`,
-      params: {
-        subject: name,
-      },
-      validateStatus() {
-        // if no face is found don't break loop HTTP 400
-        return true;
-      },
-      data: formData,
-    });
-    return request.data;
-  }
+  try {
+    if (detector === 'compreface') {
+      formData.append('file', fs.createReadStream(file));
+      const request = await axios({
+        method: 'post',
+        headers: {
+          ...formData.getHeaders(),
+          'x-api-key': COMPREFACE_API_KEY,
+        },
+        url: `${COMPREFACE_URL}/api/v1/faces`,
+        params: {
+          subject: name,
+        },
+        data: formData,
+      });
+      return request.data;
+    }
 
-  if (detector === 'facebox') {
-    formData.append('file', fs.createReadStream(file));
-    const request = await axios({
-      method: 'post',
-      headers: {
-        ...formData.getHeaders(),
-      },
-      url: `${FACEBOX_URL}/facebox/teach`,
-      params: {
-        name,
-        id: path.basename(file),
-      },
-      validateStatus() {
-        return true;
-      },
-      data: formData,
-    });
-    return request.data;
+    if (detector === 'facebox') {
+      formData.append('file', fs.createReadStream(file));
+      const request = await axios({
+        method: 'post',
+        headers: {
+          ...formData.getHeaders(),
+        },
+        url: `${FACEBOX_URL}/facebox/teach`,
+        params: {
+          name,
+          id: path.basename(file),
+        },
+        data: formData,
+      });
+      return request.data;
+    }
+  } catch (error) {
+    console.log(`${detector} training error: ${error.message}`);
   }
 };
 
