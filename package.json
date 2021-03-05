@@ -1,6 +1,6 @@
 {
   "name": "frigate-events",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "scripts": {
     "start": "node server.js",
     "train": "node train.js"
@@ -12,20 +12,20 @@
     "execution-time": "^1.4.1",
     "express": "^4.16.1",
     "express-validator": "^6.10.0",
-    "form-data": "^3.0.1",
+    "form-data": "^4.0.0",
     "fs": "0.0.1-security",
     "moment-timezone": "^0.5.33",
     "morgan": "^1.10.0",
     "mqtt": "^4.2.6",
     "node-schedule": "^2.0.0",
     "path": "^0.12.7",
-    "stream": "0.0.2"
+    "stream": "0.0.2",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "apidoc": "^0.17.7",
-    "eslint": "^6.8.0",
+    "eslint": "^7.21.0",
     "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-config-prettier": "^6.15.0",
+    "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-prettier": "^3.3.1",
     "nodemon": "^2.0.7",
