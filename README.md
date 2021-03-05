@@ -139,6 +139,8 @@ Configurable options that can be passed an environment variables to the Docker c
 | DETECTORS || Comma seperated list of dectors to process images with: `compreface`, `facebox`
 | PORT | `3000` | API port |
 | MQTT_HOST || MQTT host address |
+| MQTT_USERNAME || MQTT username |
+| MQTT_PASSWORD || MQTT password |
 | MQTT_TOPIC | `frigate/events` | MQTT topic for message subscription |
 | MQTT_TOPIC_MATCHES | `frigate-events/matches` | MQTT topic where matches are published |
 | FACEBOX_URL || Base URL for Facebox API |
@@ -148,4 +150,4 @@ Configurable options that can be passed an environment variables to the Docker c
 | SNAPSHOT_RETRIES | `10` | Amount of times API will request a Frigate snapshot.jpg for analysis |
 | LATEST_RETRIES | `10` | Amount of times API will request a Frigate latest.jpg for analysis |
 | CONFIDENCE | `50` | Minimum confidence level for a face match |
-| LOGS | | Options: `verbose` |
+| LOGS || Options: `verbose` |
