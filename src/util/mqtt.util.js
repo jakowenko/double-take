@@ -40,10 +40,17 @@ module.exports.connect = () => {
         url: `http://0.0.0.0:${PORT}/recognize`,
         data: JSON.parse(message.toString()),
       });
-      const matches = request.data;
+      const { matches } = request.data;
       if (Array.isArray(matches) && matches.length) {
         matches.forEach((match) => {
-          client.publish(`${MQTT_TOPIC_MATCHES}/${match.name}`, JSON.stringify(match));
+          const configData = JSON.parse(JSON.stringify(request.data));
+          const matchData = JSON.parse(JSON.stringify(match));
+          delete configData.matches;
+          const payload = {
+            ...configData,
+            match: matchData,
+          };
+          client.publish(`${MQTT_TOPIC_MATCHES}/${match.name}`, JSON.stringify(payload));
         });
       }
     });
