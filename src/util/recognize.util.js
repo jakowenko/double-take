@@ -77,27 +77,28 @@ module.exports.normalize = (detector, data) => {
   return results;
 };
 
-module.exports.filter = ({ id, camera, results = [] }) => {
-  const matches = {};
-  const totalAttempts = results.reduce((a, { attempts }) => a + attempts, 0);
+module.exports.filter = (results = []) => {
+  const output = { attempts: results.reduce((a, { attempts }) => a + attempts, 0), matches: [] };
+  const tmpMatches = {};
   results.forEach((result) => {
     result.matches.forEach((match) => {
       match.detector = result.detector;
-      match.attempts = totalAttempts;
       match.type = result.type;
-      match.time = result.time;
-      match.camera = camera;
-      match.room = camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-      match.id = id;
-      if (matches[match.name] === undefined) {
-        matches[match.name] = match;
+      match.duration = result.duration;
+      if (tmpMatches[match.name] === undefined) {
+        tmpMatches[match.name] = match;
       }
-      if (matches[match.name].confidence < match.confidence) {
-        matches[match.name] = match;
+      if (tmpMatches[match.name].confidence < match.confidence) {
+        tmpMatches[match.name] = match;
       }
     });
   });
-  return matches;
+
+  for (const value of Object.values(tmpMatches)) {
+    output.matches.push(value);
+  }
+
+  return output;
 };
 
 module.exports.stream = async (url) => {
