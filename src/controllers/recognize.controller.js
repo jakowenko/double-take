@@ -14,12 +14,15 @@ const {
   DETECTORS,
 } = require('../constants');
 
-const config = {
-  processing: false,
-  lastMatchCamera: null,
+const { IDS, MATCH_IDS } = {
+  IDS: [],
+  MATCH_IDS: [],
 };
-const ids = [];
-const matchIds = [];
+
+let { PROCESSING, LAST_CAMERA } = {
+  PROCESSING: false,
+  LAST_CAMERA: false,
+};
 
 module.exports.start = async (req, res) => {
   try {
@@ -44,19 +47,19 @@ module.exports.start = async (req, res) => {
       });
     }
 
-    if (config.processing && type !== 'start') {
+    if (PROCESSING && type !== 'start') {
       logger.log(`still processing previous request`, { verbose: true });
       return res.status(200).json({ message: `still processing previous request` });
     }
 
-    if (ids.includes(id)) {
+    if (IDS.includes(id)) {
       logger.log(`already processed ${id}`, { verbose: true });
       return res.status(200).json({
         message: `already processed and found a match ${id}`,
       });
     }
 
-    if (config.lastMatchCamera === camera && !test) {
+    if (LAST_CAMERA === camera && req.query.pause !== 'false') {
       logger.log(`paused processing ${camera} - recent match found`, { verbose: true });
       return res.status(200).json({
         message: `paused processing ${camera} - recent match found`,
@@ -65,7 +68,7 @@ module.exports.start = async (req, res) => {
 
     logger.log(`processing ${id} @ ${time.current()}`, { dashes: true });
     perf.start('request');
-    config.processing = true;
+    PROCESSING = true;
 
     const promises = [];
     DETECTORS.forEach((detector) => {
@@ -101,42 +104,44 @@ module.exports.start = async (req, res) => {
       }
     });
     const results = await Promise.all(promises);
-    const filteredMatches = await recognize.filter({ id, camera, results });
+    const filtered = recognize.filter(results);
     const seconds = parseFloat((perf.stop('request').time / 1000).toFixed(2));
 
-    const matches = [];
-    for (const value of Object.values(filteredMatches)) {
-      value.totalTime = seconds;
-      matches.push(value);
-    }
+    const output = {
+      id,
+      duration: seconds,
+      timestamp: time.current(),
+      attempts: filtered.attempts,
+      camera,
+      room: camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+      matches: filtered.matches,
+    };
 
-    matchIds.splice(matchIds.indexOf(id), 1);
-
-    DETECTORS.forEach((detector, i) => {
-      delete results[i].matches;
-      logger.log(results[i]);
+    results.forEach((result) => {
+      delete result.matches;
+      logger.log(result);
     });
 
     logger.log('response:');
-    logger.log(matches);
+    logger.log(output);
     logger.log(`done processing ${id} in ${seconds} sec @ ${time.current()}`, { dashes: true });
 
-    config.processing = false;
+    PROCESSING = false;
 
-    res.status(200).json(matches);
+    res.status(200).json(output);
 
-    if (matches.length) {
-      config.lastMatchCamera = camera;
-      ids.push(id);
+    if (output.matches.length) {
+      LAST_CAMERA = camera;
+      IDS.push(id);
       setTimeout(() => {
-        delete config.lastMatchCamera;
+        LAST_CAMERA = false;
       }, 3 * 60 * 1000);
       return;
     }
   } catch (error) {
     logger.log(error.message);
-    config.processing = false;
-    delete config.lastMatchCamera;
+    PROCESSING = false;
+    LAST_CAMERA = false;
     res.status(500).json({ error: error.message });
   }
 };
@@ -148,7 +153,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
   let attempts = 0;
   perf.start(type);
   for (let i = 0; i < retries; i++) {
-    if (matchIds.includes(id)) break;
+    if (MATCH_IDS.includes(id)) break;
     attempts = i + 1;
 
     logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
@@ -172,7 +177,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
           }
         });
         if (matches.length) {
-          matchIds.push(id);
+          MATCH_IDS.push(id);
           await recognize.write(fs.createReadStream(tmp), file);
           break;
         }
@@ -180,7 +185,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
     }
   }
 
-  const attemptTime = parseFloat((perf.stop(type).time / 1000).toFixed(2));
+  const duration = parseFloat((perf.stop(type).time / 1000).toFixed(2));
 
-  return { time: attemptTime, type, results, matches, attempts, detector };
+  return { duration, type, results, matches, attempts, detector };
 };
