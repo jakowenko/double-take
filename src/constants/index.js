@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { version } = require('../../package.json');
 
 const {
   PORT,
@@ -33,6 +34,7 @@ let constants = {
   STORAGE_PATH: './.storage',
   LOGS: LOGS || null,
   TZ: TZ || 'America/Detroit',
+  VERSION: version,
 };
 
 for (const [key, value] of Object.entries(constants)) {

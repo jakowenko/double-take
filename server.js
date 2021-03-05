@@ -1,17 +1,18 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const moment = require('moment-timezone');
 const schedule = require('node-schedule');
 const mqtt = require('./src/util/mqtt.util');
 const app = require('./src/app');
 const logger = require('./src/util/logger.util');
+const time = require('./src/util/time.util');
 const constants = require('./src/constants');
-const { version } = require('./package.json');
 
-const { PORT, STORAGE_PATH, TZ } = constants;
+const { PORT, STORAGE_PATH } = constants;
 
-logger.log(`Frigate Events v${version}: ${moment().tz(TZ).format('MM/DD/YYYY hh:mm:ssa z')}`);
+logger.log(`Frigate Events started @ ${time.current()}`, {
+  dashes: true,
+});
 logger.log(constants);
 
 http.Server(app).listen(PORT, () => {
