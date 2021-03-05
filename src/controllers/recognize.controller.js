@@ -1,10 +1,10 @@
-const path = require('path');
 const fs = require('fs');
-const moment = require('moment-timezone');
 const perf = require('execution-time')();
 const recognize = require('../util/recognize.util');
 const events = require('../util/events.util');
 const logger = require('../util/logger.util');
+const time = require('../util/time.util');
+
 const {
   FRIGATE_URL,
   SNAPSHOT_RETRIES,
@@ -12,7 +12,6 @@ const {
   CONFIDENCE,
   STORAGE_PATH,
   DETECTORS,
-  TZ,
 } = require('../constants');
 
 const config = {
@@ -24,11 +23,15 @@ const matchIds = [];
 
 module.exports.start = async (req, res) => {
   try {
-    const currentTime = moment().tz(TZ).format('MM/DD/YYYY hh:mm:ssa z');
-    const { test } = req.query;
+    const test = req.route.path === '/recognize/test';
+    const url = test ? req.query.url : null;
     const { type } = test ? 'TEST' : req.body;
     const attributes = test ? events.test() : req.body.after ? req.body.after : req.body.before;
     const { id, label, camera } = attributes;
+
+    if (test && !req.query.url) {
+      return res.status(400).json({ message: `test events require a url` });
+    }
 
     if (type === 'end') {
       return res.status(200).json({ message: `skip processing on ${type} events` });
@@ -60,9 +63,7 @@ module.exports.start = async (req, res) => {
       });
     }
 
-    logger.log(`${currentTime}`);
-
-    logger.log(`processing ${id}`);
+    logger.log(`processing ${id} @ ${time.current()}`, { dashes: true });
     perf.start('request');
     config.processing = true;
 
@@ -75,7 +76,7 @@ module.exports.start = async (req, res) => {
             retries: 3,
             attributes,
             type: 'test',
-            url: test,
+            url,
           })
         );
       } else {
@@ -111,15 +112,14 @@ module.exports.start = async (req, res) => {
 
     matchIds.splice(matchIds.indexOf(id), 1);
 
-    logger.log('all matches');
-    results.forEach((result) => {
-      result.results.forEach((face) => {
-        logger.log(face);
-      });
+    DETECTORS.forEach((detector, i) => {
+      delete results[i].matches;
+      logger.log(results[i]);
     });
-    logger.log('filtered & best matches');
+
+    logger.log('response:');
     logger.log(matches);
-    logger.log(`done processing ${id} in ${seconds} sec`);
+    logger.log(`done processing ${id} in ${seconds} sec @ ${time.current()}`, { dashes: true });
 
     config.processing = false;
 
@@ -141,19 +141,6 @@ module.exports.start = async (req, res) => {
   }
 };
 
-module.exports.clean = () => {
-  fs.readdir('matches', (err, files) => {
-    if (err) throw err;
-
-    for (const file of files) {
-      // eslint-disable-next-line no-shadow
-      fs.unlink(path.join('matches', file), (err) => {
-        if (err) throw err;
-      });
-    }
-  });
-};
-
 module.exports.polling = async ({ detector, retries, attributes, type, url }) => {
   const results = [];
   const matches = [];
@@ -172,14 +159,14 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
 
     if (stream) {
       await recognize.write(stream, tmp);
-      const data = await recognize.process(detector, tmp);
+      const data = await recognize.process(detector, tmp, url);
 
       if (data) {
         const faces = data;
 
         faces.forEach((face) => {
           face.attempt = i + 1;
-          results.push({ ...face, detector, type });
+          results.push({ ...face });
           if (face.confidence >= CONFIDENCE) {
             matches.push(face);
           }
@@ -193,8 +180,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
     }
   }
 
-  const { time } = perf.stop(type);
-  const attemptTime = parseFloat((time / 1000).toFixed(2));
+  const attemptTime = parseFloat((perf.stop(type).time / 1000).toFixed(2));
 
   return { time: attemptTime, type, results, matches, attempts, detector };
 };

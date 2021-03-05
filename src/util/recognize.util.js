@@ -5,7 +5,7 @@ const logger = require('./logger.util');
 
 const { FACEBOX_URL, COMPREFACE_URL, COMPREFACE_API_KEY } = require('../constants');
 
-module.exports.process = async (detector, tmp) => {
+module.exports.process = async (detector, tmp, url) => {
   try {
     const formData = new FormData();
     formData.append('file', fs.createReadStream(tmp));
@@ -41,6 +41,7 @@ module.exports.process = async (detector, tmp) => {
     } else {
       logger.log(`${detector} process error: ${error.message}`);
     }
+    logger.log(url);
   }
 };
 
