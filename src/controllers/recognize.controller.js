@@ -110,7 +110,7 @@ module.exports.start = async (req, res) => {
     const output = {
       id,
       duration: seconds,
-      timestamp: time.current(),
+      time: time.current(),
       attempts: filtered.attempts,
       camera,
       room: camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
