@@ -1,271 +1,191 @@
-const path = require('path');
 const fs = require('fs');
-const axios = require('axios');
-const moment = require('moment-timezone');
-const FormData = require('form-data');
 const perf = require('execution-time')();
+const recognize = require('../util/recognize.util');
+const events = require('../util/events.util');
+const logger = require('../util/logger.util');
+const time = require('../util/time.util');
+
 const {
-  FACEBOX_URL,
-  COMPREFACE_URL,
   FRIGATE_URL,
-  COMPREFACE_API_KEY,
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
   CONFIDENCE,
+  STORAGE_PATH,
+  DETECTORS,
 } = require('../constants');
 
-const config = {
-  processing: false,
-  lastMatchCamera: null,
+const { IDS, MATCH_IDS } = {
+  IDS: [],
+  MATCH_IDS: [],
 };
-const ids = [];
-const matchIds = [];
 
-const DETECTORS = process.env.DETECTORS ? process.env.DETECTORS.replace(/ /g, '').split(',') : [];
+let { PROCESSING, LAST_CAMERA } = {
+  PROCESSING: false,
+  LAST_CAMERA: false,
+};
 
 module.exports.start = async (req, res) => {
   try {
-    const currentTime = moment().tz('America/Detroit').format('MM/DD/YYYY hh:mm:ss z');
-    const { type } = req.body;
-    const attributes = req.body.after ? req.body.after : req.body.before;
+    const test = req.route.path === '/recognize/test';
+    const url = test ? req.query.url : null;
+    const { type } = test ? 'TEST' : req.body;
+    const attributes = test ? events.test() : req.body.after ? req.body.after : req.body.before;
     const { id, label, camera } = attributes;
+
+    if (test && !req.query.url) {
+      return res.status(400).json({ message: `test events require a url` });
+    }
 
     if (type === 'end') {
       return res.status(200).json({ message: `skip processing on ${type} events` });
     }
 
     if (label !== 'person') {
-      // console.log(`${id} label not a person - ${label} found`);
+      logger.log(`${id} label not a person - ${label} found`, { verbose: true });
       return res.status(200).json({
         message: `${id} label not a person - ${label} found`,
       });
     }
 
-    if (config.processing && type !== 'start') {
-      // console.log(`still processing previous request`);
+    if (PROCESSING && type !== 'start') {
+      logger.log(`still processing previous request`, { verbose: true });
       return res.status(200).json({ message: `still processing previous request` });
     }
 
-    if (ids.includes(id)) {
-      // console.log(`already processed ${id}`);
+    if (IDS.includes(id)) {
+      logger.log(`already processed ${id}`, { verbose: true });
       return res.status(200).json({
         message: `already processed and found a match ${id}`,
       });
     }
 
-    if (config.lastMatchCamera === camera) {
-      // console.log(`paused processing ${camera} - recent match found`);
+    if (LAST_CAMERA === camera && req.query.pause !== 'false') {
+      logger.log(`paused processing ${camera} - recent match found`, { verbose: true });
       return res.status(200).json({
         message: `paused processing ${camera} - recent match found`,
       });
     }
 
-    console.log(`${currentTime}`);
-
-    console.log(`processing ${id}`);
+    logger.log(`processing ${id} @ ${time.current()}`, { dashes: true });
     perf.start('request');
-    config.processing = true;
+    PROCESSING = true;
 
     const promises = [];
     DETECTORS.forEach((detector) => {
-      promises.push(
-        this.polling({
-          detector,
-          retries: SNAPSHOT_RETRIES,
-          attributes,
-          type: 'snapshot',
-          url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=500&bbox=1`,
-        })
-      );
-      promises.push(
-        this.polling({
-          detector,
-          retries: LATEST_RETRIES,
-          attributes,
-          type: 'latest',
-          url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=500&bbox=1`,
-        })
-      );
+      if (test) {
+        promises.push(
+          this.polling({
+            detector,
+            retries: 3,
+            attributes,
+            type: 'test',
+            url,
+          })
+        );
+      } else {
+        promises.push(
+          this.polling({
+            detector,
+            retries: SNAPSHOT_RETRIES,
+            attributes,
+            type: 'snapshot',
+            url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=500&bbox=1`,
+          })
+        );
+        promises.push(
+          this.polling({
+            detector,
+            retries: LATEST_RETRIES,
+            attributes,
+            type: 'latest',
+            url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=500&bbox=1`,
+          })
+        );
+      }
     });
     const results = await Promise.all(promises);
+    const filtered = recognize.filter(results);
+    const seconds = parseFloat((perf.stop('request').time / 1000).toFixed(2));
 
-    const filteredMatches = {};
-    const totalAttempts = results.reduce((a, { attempts }) => a + attempts, 0);
+    const output = {
+      id,
+      duration: seconds,
+      time: time.current(),
+      attempts: filtered.attempts,
+      camera,
+      room: camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+      matches: filtered.matches,
+    };
+
     results.forEach((result) => {
-      result.matches.forEach((match) => {
-        match.detector = result.detector;
-        match.attempts = totalAttempts;
-        match.type = result.type;
-        match.time = result.time;
-        match.camera = camera;
-        match.room = camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-        match.id = id;
-        if (filteredMatches[match.name] === undefined) {
-          filteredMatches[match.name] = match;
-        }
-        if (filteredMatches[match.name].confidence < match.confidence) {
-          filteredMatches[match.name] = match;
-        }
-      });
+      delete result.matches;
+      logger.log(result);
     });
 
-    const { time } = perf.stop('request');
-    const seconds = parseFloat((time / 1000).toFixed(2));
+    logger.log('response:');
+    logger.log(output);
+    logger.log(`done processing ${id} in ${seconds} sec @ ${time.current()}`, { dashes: true });
 
-    const matches = [];
-    for (const value of Object.values(filteredMatches)) {
-      value.totalTime = seconds;
-      matches.push(value);
-    }
+    PROCESSING = false;
 
-    console.log(`done processing ${id} in ${seconds} sec`);
-    console.log(matches);
-    config.processing = false;
-    res.status(200).json(matches);
+    res.status(200).json(output);
 
-    // setTimeout(() => {
-    //   this.clean();
-    // }, 60000);
-
-    if (matches.length) {
-      config.lastMatchCamera = camera;
-      ids.push(id);
+    if (output.matches.length) {
+      LAST_CAMERA = camera;
+      IDS.push(id);
       setTimeout(() => {
-        config.lastMatchCamera = '';
+        LAST_CAMERA = false;
       }, 3 * 60 * 1000);
       return;
     }
   } catch (error) {
-    config.lastMatchCamera = '';
-    config.processing = false;
+    logger.log(error.message);
+    PROCESSING = false;
+    LAST_CAMERA = false;
     res.status(500).json({ error: error.message });
   }
 };
 
-module.exports.clean = () => {
-  fs.readdir('matches', (err, files) => {
-    if (err) throw err;
-
-    for (const file of files) {
-      // eslint-disable-next-line no-shadow
-      fs.unlink(path.join('matches', file), (err) => {
-        if (err) throw err;
-      });
-    }
-  });
-};
-
 module.exports.polling = async ({ detector, retries, attributes, type, url }) => {
+  const results = [];
   const matches = [];
   const { id } = attributes;
   let attempts = 0;
   perf.start(type);
   for (let i = 0; i < retries; i++) {
-    if (matchIds.includes(id)) break;
+    if (MATCH_IDS.includes(id)) break;
     attempts = i + 1;
-    // console.log(`${detector}: ${type} attempt ${i + 1}`);
-    const cameraStream = await axios({
-      method: 'get',
-      url,
-      responseType: 'stream',
-    });
+
+    logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
+
     const tmp = `/tmp/${id}-${type}.jpg`;
-    const file = `matches/${id}-${type}.jpg`;
+    const file = `${STORAGE_PATH}/matches/${id}-${type}.jpg`;
+    const stream = await recognize.stream(url);
 
-    await this.writeFile(cameraStream.data, tmp);
-    const formData = new FormData();
-    formData.append('file', fs.createReadStream(tmp));
-    const recognize =
-      detector === 'compreface'
-        ? await axios({
-            method: 'post',
-            headers: {
-              ...formData.getHeaders(),
-              'x-api-key': COMPREFACE_API_KEY,
-            },
-            url: `${COMPREFACE_URL}/api/v1/faces/recognize`,
-            data: formData,
-          })
-        : await axios({
-            method: 'post',
-            headers: {
-              ...formData.getHeaders(),
-            },
-            url: `${FACEBOX_URL}/facebox/check`,
-            data: formData,
-          });
+    if (stream) {
+      await recognize.write(stream, tmp);
+      const data = await recognize.process(detector, tmp, url);
 
-    const { faces } = detector === 'facebox' ? recognize.data : { faces: [] };
-    if (detector === 'compreface') {
-      const { result } = recognize.data;
-      result.forEach((obj) => {
-        if (obj.faces.length) {
-          const [face] = obj.faces;
-          faces.push({
-            matched: true,
-            name: face.face_name,
-            confidence: face.similarity,
-          });
-        }
-      });
-    }
+      if (data) {
+        const faces = data;
 
-    faces.forEach((face) => {
-      if (face.matched) {
-        delete face.rect;
-        face.attempt = i + 1;
-        face.confidence = parseFloat((face.confidence * 100).toFixed(2));
-        if (face.confidence >= CONFIDENCE) {
-          matches.push(face);
+        faces.forEach((face) => {
+          face.attempt = i + 1;
+          results.push({ ...face });
+          if (face.confidence >= CONFIDENCE) {
+            matches.push(face);
+          }
+        });
+        if (matches.length) {
+          MATCH_IDS.push(id);
+          await recognize.write(fs.createReadStream(tmp), file);
+          break;
         }
       }
-    });
-    if (matches.length) {
-      matchIds.push(id);
-      if (!fs.existsSync('matches')) {
-        fs.mkdirSync('matches');
-      }
-      await this.writeFile(fs.createReadStream(tmp), file);
-      break;
     }
   }
 
-  const { time } = perf.stop(type);
-  const attemptTime = parseFloat((time / 1000).toFixed(2));
+  const duration = parseFloat((perf.stop(type).time / 1000).toFixed(2));
 
-  return { time: attemptTime, type, matches, attempts, detector };
-};
-
-module.exports.writeFile = async (stream, file) => {
-  return new Promise((resolve) => {
-    const out = fs.createWriteStream(file);
-    stream.pipe(out);
-    out.on('finish', () => {
-      resolve();
-    });
-  });
-};
-
-module.exports.recognize = async (type, body) => {
-  const matches = [];
-  perf.start();
-  const recognize = await axios({
-    method: 'post',
-    url: `${FACEBOX_URL}/facebox/check`,
-    data: body,
-  });
-  const { time } = perf.stop();
-  const seconds = parseFloat((time / 1000).toFixed(2));
-
-  const { faces } = recognize.data;
-
-  faces.forEach((face) => {
-    if (face.matched) {
-      delete face.rect;
-      face.confidence = parseFloat((face.confidence * 100).toFixed(2));
-      matches.push(face);
-    }
-  });
-
-  return { time: seconds, type, matches };
+  return { duration, type, results, matches, attempts, detector };
 };
