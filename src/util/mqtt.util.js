@@ -1,7 +1,14 @@
 const axios = require('axios');
 const mqtt = require('mqtt');
 const logger = require('./logger.util');
-const { PORT, MQTT_HOST, MQTT_TOPIC, MQTT_TOPIC_MATCHES } = require('../constants');
+const {
+  PORT,
+  MQTT_HOST,
+  MQTT_TOPIC,
+  MQTT_TOPIC_MATCHES,
+  MQTT_USERNAME,
+  MQTT_PASSWORD,
+} = require('../constants');
 
 module.exports.connect = () => {
   if (!MQTT_HOST) {
@@ -9,6 +16,8 @@ module.exports.connect = () => {
   }
   const client = mqtt.connect(MQTT_HOST, {
     reconnectPeriod: 10000,
+    username: MQTT_USERNAME,
+    password: MQTT_PASSWORD,
   });
 
   client
