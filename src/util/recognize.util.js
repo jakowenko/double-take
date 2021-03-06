@@ -114,16 +114,23 @@ module.exports.stream = async (url) => {
   }
 };
 
-module.exports.write = async (stream, file) => {
-  return new Promise((resolve) => {
-    const out = fs.createWriteStream(file);
-    stream.pipe(out);
-    out
-      .on('finish', () => {
-        resolve();
-      })
-      .on('error', (error) => {
-        logger.log(`write error: ${error.message}`);
-      });
-  });
+module.exports.isValidURL = async ({ detector, type, url }) => {
+  const validOptions = ['image/jpg', 'image/jpeg', 'image/png'];
+  try {
+    const request = await axios({
+      method: 'head',
+      url,
+    });
+    const { headers } = request;
+    const isValid = validOptions.includes(headers['content-type']);
+    if (!isValid) {
+      logger.log(`${detector} url validation failed for ${type}: ${url}`);
+      logger.log(`content type: ${headers['content-type']}`);
+    }
+    return isValid;
+  } catch (error) {
+    logger.log(`url validation error: ${error.message}`);
+    logger.log(url);
+    return false;
+  }
 };
