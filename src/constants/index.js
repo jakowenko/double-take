@@ -22,7 +22,7 @@ const {
 
 let constants = {
   PORT: PORT || 3000,
-  DETECTORS: DETECTORS ? DETECTORS.replace(/ /g, '').split(',') : null,
+  DETECTORS: DETECTORS ? DETECTORS.replace(/ /g, '').split(',') : [],
   MQTT_HOST: MQTT_HOST ? `mqtt://${MQTT_HOST}` : null,
   MQTT_USERNAME: MQTT_USERNAME || null,
   MQTT_PASSWORD: MQTT_PASSWORD || null,

@@ -1,3 +1,5 @@
+[![Docker Pulls](https://flat.badgen.net/docker/pulls/jakowenko/frigate-events)](https://hub.docker.com/r/jakowenko/frigate-events)
+
 # Frigate Events
 
 Process [Frigate](https://github.com/blakeblackshear/frigate) images with [Facebox](https://machinebox.io) and/or [CompreFace](https://github.com/exadel-inc/CompreFace).
