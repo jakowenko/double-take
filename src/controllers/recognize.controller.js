@@ -1,9 +1,9 @@
 const fs = require('fs');
 const perf = require('execution-time')();
 const recognize = require('../util/recognize.util');
-const events = require('../util/events.util');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
+const { writer } = require('../util/fs.util');
 
 const {
   FRIGATE_URL,
@@ -26,13 +26,12 @@ let { PROCESSING, LAST_CAMERA } = {
 
 module.exports.start = async (req, res) => {
   try {
-    const test = req.route.path === '/recognize/test';
-    const url = test ? req.query.url : null;
-    const { type } = test ? 'TEST' : req.body;
-    const attributes = test ? events.test() : req.body.after ? req.body.after : req.body.before;
+    const { type, isTestEvent } = req.body;
+    const { url } = req.query;
+    const attributes = req.body.after ? req.body.after : req.body.before;
     const { id, label, camera } = attributes;
 
-    if (test && !req.query.url) {
+    if (isTestEvent && !req.query.url) {
       return res.status(400).json({ message: `test events require a url` });
     }
 
@@ -72,7 +71,7 @@ module.exports.start = async (req, res) => {
 
     const promises = [];
     DETECTORS.forEach((detector) => {
-      if (test) {
+      if (isTestEvent) {
         promises.push(
           this.polling({
             detector,
@@ -152,34 +151,39 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
   const { id } = attributes;
   let attempts = 0;
   perf.start(type);
-  for (let i = 0; i < retries; i++) {
-    if (MATCH_IDS.includes(id)) break;
-    attempts = i + 1;
 
-    logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
+  const isValidURL = await recognize.isValidURL({ detector, type, url });
 
-    const tmp = `/tmp/${id}-${type}.jpg`;
-    const file = `${STORAGE_PATH}/matches/${id}-${type}.jpg`;
-    const stream = await recognize.stream(url);
+  if (isValidURL) {
+    for (let i = 0; i < retries; i++) {
+      if (MATCH_IDS.includes(id)) break;
+      attempts = i + 1;
 
-    if (stream) {
-      await recognize.write(stream, tmp);
-      const data = await recognize.process(detector, tmp, url);
+      logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
 
-      if (data) {
-        const faces = data;
+      const tmp = `/tmp/${id}-${type}.jpg`;
+      const file = `${STORAGE_PATH}/matches/${id}-${type}.jpg`;
+      const stream = await recognize.stream(url);
 
-        faces.forEach((face) => {
-          face.attempt = i + 1;
-          results.push({ ...face });
-          if (face.confidence >= CONFIDENCE) {
-            matches.push(face);
+      if (stream) {
+        await writer(stream, tmp);
+        const data = await recognize.process(detector, tmp, url);
+
+        if (data) {
+          const faces = data;
+
+          faces.forEach((face) => {
+            face.attempt = i + 1;
+            results.push({ ...face });
+            if (face.confidence >= CONFIDENCE) {
+              matches.push(face);
+            }
+          });
+          if (matches.length) {
+            MATCH_IDS.push(id);
+            await writer(fs.createReadStream(tmp), file);
+            break;
           }
-        });
-        if (matches.length) {
-          MATCH_IDS.push(id);
-          await recognize.write(fs.createReadStream(tmp), file);
-          break;
         }
       }
     }

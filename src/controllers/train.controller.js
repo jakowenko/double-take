@@ -1,7 +1,7 @@
 const fs = require('fs');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
-const writer = require('../util/writer.util');
+const { writer } = require('../util/fs.util');
 const sleep = require('../util/sleep.util');
 const train = require('../util/train.util');
 
