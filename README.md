@@ -82,6 +82,7 @@ If a match is found then a new topic will be created with the default format bei
 ```shell
 docker run -d \
   --name=frigate-events \
+  --restart=unless-stopped \
   -p 3000:3000 \
   -e DETECTORS=facebox \
   -e FRIGATE_URL=http://frigate-url.com \
@@ -98,6 +99,7 @@ services:
   frigate-events:
     container_name: frigate-events
     image: jakowenko/frigate-events
+    restart: unless-stopped
     environment:
       DETECTORS: facebox
       FRIGATE_URL: http://frigate-url.com
@@ -117,6 +119,7 @@ services:
   frigate-events:
     container_name: frigate-events
     image: jakowenko/frigate-events
+    restart: unless-stopped
     volumes:
       - ${PWD}/.storage:/.storage
     environment:
@@ -138,7 +141,7 @@ services:
 Configurable options that can be passed an environment variables to the Docker container.
 | Name | Default | Description |
 |--|--|--|
-| DETECTORS || Comma seperated list of dectors to process images with: `compreface`, `facebox`
+| DETECTORS || Comma seperated list of dectors to process images with: `compreface`, `facebox` |
 | PORT | `3000` | API port |
 | MQTT_HOST || MQTT host address |
 | MQTT_USERNAME || MQTT username |
@@ -149,7 +152,7 @@ Configurable options that can be passed an environment variables to the Docker c
 | COMPREFACE_URL || Base URL for CompreFace API |
 | FRIGATE_URL || Base URL for Frigate |
 | COMPREFACE_API_KEY || API Key for CompreFace collection |
-| SNAPSHOT_RETRIES | `10` | Amount of times API will request a Frigate snapshot.jpg for analysis |
-| LATEST_RETRIES | `10` | Amount of times API will request a Frigate latest.jpg for analysis |
+| SNAPSHOT_RETRIES | `10` | Amount of times API will request a Frigate `snapshot.jpg` for analysis |
+| LATEST_RETRIES | `10` | Amount of times API will request a Frigate `latest.jpg` for analysis |
 | CONFIDENCE | `50` | Minimum confidence level for a face match |
 | LOGS || Options: `verbose` |
