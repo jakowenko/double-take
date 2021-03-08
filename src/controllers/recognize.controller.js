@@ -3,10 +3,13 @@ const perf = require('execution-time')();
 const recognize = require('../util/recognize.util');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
-const { writer } = require('../util/fs.util');
+const filesystem = require('../util/fs.util');
+const frigate = require('../util/frigate.util');
+const sleep = require('../util/sleep.util');
 
 const {
   FRIGATE_URL,
+  FRIGATE_IMAGE_HEIGHT,
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
   CONFIDENCE,
@@ -30,6 +33,13 @@ module.exports.start = async (req, res) => {
     const { url } = req.query;
     const attributes = req.body.after ? req.body.after : req.body.before;
     const { id, label, camera } = attributes;
+
+    const status = await frigate.status();
+
+    if (!status) {
+      logger.log('frigate is not responding');
+      return res.status(400).json({ message: 'frigate is not responding' });
+    }
 
     if (isTestEvent && !req.query.url) {
       return res.status(400).json({ message: `test events require a url` });
@@ -65,7 +75,7 @@ module.exports.start = async (req, res) => {
       });
     }
 
-    logger.log(`processing ${id} @ ${time.current()}`, { dashes: true });
+    logger.log(`${time.current()}\nprocessing ${camera}: ${id}`, { dashes: true });
     perf.start('request');
     PROCESSING = true;
 
@@ -88,7 +98,7 @@ module.exports.start = async (req, res) => {
             retries: SNAPSHOT_RETRIES,
             attributes,
             type: 'snapshot',
-            url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=500&bbox=1`,
+            url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}&bbox=1`,
           })
         );
         promises.push(
@@ -97,23 +107,22 @@ module.exports.start = async (req, res) => {
             retries: LATEST_RETRIES,
             attributes,
             type: 'latest',
-            url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=500&bbox=1`,
+            url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=${FRIGATE_IMAGE_HEIGHT}&bbox=1`,
           })
         );
       }
     });
     const results = await Promise.all(promises);
-    const filtered = recognize.filter(results);
+    const { attempts, matches } = recognize.filter(results);
     const seconds = parseFloat((perf.stop('request').time / 1000).toFixed(2));
-
     const output = {
       id,
       duration: seconds,
       time: time.current(),
-      attempts: filtered.attempts,
+      attempts,
       camera,
       room: camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
-      matches: filtered.matches,
+      matches,
     };
 
     results.forEach((result) => {
@@ -123,11 +132,20 @@ module.exports.start = async (req, res) => {
 
     logger.log('response:');
     logger.log(output);
-    logger.log(`done processing ${id} in ${seconds} sec @ ${time.current()}`, { dashes: true });
+    logger.log(`${time.current()}\ndone processing ${camera}: ${id} in ${seconds} sec`, {
+      dashes: true,
+    });
 
     PROCESSING = false;
 
     res.status(200).json(output);
+
+    matches.forEach((match) => {
+      const source = `${STORAGE_PATH}/matches/${id}-${match.type}.jpg`;
+      const destination = `${STORAGE_PATH}/matches/${match.name}/${id}-${match.type}.jpg`;
+      filesystem.writeMatches(match.name, source, destination);
+      filesystem.delete(source);
+    });
 
     if (output.matches.length) {
       LAST_CAMERA = camera;
@@ -159,6 +177,9 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
       if (MATCH_IDS.includes(id)) break;
       attempts = i + 1;
 
+      const jitter = Math.floor(Math.random() * (1 * 100 - 0 * 100) + 0 * 100) / (1 * 100);
+      await sleep(jitter);
+
       logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
 
       const tmp = `/tmp/${id}-${type}.jpg`;
@@ -166,7 +187,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
       const stream = await recognize.stream(url);
 
       if (stream) {
-        await writer(stream, tmp);
+        await filesystem.writer(stream, tmp);
         const data = await recognize.process(detector, tmp, url);
 
         if (data) {
@@ -181,7 +202,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
           });
           if (matches.length) {
             MATCH_IDS.push(id);
-            await writer(fs.createReadStream(tmp), file);
+            await filesystem.writer(fs.createReadStream(tmp), file);
             break;
           }
         }

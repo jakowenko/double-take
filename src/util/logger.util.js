@@ -1,16 +1,28 @@
-const { LOGS } = require('../constants');
+const fs = require('fs');
+const { LOGS, STORAGE_PATH } = require('../constants');
+
+let logStream = false;
 
 module.exports.log = (message, config = {}) => {
-  if (config.verbose) {
-    if (LOGS === 'verbose') {
-      console.log(message);
-      // if (config.dashes) this.dashes(message);
-    }
-    return;
-  }
+  try {
+    if (!logStream)
+      logStream = fs.createWriteStream(`${STORAGE_PATH}/messages.log`, { flags: 'a' });
+    logStream.write(`${JSON.stringify(message)}\n`);
 
-  console.log(message);
-  // if (config.dashes) this.dashes(message);
+    if (config.verbose) {
+      if (LOGS === 'verbose') {
+        console.log(message);
+        // if (config.dashes) this.dashes(message);
+      }
+      return;
+    }
+
+    console.log(message);
+    // if (config.dashes) this.dashes(message);
+  } catch (error) {
+    console.log('logger error');
+    console.log(error);
+  }
 };
 
 module.exports.dashes = (message) => {
