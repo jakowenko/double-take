@@ -12,6 +12,7 @@ const {
   FACEBOX_URL,
   COMPREFACE_URL,
   FRIGATE_URL,
+  FRIGATE_IMAGE_HEIGHT,
   COMPREFACE_API_KEY,
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
@@ -21,24 +22,29 @@ const {
 } = process.env;
 
 let constants = {
+  VERSION: version,
   PORT: PORT || 3000,
   DETECTORS: DETECTORS ? DETECTORS.replace(/ /g, '').split(',') : [],
+  STORAGE_PATH: './.storage',
+  LOGS: LOGS || null,
+  TZ: TZ || 'America/Detroit',
+  CONFIDENCE: FRIGATE_URL ? parseInt(CONFIDENCE, 10) || 50 : null,
+
   MQTT_HOST: MQTT_HOST ? `mqtt://${MQTT_HOST}` : null,
   MQTT_USERNAME: MQTT_USERNAME || null,
   MQTT_PASSWORD: MQTT_PASSWORD || null,
   MQTT_TOPIC: MQTT_HOST ? MQTT_TOPIC || 'frigate/events' : null,
   MQTT_TOPIC_MATCHES: MQTT_HOST ? MQTT_TOPIC_MATCHES || 'frigate-events/matches' : null,
+
   FACEBOX_URL: FACEBOX_URL ? FACEBOX_URL.replace(/\/$/, '') : null,
+
   COMPREFACE_URL: COMPREFACE_URL ? COMPREFACE_URL.replace(/\/$/, '') : null,
-  FRIGATE_URL: FRIGATE_URL ? FRIGATE_URL.replace(/\/$/, '') : null,
   COMPREFACE_API_KEY: COMPREFACE_URL ? COMPREFACE_API_KEY || null : null,
+
+  FRIGATE_URL: FRIGATE_URL ? FRIGATE_URL.replace(/\/$/, '') : null,
+  FRIGATE_IMAGE_HEIGHT: FRIGATE_IMAGE_HEIGHT || 800,
   SNAPSHOT_RETRIES: FRIGATE_URL ? parseInt(SNAPSHOT_RETRIES, 10) || 10 : null,
   LATEST_RETRIES: FRIGATE_URL ? parseInt(LATEST_RETRIES, 10) || 10 : null,
-  CONFIDENCE: FRIGATE_URL ? parseInt(CONFIDENCE, 10) || 50 : null,
-  STORAGE_PATH: './.storage',
-  LOGS: LOGS || null,
-  TZ: TZ || 'America/Detroit',
-  VERSION: version,
 };
 
 for (const [key, value] of Object.entries(constants)) {
