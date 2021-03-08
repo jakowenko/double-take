@@ -4,6 +4,8 @@ const recognize = require('../util/recognize.util');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
 const { writer } = require('../util/fs.util');
+const frigate = require('../util/frigate.util');
+const sleep = require('../util/sleep.util');
 
 const {
   FRIGATE_URL,
@@ -30,6 +32,13 @@ module.exports.start = async (req, res) => {
     const { url } = req.query;
     const attributes = req.body.after ? req.body.after : req.body.before;
     const { id, label, camera } = attributes;
+
+    const status = await frigate.status();
+
+    if (!status) {
+      logger.log('frigate is not responding');
+      return res.status(400).json({ message: 'frigate is not responding' });
+    }
 
     if (isTestEvent && !req.query.url) {
       return res.status(400).json({ message: `test events require a url` });
@@ -158,6 +167,9 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
     for (let i = 0; i < retries; i++) {
       if (MATCH_IDS.includes(id)) break;
       attempts = i + 1;
+
+      const jitter = Math.floor(Math.random() * (1 * 100 - 0 * 100) + 0 * 100) / (1 * 100);
+      await sleep(jitter);
 
       logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
 
