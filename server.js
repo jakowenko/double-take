@@ -8,7 +8,9 @@ const constants = require('./src/constants');
 
 const { PORT } = constants;
 
-logger.log(`Frigate Events started @ ${time.current()}`, {
+storage.setup();
+
+logger.log(`${time.current()}\nFrigate Events Started`, {
   dashes: true,
 });
 logger.log(constants);
@@ -18,5 +20,4 @@ http.Server(app).listen(PORT, () => {
 });
 
 mqtt.connect();
-storage.setup();
 storage.purge();
