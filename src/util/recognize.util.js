@@ -36,7 +36,7 @@ module.exports.process = async (detector, tmp, url) => {
 
     return data;
   } catch (error) {
-    if (error.response.data.error) {
+    if (error.response && error.response.data.error) {
       logger.log(`${detector} process error: ${error.response.data.error}`);
     } else {
       logger.log(`${detector} process error: ${error.message}`);
