@@ -10,7 +10,7 @@ const { PORT } = constants;
 
 storage.setup();
 
-logger.log(`Frigate Events started @ ${time.current()}`, {
+logger.log(`${time.current()}\nFrigate Events Started`, {
   dashes: true,
 });
 logger.log(constants);
