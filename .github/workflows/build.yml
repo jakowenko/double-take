@@ -8,17 +8,19 @@ on:
 
 jobs:
   build-docker:
-    if: github.repository == 'jakowenko/frigate-events'
+    if: github.repository == 'jakowenko/double-take'
     runs-on: ubuntu-latest
     steps:
       - name: Set ENV to beta
         if: endsWith(github.ref, '/beta')
         run: |
           echo "TAG=beta" >> $GITHUB_ENV
+          echo "ARCH=linux/amd64" >> $GITHUB_ENV
       - name: Set ENV to latest
         if: endsWith(github.ref, '/master')
         run: |
           echo "TAG=latest" >> $GITHUB_ENV
+          echo "ARCH=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64" >> $GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v2
       - name: Set up QEMU
@@ -28,9 +30,9 @@ jobs:
       - name: Docker Buildx (build)
         run: |
           docker buildx build \
-            --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
+            --platform ${ARCH} \
             --output "type=image,push=false" \
-            --tag jakowenko/frigate-events:${TAG} \
+            --tag jakowenko/double-take:${TAG} \
             --file Dockerfile .
       - name: Docker Login
         env:
@@ -41,13 +43,13 @@ jobs:
       - name: Docker Buildx (push)
         run: |
           docker buildx build \
-            --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
+            --platform ${ARCH} \
             --output "type=image,push=true" \
-            --tag jakowenko/frigate-events:${TAG} \
+            --tag jakowenko/double-take:${TAG} \
             --file Dockerfile .
       - name: Docker Check Manifest
         run: |
-          docker run --rm mplatform/mquery jakowenko/frigate-events:${TAG}
+          docker run --rm mplatform/mquery jakowenko/double-take:${TAG}
       - name: Clear
         if: always()
         run: |

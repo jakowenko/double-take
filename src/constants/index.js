@@ -34,7 +34,7 @@ let constants = {
   MQTT_USERNAME: MQTT_USERNAME || null,
   MQTT_PASSWORD: MQTT_PASSWORD || null,
   MQTT_TOPIC: MQTT_HOST ? MQTT_TOPIC || 'frigate/events' : null,
-  MQTT_TOPIC_MATCHES: MQTT_HOST ? MQTT_TOPIC_MATCHES || 'frigate-events/matches' : null,
+  MQTT_TOPIC_MATCHES: MQTT_HOST ? MQTT_TOPIC_MATCHES || 'double-take/matches' : null,
 
   FACEBOX_URL: FACEBOX_URL ? FACEBOX_URL.replace(/\/$/, '') : null,
 

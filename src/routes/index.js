@@ -9,7 +9,7 @@ const { body, query } = expressValidator;
 
 router.post('/recognize', recognize.start);
 router.get(
-  '/recognize/test',
+  '/recognize',
   validate([query('url').isURL().withMessage('not a valid url')]),
   test,
   recognize.start

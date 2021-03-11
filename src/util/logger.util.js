@@ -7,7 +7,8 @@ module.exports.log = (message, config = {}) => {
   try {
     if (!logStream)
       logStream = fs.createWriteStream(`${STORAGE_PATH}/messages.log`, { flags: 'a' });
-    logStream.write(`${JSON.stringify(message)}\n`);
+
+    logStream.write(`${JSON.stringify(message, null, '\t')}\n`);
 
     if (config.verbose) {
       if (LOGS === 'verbose') {
