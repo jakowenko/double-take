@@ -1,14 +1,14 @@
-[![Docker Pulls](https://flat.badgen.net/docker/pulls/jakowenko/frigate-events)](https://hub.docker.com/r/jakowenko/frigate-events)
+[![Docker Pulls](https://flat.badgen.net/docker/pulls/jakowenko/double-take)](https://hub.docker.com/r/jakowenko/double-take)
 
-# Frigate Events
+# Double Take
 
 Process [Frigate](https://github.com/blakeblackshear/frigate) images with [Facebox](https://machinebox.io) and/or [CompreFace](https://github.com/exadel-inc/CompreFace).
 
-Frigate Events exposes a RESTful endpoint and/or can subscribe to Frigate's MQTT topic to process events for facial recognition. When an event is received the API begins to process the `snapshot.jpg` and `latest.jpg` images from Frigate's API. Images are passed from the API to the detector(s) specified until a match is found above the defined confidence level. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found. If a match is found the image is then saved to `/storage/matches/${frigate-event-id}-${image-type}.jpg`.
+Double Take exposes a RESTful endpoint and/or can subscribe to Frigate's MQTT topic to process events for facial recognition. When an event is received the API begins to process the `snapshot.jpg` and `latest.jpg` images from Frigate's API. Images are passed from the API to the detector(s) specified until a match is found above the defined confidence level. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found. If a match is found the image is then saved to `/storage/matches/${frigate-event-id}-${image-type}.jpg`.
 
 ## API
 
-Frigate Events exposes a `/recognize` endpoint where Frigate MQTT events can be POSTed to for processing.
+Double Take exposes a `/recognize` endpoint where Frigate MQTT events can be POSTed to for processing.
 
 **Sample Payload**
 
@@ -20,8 +20,7 @@ Frigate Events exposes a `/recognize` endpoint where Frigate MQTT events can be 
     "score": ".60",
     "id": "1614048341.992271-6jkzwi"
   },
-  "type": "start",
-  ...
+  "type": "start"
 }
 ```
 
@@ -50,9 +49,9 @@ Frigate Events exposes a `/recognize` endpoint where Frigate MQTT events can be 
 
 ## MQTT
 
-Frigate Events has the ability to subscribe to Frigate's MQTT topic and process events as they are received.
+Double Take has the ability to subscribe to Frigate's MQTT topic and process events as they are received.
 
-If a match is found then a new topic will be created with the default format being `frigate-events/matches/${name}`.
+If a match is found then a new topic will be created with the default format being `double-take/matches/${name}`.
 
 **Sample Topic Value**
 
@@ -81,13 +80,13 @@ If a match is found then a new topic will be created with the default format bei
 
 ```shell
 docker run -d \
-  --name=frigate-events \
+  --name=double-take \
   --restart=unless-stopped \
   -p 3000:3000 \
   -e DETECTORS=facebox \
   -e FRIGATE_URL=http://frigate-url.com \
   -e FACEBOX_URL=http://facebox-url.com \
-  jakowenko/frigate-events
+  jakowenko/double-take
 ```
 
 ### Docker Compose
@@ -96,9 +95,9 @@ docker run -d \
 version: '3.7'
 
 services:
-  frigate-events:
-    container_name: frigate-events
-    image: jakowenko/frigate-events
+  double-take:
+    container_name: double-take
+    image: jakowenko/double-take
     restart: unless-stopped
     environment:
       DETECTORS: facebox
@@ -116,9 +115,9 @@ services:
 version: '3.7'
 
 services:
-  frigate-events:
-    container_name: frigate-events
-    image: jakowenko/frigate-events
+  double-take:
+    container_name: double-take
+    image: jakowenko/double-take
     restart: unless-stopped
     volumes:
       - ${PWD}/.storage:/.storage
@@ -147,7 +146,7 @@ Configurable options that can be passed an environment variables to the Docker c
 | MQTT_USERNAME || MQTT username |
 | MQTT_PASSWORD || MQTT password |
 | MQTT_TOPIC | `frigate/events` | MQTT topic for message subscription |
-| MQTT_TOPIC_MATCHES | `frigate-events/matches` | MQTT topic where matches are published |
+| MQTT_TOPIC_MATCHES | `double-take/matches` | MQTT topic where matches are published |
 | FACEBOX_URL || Base URL for Facebox API |
 | COMPREFACE_URL || Base URL for CompreFace API |
 | FRIGATE_URL || Base URL for Frigate |
