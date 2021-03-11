@@ -1,0 +1,14 @@
+html
+  head
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+    title= title
+    style
+      include css/train.css
+  body
+    h1 #{camera} results for #{name}
+    ul
+      each result in results
+        li(class='result')
+          img(src=`data:image/jpg;base64,${result.base64}`)
+          each detector in result.detectors
+            div(class='detector')= JSON.stringify(detector)
