@@ -1,14 +1,14 @@
 const { v4: uuidv4 } = require('uuid');
 
-module.exports.test = (req, res, next) => {
+module.exports.manual = (req, res, next) => {
   req.body = {
-    isTestEvent: true,
-    type: 'Test Event',
+    manual: true,
+    type: 'Manual Event',
     before: {
-      camera: `test-camera`,
+      camera: `manual`,
       label: 'person',
       score: '1',
-      id: `test-event-${uuidv4()}`,
+      id: `manual-event-${uuidv4()}`,
     },
   };
   next();
