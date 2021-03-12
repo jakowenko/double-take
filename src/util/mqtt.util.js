@@ -48,6 +48,9 @@ module.exports.connect = () => {
         method: 'post',
         url: `http://0.0.0.0:${PORT}/recognize`,
         data: JSON.parse(message.toString()),
+        validateStatus() {
+          return true;
+        },
       });
       const { matches } = request.data;
       if (Array.isArray(matches) && matches.length) {
