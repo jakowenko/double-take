@@ -6,6 +6,7 @@ const time = require('../util/time.util');
 const filesystem = require('../util/fs.util');
 const frigate = require('../util/frigate.util');
 const sleep = require('../util/sleep.util');
+const mqtt = require('../util/mqtt.util');
 
 const {
   FRIGATE_URL,
@@ -15,6 +16,7 @@ const {
   CONFIDENCE,
   STORAGE_PATH,
   DETECTORS,
+  MQTT_HOST,
 } = require('../constants');
 
 const { IDS, MATCH_IDS } = {
@@ -29,19 +31,21 @@ let { PROCESSING, LAST_CAMERA } = {
 
 module.exports.start = async (req, res) => {
   try {
-    const { type, isTestEvent } = req.body;
-    const { url } = req.query;
+    const { type, manual: isManualEvent } = req.body;
+    const { url, attempts: manualAttempts } = req.query;
     const attributes = req.body.after ? req.body.after : req.body.before;
     const { id, label, camera } = attributes;
 
-    const status = await frigate.status();
+    if (FRIGATE_URL) {
+      const status = await frigate.status();
 
-    if (!status) {
-      logger.log('frigate is not responding');
-      return res.status(400).json({ message: 'frigate is not responding' });
+      if (!status) {
+        logger.log('frigate is not responding');
+        return res.status(400).json({ message: 'frigate is not responding' });
+      }
     }
 
-    if (isTestEvent && !req.query.url) {
+    if (isManualEvent && !req.query.url) {
       return res.status(400).json({ message: `test events require a url` });
     }
 
@@ -68,8 +72,11 @@ module.exports.start = async (req, res) => {
       });
     }
 
-    if (LAST_CAMERA === camera && req.query.pause !== 'false') {
-      logger.log(`paused processing ${camera} - recent match found`, { verbose: true });
+    if (
+      (!isManualEvent && LAST_CAMERA === camera) ||
+      (isManualEvent && req.query.pause === 'true')
+    ) {
+      logger.log(`paused processing ${camera} - recent match found`, { verbose: false });
       return res.status(200).json({
         message: `paused processing ${camera} - recent match found`,
       });
@@ -81,13 +88,13 @@ module.exports.start = async (req, res) => {
 
     const promises = [];
     DETECTORS.forEach((detector) => {
-      if (isTestEvent) {
+      if (isManualEvent) {
         promises.push(
           this.polling({
             detector,
-            retries: 3,
+            retries: parseInt(manualAttempts, 10),
             attributes,
-            type: 'test',
+            type: 'manual',
             url,
           })
         );
@@ -139,12 +146,20 @@ module.exports.start = async (req, res) => {
     PROCESSING = false;
 
     res.status(200).json(output);
+    if (MQTT_HOST) {
+      mqtt.publish(output);
+    }
 
     matches.forEach((match) => {
       const source = `${STORAGE_PATH}/matches/${id}-${match.type}.jpg`;
       const destination = `${STORAGE_PATH}/matches/${match.name}/${id}-${match.type}.jpg`;
       filesystem.writeMatches(match.name, source, destination);
-      filesystem.delete(source);
+
+      if (isManualEvent) filesystem.delete(source);
+      else {
+        filesystem.delete(`${STORAGE_PATH}/matches/${id}-snapshot.jpg`);
+        filesystem.delete(`${STORAGE_PATH}/matches/${id}-latest.jpg`);
+      }
     });
 
     if (output.matches.length) {
@@ -153,7 +168,6 @@ module.exports.start = async (req, res) => {
       setTimeout(() => {
         LAST_CAMERA = false;
       }, 3 * 60 * 1000);
-      return;
     }
   } catch (error) {
     logger.log(error.message);
@@ -177,7 +191,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
       if (MATCH_IDS.includes(id)) break;
       attempts = i + 1;
 
-      const jitter = Math.floor(Math.random() * (1 * 100 - 0 * 100) + 0 * 100) / (1 * 100);
+      const jitter = Math.floor(Math.random() * (2 * 100 - 0 * 100) + 0 * 100) / (1 * 100);
       await sleep(jitter);
 
       logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });

@@ -28,12 +28,12 @@ let constants = {
   STORAGE_PATH: './.storage',
   LOGS: LOGS || null,
   TZ: TZ || 'America/Detroit',
-  CONFIDENCE: FRIGATE_URL ? parseInt(CONFIDENCE, 10) || 50 : null,
+  CONFIDENCE: CONFIDENCE ? parseInt(CONFIDENCE, 10) : 50,
 
   MQTT_HOST: MQTT_HOST ? `mqtt://${MQTT_HOST}` : null,
   MQTT_USERNAME: MQTT_USERNAME || null,
   MQTT_PASSWORD: MQTT_PASSWORD || null,
-  MQTT_TOPIC: MQTT_HOST ? MQTT_TOPIC || 'frigate/events' : null,
+  MQTT_TOPIC: MQTT_HOST && FRIGATE_URL ? MQTT_TOPIC || 'frigate/events' : null,
   MQTT_TOPIC_MATCHES: MQTT_HOST ? MQTT_TOPIC_MATCHES || 'double-take/matches' : null,
 
   FACEBOX_URL: FACEBOX_URL ? FACEBOX_URL.replace(/\/$/, '') : null,
@@ -42,7 +42,7 @@ let constants = {
   COMPREFACE_API_KEY: COMPREFACE_URL ? COMPREFACE_API_KEY || null : null,
 
   FRIGATE_URL: FRIGATE_URL ? FRIGATE_URL.replace(/\/$/, '') : null,
-  FRIGATE_IMAGE_HEIGHT: FRIGATE_IMAGE_HEIGHT || 800,
+  FRIGATE_IMAGE_HEIGHT: FRIGATE_URL ? parseInt(FRIGATE_IMAGE_HEIGHT, 10) || 800 : null,
   SNAPSHOT_RETRIES: FRIGATE_URL ? parseInt(SNAPSHOT_RETRIES, 10) || 10 : null,
   LATEST_RETRIES: FRIGATE_URL ? parseInt(LATEST_RETRIES, 10) || 10 : null,
 };
