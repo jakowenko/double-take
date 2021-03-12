@@ -2,16 +2,19 @@ const express = require('express');
 const { validate, expressValidator } = require('../util/validate.util');
 const recognize = require('../controllers/recognize.controller');
 const train = require('../controllers/train.controller');
-const { test } = require('../util/events.util');
+const { manual } = require('../util/events.util');
 
 const router = express.Router();
-const { body, query } = expressValidator;
+const { query } = expressValidator;
 
 router.post('/recognize', recognize.start);
 router.get(
   '/recognize',
-  validate([query('url').isURL().withMessage('not a valid url')]),
-  test,
+  validate([
+    query('url').isURL().withMessage('not a valid url'),
+    query('attempts').default(1).isInt().withMessage('not a valid number'),
+  ]),
+  manual,
   recognize.start
 );
 
