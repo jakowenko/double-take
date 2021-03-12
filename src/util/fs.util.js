@@ -58,9 +58,11 @@ module.exports.writeMatches = (name, source, destination) => {
 };
 
 module.exports.delete = (destination) => {
-  fs.unlink(destination, (error) => {
-    if (error) {
-      logger.log(`delete error: ${error.message}`);
-    }
-  });
+  if (fs.existsSync(destination)) {
+    fs.unlink(destination, (error) => {
+      if (error) {
+        logger.log(`delete error: ${error.message}`);
+      }
+    });
+  }
 };
