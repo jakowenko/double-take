@@ -28,7 +28,7 @@ let constants = {
   STORAGE_PATH: './.storage',
   LOGS: LOGS || null,
   TZ: TZ || 'America/Detroit',
-  CONFIDENCE: FRIGATE_URL ? parseInt(CONFIDENCE, 10) || 50 : null,
+  CONFIDENCE: CONFIDENCE ? parseInt(CONFIDENCE, 10) : 50,
 
   MQTT_HOST: MQTT_HOST ? `mqtt://${MQTT_HOST}` : null,
   MQTT_USERNAME: MQTT_USERNAME || null,
