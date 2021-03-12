@@ -2,7 +2,7 @@ const { v4: uuidv4 } = require('uuid');
 
 module.exports.manual = (req, res, next) => {
   req.body = {
-    isTestEvent: true,
+    manual: true,
     type: 'Manual Event',
     before: {
       camera: `manual`,
