@@ -191,7 +191,7 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
       if (MATCH_IDS.includes(id)) break;
       attempts = i + 1;
 
-      const jitter = Math.floor(Math.random() * (1 * 100 - 0 * 100) + 0 * 100) / (1 * 100);
+      const jitter = Math.floor(Math.random() * (2 * 100 - 0 * 100) + 0 * 100) / (1 * 100);
       await sleep(jitter);
 
       logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
