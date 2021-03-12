@@ -30,15 +30,17 @@ let { PROCESSING, LAST_CAMERA } = {
 module.exports.start = async (req, res) => {
   try {
     const { type, isTestEvent } = req.body;
-    const { url } = req.query;
+    const { url, attempts: manualAttempts } = req.query;
     const attributes = req.body.after ? req.body.after : req.body.before;
     const { id, label, camera } = attributes;
 
-    const status = await frigate.status();
+    if (FRIGATE_URL) {
+      const status = await frigate.status();
 
-    if (!status) {
-      logger.log('frigate is not responding');
-      return res.status(400).json({ message: 'frigate is not responding' });
+      if (!status) {
+        logger.log('frigate is not responding');
+        return res.status(400).json({ message: 'frigate is not responding' });
+      }
     }
 
     if (isTestEvent && !req.query.url) {
@@ -85,7 +87,7 @@ module.exports.start = async (req, res) => {
         promises.push(
           this.polling({
             detector,
-            retries: 3,
+            retries: parseInt(manualAttempts, 10),
             attributes,
             type: 'test',
             url,
@@ -153,7 +155,6 @@ module.exports.start = async (req, res) => {
       setTimeout(() => {
         LAST_CAMERA = false;
       }, 3 * 60 * 1000);
-      return;
     }
   } catch (error) {
     logger.log(error.message);
