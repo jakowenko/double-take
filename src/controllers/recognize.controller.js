@@ -32,9 +32,15 @@ let { PROCESSING, LAST_CAMERA } = {
 module.exports.start = async (req, res) => {
   try {
     const { type, manual: isManualEvent } = req.body;
-    const { url, attempts: manualAttempts } = req.query;
+    const {
+      url,
+      attempts: manualAttempts,
+      results: resultsOutput,
+      break: breakMatch,
+      processing,
+    } = req.query;
     const attributes = req.body.after ? req.body.after : req.body.before;
-    const { id, label, camera } = attributes;
+    const { id, label, camera } = isManualEvent ? req.body : attributes;
 
     if (FRIGATE_URL) {
       const status = await frigate.status();
@@ -45,15 +51,12 @@ module.exports.start = async (req, res) => {
       }
     }
 
-    if (isManualEvent && !req.query.url) {
-      return res.status(400).json({ message: `test events require a url` });
-    }
-
     if (type === 'end') {
+      logger.log(`skip processing on ${type} events`, { verbose: true });
       return res.status(200).json({ message: `skip processing on ${type} events` });
     }
 
-    if (label !== 'person') {
+    if (!isManualEvent && label !== 'person') {
       logger.log(`${id} label not a person - ${label} found`, { verbose: true });
       return res.status(200).json({
         message: `${id} label not a person - ${label} found`,
@@ -72,11 +75,8 @@ module.exports.start = async (req, res) => {
       });
     }
 
-    if (
-      (!isManualEvent && LAST_CAMERA === camera) ||
-      (isManualEvent && req.query.pause === 'true')
-    ) {
-      logger.log(`paused processing ${camera} - recent match found`, { verbose: false });
+    if (!isManualEvent && LAST_CAMERA === camera) {
+      logger.log(`paused processing ${camera} - recent match found`, { verbose: true });
       return res.status(200).json({
         message: `paused processing ${camera} - recent match found`,
       });
@@ -86,14 +86,21 @@ module.exports.start = async (req, res) => {
     perf.start('request');
     PROCESSING = true;
 
-    const promises = [];
-    DETECTORS.forEach((detector) => {
+    let promises = [];
+    let results = [];
+
+    for (let i = 0; i < DETECTORS.length; i++) {
+      if (processing === 'sync') {
+        promises = [];
+      }
+      const detector = DETECTORS[i];
       if (isManualEvent) {
         promises.push(
           this.polling({
+            breakMatch,
             detector,
             retries: parseInt(manualAttempts, 10),
-            attributes,
+            id,
             type: 'manual',
             url,
           })
@@ -101,36 +108,52 @@ module.exports.start = async (req, res) => {
       } else {
         promises.push(
           this.polling({
-            detector,
-            retries: SNAPSHOT_RETRIES,
-            attributes,
-            type: 'snapshot',
-            url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}&bbox=1`,
-          })
-        );
-        promises.push(
-          this.polling({
+            breakMatch,
             detector,
             retries: LATEST_RETRIES,
-            attributes,
+            id,
             type: 'latest',
             url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=${FRIGATE_IMAGE_HEIGHT}&bbox=1`,
           })
         );
+        promises.push(
+          this.polling({
+            breakMatch,
+            detector,
+            retries: SNAPSHOT_RETRIES,
+            id,
+            type: 'snapshot',
+            url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}&bbox=1`,
+          })
+        );
       }
-    });
-    const results = await Promise.all(promises);
+      if (processing === 'serial') {
+        results = results.concat(await Promise.all(promises));
+      }
+    }
+    if (processing !== 'serial') {
+      results = await Promise.all(promises);
+    }
+
     const { attempts, matches } = recognize.filter(results);
     const seconds = parseFloat((perf.stop('request').time / 1000).toFixed(2));
-    const output = {
-      id,
-      duration: seconds,
-      time: time.current(),
-      attempts,
-      camera,
-      room: camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
-      matches,
-    };
+    const output = isManualEvent
+      ? {
+          id,
+          duration: seconds,
+          time: time.current(),
+          attempts,
+          matches: resultsOutput === 'best' ? matches : results,
+        }
+      : {
+          id,
+          duration: seconds,
+          time: time.current(),
+          attempts,
+          camera,
+          room: camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+          matches: resultsOutput === 'best' ? matches : results,
+        };
 
     results.forEach((result) => {
       delete result.matches;
@@ -177,21 +200,21 @@ module.exports.start = async (req, res) => {
   }
 };
 
-module.exports.polling = async ({ detector, retries, attributes, type, url }) => {
+module.exports.polling = async ({ detector, retries, id, type, url, breakMatch }) => {
+  breakMatch = !!(breakMatch === 'true' || breakMatch === true);
   const results = [];
   const matches = [];
-  const { id } = attributes;
   let attempts = 0;
-  perf.start(type);
+  perf.start(`${detector}-${type}`);
 
   const isValidURL = await recognize.isValidURL({ detector, type, url });
 
   if (isValidURL) {
     for (let i = 0; i < retries; i++) {
-      if (MATCH_IDS.includes(id)) break;
+      if (breakMatch === true && MATCH_IDS.includes(id)) break;
       attempts = i + 1;
 
-      const jitter = Math.floor(Math.random() * (2 * 100 - 0 * 100) + 0 * 100) / (1 * 100);
+      const jitter = Math.floor(Math.random() * (1 * 1000 - 0 * 100) + 0 * 1000) / (1 * 1000);
       await sleep(jitter);
 
       logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
@@ -217,14 +240,14 @@ module.exports.polling = async ({ detector, retries, attributes, type, url }) =>
           if (matches.length) {
             MATCH_IDS.push(id);
             await filesystem.writer(fs.createReadStream(tmp), file);
-            break;
+            if (breakMatch === true) break;
           }
         }
       }
     }
   }
 
-  const duration = parseFloat((perf.stop(type).time / 1000).toFixed(2));
+  const duration = parseFloat((perf.stop(`${detector}-${type}`).time / 1000).toFixed(2));
 
   return { duration, type, results, matches, attempts, detector };
 };
