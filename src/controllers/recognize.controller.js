@@ -90,7 +90,7 @@ module.exports.start = async (req, res) => {
     let results = [];
 
     for (let i = 0; i < DETECTORS.length; i++) {
-      if (processing === 'sync') {
+      if (processing === 'serial') {
         promises = [];
       }
       const detector = DETECTORS[i];

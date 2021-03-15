@@ -45,9 +45,8 @@ module.exports.delete = async (req, res) => {
 };
 
 module.exports.camera = async (req, res) => {
-  const output = req.query.output || 'html';
   const { name, camera } = req.params;
-  const { count } = req.query.count ? req.query : { count: 5 };
+  const { output, attempts } = req.query;
 
   if (!fs.existsSync(`${STORAGE_PATH}/train/${name}`)) {
     fs.mkdirSync(`${STORAGE_PATH}/train/${name}`);
@@ -56,7 +55,7 @@ module.exports.camera = async (req, res) => {
   try {
     const uuids = [];
     const inserts = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < attempts; i++) {
       await sleep(1);
       const uuid = uuidv4();
       const cameraStream = await axios({
