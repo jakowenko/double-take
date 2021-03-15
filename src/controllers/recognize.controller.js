@@ -1,5 +1,6 @@
 const fs = require('fs');
 const perf = require('execution-time')();
+const { v4: uuidv4 } = require('uuid');
 const recognize = require('../util/recognize.util');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
@@ -221,7 +222,7 @@ module.exports.polling = async ({ detector, retries, id, type, url, breakMatch }
 
       logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
 
-      const tmp = `/tmp/${id}-${type}.jpg`;
+      const tmp = `/tmp/${id}-${type}-${uuidv4()}.jpg`;
       const file = `${STORAGE_PATH}/matches/${id}-${type}.jpg`;
       const stream = await recognize.stream(url);
 
