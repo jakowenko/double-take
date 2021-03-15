@@ -1,7 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
 const FormData = require('form-data');
-const path = require('path');
 const perf = require('execution-time')();
 const time = require('./time.util');
 const logger = require('./logger.util');
@@ -13,6 +12,7 @@ const {
   COMPREFACE_API_KEY,
   DETECTORS,
   PORT,
+  DEEPSTACK_URL,
 } = require('../constants');
 
 module.exports.queue = async (files) => {
@@ -90,11 +90,25 @@ module.exports.train = async ({ name, key, detector }) => {
         url: `${FACEBOX_URL}/facebox/teach`,
         params: {
           name,
-          id: path.basename(key),
+          id: name,
         },
         data: formData,
       });
     }
+
+    if (detector === 'deepstack') {
+      formData.append('image', fs.createReadStream(key));
+      formData.append('userid', name);
+      request = await axios({
+        method: 'post',
+        headers: {
+          ...formData.getHeaders(),
+        },
+        url: `${DEEPSTACK_URL}/v1/vision/face/register`,
+        data: formData,
+      });
+    }
+
     const { status, data } = request;
     return {
       ...data,
@@ -118,39 +132,48 @@ module.exports.train = async ({ name, key, detector }) => {
   }
 };
 
-module.exports.remove = async ({ names, detector, files }) => {
+module.exports.remove = async ({ detector, name }) => {
   if (detector === 'compreface') {
-    const output = [];
-    for (let i = 0; i < names.length; i++) {
-      const request = await axios({
-        method: 'delete',
-        headers: {
-          'x-api-key': COMPREFACE_API_KEY,
-        },
-        url: `${COMPREFACE_URL}/api/v1/faces`,
-        params: {
-          subject: names[i],
-        },
-      });
-      output.push(request.data);
-    }
-    return output;
+    const request = await axios({
+      method: 'delete',
+      headers: {
+        'x-api-key': COMPREFACE_API_KEY,
+      },
+      url: `${COMPREFACE_URL}/api/v1/faces`,
+      params: {
+        subject: name,
+      },
+      validateStatus() {
+        return true;
+      },
+    });
+    return request.data;
   }
   if (detector === 'facebox') {
-    const faceboxFiles = files.filter((file) => file.detector === 'facebox');
-    const output = [];
-    for (let i = 0; i < faceboxFiles.length; i++) {
-      const file = path.basename(files[i].filename);
-      const request = await axios({
-        method: 'delete',
-        url: `${FACEBOX_URL}/facebox/teach/${file}`,
-        validateStatus() {
-          return true;
-        },
-      });
-      output.push(request.data);
-    }
-    return output;
+    const request = await axios({
+      method: 'delete',
+      url: `${FACEBOX_URL}/facebox/teach/${name}`,
+      validateStatus() {
+        return true;
+      },
+    });
+    return request.data;
+  }
+  if (detector === 'deepstack') {
+    const formData = new FormData();
+    formData.append('userid', name);
+    const request = await axios({
+      method: 'post',
+      url: `${DEEPSTACK_URL}/v1/vision/face/delete`,
+      headers: {
+        ...formData.getHeaders(),
+      },
+      validateStatus() {
+        return true;
+      },
+      data: formData,
+    });
+    return request.data;
   }
 };
 

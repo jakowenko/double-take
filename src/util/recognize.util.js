@@ -1,14 +1,20 @@
 const fs = require('fs');
+const perf = require('execution-time')();
 const axios = require('axios');
 const FormData = require('form-data');
 const logger = require('./logger.util');
 
-const { FACEBOX_URL, COMPREFACE_URL, COMPREFACE_API_KEY } = require('../constants');
+const { FACEBOX_URL, COMPREFACE_URL, COMPREFACE_API_KEY, DEEPSTACK_URL } = require('../constants');
 
 module.exports.process = async (detector, tmp, url) => {
   try {
+    perf.start(detector);
     const formData = new FormData();
-    formData.append('file', fs.createReadStream(tmp));
+    if (detector === 'compreface' || detector === 'facebox') {
+      formData.append('file', fs.createReadStream(tmp));
+    } else {
+      formData.append('image', fs.createReadStream(tmp));
+    }
     const request =
       detector === 'compreface'
         ? await axios({
@@ -23,16 +29,26 @@ module.exports.process = async (detector, tmp, url) => {
             },
             data: formData,
           })
-        : await axios({
+        : detector === 'facebox'
+        ? await axios({
             method: 'post',
             headers: {
               ...formData.getHeaders(),
             },
             url: `${FACEBOX_URL}/facebox/check`,
             data: formData,
+          })
+        : await axios({
+            method: 'post',
+            headers: {
+              ...formData.getHeaders(),
+            },
+            url: `${DEEPSTACK_URL}/v1/vision/face/recognize`,
+            data: formData,
           });
+    const seconds = parseFloat((perf.stop(detector).time / 1000).toFixed(2));
 
-    const data = this.normalize(detector, request.data);
+    const data = this.normalize(detector, request.data, seconds);
 
     return data;
   } catch (error) {
@@ -41,21 +57,21 @@ module.exports.process = async (detector, tmp, url) => {
     } else {
       logger.log(`${detector} process error: ${error.message}`);
     }
-    logger.log(url);
   }
 };
 
-module.exports.normalize = (detector, data) => {
+module.exports.normalize = (detector, data, seconds) => {
   const results = [];
 
   if (detector === 'facebox') {
     const { faces } = data;
 
-    faces.forEach((face) => {
-      if (face.matched) {
+    faces.forEach((obj) => {
+      if (obj.matched) {
         results.push({
-          name: face.name,
-          confidence: parseFloat((face.confidence * 100).toFixed(2)),
+          duration: seconds,
+          name: obj.name,
+          confidence: parseFloat((obj.confidence * 100).toFixed(2)),
         });
       }
     });
@@ -67,8 +83,22 @@ module.exports.normalize = (detector, data) => {
       if (obj.faces.length) {
         const [face] = obj.faces;
         results.push({
+          duration: seconds,
           name: face.face_name,
           confidence: parseFloat((face.similarity * 100).toFixed(2)),
+        });
+      }
+    });
+  }
+
+  if (detector === 'deepstack') {
+    const { predictions } = data;
+    predictions.forEach((obj) => {
+      if (obj.userid !== 'unknown') {
+        results.push({
+          duration: seconds,
+          name: obj.userid,
+          confidence: parseFloat((obj.confidence * 100).toFixed(2)),
         });
       }
     });
@@ -130,7 +160,6 @@ module.exports.isValidURL = async ({ detector, type, url }) => {
     return isValid;
   } catch (error) {
     logger.log(`url validation error: ${error.message}`);
-    logger.log(url);
     return false;
   }
 };
