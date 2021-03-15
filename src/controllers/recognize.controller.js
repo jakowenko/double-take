@@ -143,7 +143,7 @@ module.exports.start = async (req, res) => {
           duration: seconds,
           time: time.current(),
           attempts,
-          matches: resultsOutput === 'best' ? matches : results,
+          matches,
         }
       : {
           id,
@@ -152,8 +152,10 @@ module.exports.start = async (req, res) => {
           attempts,
           camera,
           room: camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
-          matches: resultsOutput === 'best' ? matches : results,
+          matches,
         };
+
+    if (resultsOutput === 'all') output.results = results;
 
     results.forEach((result) => {
       delete result.matches;
