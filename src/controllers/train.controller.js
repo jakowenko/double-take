@@ -13,25 +13,20 @@ const { FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
 
 module.exports.delete = async (req, res) => {
   try {
+    const { name } = req.params;
+
     perf.start();
     const promises = [];
-    const files = database.files('trained');
-    const names = [];
-
-    files.forEach((file) => {
-      if (!names.includes(file.name)) {
-        names.push(file.name);
-      }
-    });
 
     DETECTORS.forEach((detector) => {
-      promises.push(train.remove({ detector, files, names }));
+      promises.push(train.remove({ detector, name }));
+      const db = database.connect();
+      db.prepare('DELETE FROM train WHERE detector = ? AND name = ?').run(detector, name);
     });
     const results = await Promise.all(promises);
-    const db = database.connect();
-    db.prepare('DELETE FROM train').run();
+
     logger.log(
-      `${time.current()}\ndone untraining ${files.length} file(s) in ${parseFloat(
+      `${time.current()}\ndone untraining for ${name} in ${parseFloat(
         (perf.stop().time / 1000).toFixed(2)
       )} sec`
     );
@@ -50,9 +45,8 @@ module.exports.delete = async (req, res) => {
 };
 
 module.exports.camera = async (req, res) => {
-  const output = req.query.output || 'html';
   const { name, camera } = req.params;
-  const { count } = req.query.count ? req.query : { count: 5 };
+  const { output, attempts } = req.query;
 
   if (!fs.existsSync(`${STORAGE_PATH}/train/${name}`)) {
     fs.mkdirSync(`${STORAGE_PATH}/train/${name}`);
@@ -61,7 +55,7 @@ module.exports.camera = async (req, res) => {
   try {
     const uuids = [];
     const inserts = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < attempts; i++) {
       await sleep(1);
       const uuid = uuidv4();
       const cameraStream = await axios({
@@ -99,7 +93,11 @@ module.exports.camera = async (req, res) => {
 };
 
 module.exports.init = async (req, res) => {
-  res.json({ success: true, message: 'training queued: check logs for details' });
-  const images = database.files('untrained');
+  const { name } = req.params;
+  const images = database.files('untrained', name);
+  res.json({
+    success: true,
+    message: `training queued for ${name} using ${images.length} image(s): check logs for details`,
+  });
   await train.queue(images);
 };

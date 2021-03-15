@@ -66,15 +66,17 @@ module.exports.transaction = () => {
   }
 };
 
-module.exports.files = (status, data = []) => {
+module.exports.files = (status, data) => {
   const db = database.connect();
   try {
     let files = [];
 
     if (status === 'untrained') {
       files = db
-        .prepare(`SELECT * FROM file WHERE id NOT IN (SELECT fileId FROM train) AND isActive = 1`)
-        .all();
+        .prepare(
+          `SELECT * FROM file WHERE id NOT IN (SELECT fileId FROM train) AND name = ? AND isActive = 1`
+        )
+        .all(data);
     }
 
     if (status === 'uuid') {
