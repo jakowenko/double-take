@@ -6,7 +6,7 @@ const logger = require('./logger.util');
 
 const { FACEBOX_URL, COMPREFACE_URL, COMPREFACE_API_KEY, DEEPSTACK_URL } = require('../constants');
 
-module.exports.process = async (detector, tmp, url) => {
+module.exports.process = async (detector, tmp) => {
   try {
     perf.start(detector);
     const formData = new FormData();

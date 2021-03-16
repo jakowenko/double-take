@@ -227,7 +227,7 @@ module.exports.polling = async ({ detector, retries, id, type, url, breakMatch }
 
       if (stream) {
         await filesystem.writer(stream, tmp);
-        const data = await recognize.process(detector, tmp, url);
+        const data = await recognize.process(detector, tmp);
 
         if (data) {
           const faces = data;
