@@ -112,6 +112,7 @@ module.exports.filter = (results = []) => {
   const tmpMatches = {};
   results.forEach((result) => {
     result.matches.forEach((match) => {
+      match.name = match.name.toLowerCase();
       match.detector = result.detector;
       match.type = result.type;
       match.duration = result.duration;
