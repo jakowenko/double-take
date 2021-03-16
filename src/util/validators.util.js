@@ -2,7 +2,7 @@ const { expressValidator } = require('./validate.util');
 
 const { query } = expressValidator;
 
-module.exports.recognize = (isGET) => {
+module.exports.recognize = ({ get }) => {
   let validations = [
     query('results').default('best').isIn(['best', 'all']).withMessage('not a valid result type'),
     query('break').default(true).isIn([true, false]),
@@ -11,9 +11,11 @@ module.exports.recognize = (isGET) => {
       .isIn(['parallel', 'serial'])
       .withMessage('not a valid processing type'),
   ];
-  if (isGET === true) {
+  if (get) {
     validations = validations.concat([
-      query('url').isURL().withMessage('not a valid url'),
+      query('camera').default('double-take'),
+      query('room').default('Double Take'),
+      query('url').isURL(),
       query('attempts').default(1).isInt().withMessage('not a valid number'),
     ]);
   }

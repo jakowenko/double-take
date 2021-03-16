@@ -1,5 +1,6 @@
 const fs = require('fs');
 const perf = require('execution-time')();
+const { v4: uuidv4 } = require('uuid');
 const recognize = require('../util/recognize.util');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
@@ -31,7 +32,8 @@ let { PROCESSING, LAST_CAMERA } = {
 
 module.exports.start = async (req, res) => {
   try {
-    const { type, manual: isManualEvent } = req.body;
+    const isFrigateEvent = req.method === 'POST';
+    const { type } = req.body;
     const {
       url,
       attempts: manualAttempts,
@@ -40,7 +42,12 @@ module.exports.start = async (req, res) => {
       processing,
     } = req.query;
     const attributes = req.body.after ? req.body.after : req.body.before;
-    const { id, label, camera } = isManualEvent ? req.body : attributes;
+    const { id, label, camera } = isFrigateEvent
+      ? attributes
+      : { id: uuidv4(), camera: req.query.camera };
+    const room = isFrigateEvent
+      ? camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+      : req.query.room;
 
     if (FRIGATE_URL) {
       const status = await frigate.status();
@@ -56,7 +63,7 @@ module.exports.start = async (req, res) => {
       return res.status(200).json({ message: `skip processing on ${type} events` });
     }
 
-    if (!isManualEvent && label !== 'person') {
+    if (isFrigateEvent && label !== 'person') {
       logger.log(`${id} label not a person - ${label} found`, { verbose: true });
       return res.status(200).json({
         message: `${id} label not a person - ${label} found`,
@@ -75,7 +82,7 @@ module.exports.start = async (req, res) => {
       });
     }
 
-    if (!isManualEvent && LAST_CAMERA === camera) {
+    if (isFrigateEvent && LAST_CAMERA === camera) {
       logger.log(`paused processing ${camera} - recent match found`, { verbose: true });
       return res.status(200).json({
         message: `paused processing ${camera} - recent match found`,
@@ -94,18 +101,7 @@ module.exports.start = async (req, res) => {
         promises = [];
       }
       const detector = DETECTORS[i];
-      if (isManualEvent) {
-        promises.push(
-          this.polling({
-            breakMatch,
-            detector,
-            retries: parseInt(manualAttempts, 10),
-            id,
-            type: 'manual',
-            url,
-          })
-        );
-      } else {
+      if (isFrigateEvent) {
         promises.push(
           this.polling({
             breakMatch,
@@ -126,6 +122,17 @@ module.exports.start = async (req, res) => {
             url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}&bbox=1`,
           })
         );
+      } else {
+        promises.push(
+          this.polling({
+            breakMatch,
+            detector,
+            retries: parseInt(manualAttempts, 10),
+            id,
+            type: 'manual',
+            url,
+          })
+        );
       }
       if (processing === 'serial') {
         results = results.concat(await Promise.all(promises));
@@ -137,23 +144,15 @@ module.exports.start = async (req, res) => {
 
     const { attempts, matches } = recognize.filter(results);
     const seconds = parseFloat((perf.stop('request').time / 1000).toFixed(2));
-    const output = isManualEvent
-      ? {
-          id,
-          duration: seconds,
-          time: time.current(),
-          attempts,
-          matches,
-        }
-      : {
-          id,
-          duration: seconds,
-          time: time.current(),
-          attempts,
-          camera,
-          room: camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
-          matches,
-        };
+    const output = {
+      id,
+      duration: seconds,
+      time: time.current(),
+      attempts,
+      camera,
+      room,
+      matches,
+    };
 
     if (resultsOutput === 'all') output.results = results;
 
@@ -180,10 +179,11 @@ module.exports.start = async (req, res) => {
       const destination = `${STORAGE_PATH}/matches/${match.name}/${id}-${match.type}.jpg`;
       filesystem.writeMatches(match.name, source, destination);
 
-      if (isManualEvent) filesystem.delete(source);
-      else {
+      if (isFrigateEvent) {
         filesystem.delete(`${STORAGE_PATH}/matches/${id}-snapshot.jpg`);
         filesystem.delete(`${STORAGE_PATH}/matches/${id}-latest.jpg`);
+      } else {
+        filesystem.delete(source);
       }
     });
 
@@ -221,13 +221,13 @@ module.exports.polling = async ({ detector, retries, id, type, url, breakMatch }
 
       logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
 
-      const tmp = `/tmp/${id}-${type}.jpg`;
+      const tmp = `/tmp/${id}-${type}-${uuidv4()}.jpg`;
       const file = `${STORAGE_PATH}/matches/${id}-${type}.jpg`;
       const stream = await recognize.stream(url);
 
       if (stream) {
         await filesystem.writer(stream, tmp);
-        const data = await recognize.process(detector, tmp, url);
+        const data = await recognize.process(detector, tmp);
 
         if (data) {
           const faces = data;
