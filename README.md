@@ -2,9 +2,27 @@
 
 # Double Take
 
-Process and train images with [DeepStack](https://deepstack.cc/), [CompreFace](https://github.com/exadel-inc/CompreFace), or [Facebox](https://machinebox.io) for facial recognition.
+Unified API for processing and training images with [DeepStack](https://deepstack.cc/), [CompreFace](https://github.com/exadel-inc/CompreFace), or [Facebox](https://machinebox.io) for facial recognition.
 
-Double Take exposes a RESTful API or can subscribe to [Frigate's](https://github.com/blakeblackshear/frigate) MQTT topic to process events for facial recognition. When a Frigate event is received the API begins to process the `snapshot.jpg` and `latest.jpg` images from Frigate's API. Images are passed from the API to the detector(s) specified until a match is found above the defined confidence level. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found. If a match is found the image is then saved to `/storage/matches/${frigate-event-id}-${image-type}.jpg`.
+## Use Cases
+
+### [Frigate](https://github.com/blakeblackshear/frigate)
+
+Subscribe to Frigate's MQTT events topic and process images from the event for analysis.
+
+When a Frigate event is received the API begins to process the [`snapshot.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apieventsidsnapshotjpg) and [`latest.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apicamera_namelatestjpgh300) images from Frigate's API. These images are passed from the API to the detector(s) specified until a match is found above the defined confidence level. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found. If a match is found the image is then saved to `/.storage/matches/:name`.
+
+### [Home Assistant](https://www.home-assistant.io) + [Node-Red](https://nodered.org)
+
+Double Take can be paired with Home Assistant and Node-Red to create automations when matching faces are detected.
+
+<p align="center">
+<img src="https://jakowenko.com/double-take/home-assistant.png" width="350"> <img src="https://jakowenko.com/double-take/home-assistant-2.png" width="300">
+</p>
+
+### Other Methods
+
+The API can also be invoked manually for processing. See below for more information.
 
 ## API
 
@@ -12,13 +30,15 @@ Double Take exposes a RESTful API or can subscribe to [Frigate's](https://github
 
 Process images for recognition with a `GET` request.
 
-| Query Params | Default    | Description                                          |
-| ------------ | ---------- | ---------------------------------------------------- |
-| url          |            | URL of image to pass to facial recognition detectors |
-| attempts     | `1`        | Number of attempts before stopping without a match   |
-| results      | `best`     | Options: `best`, `all`                               |
-| break        | `true`     | Break attempt loop if a match is found               |
-| processing   | `parallel` | Options: `parallel`, `serial`                        |
+| Query Params | Default       | Description                                          |
+| ------------ | ------------- | ---------------------------------------------------- |
+| url          |               | URL of image to pass to facial recognition detectors |
+| attempts     | `1`           | Number of attempts before stopping without a match   |
+| results      | `best`        | Options: `best`, `all`                               |
+| break        | `true`        | Break attempt loop if a match is found               |
+| processing   | `parallel`    | Options: `parallel`, `serial`                        |
+| camera       | `double-take` | Camera name used in output results                   |
+| room         | `Double Take` | Room name used in output results                     |
 
 **Sample Input**
 
@@ -28,17 +48,19 @@ Process images for recognition with a `GET` request.
 
 ```json
 {
-  "id": "9bd5134b-0c48-4bcf-a1f5-f09e660867bc",
-  "duration": 1.33,
-  "time": "03/15/2021 12:56:20 AM",
-  "attempts": 1,
+  "id": "c16052fe-b110-4d33-b73d-adfee2cf82b8",
+  "duration": 1.15,
+  "time": "03/16/2021 02:25:21 AM",
+  "attempts": 2,
+  "camera": "double-take",
+  "room": "Double Take",
   "matches": [
     {
-      "duration": 1.01,
+      "duration": 1.15,
       "name": "david",
-      "confidence": 87.66,
+      "confidence": 76.07,
       "attempt": 1,
-      "detector": "compreface",
+      "detector": "deepstack",
       "type": "manual"
     }
   ]
@@ -57,16 +79,14 @@ Remove all images for the specific name from detectors.
 
 Train detectors with the `latest.jpg` image from a Frigate camera.
 
-| Query Params | Default    | Description                                          |
-| ------------ | ---------- | ---------------------------------------------------- |
-| attempts     | `1`        | Number of `latest.jpg` images to use   |
-| output     | `html`        | Options: `html`, `json`   |
+| Query Params | Default | Description                          |
+| ------------ | ------- | ------------------------------------ |
+| attempts     | `1`     | Number of `latest.jpg` images to use |
+| output       | `html`  | Options: `html`, `json`              |
 
 ## MQTT
 
-Double Take has the ability to subscribe to Frigate's MQTT topic and process events as they are received.
-
-If a match is found then a new topic will be created with the default format being `double-take/matches/:name`.
+If MQTT is enabled and a match is found then a new topic will be created with the default format being `double-take/matches/:name`.
 
 **Sample Topic Value**
 
@@ -89,9 +109,9 @@ If a match is found then a new topic will be created with the default format bei
 }
 ```
 
-## Basic Usage
+## Usage
 
-### Docker Run
+### Basic: Docker Run
 
 ```shell
 docker run -d \
@@ -104,7 +124,7 @@ docker run -d \
   jakowenko/double-take
 ```
 
-### Docker Compose
+### Basic: Docker Compose
 
 ```yaml
 version: '3.7'
@@ -122,9 +142,7 @@ services:
       - 3000:3000
 ```
 
-## More Advanced Usage
-
-### Docker Compose
+### Advanced: Docker Compose
 
 ```yaml
 version: '3.7'
