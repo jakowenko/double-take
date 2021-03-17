@@ -172,22 +172,25 @@ services:
 ## Options
 
 Configurable options that can be passed as environment variables to the Docker container.
-| Name | Default | Description |
-|--|--|--|
-| DETECTORS || Comma separated list of detectors to process images with: `compreface`, `deepstack`, `facebox` |
-| PORT | `3000` | API port |
-| MQTT_HOST || MQTT host address |
-| MQTT_USERNAME || MQTT username |
-| MQTT_PASSWORD || MQTT password |
-| MQTT_TOPIC | `frigate/events` | MQTT topic for message subscription |
-| MQTT_TOPIC_MATCHES | `double-take/matches` | MQTT topic where matches are published |
-| DEEPSTACK_URL || Base URL for DeepStack API |
-| FACEBOX_URL || Base URL for Facebox API |
-| COMPREFACE_URL || Base URL for CompreFace API |
-| FRIGATE_URL || Base URL for Frigate |
-| FRIGATE_IMAGE_HEIGHT | `800` | Height of image passed for facial recognition |
-| COMPREFACE_API_KEY || API Key for CompreFace collection |
-| SNAPSHOT_RETRIES | `10` | Amount of times API will request a Frigate `snapshot.jpg` for analysis |
-| LATEST_RETRIES | `10` | Amount of times API will request a Frigate `latest.jpg` for analysis |
-| CONFIDENCE | `50` | Minimum confidence level for a face match |
-| LOGS || Options: `verbose` |
+
+| Name                 | Default                 | Description                                                                                    |
+| -------------------- | ----------------------- | ---------------------------------------------------------------------------------------------- |
+| DETECTORS            |                         | Comma separated list of detectors to process images with: `compreface`, `deepstack`, `facebox` |
+| PORT                 | `3000`                  | API port                                                                                       |
+| MQTT_HOST            |                         | MQTT host address                                                                              |
+| MQTT_USERNAME        |                         | MQTT username                                                                                  |
+| MQTT_PASSWORD        |                         | MQTT password                                                                                  |
+| MQTT_TOPIC           | `frigate/events`        | MQTT topic for message subscription                                                            |
+| MQTT_TOPIC_MATCHES   | `double-take/matches`   | MQTT topic where matches are published                                                         |
+| DEEPSTACK_URL        |                         | Base URL for DeepStack API                                                                     |
+| FACEBOX_URL          |                         | Base URL for Facebox API                                                                       |
+| COMPREFACE_URL       |                         | Base URL for CompreFace API                                                                    |
+| FRIGATE_URL          |                         | Base URL for Frigate                                                                           |
+| FRIGATE_IMAGE_HEIGHT | `800`                   | Height of image passed for facial recognition                                                  |
+| COMPREFACE_API_KEY   |                         | API Key for CompreFace collection                                                              |
+| SNAPSHOT_RETRIES     | `10`                    | Amount of times API will request a Frigate `snapshot.jpg` for analysis                         |
+| LATEST_RETRIES       | `10`                    | Amount of times API will request a Frigate `latest.jpg` for analysis                           |
+| CONFIDENCE           | `50`                    | Minimum confidence level for a face match                                                      |
+| LOGS                 |                         | Options: `verbose`                                                                             |
+| TZ                   | `UTC`                   | Time zone used in logs                                                                         |
+| TIME_FORMAT          | `MM/DD/YYYY hh:mm:ss A` | Format of time used in logs                                                                    |
