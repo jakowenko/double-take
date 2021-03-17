@@ -1,8 +1,10 @@
 const moment = require('moment-timezone');
-const { TZ } = require('../constants');
+const { TZ, TIME_FORMAT } = require('../constants');
 
 module.exports.current = () => {
-  return moment().tz(TZ).format('MM/DD/YYYY hh:mm:ss A');
+  return TZ.toUpperCase() === 'UTC'
+    ? moment().utc().format(TIME_FORMAT)
+    : moment().tz(TZ).format(TIME_FORMAT);
 };
 
 module.exports.unix = () => {
