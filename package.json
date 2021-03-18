@@ -13,13 +13,10 @@
     "express": "^4.16.1",
     "express-validator": "^6.10.0",
     "form-data": "^4.0.0",
-    "fs": "0.0.1-security",
     "moment-timezone": "^0.5.33",
     "mqtt": "^4.2.6",
     "node-schedule": "^2.0.0",
-    "path": "^0.12.7",
     "pug": "^3.0.2",
-    "stream": "0.0.2",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
