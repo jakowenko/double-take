@@ -13,7 +13,7 @@
     "express": "^4.16.1",
     "express-validator": "^6.10.0",
     "form-data": "^4.0.0",
-    "moment-timezone": "^0.5.33",
+    "luxon": "^1.26.0",
     "mqtt": "^4.2.6",
     "node-schedule": "^2.0.0",
     "pug": "^3.0.2",
