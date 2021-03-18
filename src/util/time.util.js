@@ -1,12 +1,12 @@
-const moment = require('moment-timezone');
-const { TZ, TIME_FORMAT } = require('../constants');
+const { DateTime } = require('luxon');
+const { TZ, DATE_TIME_FORMAT } = require('../constants');
 
 module.exports.current = () => {
-  return TZ.toUpperCase() === 'UTC'
-    ? moment().utc().format(TIME_FORMAT)
-    : moment().tz(TZ).format(TIME_FORMAT);
+  return DATE_TIME_FORMAT !== undefined
+    ? DateTime.now().setZone(TZ.toUpperCase()).toFormat(DATE_TIME_FORMAT)
+    : DateTime.now().setZone(TZ.toUpperCase()).toString();
 };
 
 module.exports.unix = () => {
-  return moment().unix();
+  return DateTime.now().toMillis();
 };

@@ -20,7 +20,7 @@ const {
   CONFIDENCE,
   LOGS,
   TZ,
-  TIME_FORMAT,
+  DATE_TIME_FORMAT,
 } = process.env;
 
 let constants = {
@@ -30,7 +30,7 @@ let constants = {
   STORAGE_PATH: './.storage',
   LOGS: LOGS || null,
   TZ: TZ || 'UTC',
-  TIME_FORMAT: TIME_FORMAT || 'MM/DD/YYYY hh:mm:ss A',
+  DATE_TIME_FORMAT: DATE_TIME_FORMAT || null,
   CONFIDENCE: CONFIDENCE ? parseInt(CONFIDENCE, 10) : 50,
 
   MQTT_HOST: MQTT_HOST ? `mqtt://${MQTT_HOST}` : null,
