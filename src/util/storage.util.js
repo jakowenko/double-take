@@ -1,5 +1,5 @@
 const fs = require('fs');
-const moment = require('moment-timezone');
+const { DateTime } = require('luxon');
 const schedule = require('node-schedule');
 const logger = require('./logger.util');
 const time = require('./time.util');
@@ -10,7 +10,15 @@ module.exports.purge = async () => {
     try {
       let purged = 0;
       const files = await fs.promises.readdir(`${STORAGE_PATH}/matches`, { withFileTypes: true });
-      const images = files.filter((file) => file.isFile()).map((file) => file.name);
+      const images = files
+        .filter((file) => file.isFile())
+        .map((file) => file.name)
+        .filter(
+          (file) =>
+            file.toLowerCase().includes('.jpeg') ||
+            file.toLowerCase().includes('.jpg') ||
+            file.toLowerCase().includes('.png')
+        );
       const folders = files.filter((file) => file.isDirectory()).map((file) => file.name);
 
       purged += await this.delete('matches', images);
@@ -19,7 +27,15 @@ module.exports.purge = async () => {
         const folderFiles = await fs.promises.readdir(`${STORAGE_PATH}/matches/${folder}`, {
           withFileTypes: true,
         });
-        const folderImages = folderFiles.filter((file) => file.isFile()).map((file) => file.name);
+        const folderImages = folderFiles
+          .filter((file) => file.isFile())
+          .map((file) => file.name)
+          .filter(
+            (file) =>
+              file.toLowerCase().includes('.jpeg') ||
+              file.toLowerCase().includes('.jpg') ||
+              file.toLowerCase().includes('.png')
+          );
         purged += await this.delete(`matches/${folder}`, folderImages);
       }
 
@@ -43,8 +59,8 @@ module.exports.delete = async (path, images) => {
   const purged = [];
   for (const image of images) {
     const { birthtime } = await fs.promises.stat(`${STORAGE_PATH}/${path}/${image}`);
-    const duration = moment.duration(moment().diff(birthtime));
-    const hours = duration.asHours();
+    const duration = DateTime.now().diff(DateTime.fromISO(birthtime.toISOString()), 'hours');
+    const { hours } = duration.toObject();
     if (hours > 48) {
       try {
         await fs.promises.unlink(`${STORAGE_PATH}/${path}/${image}`);

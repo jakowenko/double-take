@@ -147,7 +147,7 @@ module.exports.start = async (req, res) => {
     const output = {
       id,
       duration: seconds,
-      time: time.current(),
+      timestamp: time.current(),
       attempts,
       camera,
       room,

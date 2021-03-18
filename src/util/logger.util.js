@@ -1,3 +1,4 @@
+const os = require('os');
 const fs = require('fs');
 const { LOGS, STORAGE_PATH } = require('../constants');
 
@@ -8,7 +9,11 @@ module.exports.log = (message, config = {}) => {
     if (!logStream)
       logStream = fs.createWriteStream(`${STORAGE_PATH}/messages.log`, { flags: 'a' });
 
-    logStream.write(`${JSON.stringify(message, null, '\t')}\n`);
+    const logMessage =
+      typeof message === 'string'
+        ? message.replace(/\n/g, os.EOL)
+        : JSON.stringify(message, null, '\t');
+    logStream.write(logMessage);
 
     if (config.verbose) {
       if (LOGS === 'verbose') {
