@@ -186,6 +186,7 @@ Configurable options that can be passed as environment variables to the Docker c
 | FACEBOX_URL          |                       | Base URL for Facebox API                                                                                                                          |
 | COMPREFACE_URL       |                       | Base URL for CompreFace API                                                                                                                       |
 | FRIGATE_URL          |                       | Base URL for Frigate                                                                                                                              |
+| FRIGATE_CAMERAS      |                       | To only watch specific cameras pass the names in a comma seperated list: `family-room`, `office`, `basement`                                      |
 | FRIGATE_IMAGE_HEIGHT | `800`                 | Height of image passed for facial recognition                                                                                                     |
 | COMPREFACE_API_KEY   |                       | API Key for CompreFace collection                                                                                                                 |
 | SNAPSHOT_RETRIES     | `10`                  | Amount of times API will request a Frigate `snapshot.jpg` for analysis                                                                            |
