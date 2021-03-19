@@ -16,6 +16,35 @@ When a Frigate event is received the API begins to process the [`snapshot.jpg`](
 
 Double Take can be paired with Home Assistant and Node-Red to create automations when matching faces are detected.
 
+## Example Node-Red:
+
+First of all you must create two nodes. One is MQTT-IN Node which should look similar to this:
+
+![image](https://user-images.githubusercontent.com/13320319/111794238-4fe14e80-88c6-11eb-9b5b-4502a07accd9.png)
+
+The Topic must be ```double-take/matches/:name```
+Server should be the broker where Homeassistant is communicating with (e.g. Hassio MQTT Addon)
+
+Output must be ```a parsed JSON object```
+
+Second Node must be an Entity Node Which has to be exactly configured this way:
+
+![image](https://user-images.githubusercontent.com/13320319/111794718-ce3df080-88c6-11eb-8e9e-5fe6b070ee96.png)
+
+Name can be chosen individually.
+
+After this deploy and Home-Assistant should have created a new entity which should look similar to:
+
+![image](https://user-images.githubusercontent.com/13320319/111794922-06ddca00-88c7-11eb-9852-75bf7f7da773.png)
+
+If you have installed the Integration Node-Red you will find the new entity listed in the integration:
+
+![image](https://user-images.githubusercontent.com/13320319/111795269-4f958300-88c7-11eb-96c8-7b87bcfb2279.png)
+
+
+---
+
+
 <p align="center">
 <img src="https://jakowenko.com/double-take/home-assistant.png" width="350"> <img src="https://jakowenko.com/double-take/home-assistant-2.png" width="300">
 </p>
