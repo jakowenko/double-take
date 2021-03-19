@@ -8,6 +8,8 @@ const filesystem = require('../util/fs.util');
 const frigate = require('../util/frigate.util');
 const sleep = require('../util/sleep.util');
 const mqtt = require('../util/mqtt.util');
+const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
+const { OK, BAD_REQUEST } = require('../constants/http-status');
 
 const {
   FRIGATE_URL,
@@ -49,44 +51,24 @@ module.exports.start = async (req, res) => {
       ? camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
       : req.query.room;
 
-    if (FRIGATE_URL) {
-      const status = await frigate.status();
-
-      if (!status) {
-        logger.log('frigate is not responding');
-        return res.status(400).json({ message: 'frigate is not responding' });
+    if (isFrigateEvent && FRIGATE_URL) {
+      try {
+        const check = await frigate.checks({
+          id,
+          type,
+          label,
+          camera,
+          PROCESSING,
+          LAST_CAMERA,
+          IDS,
+        });
+        if (typeof check === 'string') {
+          logger.log(check, { verbose: true });
+          return respond(HTTPError(BAD_REQUEST, check), res);
+        }
+      } catch (error) {
+        throw HTTPError(BAD_REQUEST, error.message);
       }
-    }
-
-    if (type === 'end') {
-      logger.log(`skip processing on ${type} events`, { verbose: true });
-      return res.status(200).json({ message: `skip processing on ${type} events` });
-    }
-
-    if (isFrigateEvent && label !== 'person') {
-      logger.log(`${id} label not a person - ${label} found`, { verbose: true });
-      return res.status(200).json({
-        message: `${id} label not a person - ${label} found`,
-      });
-    }
-
-    if (PROCESSING && type !== 'start') {
-      logger.log(`still processing previous request`, { verbose: true });
-      return res.status(200).json({ message: `still processing previous request` });
-    }
-
-    if (IDS.includes(id)) {
-      logger.log(`already processed ${id}`, { verbose: true });
-      return res.status(200).json({
-        message: `already processed and found a match ${id}`,
-      });
-    }
-
-    if (isFrigateEvent && LAST_CAMERA === camera) {
-      logger.log(`paused processing ${camera} - recent match found`, { verbose: true });
-      return res.status(200).json({
-        message: `paused processing ${camera} - recent match found`,
-      });
     }
 
     logger.log(`${time.current()}\nprocessing ${camera}: ${id}`, { dashes: true });
@@ -169,7 +151,8 @@ module.exports.start = async (req, res) => {
 
     PROCESSING = false;
 
-    res.status(200).json(output);
+    respond(HTTPSuccess(OK, output), res);
+
     if (MQTT_HOST) {
       mqtt.publish(output);
     }
@@ -198,7 +181,7 @@ module.exports.start = async (req, res) => {
     logger.log(error.message);
     PROCESSING = false;
     LAST_CAMERA = false;
-    res.status(500).json({ error: error.message });
+    respond(error, res);
   }
 };
 
