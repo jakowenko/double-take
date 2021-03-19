@@ -1,12 +1,16 @@
 const axios = require('axios');
 
-const { FRIGATE_URL } = require('../constants');
+const { FRIGATE_URL, FRIGATE_CAMERAS } = require('../constants');
 
 const frigate = this;
 
 module.exports.checks = async ({ id, type, label, camera, PROCESSING, LAST_CAMERA, IDS }) => {
   try {
     await frigate.status();
+
+    if (FRIGATE_CAMERAS && !FRIGATE_CAMERAS.includes(camera)) {
+      return `${id} - ${camera} not on approved list`;
+    }
 
     if (PROCESSING && type !== 'start') {
       return `${id} - still processing previous request`;
