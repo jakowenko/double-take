@@ -12,8 +12,6 @@ const constants = require('./src/constants');
 const { PORT } = constants;
 
 module.exports.start = async () => {
-  storage.setup();
-  await database.init();
   logger.log(
     '____________________________________________________________________________________\n'
   );
@@ -30,6 +28,9 @@ module.exports.start = async () => {
   logger.log(
     '\n____________________________________________________________________________________\n'
   );
+
+  storage.setup();
+  await database.init();
 
   http.Server(app).listen(PORT, () => {
     // logger.log(`listening on 0.0.0.0:${PORT}`);
