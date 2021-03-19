@@ -8,6 +8,8 @@ const sleep = require('../util/sleep.util');
 const train = require('../util/train.util');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
+const { respond, HTTPSuccess } = require('../util/respond.util');
+const { OK } = require('../constants/http-status');
 
 const { FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
 
@@ -31,16 +33,17 @@ module.exports.delete = async (req, res) => {
       )} sec`
     );
 
-    const ouptput = results.map((result, i) => {
+    const output = results.map((result, i) => {
       return {
         detector: DETECTORS[i],
         results: result,
       };
     });
 
-    res.json(ouptput);
+    respond(HTTPSuccess(OK, output), res);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    logger.log(`train delete error: ${error.message}`);
+    respond(error, res);
   }
 };
 
@@ -79,25 +82,38 @@ module.exports.camera = async (req, res) => {
     train.cleanup(results);
 
     if (output === 'json') {
-      return res.json({
-        camera,
-        name,
-        results,
-      });
+      return respond(
+        HTTPSuccess(OK, {
+          camera,
+          name,
+          results,
+        }),
+        res
+      );
     }
 
     res.render('train', { camera, name, results });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    logger.log(`train camera error: ${error.message}`);
+    respond(error, res);
   }
 };
 
 module.exports.init = async (req, res) => {
-  const { name } = req.params;
-  const images = database.files('untrained', name);
-  res.json({
-    success: true,
-    message: `training queued for ${name} using ${images.length} image(s): check logs for details`,
-  });
-  await train.queue(images);
+  try {
+    const { name } = req.params;
+    const images = database.files('untrained', name);
+
+    respond(
+      HTTPSuccess(OK, {
+        message: `training queued for ${name} using ${images.length} image(s): check logs for details`,
+      }),
+      res
+    );
+
+    await train.queue(images);
+  } catch (error) {
+    logger.log(`train init error: ${error.message}`);
+    respond(error, res);
+  }
 };

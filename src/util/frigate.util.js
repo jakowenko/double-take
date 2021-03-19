@@ -1,7 +1,40 @@
 const axios = require('axios');
-const logger = require('./logger.util');
 
-const { FRIGATE_URL } = require('../constants');
+const { FRIGATE_URL, FRIGATE_CAMERAS } = require('../constants');
+
+const frigate = this;
+
+module.exports.checks = async ({ id, type, label, camera, PROCESSING, LAST_CAMERA, IDS }) => {
+  try {
+    await frigate.status();
+
+    if (FRIGATE_CAMERAS && !FRIGATE_CAMERAS.includes(camera)) {
+      return `${id} - ${camera} not on approved list`;
+    }
+
+    if (PROCESSING && type !== 'start') {
+      return `${id} - still processing previous request`;
+    }
+
+    if (type === 'end') {
+      return `${id} - skip processing on ${type} events`;
+    }
+
+    if (label !== 'person') {
+      return `${id} - label not a person, ${label} found`;
+    }
+
+    if (LAST_CAMERA === camera) {
+      return `${id} - paused processing ${camera}, recent match found`;
+    }
+
+    if (IDS.includes(id)) {
+      return `already processed ${id}`;
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
 
 module.exports.status = async () => {
   try {
@@ -11,7 +44,6 @@ module.exports.status = async () => {
     });
     return request.data;
   } catch (error) {
-    logger.log(`frigate status error: ${error.message}`);
-    return false;
+    throw new Error(`frigate status error: ${error.message}`);
   }
 };
