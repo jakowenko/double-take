@@ -4,6 +4,10 @@
   "scripts": {
     "start": "node server.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jakowenko/double-take.git"
+  },
   "dependencies": {
     "axios": "^0.21.1",
     "better-sqlite3": "^7.1.2",
