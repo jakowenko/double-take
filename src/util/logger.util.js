@@ -13,7 +13,7 @@ module.exports.log = (message, config = {}) => {
       typeof message === 'string'
         ? message.replace(/\n/g, os.EOL)
         : JSON.stringify(message, null, '\t');
-    logStream.write(logMessage);
+    logStream.write(logMessage + os.EOL);
 
     if (config.verbose) {
       if (LOGS === 'verbose') {
