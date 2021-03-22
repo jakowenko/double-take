@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { promisify } = require('util');
 const sizeOf = promisify(require('image-size'));
-const { createCanvas, loadImage } = require('canvas');
+const { createCanvas, loadImage, registerFont } = require('canvas');
 const logger = require('./logger.util');
 const { STORAGE_PATH } = require('../constants');
 
@@ -82,8 +82,9 @@ module.exports.drawBox = async (match, source) => {
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
   const image = await loadImage(source);
+  registerFont('./src/static/fonts/Roboto/Roboto-Medium.ttf', { family: 'Roboto-Medium' });
   ctx.drawImage(image, 0, 0);
-  ctx.font = `bold ${fontSize}px Arial`;
+  ctx.font = `${fontSize}px Roboto-Medium`;
   ctx.textBaseline = 'top';
   ctx.fillStyle = '#4caf50';
   const textWidth = ctx.measureText(text).width + textPadding;
