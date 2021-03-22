@@ -91,7 +91,7 @@ module.exports.start = async (req, res) => {
             retries: LATEST_RETRIES,
             id,
             type: 'latest',
-            url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=${FRIGATE_IMAGE_HEIGHT}&bbox=1`,
+            url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=${FRIGATE_IMAGE_HEIGHT}`,
           })
         );
         promises.push(
@@ -101,7 +101,7 @@ module.exports.start = async (req, res) => {
             retries: SNAPSHOT_RETRIES,
             id,
             type: 'snapshot',
-            url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}&bbox=1`,
+            url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}`,
           })
         );
       } else {
@@ -133,7 +133,10 @@ module.exports.start = async (req, res) => {
       attempts,
       camera,
       room,
-      matches,
+      matches: JSON.parse(JSON.stringify(matches)).map((match) => {
+        delete match.box;
+        return match;
+      }),
     };
 
     if (resultsOutput === 'all') output.results = results;
@@ -149,16 +152,10 @@ module.exports.start = async (req, res) => {
       dashes: true,
     });
 
-    PROCESSING = false;
-
-    respond(HTTPSuccess(OK, output), res);
-
-    if (MQTT_HOST) {
-      mqtt.publish(output);
-    }
-
-    matches.forEach((match) => {
+    for (let i = 0; i < matches.length; i++) {
+      const match = matches[i];
       const source = `${STORAGE_PATH}/matches/${id}-${match.type}.jpg`;
+      await filesystem.drawBox(match, source);
       const destination = `${STORAGE_PATH}/matches/${match.name}/${id}-${match.type}.jpg`;
       filesystem.writeMatches(match.name, source, destination);
 
@@ -168,7 +165,15 @@ module.exports.start = async (req, res) => {
       } else {
         filesystem.delete(source);
       }
-    });
+    }
+
+    PROCESSING = false;
+
+    respond(HTTPSuccess(OK, output), res);
+
+    if (MQTT_HOST) {
+      mqtt.publish(output);
+    }
 
     if (output.matches.length) {
       LAST_CAMERA = camera;

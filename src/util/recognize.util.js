@@ -68,10 +68,17 @@ module.exports.normalize = (detector, data, seconds) => {
 
     faces.forEach((obj) => {
       if (obj.matched) {
+        const { rect: box } = obj;
         results.push({
           duration: seconds,
           name: obj.name,
           confidence: parseFloat((obj.confidence * 100).toFixed(2)),
+          box: {
+            top: box.top,
+            left: box.left,
+            width: box.width,
+            height: box.height,
+          },
         });
       }
     });
@@ -81,11 +88,18 @@ module.exports.normalize = (detector, data, seconds) => {
     const { result } = data;
     result.forEach((obj) => {
       if (obj.faces.length) {
+        const { box } = obj;
         const [face] = obj.faces;
         results.push({
           duration: seconds,
           name: face.face_name,
           confidence: parseFloat((face.similarity * 100).toFixed(2)),
+          box: {
+            top: box.y_min,
+            left: box.x_min,
+            width: box.x_max - box.x_min,
+            height: box.y_max - box.y_min,
+          },
         });
       }
     });
@@ -99,6 +113,12 @@ module.exports.normalize = (detector, data, seconds) => {
           duration: seconds,
           name: obj.userid,
           confidence: parseFloat((obj.confidence * 100).toFixed(2)),
+          box: {
+            top: obj.y_min,
+            left: obj.x_min,
+            width: obj.x_max - obj.x_min,
+            height: obj.y_max - obj.y_min,
+          },
         });
       }
     });
