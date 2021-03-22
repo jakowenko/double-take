@@ -1,19 +1,24 @@
+const logger = require('./logger.util');
 const { BAD_REQUEST } = require('../constants/http-status');
 
 module.exports.respond = (err, res) => {
-  const status = err && err.status ? err.status : BAD_REQUEST;
-  const firstChar = parseInt(status.toString().charAt(0), 10);
-  let message = { sucess: true };
+  try {
+    const status = err && err.status ? err.status : BAD_REQUEST;
+    const firstChar = parseInt(status.toString().charAt(0), 10);
+    let message = { sucess: true };
 
-  if (firstChar === 4 || firstChar === 5) {
-    message = { error: err.message };
+    if (firstChar === 4 || firstChar === 5) {
+      message = { error: err.message };
+    }
+
+    if (firstChar === 2) {
+      message = err.message ? err.message : message;
+    }
+
+    return res.status(status).json(message);
+  } catch (error) {
+    logger.log(err);
   }
-
-  if (firstChar === 2) {
-    message = err.message ? err.message : message;
-  }
-
-  return res.status(status).json(message);
 };
 
 module.exports.HTTPSuccess = (status, message) => {
