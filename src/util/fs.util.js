@@ -1,4 +1,7 @@
 const fs = require('fs');
+const { promisify } = require('util');
+const sizeOf = promisify(require('image-size'));
+const { createCanvas, loadImage } = require('canvas');
 const logger = require('./logger.util');
 const { STORAGE_PATH } = require('../constants');
 
@@ -65,4 +68,41 @@ module.exports.delete = (destination) => {
       }
     });
   }
+};
+
+module.exports.drawBox = async (match, source) => {
+  const { box } = match;
+
+  const text = `${match.name} - ${match.confidence}%`;
+  const fontSize = 18;
+  const textPadding = 10;
+  const lineWidth = 4;
+
+  const { width, height } = await sizeOf(source);
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+  const image = await loadImage(source);
+  ctx.drawImage(image, 0, 0);
+  ctx.font = `bold ${fontSize}px Arial`;
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = '#4caf50';
+  const textWidth = ctx.measureText(text).width + textPadding;
+  const textHeight = fontSize + textPadding;
+  ctx.fillRect(box.left - lineWidth / 2, box.top - textHeight, textWidth, textHeight);
+  ctx.fillStyle = '#fff';
+  ctx.fillText(
+    text,
+    box.left + textPadding / 2 - lineWidth / 2,
+    box.top - textHeight + textPadding / 2
+  );
+
+  ctx.strokeStyle = '#4caf50';
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+
+  ctx.rect(box.left, box.top, box.width, box.height);
+  ctx.stroke();
+
+  const buffer = canvas.toBuffer('image/jpeg');
+  fs.writeFileSync(source, buffer);
 };
