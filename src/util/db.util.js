@@ -62,7 +62,7 @@ module.exports.transaction = () => {
     const test = db.transaction(() => {});
     test();
   } catch (error) {
-    console.log(`db transaction error: ${error.message}`);
+    logger.log(`db transaction error: ${error.message}`);
   }
 };
 
