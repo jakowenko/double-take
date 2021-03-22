@@ -152,14 +152,6 @@ module.exports.start = async (req, res) => {
       dashes: true,
     });
 
-    PROCESSING = false;
-
-    respond(HTTPSuccess(OK, output), res);
-
-    if (MQTT_HOST) {
-      mqtt.publish(output);
-    }
-
     for (let i = 0; i < matches.length; i++) {
       const match = matches[i];
       const source = `${STORAGE_PATH}/matches/${id}-${match.type}.jpg`;
@@ -173,6 +165,14 @@ module.exports.start = async (req, res) => {
       } else {
         filesystem.delete(source);
       }
+    }
+
+    PROCESSING = false;
+
+    respond(HTTPSuccess(OK, output), res);
+
+    if (MQTT_HOST) {
+      mqtt.publish(output);
     }
 
     if (output.matches.length) {
