@@ -2,7 +2,16 @@
   "name": "double-take",
   "version": "0.0.20",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "watch": "npm-watch"
+  },
+  "watch": {
+    "start": {
+      "patterns": [
+        "src"
+      ],
+      "extensions": "js"
+    }
   },
   "repository": {
     "type": "git",
@@ -13,7 +22,6 @@
     "better-sqlite3": "^7.1.2",
     "canvas": "^2.7.0",
     "cors": "^2.8.5",
-    "dotenv": "^8.1.0",
     "execution-time": "^1.4.1",
     "express": "^4.16.1",
     "express-validator": "^6.10.0",
@@ -26,12 +34,14 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "dotenv": "^8.2.0",
     "eslint": "^7.22.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-prettier": "^3.3.1",
     "nodemon": "^2.0.7",
+    "npm-watch": "^0.9.0",
     "prettier": "^2.2.1"
   }
 }
