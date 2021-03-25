@@ -4,7 +4,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const logger = require('./logger.util');
 
-const recognize = require('./detectors/actions/recognize')
+const recognize = require('./detectors/actions/recognize');
 
 module.exports.process = async (detector, tmp) => {
   try {
@@ -26,7 +26,6 @@ module.exports.process = async (detector, tmp) => {
       logger.log(`${detector} process error: ${error.response.data.error}`);
     } else {
       logger.log(`${detector} process error: ${error.message}`);
-      console.error(error.stack)
     }
   }
 };
