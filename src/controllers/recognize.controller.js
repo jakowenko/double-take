@@ -155,10 +155,15 @@ module.exports.start = async (req, res) => {
     for (let i = 0; i < matches.length; i++) {
       const match = matches[i];
       const source = `${STORAGE_PATH}/matches/${id}-${match.type}.jpg`;
-      await filesystem.drawBox(match, source);
+      const tmp = `/tmp/${id}-${match.type}-{${uuidv4()}}.jpg`;
+      await filesystem.writer(fs.createReadStream(source), tmp);
+      await filesystem.drawBox(match, tmp);
       const destination = `${STORAGE_PATH}/matches/${match.name}/${id}-${match.type}.jpg`;
-      filesystem.writeMatches(match.name, source, destination);
-
+      filesystem.writeMatches(match.name, tmp, destination);
+    }
+    for (let i = 0; i < matches.length; i++) {
+      const match = matches[i];
+      const source = `${STORAGE_PATH}/matches/${id}-${match.type}.jpg`;
       if (isFrigateEvent) {
         filesystem.delete(`${STORAGE_PATH}/matches/${id}-snapshot.jpg`);
         filesystem.delete(`${STORAGE_PATH}/matches/${id}-latest.jpg`);
