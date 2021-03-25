@@ -46,7 +46,7 @@ module.exports.init = async () => {
     )`
     ).run();
 
-    database.transaction();
+    // database.transactions();
 
     const files = await filesystem.files();
     database.insert('init', files);
@@ -55,12 +55,12 @@ module.exports.init = async () => {
   }
 };
 
-module.exports.transaction = () => {
+module.exports.transactions = () => {
   let db;
   try {
     db = database.connect();
-    const test = db.transaction(() => {});
-    test();
+    const transactions = db.transaction(() => {});
+    transactions();
   } catch (error) {
     logger.log(`db transaction error: ${error.message}`);
   }
