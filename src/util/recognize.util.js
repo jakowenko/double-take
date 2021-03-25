@@ -4,7 +4,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const logger = require('./logger.util');
 
-const { FACEBOX_URL, COMPREFACE_URL, COMPREFACE_API_KEY, DEEPSTACK_URL } = require('../constants');
+const recognize = require('./detectors/actions/recognize')
 
 module.exports.process = async (detector, tmp) => {
   try {
@@ -15,37 +15,7 @@ module.exports.process = async (detector, tmp) => {
     } else {
       formData.append('image', fs.createReadStream(tmp));
     }
-    const request =
-      detector === 'compreface'
-        ? await axios({
-            method: 'post',
-            headers: {
-              ...formData.getHeaders(),
-              'x-api-key': COMPREFACE_API_KEY,
-            },
-            url: `${COMPREFACE_URL}/api/v1/faces/recognize`,
-            params: {
-              det_prob_threshold: 0.8,
-            },
-            data: formData,
-          })
-        : detector === 'facebox'
-        ? await axios({
-            method: 'post',
-            headers: {
-              ...formData.getHeaders(),
-            },
-            url: `${FACEBOX_URL}/facebox/check`,
-            data: formData,
-          })
-        : await axios({
-            method: 'post',
-            headers: {
-              ...formData.getHeaders(),
-            },
-            url: `${DEEPSTACK_URL}/v1/vision/face/recognize`,
-            data: formData,
-          });
+    const request = await recognize(detector, formData);
     const seconds = parseFloat((perf.stop(detector).time / 1000).toFixed(2));
 
     const data = this.normalize(detector, request.data, seconds);
@@ -56,6 +26,7 @@ module.exports.process = async (detector, tmp) => {
       logger.log(`${detector} process error: ${error.response.data.error}`);
     } else {
       logger.log(`${detector} process error: ${error.message}`);
+      console.error(error.stack)
     }
   }
 };
