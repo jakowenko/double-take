@@ -1,6 +1,6 @@
 {
   "name": "double-take",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "scripts": {
     "start": "node server.js"
   },
