@@ -8,6 +8,7 @@ const sleep = require('../util/sleep.util');
 const train = require('../util/train.util');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
+const filesystem = require('../util/fs.util');
 const { respond, HTTPSuccess } = require('../util/respond.util');
 const { OK } = require('../constants/http-status');
 
@@ -102,6 +103,8 @@ module.exports.camera = async (req, res) => {
 module.exports.init = async (req, res) => {
   try {
     const { name } = req.params;
+    const files = await filesystem.files();
+    database.insert('init', files);
     const images = database.files('untrained', name);
 
     respond(
