@@ -1,25 +1,14 @@
 const logger = require('../logger.util');
 
-const {
-    compreface,
-    deepstack,
-    facebox
-} = require('./all')
+const detectors = require('.');
 
 /**
  * @param detector {string} Name of the detector to get
  */
 module.exports.get = (detector) => {
-    logger.log(`trying to use detector '${detector}'`)
-    switch (detector) {
-        case 'compreface':
-            logger.log(`using detector 'compreface'`)
-            return compreface;
-        case 'deepstack':
-            logger.log(`using detector 'deepstack'`)
-            return deepstack;
-        case 'facebox':
-            logger.log(`using detector 'facebox'`)
-            return facebox;
-    }
-}
+  try {
+    return detectors[detector];
+  } catch (error) {
+    logger.log(`${detector} factory error: ${error.message}`);
+  }
+};
