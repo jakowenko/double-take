@@ -5,7 +5,7 @@ const { createCanvas, loadImage, registerFont } = require('canvas');
 const md5File = require('md5-file');
 const { v4: uuidv4 } = require('uuid');
 const logger = require('./logger.util');
-const { STORAGE_PATH, PURGE_UNKNOWN, PURGE_MATCHES } = require('../constants');
+const { STORAGE_PATH } = require('../constants');
 
 module.exports.files = async () => {
   const output = [];
