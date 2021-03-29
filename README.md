@@ -196,7 +196,7 @@ Configurable options that can be passed as environment variables to the Docker c
 | SNAPSHOT_RETRIES     | `10`                  | Amount of times API will request a Frigate `snapshot.jpg` for analysis                                                                            |
 | LATEST_RETRIES       | `10`                  | Amount of times API will request a Frigate `latest.jpg` for analysis                                                                              |
 | CONFIDENCE           | `50`                  | Minimum confidence level for a face match                                                                                                         |
-| SAVE_UNMATCHED       | `false`               | Save unmatched faces to `/.storage/unmatched/`                                                                                                    |
+| SAVE_UNKNOWN         | `false`               | Save unknown faces to `/.storage/matches/unknown`                                                                                                 |
 | LOGS                 |                       | Options: `verbose`                                                                                                                                |
 | TZ                   | `UTC`                 | Time zone used in logs                                                                                                                            |
 | DATE_TIME_FORMAT     |                       | Defaults to ISO 8601 format with support for [token-based formatting](https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens) |

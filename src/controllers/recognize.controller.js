@@ -16,7 +16,7 @@ const {
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
   DETECTORS,
-  SAVE_UNMATCHED,
+  SAVE_UNKNOWN,
   MQTT_HOST,
 } = require('../constants');
 
@@ -158,8 +158,8 @@ module.exports.start = async (req, res) => {
       dashes: true,
     });
 
-    if (SAVE_UNMATCHED) {
-      filesystem.save().unmatched(results);
+    if (SAVE_UNKNOWN) {
+      filesystem.save().unknown(results);
     }
 
     filesystem.save().matches(id, matches);
