@@ -3,6 +3,8 @@
   "version": "0.0.22",
   "scripts": {
     "start": "node server.js"
+    "start": "node server.js",
+    "debug": "nodemon server.js"
   },
   "repository": {
     "type": "git",
