@@ -1,12 +1,11 @@
-const fs = require('fs');
 const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
-const recognize = require('../util/recognize.util');
+const process = require('../util/process.util');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
+const recognize = require('../util/recognize.util');
 const filesystem = require('../util/fs.util');
 const frigate = require('../util/frigate.util');
-const sleep = require('../util/sleep.util');
 const mqtt = require('../util/mqtt.util');
 const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
 const { OK, BAD_REQUEST } = require('../constants/http-status');
@@ -16,9 +15,8 @@ const {
   FRIGATE_IMAGE_HEIGHT,
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
-  CONFIDENCE,
-  STORAGE_PATH,
   DETECTORS,
+  SAVE_UNMATCHED,
   MQTT_HOST,
 } = require('../constants');
 
@@ -83,34 +81,36 @@ module.exports.start = async (req, res) => {
         promises = [];
       }
       const detector = DETECTORS[i];
+      const config = {
+        isFrigateEvent,
+        breakMatch,
+        detector,
+        id,
+        MATCH_IDS,
+      };
+
       if (isFrigateEvent) {
         promises.push(
-          this.polling({
-            breakMatch,
-            detector,
+          process.polling({
+            ...config,
             retries: LATEST_RETRIES,
-            id,
             type: 'latest',
             url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=${FRIGATE_IMAGE_HEIGHT}`,
           })
         );
         promises.push(
-          this.polling({
-            breakMatch,
-            detector,
+          process.polling({
+            ...config,
             retries: SNAPSHOT_RETRIES,
-            id,
             type: 'snapshot',
             url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}`,
           })
         );
       } else {
         promises.push(
-          this.polling({
-            breakMatch,
-            detector,
+          process.polling({
+            ...config,
             retries: parseInt(manualAttempts, 10),
-            id,
             type: 'manual',
             url,
           })
@@ -125,52 +125,44 @@ module.exports.start = async (req, res) => {
     }
 
     const { attempts, matches } = recognize.filter(results);
-    const seconds = parseFloat((perf.stop('request').time / 1000).toFixed(2));
+    const duration = parseFloat((perf.stop('request').time / 1000).toFixed(2));
     const output = {
       id,
-      duration: seconds,
+      duration,
       timestamp: time.current(),
       attempts,
       camera,
       room,
       matches: JSON.parse(JSON.stringify(matches)).map((match) => {
         delete match.box;
+        delete match.tmp;
         return match;
       }),
     };
 
-    if (resultsOutput === 'all') output.results = results;
+    if (resultsOutput === 'all')
+      output.results = JSON.parse(JSON.stringify(results)).map((result) => {
+        ['matches', 'misses'].forEach((array) => {
+          result[array].forEach((obj) => {
+            delete obj.box;
+            delete obj.tmp;
+          });
+        });
 
-    results.forEach((result) => {
-      delete result.matches;
-      logger.log(result);
-    });
+        return result;
+      });
 
     logger.log('response:');
     logger.log(output);
-    logger.log(`${time.current()}\ndone processing ${camera}: ${id} in ${seconds} sec`, {
+    logger.log(`${time.current()}\ndone processing ${camera}: ${id} in ${duration} sec`, {
       dashes: true,
     });
 
-    for (let i = 0; i < matches.length; i++) {
-      const match = matches[i];
-      const source = `${STORAGE_PATH}/matches/${id}-${match.type}.jpg`;
-      const tmp = `/tmp/${id}-${match.type}-{${uuidv4()}}.jpg`;
-      await filesystem.writer(fs.createReadStream(source), tmp);
-      await filesystem.drawBox(match, tmp);
-      const destination = `${STORAGE_PATH}/matches/${match.name}/${id}-${match.type}.jpg`;
-      filesystem.writeMatches(match.name, tmp, destination);
+    if (SAVE_UNMATCHED) {
+      filesystem.save().unmatched(results);
     }
-    for (let i = 0; i < matches.length; i++) {
-      const match = matches[i];
-      const source = `${STORAGE_PATH}/matches/${id}-${match.type}.jpg`;
-      if (isFrigateEvent) {
-        filesystem.delete(`${STORAGE_PATH}/matches/${id}-snapshot.jpg`);
-        filesystem.delete(`${STORAGE_PATH}/matches/${id}-latest.jpg`);
-      } else {
-        filesystem.delete(source);
-      }
-    }
+
+    filesystem.save().matches(id, matches);
 
     PROCESSING = false;
 
@@ -193,56 +185,4 @@ module.exports.start = async (req, res) => {
     LAST_CAMERA = false;
     respond(error, res);
   }
-};
-
-module.exports.polling = async ({ detector, retries, id, type, url, breakMatch }) => {
-  breakMatch = !!(breakMatch === 'true' || breakMatch === true);
-  const results = [];
-  const matches = [];
-  let attempts = 0;
-  perf.start(`${detector}-${type}`);
-
-  const isValidURL = await recognize.isValidURL({ detector, type, url });
-
-  if (isValidURL) {
-    for (let i = 0; i < retries; i++) {
-      if (breakMatch === true && MATCH_IDS.includes(id)) break;
-      attempts = i + 1;
-
-      const jitter = Math.floor(Math.random() * (1 * 1000 - 0 * 100) + 0 * 1000) / (1 * 1000);
-      await sleep(jitter);
-
-      logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
-
-      const tmp = `/tmp/${id}-${type}-${uuidv4()}.jpg`;
-      const file = `${STORAGE_PATH}/matches/${id}-${type}.jpg`;
-      const stream = await recognize.stream(url);
-
-      if (stream) {
-        await filesystem.writer(stream, tmp);
-        const data = await recognize.process(detector, tmp);
-
-        if (data) {
-          const faces = data;
-
-          faces.forEach((face) => {
-            face.attempt = i + 1;
-            results.push({ ...face });
-            if (face.confidence >= CONFIDENCE) {
-              matches.push(face);
-            }
-          });
-          if (matches.length) {
-            MATCH_IDS.push(id);
-            await filesystem.writer(fs.createReadStream(tmp), file);
-            if (breakMatch === true) break;
-          }
-        }
-      }
-    }
-  }
-
-  const duration = parseFloat((perf.stop(`${detector}-${type}`).time / 1000).toFixed(2));
-
-  return { duration, type, results, matches, attempts, detector };
 };
