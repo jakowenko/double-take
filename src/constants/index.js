@@ -23,6 +23,8 @@ const {
   TZ,
   DATE_TIME_FORMAT,
   SAVE_UNKNOWN,
+  PURGE_MATCHES,
+  PURGE_UNKNOWN,
 } = process.env;
 
 let constants = {
@@ -35,6 +37,8 @@ let constants = {
   DATE_TIME_FORMAT: DATE_TIME_FORMAT || null,
   CONFIDENCE: CONFIDENCE ? parseInt(CONFIDENCE, 10) : 50,
   SAVE_UNKNOWN: SAVE_UNKNOWN === 'true',
+  PURGE_UNKNOWN: parseFloat(PURGE_UNKNOWN) || 48,
+  PURGE_MATCHES: parseFloat(PURGE_MATCHES) || 48,
 
   MQTT_HOST: MQTT_HOST ? `mqtt://${MQTT_HOST}` : null,
   MQTT_USERNAME: MQTT_USERNAME || null,

@@ -3,25 +3,14 @@ const { DateTime } = require('luxon');
 const schedule = require('node-schedule');
 const logger = require('./logger.util');
 const time = require('./time.util');
-const { SAVE_UNKNOWN, STORAGE_PATH } = require('../constants');
+const { SAVE_UNKNOWN, STORAGE_PATH, PURGE_UNKNOWN, PURGE_MATCHES } = require('../constants');
 
 module.exports.purge = async () => {
-  schedule.scheduleJob('0 * * * *', async () => {
+  schedule.scheduleJob('* * * * *', async () => {
     try {
       let purged = 0;
       const files = await fs.promises.readdir(`${STORAGE_PATH}/matches`, { withFileTypes: true });
-      const images = files
-        .filter((file) => file.isFile())
-        .map((file) => file.name)
-        .filter(
-          (file) =>
-            file.toLowerCase().includes('.jpeg') ||
-            file.toLowerCase().includes('.jpg') ||
-            file.toLowerCase().includes('.png')
-        );
       const folders = files.filter((file) => file.isDirectory()).map((file) => file.name);
-
-      purged += await this.delete('matches', images);
 
       for (const folder of folders) {
         const folderFiles = await fs.promises.readdir(`${STORAGE_PATH}/matches/${folder}`, {
@@ -64,7 +53,8 @@ module.exports.delete = async (path, images) => {
     const { birthtime } = await fs.promises.stat(`${STORAGE_PATH}/${path}/${image}`);
     const duration = DateTime.now().diff(DateTime.fromISO(birthtime.toISOString()), 'hours');
     const { hours } = duration.toObject();
-    if (hours > 48) {
+    const purgeTime = path === 'matches/unknown' ? PURGE_UNKNOWN : PURGE_MATCHES;
+    if (hours >= purgeTime) {
       try {
         await fs.promises.unlink(`${STORAGE_PATH}/${path}/${image}`);
         purged.push(image);
