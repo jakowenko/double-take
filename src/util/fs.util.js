@@ -2,6 +2,8 @@ const fs = require('fs');
 const { promisify } = require('util');
 const sizeOf = promisify(require('image-size'));
 const { createCanvas, loadImage, registerFont } = require('canvas');
+const md5File = require('md5-file');
+const { v4: uuidv4 } = require('uuid');
 const logger = require('./logger.util');
 const { STORAGE_PATH } = require('../constants');
 
@@ -60,6 +62,14 @@ module.exports.writeMatches = (name, source, destination) => {
   }
 };
 
+module.exports.copy = (source, destination) => {
+  fs.copyFile(source, destination, (error) => {
+    if (error) {
+      logger.log(`copy file error: ${error.message}`);
+    }
+  });
+};
+
 module.exports.delete = (destination) => {
   try {
     if (fs.existsSync(destination)) {
@@ -106,4 +116,37 @@ module.exports.drawBox = async (match, source) => {
 
   const buffer = canvas.toBuffer('image/jpeg');
   fs.writeFileSync(source, buffer);
+};
+
+module.exports.save = () => {
+  return {
+    matches: async (id, matches) => {
+      for (let i = 0; i < matches.length; i++) {
+        const match = matches[i];
+        const tmp = `/tmp/{${uuidv4()}}.jpg`;
+        await this.writer(fs.createReadStream(match.tmp), tmp);
+        await this.drawBox(match, tmp);
+        const destination = `${STORAGE_PATH}/matches/${match.name}/${id}-${match.type}.jpg`;
+        this.writeMatches(match.name, tmp, destination);
+      }
+    },
+    unmatched: (results) => {
+      const md5Misses = [];
+      const unmatched = results.reduce((array, result) => {
+        const tmps = [];
+        result.misses.forEach((miss) => {
+          const md5 = md5File.sync(miss.tmp);
+          if (!md5Misses.includes(md5)) {
+            md5Misses.push(md5);
+            tmps.push(miss.tmp);
+          }
+        });
+        array.push(...tmps);
+        return array;
+      }, []);
+      for (let i = 0; i < unmatched.length; i++) {
+        this.copy(unmatched[i], `${STORAGE_PATH}/unmatched/${uuidv4()}.jpg`);
+      }
+    },
+  };
 };
