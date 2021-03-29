@@ -22,6 +22,7 @@ const {
   LOGS,
   TZ,
   DATE_TIME_FORMAT,
+  SAVE_UNMATCHED,
 } = process.env;
 
 let constants = {
@@ -33,6 +34,7 @@ let constants = {
   TZ: TZ || 'UTC',
   DATE_TIME_FORMAT: DATE_TIME_FORMAT || null,
   CONFIDENCE: CONFIDENCE ? parseInt(CONFIDENCE, 10) : 50,
+  SAVE_UNMATCHED: SAVE_UNMATCHED === 'true',
 
   MQTT_HOST: MQTT_HOST ? `mqtt://${MQTT_HOST}` : null,
   MQTT_USERNAME: MQTT_USERNAME || null,

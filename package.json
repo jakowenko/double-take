@@ -2,7 +2,6 @@
   "name": "double-take",
   "version": "0.0.22",
   "scripts": {
-    "start": "node server.js"
     "start": "node server.js",
     "debug": "nodemon server.js"
   },
@@ -22,6 +21,7 @@
     "form-data": "^4.0.0",
     "image-size": "^0.9.7",
     "luxon": "^1.26.0",
+    "md5-file": "^5.0.0",
     "mqtt": "^4.2.6",
     "node-schedule": "^2.0.0",
     "pug": "^3.0.2",

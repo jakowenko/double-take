@@ -50,6 +50,9 @@ module.exports.setup = () => {
   if (!fs.existsSync(`${STORAGE_PATH}/matches`)) {
     fs.mkdirSync(`${STORAGE_PATH}/matches`, { recursive: true });
   }
+  if (!fs.existsSync(`${STORAGE_PATH}/unmatched`)) {
+    fs.mkdirSync(`${STORAGE_PATH}/unmatched`, { recursive: true });
+  }
   if (!fs.existsSync(`${STORAGE_PATH}/train`)) {
     fs.mkdirSync(`${STORAGE_PATH}/train`, { recursive: true });
   }
