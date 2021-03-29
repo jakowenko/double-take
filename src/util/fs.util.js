@@ -130,9 +130,9 @@ module.exports.save = () => {
         this.writeMatches(match.name, tmp, destination);
       }
     },
-    unmatched: (results) => {
+    unknown: (results) => {
       const md5Misses = [];
-      const unmatched = results.reduce((array, result) => {
+      const unknown = results.reduce((array, result) => {
         const tmps = [];
         result.misses.forEach((miss) => {
           const md5 = md5File.sync(miss.tmp);
@@ -144,8 +144,8 @@ module.exports.save = () => {
         array.push(...tmps);
         return array;
       }, []);
-      for (let i = 0; i < unmatched.length; i++) {
-        this.copy(unmatched[i], `${STORAGE_PATH}/unmatched/${uuidv4()}.jpg`);
+      for (let i = 0; i < unknown.length; i++) {
+        this.copy(unknown[i], `${STORAGE_PATH}/matches/unknown/${uuidv4()}.jpg`);
       }
     },
   };

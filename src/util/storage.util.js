@@ -3,7 +3,7 @@ const { DateTime } = require('luxon');
 const schedule = require('node-schedule');
 const logger = require('./logger.util');
 const time = require('./time.util');
-const { STORAGE_PATH } = require('../constants');
+const { SAVE_UNKNOWN, STORAGE_PATH } = require('../constants');
 
 module.exports.purge = async () => {
   schedule.scheduleJob('0 * * * *', async () => {
@@ -50,8 +50,8 @@ module.exports.setup = () => {
   if (!fs.existsSync(`${STORAGE_PATH}/matches`)) {
     fs.mkdirSync(`${STORAGE_PATH}/matches`, { recursive: true });
   }
-  if (!fs.existsSync(`${STORAGE_PATH}/unmatched`)) {
-    fs.mkdirSync(`${STORAGE_PATH}/unmatched`, { recursive: true });
+  if (SAVE_UNKNOWN && !fs.existsSync(`${STORAGE_PATH}/matches/unknown`)) {
+    fs.mkdirSync(`${STORAGE_PATH}/matches/unknown`, { recursive: true });
   }
   if (!fs.existsSync(`${STORAGE_PATH}/train`)) {
     fs.mkdirSync(`${STORAGE_PATH}/train`, { recursive: true });
