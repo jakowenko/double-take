@@ -4,6 +4,8 @@
 const $ = jQuery;
 
 $(() => {
+  $('.loading').hide();
+  $('.wrapper').show();
   $('.form-select').on('change', (event) => {
     const json = $(event.currentTarget).parents('.holder').data('json');
     const folder = $(event.currentTarget).val();

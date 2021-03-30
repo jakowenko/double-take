@@ -10,6 +10,8 @@ html
       include js/manage.js
   body
     div.container
+      div(class='loading' align='center') loading...
+      div(class='wrapper')
       each row in rows
         div(class='row')
           each file in row
