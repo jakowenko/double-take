@@ -29,7 +29,7 @@ module.exports.manage = async (req, res) => {
     })
   );
   const rows = new Array(Math.ceil(files.length / 2)).fill().map(() => files.splice(0, 2));
-  const folders = await filesystem.folders().matches();
+  const folders = await filesystem.folders().train();
   res.render('manage', { rows, folders, API_URL: `http://0.0.0.0:${PORT}` });
 };
 
