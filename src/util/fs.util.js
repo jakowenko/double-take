@@ -16,6 +16,11 @@ module.exports.folders = () => {
         .map((file) => file.name);
       return folders;
     },
+    train: async () => {
+      let folders = await fs.promises.readdir(`${STORAGE_PATH}/train`, { withFileTypes: true });
+      folders = folders.filter((file) => file.isDirectory()).map((file) => file.name);
+      return folders;
+    },
   };
 };
 
