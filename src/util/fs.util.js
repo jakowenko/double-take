@@ -7,30 +7,51 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('./logger.util');
 const { STORAGE_PATH } = require('../constants');
 
-module.exports.files = async () => {
-  const output = [];
-  let folders = await fs.promises.readdir(`${STORAGE_PATH}/train`, { withFileTypes: true });
-  folders = folders.filter((file) => file.isDirectory()).map((file) => file.name);
+module.exports.folders = () => {
+  return {
+    matches: async () => {
+      let folders = await fs.promises.readdir(`${STORAGE_PATH}/matches`, { withFileTypes: true });
+      folders = folders
+        .filter((file) => file.isDirectory() && file.name !== 'unknown')
+        .map((file) => file.name);
+      return folders;
+    },
+  };
+};
 
-  for (const folder of folders) {
-    let images = await fs.promises.readdir(`${STORAGE_PATH}/train/${folder}`, {
-      withFileTypes: true,
-    });
-    images = images
-      .filter((file) => file.isFile())
-      .map((file) => file.name)
-      .filter(
-        (file) =>
-          file.toLowerCase().includes('.jpeg') ||
-          file.toLowerCase().includes('.jpg') ||
-          file.toLowerCase().includes('.png')
-      );
-    images.forEach((filename) => {
-      output.push({ name: folder, filename });
-    });
-  }
+module.exports.files = () => {
+  return {
+    traverse: async (path) => {
+      const output = [];
+      let folders = await fs.promises.readdir(`${STORAGE_PATH}/${path}`, { withFileTypes: true });
+      folders = folders.filter((file) => file.isDirectory()).map((file) => file.name);
 
-  return output;
+      for (const folder of folders) {
+        let images = await fs.promises.readdir(`${STORAGE_PATH}/${path}/${folder}`, {
+          withFileTypes: true,
+        });
+        images = images
+          .filter((file) => file.isFile())
+          .map((file) => file.name)
+          .filter(
+            (file) =>
+              file.toLowerCase().includes('.jpeg') ||
+              file.toLowerCase().includes('.jpg') ||
+              file.toLowerCase().includes('.png')
+          );
+        images.forEach((filename) => {
+          output.push({ name: folder, filename, key: `${path}/${folder}/${filename}` });
+        });
+      }
+      return output;
+    },
+    train: async () => {
+      return this.files().traverse('train');
+    },
+    matches: async () => {
+      return this.files().traverse('matches');
+    },
+  };
 };
 
 module.exports.writer = async (stream, file) => {
@@ -77,6 +98,16 @@ module.exports.delete = (destination) => {
     }
   } catch (error) {
     logger.log(`delete error: ${error.message}`);
+  }
+};
+
+module.exports.move = (source, destination) => {
+  try {
+    if (fs.existsSync(source)) {
+      fs.renameSync(source, destination);
+    }
+  } catch (error) {
+    logger.log(`move error: ${error.message}`);
   }
 };
 

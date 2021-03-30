@@ -48,7 +48,7 @@ module.exports.init = async () => {
 
     // database.transactions();
 
-    const files = await filesystem.files();
+    const files = await filesystem.files().train();
     database.insert('init', files);
   } catch (error) {
     logger.log(`db init error: ${error.message}`);

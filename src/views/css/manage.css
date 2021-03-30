@@ -1,0 +1,57 @@
+body {
+  padding: 15px;
+  background: #eaeaea;
+}
+
+.container {
+  padding: 15px;
+  background: #fff;
+}
+
+.holder {
+  width: 47.5%;
+  float: left;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.holder > div {
+  width: 100%;
+}
+.holder:first-child {
+  margin-right: 5%;
+}
+
+.row {
+  --bs-gutter-x: 0;
+}
+.row:nth-child(n + 2) {
+  padding-top: 15px;
+}
+
+.actions {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.actions select.form-select {
+  width: 150px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 15px;
+  font-size: 14px;
+}
+
+.actions button {
+  font-size: 14px;
+}
+
+@media only screen and (max-width: 600px) {
+  .actions select.form-select {
+    font-size: 13px;
+    width: 100px;
+  }
+  .actions button {
+    font-size: 13px;
+  }
+}

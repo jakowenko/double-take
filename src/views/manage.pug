@@ -1,0 +1,28 @@
+html
+  head
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+    title= title
+    style
+      include css/bootstrap.css
+      include css/manage.css
+    script
+      include js/jquery.min.js
+      include js/manage.js
+    script const API_URL = '#{API_URL}'
+  body
+    div.container
+      each row in rows
+        div(class='row')
+          each file in row
+            div(class='holder' data-json=`${JSON.stringify(file)}`)
+              div
+                strong #{file.name}
+                img(class='img-thumbnail' src=`${file.url}`)
+                div(class='actions')
+                  select(class='form-select')
+                    option(selected, value='') train:
+                    each folder in folders
+                      option #{folder}
+                  button(class='btn btn-danger' type='button') delete
+      else
+        div(align='center') no images found in matches folder
