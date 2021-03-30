@@ -8,6 +8,10 @@ body {
   background: #fff;
 }
 
+.wrapper {
+  display: none;
+}
+
 .holder {
   width: 47.5%;
   float: left;
