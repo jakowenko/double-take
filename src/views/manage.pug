@@ -8,7 +8,6 @@ html
     script
       include js/jquery.min.js
       include js/manage.js
-    script const API_URL = '#{API_URL}'
   body
     div.container
       each row in rows
@@ -17,7 +16,7 @@ html
             div(class='holder' data-json=`${JSON.stringify(file)}`)
               div
                 strong #{file.name}
-                img(class='img-thumbnail' src=`${file.url}`)
+                img(class='img-thumbnail' src=`data:image/jpg;base64,${file.base64}`)
                 div(class='actions')
                   select(class='form-select')
                     option(selected, value='') train:

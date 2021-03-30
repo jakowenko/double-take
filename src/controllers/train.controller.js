@@ -19,7 +19,7 @@ module.exports.manage = async (req, res) => {
   files = files.map((file) => {
     return {
       ...file,
-      url: `http://0.0.0.0:${PORT}/storage/${file.key}`,
+      base64: Buffer.from(fs.readFileSync(`${STORAGE_PATH}/${file.key}`)).toString('base64'),
     };
   });
   const rows = new Array(Math.ceil(files.length / 2)).fill().map(() => files.splice(0, 2));

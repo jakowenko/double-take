@@ -9,7 +9,7 @@ $(() => {
     const folder = $(event.currentTarget).val();
     if (folder !== '' && confirm(`move and train image for ${folder}?`)) {
       $.ajax({
-        url: `${API_URL}/train/manage/move`,
+        url: '/train/manage/move',
         method: 'post',
         dataType: 'json',
         data: {
@@ -27,7 +27,7 @@ $(() => {
     const json = $(event.currentTarget).parents('.holder').data('json');
     if (confirm(`delete image for ${json.name}?`)) {
       $.ajax({
-        url: `${API_URL}/train/manage/delete`,
+        url: '/train/manage/delete',
         method: 'post',
         dataType: 'json',
         data: {
