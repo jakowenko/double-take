@@ -9,6 +9,10 @@ const router = express.Router();
 router.post('/recognize', validate(validators.recognize({ post: true })), recognize.start);
 router.get('/recognize', validate(validators.recognize({ get: true })), recognize.start);
 
+router.get('/train/manage', train.manage);
+router.post('/train/manage/delete', validate(validators.manage().delete()), train.file().delete);
+router.post('/train/manage/move', validate(validators.manage().move()), train.file().move);
+
 router.get('/train/add/:name', train.init);
 router.get('/train/remove/:name', train.delete);
 router.get('/train/:camera/:name', validate(validators.train()), train.camera);

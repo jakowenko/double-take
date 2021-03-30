@@ -12,7 +12,47 @@ const filesystem = require('../util/fs.util');
 const { respond, HTTPSuccess } = require('../util/respond.util');
 const { OK } = require('../constants/http-status');
 
-const { FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
+const { PORT, FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
+
+module.exports.manage = async (req, res) => {
+  let files = await filesystem.files().matches();
+  files = files.map((file) => {
+    return {
+      ...file,
+      url: `http://0.0.0.0:${PORT}/storage/${file.key}`,
+    };
+  });
+  const rows = new Array(Math.ceil(files.length / 2)).fill().map(() => files.splice(0, 2));
+  const folders = await filesystem.folders().matches();
+  res.render('manage', { rows, folders, API_URL: `http://0.0.0.0:${PORT}` });
+};
+
+module.exports.file = () => {
+  return {
+    delete: (req, res) => {
+      try {
+        const { key } = req.body;
+        filesystem.delete(`${STORAGE_PATH}/${key}`);
+        respond(HTTPSuccess(OK, { sucess: true }), res);
+      } catch (error) {
+        logger.log(`manage delete error: ${error.message}`);
+        respond(error, res);
+      }
+    },
+    move: async (req, res) => {
+      try {
+        const { folder, key, filename } = req.body;
+        filesystem.move(`${STORAGE_PATH}/${key}`, `${STORAGE_PATH}/train/${folder}/${filename}`);
+        database.insert('init', await filesystem.files().train());
+        respond(HTTPSuccess(OK, { sucess: true }), res);
+        await train.queue(database.files('untrained', folder));
+      } catch (error) {
+        logger.log(`manage move error: ${error.message}`);
+        respond(error, res);
+      }
+    },
+  };
+};
 
 module.exports.delete = async (req, res) => {
   try {
@@ -93,7 +133,7 @@ module.exports.camera = async (req, res) => {
       );
     }
 
-    res.render('train', { camera, name, results });
+    res.render('camera', { camera, name, results });
   } catch (error) {
     logger.log(`train camera error: ${error.message}`);
     respond(error, res);
@@ -103,7 +143,7 @@ module.exports.camera = async (req, res) => {
 module.exports.init = async (req, res) => {
   try {
     const { name } = req.params;
-    const files = await filesystem.files();
+    const files = await filesystem.files().train();
     database.insert('init', files);
     const images = database.files('untrained', name);
 

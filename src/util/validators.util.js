@@ -1,6 +1,6 @@
 const { expressValidator } = require('./validate.util');
 
-const { query } = expressValidator;
+const { query, body } = expressValidator;
 
 module.exports.recognize = ({ get }) => {
   let validations = [
@@ -23,9 +23,32 @@ module.exports.recognize = ({ get }) => {
   return validations;
 };
 
+module.exports.manage = () => {
+  return {
+    delete: () => {
+      return [body('key').isString().withMessage('not a valid key')];
+    },
+    move: () => {
+      return [
+        body('folder').isString().withMessage('not a valid folder'),
+        body('key').isString().withMessage('not a valid key'),
+        body('filename').isString().withMessage('not a valid filename'),
+      ];
+    },
+  };
+};
+
 module.exports.train = () => {
   return [
     query('output').default('html').isIn(['html', 'json']).withMessage('not a valid output type'),
+    query('attempts').default(1).isInt().withMessage('not a valid number'),
+  ];
+};
+
+module.exports.objects = () => {
+  return [
+    query('url').isURL(),
+    query('break').default(true).isIn([true, false]),
     query('attempts').default(1).isInt().withMessage('not a valid number'),
   ];
 };
