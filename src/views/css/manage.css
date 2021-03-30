@@ -18,6 +18,9 @@ body {
 .holder > div {
   width: 100%;
 }
+.holder img.img-thumbnail {
+  width: 100%;
+}
 .holder:first-child {
   margin-right: 5%;
 }
@@ -47,11 +50,13 @@ body {
 }
 
 @media only screen and (max-width: 600px) {
-  .actions select.form-select {
-    font-size: 13px;
-    width: 100px;
+  .holder {
+    width: 100%;
   }
-  .actions button {
-    font-size: 13px;
+  .holder:nth-child(n + 2) {
+    padding-top: 15px;
+  }
+  .holder:first-child {
+    margin-right: 0;
   }
 }
