@@ -31,7 +31,10 @@ $(() => {
           filename: json.filename,
         },
       }).done(() => {
-        location.reload();
+        $(event.currentTarget).parents('.holder').fadeTo('fast', 0.35);
+        const height = $(event.currentTarget).parents('.holder').find('.actions').height();
+        $(event.currentTarget).parents('.holder').find('.actions').height(height);
+        $(event.currentTarget).parents('.holder').find('.actions *').remove();
       });
     }
   });
@@ -47,7 +50,10 @@ $(() => {
           key: json.key,
         },
       }).done(() => {
-        location.reload();
+        $(event.currentTarget).parents('.holder').fadeTo('fast', 0.35);
+        const height = $(event.currentTarget).parents('.holder').find('.actions').height();
+        $(event.currentTarget).parents('.holder').find('.actions').height(height);
+        $(event.currentTarget).parents('.holder').find('.actions *').remove();
       });
     }
   });
