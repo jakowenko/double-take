@@ -7,10 +7,10 @@ html
       include css/manage.css
     script
       include js/jquery.min.js
+      include js/jquery.lazy.min.js
       include js/manage.js
   body
     div.container
-      div(class='loading' align='center') loading...
       div(class='wrapper')
       each row in rows
         div(class='row')
@@ -18,7 +18,7 @@ html
             div(class='holder' data-json=`${JSON.stringify(file)}`)
               div
                 strong #{file.name}
-                img(class='img-thumbnail' src=`data:image/jpg;base64,${file.base64}`)
+                img(class='img-thumbnail lazy' data-src=`data:image/jpg;base64,${file.base64}`)
                 div(class='actions')
                   select(class='form-select')
                     option(selected, value='') train:

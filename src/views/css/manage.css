@@ -23,7 +23,11 @@ body {
   width: 100%;
 }
 .holder img.img-thumbnail {
+  margin-left: 15px;
+}
+.holder img.img-thumbnail.loaded {
   width: 100%;
+  margin-left: 0;
 }
 .holder:first-child {
   margin-right: 5%;
@@ -39,6 +43,7 @@ body {
 .actions {
   margin-top: 15px;
   text-align: center;
+  display: none;
 }
 
 .actions select.form-select {

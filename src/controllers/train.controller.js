@@ -17,10 +17,11 @@ const { PORT, FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
 
 module.exports.manage = async (req, res) => {
   let files = await filesystem.files().matches();
+  const width = req.query.width ? parseInt(req.query.width, 10) : 500;
 
   files = await Promise.all(
     files.map(async (file) => {
-      const base64 = await sharp(`${STORAGE_PATH}/${file.key}`).resize(500).toBuffer();
+      const base64 = await sharp(`${STORAGE_PATH}/${file.key}`).resize(width).toBuffer();
       return {
         ...file,
         base64: base64.toString('base64'),
