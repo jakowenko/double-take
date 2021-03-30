@@ -2,6 +2,7 @@ const fs = require('fs');
 const perf = require('execution-time')();
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
+const sharp = require('sharp');
 const { writer } = require('../util/fs.util');
 const database = require('../util/db.util');
 const sleep = require('../util/sleep.util');
@@ -16,12 +17,16 @@ const { PORT, FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
 
 module.exports.manage = async (req, res) => {
   let files = await filesystem.files().matches();
-  files = files.map((file) => {
-    return {
-      ...file,
-      base64: Buffer.from(fs.readFileSync(`${STORAGE_PATH}/${file.key}`)).toString('base64'),
-    };
-  });
+
+  files = await Promise.all(
+    files.map(async (file) => {
+      const base64 = await sharp(`${STORAGE_PATH}/${file.key}`).resize(500).toBuffer();
+      return {
+        ...file,
+        base64: base64.toString('base64'),
+      };
+    })
+  );
   const rows = new Array(Math.ceil(files.length / 2)).fill().map(() => files.splice(0, 2));
   const folders = await filesystem.folders().matches();
   res.render('manage', { rows, folders, API_URL: `http://0.0.0.0:${PORT}` });
