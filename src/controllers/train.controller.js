@@ -1,6 +1,7 @@
 const fs = require('fs');
 const perf = require('execution-time')();
 const axios = require('axios');
+const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const sharp = require('sharp');
 const { writer } = require('../util/fs.util');
@@ -13,7 +14,7 @@ const filesystem = require('../util/fs.util');
 const { respond, HTTPSuccess } = require('../util/respond.util');
 const { OK } = require('../constants/http-status');
 
-const { PORT, FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
+const { FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
 
 module.exports.manage = async (req, res) => {
   let files = await filesystem.files().matches();
@@ -21,24 +22,38 @@ module.exports.manage = async (req, res) => {
 
   files = await Promise.all(
     files.map(async (file) => {
+      const filename = path.parse(file.filename).name;
+      let [boxWidth, boxHeight] = filename.split('-').pop().split('x');
+      boxWidth = !Number.isNaN(-boxWidth) ? Number(boxWidth) : 'N/A';
+      boxHeight = !Number.isNaN(-boxHeight) ? Number(boxHeight) : 'N/A';
+
+      const { birthtime: createdAt } = fs.statSync(`${STORAGE_PATH}/${file.key}`);
       const base64 = await sharp(`${STORAGE_PATH}/${file.key}`).resize(width).toBuffer();
       return {
         ...file,
+        width: boxWidth,
+        height: boxHeight,
+        createdAt,
+        ago: time.ago(createdAt),
         base64: base64.toString('base64'),
       };
     })
   );
+  files.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+
   const rows = new Array(Math.ceil(files.length / 2)).fill().map(() => files.splice(0, 2));
   const folders = await filesystem.folders().train();
-  res.render('manage', { rows, folders, API_URL: `http://0.0.0.0:${PORT}` });
+  res.render('manage', { rows, folders });
 };
 
 module.exports.file = () => {
   return {
     delete: (req, res) => {
       try {
-        const { key } = req.body;
-        filesystem.delete(`${STORAGE_PATH}/${key}`);
+        const files = JSON.parse(req.body.files);
+        files.forEach((file) => {
+          filesystem.delete(`${STORAGE_PATH}/${file.key}`);
+        });
         respond(HTTPSuccess(OK, { sucess: true }), res);
       } catch (error) {
         logger.log(`manage delete error: ${error.message}`);
@@ -47,8 +62,16 @@ module.exports.file = () => {
     },
     move: async (req, res) => {
       try {
-        const { folder, key, filename } = req.body;
-        filesystem.move(`${STORAGE_PATH}/${key}`, `${STORAGE_PATH}/train/${folder}/${filename}`);
+        const files = JSON.parse(req.body.files);
+        let folder;
+
+        files.forEach((file) => {
+          folder = file.folder;
+          filesystem.move(
+            `${STORAGE_PATH}/${file.key}`,
+            `${STORAGE_PATH}/train/${file.folder}/${file.filename}`
+          );
+        });
         database.insert('init', await filesystem.files().train());
         respond(HTTPSuccess(OK, { sucess: true }), res);
         await train.queue(database.files('untrained', folder));

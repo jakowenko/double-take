@@ -26,14 +26,16 @@ module.exports.recognize = ({ get }) => {
 module.exports.manage = () => {
   return {
     delete: () => {
-      return [body('key').isString().withMessage('not a valid key')];
+      return [];
+      // return [body('key').isString().withMessage('not a valid key')];
     },
     move: () => {
-      return [
-        body('folder').isString().withMessage('not a valid folder'),
-        body('key').isString().withMessage('not a valid key'),
-        body('filename').isString().withMessage('not a valid filename'),
-      ];
+      return [];
+      // return [
+      //   body('folder').isString().withMessage('not a valid folder'),
+      //   body('key').isString().withMessage('not a valid key'),
+      //   body('filename').isString().withMessage('not a valid filename'),
+      // ];
     },
   };
 };

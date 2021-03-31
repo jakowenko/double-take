@@ -157,14 +157,19 @@ module.exports.drawBox = async (match, source) => {
 module.exports.save = () => {
   return {
     matches: async (id, matches) => {
+      const filenames = [];
       for (let i = 0; i < matches.length; i++) {
         const match = matches[i];
+        const { width, height } = match.box;
         const tmp = `/tmp/{${uuidv4()}}.jpg`;
         await this.writer(fs.createReadStream(match.tmp), tmp);
         await this.drawBox(match, tmp);
-        const destination = `${STORAGE_PATH}/matches/${match.name}/${id}-${match.type}.jpg`;
+        const filename = `${id}-${match.type}-${width}x${height}.jpg`;
+        const destination = `${STORAGE_PATH}/matches/${match.name}/${filename}`;
         this.writeMatches(match.name, tmp, destination);
+        filenames.push(filename);
       }
+      return filenames;
     },
     unknown: (results) => {
       const md5Misses = [];
