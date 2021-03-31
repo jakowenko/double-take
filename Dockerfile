@@ -1,5 +1,5 @@
 FROM node:12-alpine
-RUN apk add --no-cache bash python make g++ libpng libpng-dev jpeg-dev pango-dev cairo-dev giflib-dev libvips-dev
+RUN apk add --no-cache bash python make g++ libpng libpng-dev jpeg-dev pango-dev cairo-dev giflib-dev vips-dev
 RUN mkdir /.storage
 WORKDIR /app
 COPY ./ /app
