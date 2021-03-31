@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
-    "better-sqlite3": "^7.1.2",
+    "better-sqlite3": "^7.1.4",
     "canvas": "^2.7.0",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
