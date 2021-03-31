@@ -10,20 +10,28 @@ html
       include js/jquery.lazy.min.js
       include js/manage.js
   body
-    div.container
-      div(class='wrapper')
+    div(class='container fixed-top')
+      div(class='row justify-content-center')
+        div(class='col-4')
+          select(class='form-select form-select-sm')
+            option(selected, value='') name:
+            each folder in folders
+              option #{folder}
+        div(class='col-4')
+          button(class='btn btn-primary btn-sm btn-train' type='button' disabled) train
+        div(class='col-4 text-end')
+          button(class='btn btn-danger btn-sm btn-delete' type='button' disabled) delete
+    div(class='container files')
       each row in rows
-        div(class='row')
+        div(class='row g-0 files')
           each file in row
-            div(class='holder' data-json=`${JSON.stringify(file)}`)
+            div(class='col-6 file-wrapper' data-json=`${JSON.stringify(file)}`)
               div
-                strong #{file.name}
+                div
+                  strong #{file.name}:
+                  small  #{file.width} x #{file.height}
+                  div
+                    small  #{file.ago}
                 img(class='img-thumbnail lazy' data-src=`data:image/jpg;base64,${file.base64}`)
-                div(class='actions')
-                  select(class='form-select')
-                    option(selected, value='') train:
-                    each folder in folders
-                      option #{folder}
-                  button(class='btn btn-danger' type='button') delete
       else
         div(align='center') no images found in matches folder

@@ -162,7 +162,11 @@ module.exports.start = async (req, res) => {
       filesystem.save().unknown(results);
     }
 
-    filesystem.save().matches(id, matches);
+    const filenames = await filesystem.save().matches(id, matches);
+    output.matches.map((match, i) => {
+      match.filename = filenames[i];
+      return match;
+    });
 
     PROCESSING = false;
 
