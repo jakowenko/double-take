@@ -179,14 +179,19 @@ module.exports.save = () => {
           const md5 = md5File.sync(miss.tmp);
           if (!md5Misses.includes(md5)) {
             md5Misses.push(md5);
-            tmps.push(miss.tmp);
+            tmps.push({ ...miss });
           }
         });
         array.push(...tmps);
         return array;
       }, []);
       for (let i = 0; i < unknown.length; i++) {
-        this.copy(unknown[i], `${STORAGE_PATH}/matches/unknown/${uuidv4()}.jpg`);
+        const { tmp } = unknown[i];
+        const { width, height } = unknown[i].box;
+        this.copy(
+          unknown[i].tmp,
+          `${STORAGE_PATH}/matches/unknown/${uuidv4()}-${width}x${height}.jpg`
+        );
       }
     },
   };
