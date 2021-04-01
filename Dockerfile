@@ -1,5 +1,7 @@
 FROM node:12-alpine
-RUN apk add --no-cache bash python make g++ libpng libpng-dev jpeg-dev pango-dev cairo-dev giflib-dev vips-dev
+RUN apk --update add --no-cache bash python make g++ libpng libpng-dev jpeg-dev pango-dev cairo-dev giflib-dev
+RUN apk add libimagequant-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main
+RUN apk add vips-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
 RUN mkdir /.storage
 WORKDIR /app
 COPY ./ /app
