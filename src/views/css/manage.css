@@ -31,13 +31,26 @@ body {
 .file-wrapper {
   display: flex;
   align-items: center;
-  justify-content: center;
   cursor: pointer;
 }
-.file-wrapper.active {
-  background: rgb(123, 210, 124);
+.file-wrapper .active-filter {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  background: rgb(123, 210, 124, 0.75);
+  z-index: 2;
+  display: none;
+  pointer-events: none;
+}
+.file-wrapper .active-filter.show {
+  display: block;
 }
 .file-wrapper.inactive {
-  opacity: 0.35;
+  opacity: 0.25;
   cursor: default;
+}
+.file-wrapper.inactive .active-filter {
+  display: none;
 }

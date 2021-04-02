@@ -26,12 +26,20 @@ html
         div(class='row g-0 files')
           each file in row
             div(class='col-6 file-wrapper' data-json=`${JSON.stringify(file)}`)
-              div
+              div(class='container p-0')
                 div
-                  strong #{file.name}:
-                  small  #{file.width} x #{file.height}
-                  div
-                    small  #{file.ago}
-                img(class='img-thumbnail lazy' data-src=`data:image/jpg;base64,${file.base64}`)
+                  div(style='margin-bottom: 5px')
+                    span(class='badge bg-light text-dark') #{file.name}
+                    span(class='badge bg-light text-dark') #{file.ago}
+                div
+                  div(class='text-center' style='position: relative')
+                    div(class='active-filter')
+                    div(class='spinner-border spinner-border-sm' role='status' style='margin-bottom: 5px')
+                    img(class='lazy' data-src=`data:image/jpg;base64,${file.base64}`)
+                div(style='margin-top: 5px')
+                  span(class='badge bg-light text-dark') #{file.detector}
+                  span(class='badge bg-light text-dark') #{file.dimensions}
+                  span(class='badge bg-light text-dark') #{file.confidence}
+                  span(class='badge bg-light text-dark') #{file.duration}
       else
         div(align='center') no images found in matches folder
