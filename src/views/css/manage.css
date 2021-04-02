@@ -15,22 +15,6 @@ body {
 .row.files > div {
   padding: 15px;
 }
-@media only screen and (max-width: 600px) {
-  body {
-    padding: 0;
-  }
-  .container.files {
-    padding-left: 5px;
-    padding-right: 5px;
-    padding-bottom: 5px;
-  }
-  .row.files > div {
-    padding: 5px;
-  }
-  .form-select {
-    font-size: 16px;
-  }
-}
 
 .file-wrapper {
   display: flex;
@@ -71,4 +55,23 @@ body {
   position: absolute;
   z-index: 1;
   display: none;
+}
+@media only screen and (max-width: 600px) {
+  body {
+    padding: 0;
+  }
+  .container.files {
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+  }
+  .row.files > div {
+    padding: 5px;
+  }
+  .form-select {
+    font-size: 16px;
+  }
+  .file-wrapper .bbox {
+    border: 2px solid #4caf50;
+  }
 }

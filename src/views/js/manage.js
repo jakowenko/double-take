@@ -91,7 +91,7 @@ $(() => {
       dataType: 'json',
       data: { files: JSON.stringify(data) },
     }).done(() => {
-      $('.file-wrapper.active').addClass('inactive');
+      $('.file-wrapper.active').removeClass('active').addClass('inactive');
       $('.btn-train, .btn-delete').prop('disabled', true);
     });
   });
