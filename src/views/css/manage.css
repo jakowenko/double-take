@@ -54,3 +54,6 @@ body {
 .file-wrapper.inactive .active-filter {
   display: none;
 }
+.file-wrapper img.img-thumbnail {
+  width: 100%;
+}
