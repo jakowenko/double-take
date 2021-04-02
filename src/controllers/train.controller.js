@@ -1,9 +1,11 @@
+const { promisify } = require('util');
 const fs = require('fs');
 const perf = require('execution-time')();
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const sharp = require('sharp');
 const { ExifTool } = require('exiftool-vendored');
+const sizeOf = promisify(require('image-size'));
 const { writer } = require('../util/fs.util');
 const database = require('../util/db.util');
 const sleep = require('../util/sleep.util');
@@ -33,9 +35,17 @@ module.exports.manage = async (req, res) => {
           : { confidence: null, duration: null, box: { width: null, height: null } };
       const { birthtime: createdAt } = fs.statSync(`${STORAGE_PATH}/${file.key}`);
       const base64 = await sharp(`${STORAGE_PATH}/${file.key}`).resize(width).toBuffer();
+
+      const { width: ogWidth, height: ogHeight } = await sizeOf(`${STORAGE_PATH}/${file.key}`);
+
       return {
         ...file,
         dimensions: box.width ? `${box.width}x${box.height}` : null,
+        bbox: box.width
+          ? `width: ${(box.width / ogWidth) * 100}%; height: ${
+              (box.height / ogHeight) * 100
+            }%; top: ${(box.top / ogHeight) * 100}%; left: ${(box.left / ogWidth) * 100}%;`
+          : '',
         confidence: confidence ? `${confidence}%` : null,
         duration: duration ? `${duration} sec` : null,
         detector: detector || null,

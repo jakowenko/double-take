@@ -64,3 +64,9 @@ body {
 .file-wrapper .badges .badge {
   margin-top: 5px;
 }
+.file-wrapper .bbox {
+  outline: 3px solid #4caf50;
+  position: absolute;
+  z-index: 1;
+  display: none;
+}

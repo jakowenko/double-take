@@ -24,8 +24,11 @@ $(() => {
     effect: 'fadeIn',
     effectTime: 500,
     afterLoad: (element) => {
-      $(element).parent().find('.spinner-border').hide();
+      $(element).parents('.file-wrapper').find('.spinner-border').hide();
       $(element).addClass('img-thumbnail');
+      setTimeout(() => {
+        $(element).parents('.file-wrapper').find('.bbox').fadeIn('fast');
+      }, 100);
     },
   });
 
