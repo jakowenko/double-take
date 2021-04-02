@@ -46,10 +46,11 @@ module.exports.files = () => {
               file.toLowerCase().includes('.png')
           );
         images.forEach((filename) => {
-          output.push({ name: folder, filename, key: `${path}/${folder}/${filename}` });
+          const { birthtime } = fs.statSync(`${STORAGE_PATH}/${path}/${folder}/${filename}`);
+          output.push({ name: folder, filename, key: `${path}/${folder}/${filename}`, birthtime });
         });
       }
-      return output;
+      return output.sort((a, b) => (a.birthtime < b.birthtime ? 1 : -1));
     },
     train: async () => {
       return this.files().traverse('train');
