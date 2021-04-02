@@ -10,19 +10,18 @@ html
       include js/jquery.lazy.min.js
       include js/manage.js
   body
-    div(class='container fixed-top')
+    div(class='container fixed-top' style='max-width: 800px')
       div(class='row justify-content-center')
-        div(class='col-4')
-          select(class='form-select form-select-sm')
+        div(class='col-6')
+          select(class='form-select form-select-sm' style='width: 60%; display: inline-block; margin-right: 15px')
             option(selected, value='') name:
             each folder in folders
               option #{folder}
-        div(class='col-4')
-          button(class='btn btn-primary btn-sm btn-train' type='button' disabled) train
-        div(class='col-4 text-end')
+          button(class='btn btn-success btn-sm btn-train' type='button' disabled) train
+        div(class='col-6 text-end')
           button(class='btn btn-danger btn-sm btn-light btn-all' type='button' style='margin-right: 15px') select all
           button(class='btn btn-danger btn-sm btn-delete' type='button' disabled) delete
-    div(class='container files')
+    div(class='container files' style='max-width: 800px')
       each row in rows
         div(class='row g-0 files')
           each file in row
@@ -30,7 +29,7 @@ html
               div(class='container p-0')
                 div
                   div(style='margin-bottom: 5px')
-                    span(class='badge bg-light text-dark') #{file.name}
+                    span(class='badge bg-light text-dark' style='margin-right: 2px') #{file.name}
                     span(class='badge bg-light text-dark') #{file.ago}
                 div
                   div(class='text-center' style='position: relative')
@@ -38,9 +37,9 @@ html
                     div(class='spinner-border spinner-border-sm' role='status' style='margin-bottom: 5px')
                     img(class='lazy' data-src=`data:image/jpg;base64,${file.base64}`)
                 div(style='margin-top: 5px')
-                  span(class='badge bg-light text-dark') #{file.detector}
-                  span(class='badge bg-light text-dark') #{file.dimensions}
-                  span(class='badge bg-light text-dark') #{file.confidence}
+                  span(class='badge bg-light text-dark' style='margin-right: 2px') #{file.detector}
+                  span(class='badge bg-light text-dark' style='margin-right: 2px') #{file.dimensions}
+                  span(class='badge bg-light text-dark' style='margin-right: 2px') #{file.confidence}
                   span(class='badge bg-light text-dark') #{file.duration}
       else
         div(align='center' style='margin-top: 15px') no images found in matches folder
