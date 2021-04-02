@@ -162,12 +162,11 @@ module.exports.save = () => {
       const filenames = [];
       for (let i = 0; i < matches.length; i++) {
         const match = matches[i];
-        const { width, height } = match.box;
         const tmp = `/tmp/{${uuidv4()}}.jpg`;
         await this.writer(fs.createReadStream(match.tmp), tmp);
         await this.drawBox(match, tmp);
-        const filename = `${id}-${match.type}-${width}x${height}.jpg`;
-        const destination = `${STORAGE_PATH}/matches/${match.name}/${filename}.jpg`;
+        const filename = `${id}-${match.type}.jpg`;
+        const destination = `${STORAGE_PATH}/matches/${match.name}/${filename}`;
         this.writeMatches(match.name, tmp, destination);
         await this.writeExif(destination, match);
         filenames.push(filename);
