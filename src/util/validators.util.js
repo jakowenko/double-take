@@ -54,3 +54,15 @@ module.exports.objects = () => {
     query('attempts').default(1).isInt().withMessage('not a valid number'),
   ];
 };
+
+module.exports.tryParseJSON = (json) => {
+  try {
+    const o = JSON.parse(json);
+    if (o && typeof o === 'object') {
+      return o;
+    }
+    // eslint-disable-next-line no-empty
+  } catch (e) {}
+
+  return false;
+};

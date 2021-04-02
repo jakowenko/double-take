@@ -14,6 +14,7 @@ const filesystem = require('../util/fs.util');
 const { respond, HTTPSuccess } = require('../util/respond.util');
 const { OK } = require('../constants/http-status');
 const { FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
+const { tryParseJSON } = require('../util/validators.util');
 
 module.exports.manage = async (req, res) => {
   let files = await filesystem.files().matches();
@@ -24,9 +25,9 @@ module.exports.manage = async (req, res) => {
   files = await Promise.all(
     files.map(async (file) => {
       const { UserComment: exif } = await exiftool.read(`${STORAGE_PATH}/${file.key}`);
-      const data = exif !== undefined ? JSON.parse(exif) : null;
+      const data = tryParseJSON(exif);
       const { box, confidence, duration, detector } =
-        data !== null
+        data !== false
           ? data
           : { confidence: null, duration: null, box: { width: null, height: null } };
       const { birthtime: createdAt } = fs.statSync(`${STORAGE_PATH}/${file.key}`);
