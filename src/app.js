@@ -17,7 +17,6 @@ app.get('/_healthz', (req, res) => {
   }
 });
 
-app.use('/storage/matches', express.static(`${STORAGE_PATH}/matches`));
 app.use('/storage/train', express.static(`${STORAGE_PATH}/train`));
 
 app.use(router);

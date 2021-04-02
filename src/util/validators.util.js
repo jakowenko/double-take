@@ -1,6 +1,6 @@
 const { expressValidator } = require('./validate.util');
 
-const { query, body } = expressValidator;
+const { query /* , body */ } = expressValidator;
 
 module.exports.recognize = ({ get }) => {
   let validations = [
@@ -39,6 +39,14 @@ module.exports.manage = () => {
       //   body('key').isString().withMessage('not a valid key'),
       //   body('filename').isString().withMessage('not a valid filename'),
       // ];
+    },
+  };
+};
+
+module.exports.storage = () => {
+  return {
+    matches: () => {
+      return [query('bbox').default(false).isIn([true, false])];
     },
   };
 };
