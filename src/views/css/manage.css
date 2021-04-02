@@ -1,6 +1,6 @@
 body {
   background: #eaeaea;
-  touch-action: none;
+  /* touch-action: none; */
 }
 
 .container {
