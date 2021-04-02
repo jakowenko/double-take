@@ -38,13 +38,19 @@ module.exports.manage = async (req, res) => {
 
       const { width: ogWidth, height: ogHeight } = await sizeOf(`${STORAGE_PATH}/${file.key}`);
 
+      const bbox = {
+        top: box.width ? `${(box.top / ogHeight) * 100}%` : 0,
+        width: box.width ? `${(box.width / ogWidth) * 100}%` : 0,
+        height: box.width ? `${(box.height / ogHeight) * 100}%` : 0,
+        left: box.width ? `${(box.left / ogWidth) * 100}%` : 0,
+      };
+
       return {
         ...file,
         dimensions: box.width ? `${box.width}x${box.height}` : null,
+        bboxClass: box.width ? 'visible' : 'hidden',
         bbox: box.width
-          ? `width: ${(box.width / ogWidth) * 100}%; height: ${
-              (box.height / ogHeight) * 100
-            }%; top: ${(box.top / ogHeight) * 100}%; left: ${(box.left / ogWidth) * 100}%;`
+          ? `width: ${bbox.width}; height: ${bbox.height}; top: ${bbox.top}; left: ${bbox.left};`
           : '',
         confidence: confidence ? `${confidence}%` : null,
         duration: duration ? `${duration} sec` : null,

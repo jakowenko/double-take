@@ -35,7 +35,7 @@ html
                   div(class='text-center' style='position: relative')
                     div(class='active-filter')
                     div(class='spinner-border spinner-border-sm' role='status' style='margin-bottom: 5px')
-                    div(class='bbox' style=`${file.bbox}`)
+                    div(class=`bbox ${file.bboxClass}` style=`${file.bbox}`)
                     img(class='lazy' data-src=`data:image/jpg;base64,${file.base64}`)
                 div.badges
                   span(class='badge bg-light text-dark' style='margin-right: 3px') #{file.detector}

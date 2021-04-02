@@ -27,7 +27,7 @@ $(() => {
       $(element).parents('.file-wrapper').find('.spinner-border').hide();
       $(element).addClass('img-thumbnail');
       setTimeout(() => {
-        $(element).parents('.file-wrapper').find('.bbox').fadeIn('fast');
+        $(element).parents('.file-wrapper').find('.bbox.visible').fadeIn('fast');
       }, 100);
     },
   });
