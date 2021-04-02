@@ -181,7 +181,7 @@ module.exports.save = () => {
           const md5 = md5File.sync(miss.tmp);
           if (!md5Misses.includes(md5)) {
             md5Misses.push(md5);
-            tmps.push({ ...miss });
+            tmps.push({ ...miss, detector: result.detector });
           }
         });
         array.push(...tmps);
