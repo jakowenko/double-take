@@ -1,9 +1,9 @@
 const fs = require('fs');
 const perf = require('execution-time')();
 const axios = require('axios');
-const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const sharp = require('sharp');
+const { ExifTool } = require('exiftool-vendored');
 const { writer } = require('../util/fs.util');
 const database = require('../util/db.util');
 const sleep = require('../util/sleep.util');
@@ -13,32 +13,37 @@ const time = require('../util/time.util');
 const filesystem = require('../util/fs.util');
 const { respond, HTTPSuccess } = require('../util/respond.util');
 const { OK } = require('../constants/http-status');
-
 const { FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
 
 module.exports.manage = async (req, res) => {
   let files = await filesystem.files().matches();
   const width = req.query.width ? parseInt(req.query.width, 10) : 500;
 
+  const exiftool = new ExifTool({ taskTimeoutMillis: 1000 });
+
   files = await Promise.all(
     files.map(async (file) => {
-      const filename = path.parse(file.filename).name;
-      let [boxWidth, boxHeight] = filename.split('-').pop().split('x');
-      boxWidth = !Number.isNaN(-boxWidth) ? Number(boxWidth) : 'N/A';
-      boxHeight = !Number.isNaN(-boxHeight) ? Number(boxHeight) : 'N/A';
-
+      const { UserComment: exif } = await exiftool.read(`${STORAGE_PATH}/${file.key}`);
+      const data = exif !== undefined ? JSON.parse(exif) : null;
+      const { box, confidence, duration, detector } =
+        data !== null
+          ? data
+          : { confidence: null, duration: null, box: { width: null, height: null } };
       const { birthtime: createdAt } = fs.statSync(`${STORAGE_PATH}/${file.key}`);
       const base64 = await sharp(`${STORAGE_PATH}/${file.key}`).resize(width).toBuffer();
       return {
         ...file,
-        width: boxWidth,
-        height: boxHeight,
+        dimensions: box.width ? `${box.width}x${box.height}` : null,
+        confidence: confidence ? `${confidence}%` : null,
+        duration: duration ? `${duration} sec` : null,
+        detector: detector || null,
         createdAt,
         ago: time.ago(createdAt),
         base64: base64.toString('base64'),
       };
     })
   );
+  exiftool.end();
   files.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
   const rows = new Array(Math.ceil(files.length / 2)).fill().map(() => files.splice(0, 2));

@@ -159,7 +159,7 @@ module.exports.start = async (req, res) => {
     });
 
     if (SAVE_UNKNOWN) {
-      filesystem.save().unknown(results);
+      await filesystem.save().unknown(results);
     }
 
     const filenames = await filesystem.save().matches(id, matches);

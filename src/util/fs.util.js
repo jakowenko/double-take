@@ -4,6 +4,7 @@ const sizeOf = promisify(require('image-size'));
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const md5File = require('md5-file');
 const { v4: uuidv4 } = require('uuid');
+const { ExifTool } = require('exiftool-vendored');
 const logger = require('./logger.util');
 const { STORAGE_PATH } = require('../constants');
 
@@ -165,13 +166,14 @@ module.exports.save = () => {
         await this.writer(fs.createReadStream(match.tmp), tmp);
         await this.drawBox(match, tmp);
         const filename = `${id}-${match.type}-${width}x${height}.jpg`;
-        const destination = `${STORAGE_PATH}/matches/${match.name}/${filename}`;
+        const destination = `${STORAGE_PATH}/matches/${match.name}/${filename}.jpg`;
         this.writeMatches(match.name, tmp, destination);
+        await this.writeExif(destination, match);
         filenames.push(filename);
       }
       return filenames;
     },
-    unknown: (results) => {
+    unknown: async (results) => {
       const md5Misses = [];
       const unknown = results.reduce((array, result) => {
         const tmps = [];
@@ -186,13 +188,20 @@ module.exports.save = () => {
         return array;
       }, []);
       for (let i = 0; i < unknown.length; i++) {
-        const { tmp } = unknown[i];
-        const { width, height } = unknown[i].box;
-        this.copy(
-          unknown[i].tmp,
-          `${STORAGE_PATH}/matches/unknown/${uuidv4()}-${width}x${height}.jpg`
-        );
+        const destination = `${STORAGE_PATH}/matches/unknown/${uuidv4()}.jpg`;
+        this.copy(unknown[i].tmp, destination);
+        await this.writeExif(destination, unknown[i]);
       }
     },
   };
+};
+
+module.exports.writeExif = async (destination, data) => {
+  const exiftool = new ExifTool({ taskTimeoutMillis: 1000 });
+  const exif = data;
+  delete exif.tmp;
+  await exiftool.write(destination, { UserComment: JSON.stringify({ ...exif }) }, [
+    '-overwrite_original',
+  ]);
+  exiftool.end();
 };
