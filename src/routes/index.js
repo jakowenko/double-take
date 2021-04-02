@@ -9,7 +9,7 @@ const router = express.Router();
 router.post('/recognize', validate(validators.recognize({ post: true })), recognize.start);
 router.get('/recognize', validate(validators.recognize({ get: true })), recognize.start);
 
-router.get('/train/manage', train.manage);
+router.get('/train/manage', validate(validators.manage().ui()), train.manage);
 router.post('/train/manage/delete', validate(validators.manage().delete()), train.file().delete);
 router.post('/train/manage/move', validate(validators.manage().move()), train.file().move);
 

@@ -25,6 +25,9 @@ module.exports.recognize = ({ get }) => {
 
 module.exports.manage = () => {
   return {
+    ui: () => {
+      return [query('limit').default(50).isInt().withMessage('not a limit number')];
+    },
     delete: () => {
       return [];
       // return [body('key').isString().withMessage('not a valid key')];

@@ -17,6 +17,7 @@ const { FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
 const { tryParseJSON } = require('../util/validators.util');
 
 module.exports.manage = async (req, res) => {
+  const { limit } = req.query;
   let files = await filesystem.files().matches();
   const width = req.query.width ? parseInt(req.query.width, 10) : 500;
 
@@ -38,14 +39,14 @@ module.exports.manage = async (req, res) => {
         confidence: confidence ? `${confidence}%` : null,
         duration: duration ? `${duration} sec` : null,
         detector: detector || null,
-        createdAt,
         ago: time.ago(createdAt),
         base64: base64.toString('base64'),
       };
     })
   );
   exiftool.end();
-  files.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+
+  files = files.splice(0, limit);
 
   const rows = new Array(Math.ceil(files.length / 2)).fill().map(() => files.splice(0, 2));
   const folders = await filesystem.folders().train();
