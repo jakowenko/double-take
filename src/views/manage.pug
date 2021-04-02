@@ -20,6 +20,7 @@ html
         div(class='col-4')
           button(class='btn btn-primary btn-sm btn-train' type='button' disabled) train
         div(class='col-4 text-end')
+          button(class='btn btn-danger btn-sm btn-light btn-all' type='button' style='margin-right: 15px') select all
           button(class='btn btn-danger btn-sm btn-delete' type='button' disabled) delete
     div(class='container files')
       each row in rows
@@ -42,4 +43,4 @@ html
                   span(class='badge bg-light text-dark') #{file.confidence}
                   span(class='badge bg-light text-dark') #{file.duration}
       else
-        div(align='center') no images found in matches folder
+        div(align='center' style='margin-top: 15px') no images found in matches folder
