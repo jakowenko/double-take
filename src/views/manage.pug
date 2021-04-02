@@ -3,7 +3,7 @@ html
     meta(name='viewport' content='width=device-width, initial-scale=1')
     title= title
     style
-      include css/bootstrap.css
+      include css/bootstrap.min.css
       include css/manage.css
     script
       include js/jquery.min.js
@@ -29,17 +29,17 @@ html
               div(class='container p-0')
                 div
                   div(style='margin-bottom: 5px')
-                    span(class='badge bg-light text-dark' style='margin-right: 2px') #{file.name}
+                    span(class='badge bg-light text-dark' style='margin-right: 3px') #{file.name}
                     span(class='badge bg-light text-dark') #{file.ago}
                 div
                   div(class='text-center' style='position: relative')
                     div(class='active-filter')
                     div(class='spinner-border spinner-border-sm' role='status' style='margin-bottom: 5px')
                     img(class='lazy' data-src=`data:image/jpg;base64,${file.base64}`)
-                div(style='margin-top: 5px')
-                  span(class='badge bg-light text-dark' style='margin-right: 2px') #{file.detector}
-                  span(class='badge bg-light text-dark' style='margin-right: 2px') #{file.dimensions}
-                  span(class='badge bg-light text-dark' style='margin-right: 2px') #{file.confidence}
+                div.badges
+                  span(class='badge bg-light text-dark' style='margin-right: 3px') #{file.detector}
+                  span(class='badge bg-light text-dark' style='margin-right: 3px') #{file.dimensions}
+                  span(class='badge bg-light text-dark' style='margin-right: 3px') #{file.confidence}
                   span(class='badge bg-light text-dark') #{file.duration}
       else
         div(align='center' style='margin-top: 15px') no images found in matches folder

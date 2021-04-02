@@ -61,3 +61,6 @@ body {
 .file-wrapper img.img-thumbnail {
   width: 100%;
 }
+.file-wrapper .badges .badge {
+  margin-top: 5px;
+}
