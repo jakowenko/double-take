@@ -36,11 +36,11 @@ $(() => {
     if ($(event.currentTarget).hasClass('active')) {
       $(event.currentTarget).text('select all');
       $('.file-wrapper').find('.active-filter').removeClass('show');
-      $('.file-wrapper').removeClass('active');
+      $('.file-wrapper').not($('.file-wrapper.inactive')).removeClass('active');
     } else {
       $(event.currentTarget).text('unselect all');
       $('.file-wrapper').find('.active-filter').addClass('show');
-      $('.file-wrapper').addClass('active');
+      $('.file-wrapper').not($('.file-wrapper.inactive')).addClass('active');
     }
 
     $(event.currentTarget).toggleClass('active');
