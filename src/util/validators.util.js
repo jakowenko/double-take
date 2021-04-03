@@ -26,7 +26,7 @@ module.exports.recognize = ({ get }) => {
 module.exports.manage = () => {
   return {
     ui: () => {
-      return [query('limit').default(25).isInt().withMessage('not a limit number')];
+      return [query('limit').default(30).isInt().withMessage('not a limit number')];
     },
     delete: () => {
       return [];
