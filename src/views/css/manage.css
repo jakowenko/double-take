@@ -1,5 +1,6 @@
 body {
   background: #eaeaea;
+  /* touch-action: none; */
 }
 
 .container {
@@ -14,31 +15,17 @@ body {
 .row.files > div {
   padding: 15px;
 }
-@media only screen and (max-width: 600px) {
-  body {
-    padding: 0;
-  }
-  .container.files {
-    padding-left: 5px;
-    padding-right: 5px;
-    padding-bottom: 5px;
-  }
-  .row.files > div {
-    padding: 5px;
-  }
-}
 
 .file-wrapper {
   display: flex;
   align-items: center;
-  cursor: pointer;
 }
 .file-wrapper .active-filter {
   position: absolute;
-  top: 5px;
-  left: 5px;
-  right: 5px;
-  bottom: 5px;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
   background: rgb(123, 210, 124, 0.75);
   z-index: 2;
   display: none;
@@ -56,4 +43,35 @@ body {
 }
 .file-wrapper img.img-thumbnail {
   width: 100%;
+  border: 3px solid rgb(248, 249, 250);
+  cursor: pointer;
+  padding: 0;
+}
+.file-wrapper .badges .badge {
+  margin-top: 5px;
+}
+.file-wrapper .bbox {
+  border: 3px solid #4caf50;
+  position: absolute;
+  z-index: 1;
+  display: none;
+}
+@media only screen and (max-width: 600px) {
+  body {
+    padding: 0;
+  }
+  .container.files {
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+  }
+  .row.files > div {
+    padding: 5px;
+  }
+  .form-select {
+    font-size: 16px;
+  }
+  .file-wrapper .bbox {
+    border: 2px solid #4caf50;
+  }
 }

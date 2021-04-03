@@ -2,7 +2,7 @@
 const http = require('http');
 const { version } = require('./package.json');
 const mqtt = require('./src/util/mqtt.util');
-const { app, routes } = require('./src/app');
+const { app /* , routes */ } = require('./src/app');
 const logger = require('./src/util/logger.util');
 const time = require('./src/util/time.util');
 const storage = require('./src/util/storage.util');
