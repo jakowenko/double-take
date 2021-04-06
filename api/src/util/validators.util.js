@@ -52,10 +52,7 @@ module.exports.storage = () => {
 };
 
 module.exports.train = () => {
-  return [
-    query('output').default('html').isIn(['html', 'json']).withMessage('not a valid output type'),
-    query('attempts').default(1).isInt().withMessage('not a valid number'),
-  ];
+  return [query('attempts').default(1).isInt().withMessage('not a valid number')];
 };
 
 module.exports.objects = () => {
