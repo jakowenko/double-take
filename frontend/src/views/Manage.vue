@@ -81,7 +81,7 @@ export default {
       this.toggleAllSelected = !this.toggleAllSelected;
       this.files = this.files.map((file) => ({
         ...file,
-        selected: !!this.toggleAllSelected,
+        selected: !!this.toggleAllSelected && !file.disabled,
       }));
     },
     trainFiles() {
