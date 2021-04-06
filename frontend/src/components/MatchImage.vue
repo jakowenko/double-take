@@ -20,14 +20,14 @@
         @click="$parent.$emit('toggle', file)"
         class="img-thumbnail lazy"
         :data-src="'data:image/jpg;base64,' + file.base64"
-        :data-filename="file.filename"
+        :data-key="file.key"
       />
       <img
         v-else
         @click="$parent.$emit('toggle', file)"
         class="img-thumbnail"
         :src="'data:image/jpg;base64,' + file.base64"
-        :data-filename="file.filename"
+        :data-key="file.key"
       />
     </div>
     <div class="badge-wrapper">

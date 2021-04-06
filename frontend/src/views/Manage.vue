@@ -128,7 +128,7 @@ export default {
 
       lazyImages.forEach((lazyImage, i) => {
         setTimeout(() => {
-          const [file] = this.files.filter((obj) => obj.filename === lazyImage.dataset.filename);
+          const [file] = this.files.filter((obj) => obj.key === lazyImage.dataset.key);
           if (file) file.loaded = true;
           lazyImage.src = lazyImage.dataset.src;
           lazyImage.classList.remove('lazy');
