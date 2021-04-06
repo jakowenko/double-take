@@ -22,7 +22,7 @@
         </div>
         <div class="col-6 text-end">
           <button @click="toggleAll" class="btn btn-light btn-sm" style="margin-right: 15px">
-            {{ filesSelected.length === files.all.length ? 'Deselect All' : 'Select All' }}
+            {{ toggleAllSelected ? 'Deselect All' : 'Select All' }}
           </button>
           <button @click="deleteFiles" class="btn btn-danger btn-sm" :disabled="filesSelected.length === 0">
             Delete
@@ -35,7 +35,7 @@
         <span class="visually-hidden">Loading...</span>
       </div>
       <div v-else>
-        <ImageTable :files="files.all" @toggle="selected" @files-rendered="lazy"></ImageTable>
+        <ImageTable :files="files" @toggle="selected" @files-rendered="lazy"></ImageTable>
       </div>
     </div>
   </div>
@@ -55,10 +55,7 @@ export default {
     return {
       info: null,
       folders: [],
-      files: {
-        selected: [],
-        all: [],
-      },
+      files: [],
       selectedName: '',
       toggleAllSelected: false,
       toggleAllText: 'Select All',
@@ -68,7 +65,7 @@ export default {
   mounted() {
     axios.get(`${process.env.VUE_APP_API}/train/manage`).then((response) => {
       this.folders = response.data.folders;
-      this.files.all = response.data.files;
+      this.files = response.data.files;
       this.loading = false;
     });
   },
@@ -82,7 +79,7 @@ export default {
     },
     toggleAll() {
       this.toggleAllSelected = !this.toggleAllSelected;
-      this.files.all = this.files.all.map((file) => ({
+      this.files = this.files.map((file) => ({
         ...file,
         selected: !!this.toggleAllSelected,
       }));
@@ -101,7 +98,7 @@ export default {
             files: this.filesSelected,
           })
           .then((/* response */) => {
-            this.files.all.forEach((file) => {
+            this.files.forEach((file) => {
               if (file.selected) {
                 file.disabled = true;
                 file.selected = false;
@@ -116,7 +113,7 @@ export default {
         axios
           .post(`${process.env.VUE_APP_API}/train/manage/delete`, this.filesSelected)
           .then((/* response */) => {
-            this.files.all.forEach((file) => {
+            this.files.forEach((file) => {
               if (file.selected) {
                 file.disabled = true;
                 file.selected = false;
@@ -131,7 +128,7 @@ export default {
 
       lazyImages.forEach((lazyImage, i) => {
         setTimeout(() => {
-          const [file] = this.files.all.filter((obj) => obj.filename === lazyImage.dataset.filename);
+          const [file] = this.files.filter((obj) => obj.filename === lazyImage.dataset.filename);
           if (file) file.loaded = true;
           lazyImage.src = lazyImage.dataset.src;
           lazyImage.classList.remove('lazy');
@@ -142,7 +139,11 @@ export default {
   },
   computed: {
     filesSelected() {
-      return this.files.all.filter((file) => file.selected);
+      const files = this.files.filter((file) => file.selected && !file.disabled);
+      files.forEach((file) => {
+        delete file.tmp;
+      });
+      return files;
     },
     nameSelected() {
       return this.selectedName !== '';

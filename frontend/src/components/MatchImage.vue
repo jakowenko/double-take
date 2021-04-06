@@ -16,9 +16,17 @@
       <div class="selected-overlay" :class="{ selected: file.selected }"></div>
       <div v-if="file.bbox !== null" class="bbox" :style="file.bbox"></div>
       <img
+        v-if="!file.loaded"
         @click="$parent.$emit('toggle', file)"
         class="img-thumbnail lazy"
         :data-src="'data:image/jpg;base64,' + file.base64"
+        :data-filename="file.filename"
+      />
+      <img
+        v-else
+        @click="$parent.$emit('toggle', file)"
+        class="img-thumbnail"
+        :src="'data:image/jpg;base64,' + file.base64"
         :data-filename="file.filename"
       />
     </div>
