@@ -43,6 +43,12 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+@media only screen and (max-width: 576px) {
+  .p-toast {
+    width: auto;
+    left: 20px;
+  }
+}
 </style>
 
 <style scoped lang="scss">

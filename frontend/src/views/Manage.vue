@@ -90,6 +90,7 @@ export default {
         header: 'Train Confirmation',
         message: `Do you want to train ${description} for ${this.selectedFolder}?`,
         acceptClass: 'p-button-success',
+        position: 'top',
         accept: () => {
           axios
             .post(`${process.env.VUE_APP_API}/train/manage/move`, {
@@ -127,6 +128,7 @@ export default {
         header: 'Delete Confirmation',
         message: `Do you want to delete ${description}?`,
         acceptClass: 'p-button-danger',
+        position: 'top',
         accept: () => {
           axios
             .post(`${process.env.VUE_APP_API}/train/manage/delete`, this.filesSelected)
