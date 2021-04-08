@@ -37,7 +37,7 @@ module.exports = {
     'vue/no-empty-pattern': 'error',
     'vue/no-boolean-default': ['error', 'default-false'],
     'vue/no-irregular-whitespace': 'error',
-    'vue/no-reserved-component-names': 'error',
+    'vue/no-reserved-component-names': 'off',
     'vue/no-deprecated-scope-attribute': 'error',
     'vue/object-curly-spacing': ['error', 'always'],
     'vue/padding-line-between-blocks': 'error',
