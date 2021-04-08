@@ -56,7 +56,7 @@ module.exports.manage = async (req, res) => {
         detector: detector || null,
         ago: time.ago(createdAt),
         match: data.match,
-        type: data.type ? `type: ${data.type}` : null,
+        type: data.type,
         base64: base64.toString('base64'),
       };
     })
