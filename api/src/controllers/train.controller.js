@@ -55,7 +55,7 @@ module.exports.manage = async (req, res) => {
         duration: duration ? `${duration} sec` : null,
         detector: detector || null,
         ago: time.ago(createdAt),
-        match: data.match ? `match: ${data.match}` : null,
+        match: data.match,
         type: data.type ? `type: ${data.type}` : null,
         base64: base64.toString('base64'),
       };
