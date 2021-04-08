@@ -1,17 +1,26 @@
 <template>
-  <div class="container pt-5">
+  <div class="wrapper p-pl-3 p-pr-3">
+    <Toast />
+    <ConfirmDialog />
     <Manage />
   </div>
 </template>
 
 <script>
-import '@/assets/css/bootstrap.min.css';
+import 'primevue/resources/themes/bootstrap4-dark-blue/theme.css';
+import 'primevue/resources/primevue.min.css';
+import 'primeflex/primeflex.css';
+import 'primeicons/primeicons.css';
 import Manage from '@/views/Manage.vue';
+import Toast from 'primevue/toast';
+import ConfirmDialog from 'primevue/confirmdialog';
 
 export default {
   name: 'App',
   components: {
     Manage,
+    Toast,
+    ConfirmDialog,
   },
   data() {
     return {
@@ -22,24 +31,24 @@ export default {
 </script>
 
 <style lang="scss">
-html,
+html {
+  font-size: 15px;
+}
 body {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: column;
+  margin: 0;
+  background: var(--surface-b);
+  color: var(--text-color);
 }
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  background: #eaeaea;
-  flex: 1;
 }
+</style>
 
-.container {
+<style scoped lang="scss">
+.wrapper {
   max-width: 1000px;
-  background: #fff;
+  margin: auto;
+  background: var(--surface-a);
 }
 </style>

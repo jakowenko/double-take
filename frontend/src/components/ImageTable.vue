@@ -1,8 +1,10 @@
 <template>
-  <div class="container p-0">
-    <div v-if="files.length" class="files-wrapper">
-      <div class="file-col" v-for="file in files" :key="file">
-        <MatchImage :file="file" @toggle="toggleSelection(file)"></MatchImage>
+  <div class="p-grid">
+    <div v-if="files.length" class="p-col-12">
+      <div class="p-grid p-ai-center">
+        <div class="p-col-12 p-md-6 p-lg-6" v-for="file in files" :key="file">
+          <MatchImage :file="file" @toggle="toggleSelection(file)"></MatchImage>
+        </div>
       </div>
     </div>
     <div v-else>No images found</div>
@@ -32,35 +34,4 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
-.container {
-  overflow: hidden;
-}
-
-.files-wrapper {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.file-col {
-  width: 49%;
-  margin-right: 2%;
-  padding: 0;
-  flex-direction: column;
-  padding-top: 25px;
-
-  &:nth-child(-n + 2) {
-    padding-top: 0;
-  }
-
-  &:nth-child(even) {
-    margin-right: 0;
-  }
-
-  img.img-thumbnail {
-    width: 100%;
-  }
-}
-</style>
+<style scoped lang="scss"></style>

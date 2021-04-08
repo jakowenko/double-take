@@ -1,38 +1,48 @@
 <template>
-  <div>
-    <div class="container fixed-top pt-2 pb-2">
-      <div class="row">
-        <div class="col-6 text-start">
-          <select v-if="folders.length" v-model="selectedName" class="form-select form-select-sm">
-            <option value="">Name:</option>
-            <option v-for="f in folders" :key="f">
-              {{ f }}
-            </option>
-          </select>
-          <select v-else class="form-select form-select-sm" disabled>
-            <option>No names found</option>
-          </select>
-          <button
-            @click="trainFiles"
-            class="btn btn-success btn-sm"
-            :disabled="filesSelected.length === 0 || !nameSelected"
-          >
-            Train
-          </button>
+  <div class="wrapper">
+    <div class="fixed p-shadow-5 p-pl-3 p-pr-3">
+      <div class="p-grid p-ai-center p-nogutter">
+        <div class="p-col-6">
+          <div class="p-grid p-ai-center p-nogutter">
+            <div class="p-col p-mr-2">
+              <Dropdown
+                v-model="selectedFolder"
+                :options="folders"
+                :placeholder="loading ? '...' : 'Name'"
+                :disabled="loading"
+                :showClear="true"
+              />
+            </div>
+            <div class="p-col">
+              <Button
+                label="Train"
+                class="p-button-success p-button-sm"
+                :disabled="filesSelected.length === 0 || !selectedFolder"
+                @click="trainFiles($event)"
+              />
+            </div>
+          </div>
         </div>
-        <div class="col-6 text-end">
-          <button @click="toggleAll" class="btn btn-light btn-sm" style="margin-right: 15px">
-            {{ toggleAllSelected ? 'Deselect All' : 'Select All' }}
-          </button>
-          <button @click="deleteFiles" class="btn btn-danger btn-sm" :disabled="filesSelected.length === 0">
-            Delete
-          </button>
+        <div class="p-col-6 p-text-right">
+          <Button
+            @click="toggleAll"
+            :label="toggleAllSelected ? 'Deselect All' : 'Select All'"
+            class="p-button-primary p-button-sm p-mr-2"
+            :disabled="loading"
+          />
+          <Button
+            @click="deleteFiles($event)"
+            label="Delete"
+            class="p-button-danger p-button-sm"
+            :disabled="filesSelected.length === 0"
+          />
         </div>
       </div>
     </div>
-    <div class="container pt-2 pb-2">
-      <div v-if="loading" class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
+
+    <div class="p-d-flex p-jc-center">
+      <div v-if="loading" class="p-pt-5 p-pb-5">
+        <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
       </div>
       <div v-else>
         <ImageTable :files="files" @toggle="selected" @files-rendered="lazy"></ImageTable>
@@ -44,32 +54,107 @@
 <script>
 /* eslint-disable no-restricted-globals */
 /* eslint-disable no-restricted-globals */ /* eslint-disable no-alert */
+import Button from 'primevue/button';
+import Dropdown from 'primevue/dropdown';
 import axios from 'axios';
 import ImageTable from '@/components/ImageTable.vue';
 
 export default {
   components: {
     ImageTable,
+    Dropdown,
+    Button,
   },
   data() {
     return {
       info: null,
       folders: [],
       files: [],
-      selectedName: '',
       toggleAllSelected: false,
       toggleAllText: 'Select All',
       loading: true,
+      selectedFolder: null,
     };
   },
   mounted() {
-    axios.get(`${process.env.VUE_APP_API}/train/manage`).then((response) => {
+    axios.get(`${process.env.VUE_APP_API}/train/manage?limit=8`).then((response) => {
       this.folders = response.data.folders;
       this.files = response.data.files;
       this.loading = false;
     });
   },
   methods: {
+    trainFiles() {
+      const description = `${this.filesSelected.length} ${this.filesSelected.length > 1 ? 'files' : 'file'}`;
+      this.$confirm.require({
+        header: 'Train Confirmation',
+        message: `Do you want to train ${description} for ${this.selectedFolder}?`,
+        acceptClass: 'p-button-success',
+        accept: () => {
+          axios
+            .post(`${process.env.VUE_APP_API}/train/manage/move`, {
+              folder: this.selectedFolder,
+              files: this.filesSelected,
+            })
+            .then((/* response */) => {
+              this.files.forEach((file) => {
+                if (file.selected) {
+                  file.disabled = true;
+                  file.selected = false;
+                }
+              });
+              this.$toast.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `${description} trained for ${this.selectedFolder}`,
+                life: 3000,
+              });
+            })
+            .catch((/* error */) => {
+              this.$toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Error training ${description} for ${this.selectedFolder}`,
+                life: 3000,
+              });
+            });
+        },
+      });
+    },
+    deleteFiles() {
+      const description = `${this.filesSelected.length} ${this.filesSelected.length > 1 ? 'files' : 'file'}`;
+      this.$confirm.require({
+        header: 'Delete Confirmation',
+        message: `Do you want to delete ${description}?`,
+        acceptClass: 'p-button-danger',
+        accept: () => {
+          axios
+            .post(`${process.env.VUE_APP_API}/train/manage/delete`, this.filesSelected)
+            .then((/* response */) => {
+              this.files.forEach((file) => {
+                if (file.selected) {
+                  file.disabled = true;
+                  file.selected = false;
+                }
+              });
+              this.$toast.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `${description} deleted`,
+                life: 3000,
+              });
+            })
+            .catch((/* error */) => {
+              this.$toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Error deleting ${description}`,
+                life: 3000,
+              });
+            });
+        },
+      });
+    },
     lazy() {
       this.lazyLoad();
     },
@@ -83,45 +168,6 @@ export default {
         ...file,
         selected: !!this.toggleAllSelected && !file.disabled,
       }));
-    },
-    trainFiles() {
-      if (
-        confirm(
-          `Train ${this.filesSelected.length} ${this.filesSelected.length > 1 ? 'files' : 'file'} for ${
-            this.selectedName
-          }?`,
-        )
-      ) {
-        axios
-          .post(`${process.env.VUE_APP_API}/train/manage/move`, {
-            folder: this.selectedName,
-            files: this.filesSelected,
-          })
-          .then((/* response */) => {
-            this.files.forEach((file) => {
-              if (file.selected) {
-                file.disabled = true;
-                file.selected = false;
-              }
-            });
-          })
-          .catch((/* error */) => {});
-      }
-    },
-    deleteFiles() {
-      if (confirm(`Delete ${this.filesSelected.length} ${this.filesSelected.length > 1 ? 'files' : 'file'}?`)) {
-        axios
-          .post(`${process.env.VUE_APP_API}/train/manage/delete`, this.filesSelected)
-          .then((/* response */) => {
-            this.files.forEach((file) => {
-              if (file.selected) {
-                file.disabled = true;
-                file.selected = false;
-              }
-            });
-          })
-          .catch((/* error */) => {});
-      }
     },
     lazyLoad() {
       let lazyImages = [].slice.call(document.querySelectorAll('img.lazy'));
@@ -145,26 +191,27 @@ export default {
       });
       return files;
     },
-    nameSelected() {
-      return this.selectedName !== '';
-    },
   },
 };
 </script>
 
 <style scoped lang="scss">
-.spinner-border {
-  margin-top: 25px;
-  margin-bottom: 25px;
+.fixed {
+  background-color: var(--surface-b);
+  position: fixed;
+  top: 0;
+  left: 50%;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1000px;
+  z-index: 3 !important;
 }
-.fixed-top {
-  border-bottom: 1px solid #eaeaea;
+.wrapper {
+  padding-top: 60px;
 }
-.form-select {
-  text-align: left;
-  width: 60%;
-  display: inline-block;
-  margin-right: 15px;
-  font-size: 16px;
+.p-dropdown {
+  width: 100%;
 }
 </style>

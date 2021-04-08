@@ -1,67 +1,73 @@
 <template>
-  <div class="file-wrapper">
-    <div class="badge-wrapper">
-      {{ file.disabled }}
-      <div class="badge bg-primary">
-        {{ file.name }}
-      </div>
-      <div class="badge bg-light text-dark">
-        {{ file.ago }}
-      </div>
-    </div>
-    <div v-if="!file.loaded" class="spinner-border spinner-border-sm" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-    <div class="image-wrapper" :class="{ disabled: file.disabled, loaded: file.loaded }">
+  <div class="wrapper" :class="{ disabled: file.disabled }">
+    <section class="p-d-block">
+      <Badge :severity="file.match ? 'success' : 'danger'" :value="file.name"></Badge>
+      <Badge :value="file.ago"></Badge>
+    </section>
+    <section v-if="!file.loaded" class="p-d-block p-text-center loading">
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+    </section>
+    <section class="p-d-block file-wrapper" :class="{ loaded: file.loaded }">
       <div class="selected-overlay" :class="{ selected: file.selected }"></div>
       <div v-if="file.bbox !== null" class="bbox" :style="file.bbox"></div>
       <img
         v-if="!file.loaded"
         @click="$parent.$emit('toggle', file)"
-        class="img-thumbnail lazy"
+        class="thumbnail lazy"
         :data-src="'data:image/jpg;base64,' + file.base64"
         :data-key="file.key"
       />
       <img
         v-else
         @click="$parent.$emit('toggle', file)"
-        class="img-thumbnail"
+        class="thumbnail"
         :src="'data:image/jpg;base64,' + file.base64"
         :data-key="file.key"
       />
-    </div>
-    <div class="badge-wrapper">
-      <span v-if="file.match" class="badge bg-light text-dark">{{ file.match }}</span>
-      <span v-if="file.type" class="badge bg-light text-dark">{{ file.type }}</span>
-      <span v-if="file.detector" class="badge bg-light text-dark">{{ file.detector }}</span>
-      <span v-if="file.dimensions" class="badge bg-light text-dark">{{ file.dimensions }}</span>
-      <span v-if="file.confidence" class="badge bg-light text-dark">{{ file.confidence }}</span>
-      <span v-if="file.duration" class="badge bg-light text-dark">{{ file.duration }}</span>
-    </div>
+    </section>
+    <section class="p-d-block">
+      <Badge v-if="file.type" :value="file.type"></Badge>
+      <Badge v-if="file.detector" :value="file.detector"></Badge>
+      <Badge v-if="file.dimensions" :value="file.dimensions"></Badge>
+      <Badge v-if="file.confidence" :value="file.confidence"></Badge>
+      <Badge v-if="file.duration" :value="file.duration"></Badge>
+    </section>
   </div>
 </template>
 
 <script>
+import Badge from 'primevue/badge';
+
 export default {
   props: {
     file: Object,
+  },
+  components: {
+    Badge,
   },
 };
 </script>
 
 <style scoped lang="scss">
-.badge-wrapper {
-  text-align: left;
+.wrapper.disabled {
+  opacity: 0.2;
 
-  &:first-child {
-    margin-bottom: 5px;
-  }
-  &:last-child {
-    margin-top: 5px;
+  img.thumbnail {
+    cursor: not-allowed;
   }
 }
+img.thumbnail {
+  width: 100%;
+  display: block;
+  cursor: pointer;
+}
 
-.image-wrapper {
+section {
+  padding: 15px 0 15px 0;
+}
+section.file-wrapper {
+  padding-top: 0;
+  padding-bottom: 0;
   position: relative;
   transition: all 0.5s;
   width: 100%;
@@ -72,26 +78,22 @@ export default {
     visibility: visible;
     opacity: 1;
   }
-
-  &.disabled {
-    opacity: 0.5;
-
-    img.img-thumbnail {
-      cursor: not-allowed;
-    }
-  }
 }
 
-img.img-thumbnail {
-  width: 100%;
+.p-badge {
+  font-size: 11px;
+  margin-right: 5px;
+  &:last-child {
+    margin-right: 0;
+  }
 }
 
 .selected-overlay {
   position: absolute;
-  top: 5px;
-  left: 5px;
-  right: 5px;
-  bottom: 5px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(123, 210, 124, 0.75);
   z-index: 2;
   display: none;
@@ -100,19 +102,6 @@ img.img-thumbnail {
   &.selected {
     display: block;
   }
-}
-
-.badge {
-  margin-right: 5px;
-  font-size: 11px;
-
-  &:last-child {
-    margin-right: 0;
-  }
-}
-
-.img-thumbnail {
-  cursor: pointer;
 }
 
 .bbox {
