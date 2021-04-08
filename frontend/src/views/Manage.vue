@@ -77,7 +77,7 @@ export default {
     };
   },
   mounted() {
-    axios.get(`${process.env.VUE_APP_API}/train/manage?limit=8`).then((response) => {
+    axios.get(`${process.env.VUE_APP_API}/train/manage`).then((response) => {
       this.folders = response.data.folders;
       this.files = response.data.files;
       this.loading = false;
