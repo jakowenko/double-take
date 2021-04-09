@@ -1,4 +1,13 @@
-node_modules
 .DS_Store
+node_modules
+docker-compose.yml
+
+# frontend
+frontend/dist
+
+# api
+.storage
+
+# local env files
 .env
-/.storage
+.env.*.local

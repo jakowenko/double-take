@@ -48,14 +48,15 @@ module.exports.manage = async (req, res) => {
       return {
         ...file,
         dimensions: box.width ? `${box.width}x${box.height}` : null,
-        bboxClass: box.width ? 'visible' : 'hidden',
         bbox: box.width
           ? `width: ${bbox.width}; height: ${bbox.height}; top: ${bbox.top}; left: ${bbox.left};`
-          : '',
+          : null,
         confidence: confidence ? `${confidence}%` : null,
         duration: duration ? `${duration} sec` : null,
         detector: detector || null,
         ago: time.ago(createdAt),
+        match: data.match,
+        type: data.type,
         base64: base64.toString('base64'),
       };
     })
@@ -64,16 +65,16 @@ module.exports.manage = async (req, res) => {
 
   files = files.splice(0, limit);
 
-  const rows = new Array(Math.ceil(files.length / 2)).fill().map(() => files.splice(0, 2));
+  // const rows = new Array(Math.ceil(files.length / 2)).fill().map(() => files.splice(0, 2));
   const folders = await filesystem.folders().train();
-  res.render('manage', { rows, folders });
+  return respond(HTTPSuccess(200, { files, folders }), res);
 };
 
 module.exports.file = () => {
   return {
     delete: (req, res) => {
       try {
-        const files = JSON.parse(req.body.files);
+        const files = req.body;
         files.forEach((file) => {
           filesystem.delete(`${STORAGE_PATH}/${file.key}`);
         });
@@ -85,14 +86,12 @@ module.exports.file = () => {
     },
     move: async (req, res) => {
       try {
-        const files = JSON.parse(req.body.files);
-        let folder;
+        const { folder, files } = req.body;
 
         files.forEach((file) => {
-          folder = file.folder;
           filesystem.move(
             `${STORAGE_PATH}/${file.key}`,
-            `${STORAGE_PATH}/train/${file.folder}/${file.filename}`
+            `${STORAGE_PATH}/train/${folder}/${file.filename}`
           );
         });
         database.insert('init', await filesystem.files().train());
@@ -142,7 +141,7 @@ module.exports.delete = async (req, res) => {
 
 module.exports.camera = async (req, res) => {
   const { name, camera } = req.params;
-  const { output, attempts } = req.query;
+  const { attempts } = req.query;
 
   if (!fs.existsSync(`${STORAGE_PATH}/train/${name}`)) {
     fs.mkdirSync(`${STORAGE_PATH}/train/${name}`);
@@ -174,18 +173,7 @@ module.exports.camera = async (req, res) => {
     const results = await train.queue(files);
     train.cleanup(results);
 
-    if (output === 'json') {
-      return respond(
-        HTTPSuccess(OK, {
-          camera,
-          name,
-          results,
-        }),
-        res
-      );
-    }
-
-    res.render('camera', { camera, name, results });
+    respond(HTTPSuccess(OK, { camera, name, results }), res);
   } catch (error) {
     logger.log(`train camera error: ${error.message}`);
     respond(error, res);

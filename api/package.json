@@ -1,6 +1,6 @@
 {
-  "name": "double-take",
-  "version": "0.0.29",
+  "name": "double-take-api",
+  "version": "0.1.1",
   "scripts": {
     "start": "node server.js",
     "debug": "nodemon server.js"
@@ -25,7 +25,6 @@
     "md5-file": "^5.0.0",
     "mqtt": "^4.2.6",
     "node-schedule": "^2.0.0",
-    "pug": "^3.0.2",
     "sharp": "^0.28.0",
     "uuid": "^8.3.2"
   },

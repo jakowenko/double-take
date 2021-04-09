@@ -1,0 +1,10 @@
+{
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  }
+}

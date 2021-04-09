@@ -16,7 +16,7 @@ router.post('/train/manage/move', validate(validators.manage().move()), train.fi
 
 router.get('/train/add/:name', train.init);
 router.get('/train/remove/:name', train.delete);
-router.get('/train/:camera/:name', validate(validators.train()), train.camera);
+// router.get('/train/:camera/:name', validate(validators.train()), train.camera);
 
 router.get(
   '/storage/matches/:name/:filename',

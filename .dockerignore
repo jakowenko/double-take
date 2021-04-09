@@ -1,4 +1,8 @@
-node_modules
-Dockerfile
-docker-compose.yml
-/.*
+*
+
+!frontend/*
+!api/*
+
+*/node_modules
+*/.DS_Store
+api/.*

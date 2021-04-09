@@ -26,7 +26,7 @@ module.exports.recognize = ({ get }) => {
 module.exports.manage = () => {
   return {
     ui: () => {
-      return [query('limit').default(25).isInt().withMessage('not a limit number')];
+      return [query('limit').default(30).isInt().withMessage('not a limit number')];
     },
     delete: () => {
       return [];
@@ -52,10 +52,7 @@ module.exports.storage = () => {
 };
 
 module.exports.train = () => {
-  return [
-    query('output').default('html').isIn(['html', 'json']).withMessage('not a valid output type'),
-    query('attempts').default(1).isInt().withMessage('not a valid number'),
-  ];
+  return [query('attempts').default(1).isInt().withMessage('not a valid number')];
 };
 
 module.exports.objects = () => {
