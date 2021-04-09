@@ -1,35 +1,35 @@
 <template>
   <div class="wrapper">
-    <div class="fixed p-shadow-5 p-pl-3 p-pr-3">
-      <div class="p-grid p-ai-center p-nogutter">
-        <div class="p-col-6">
-          <div class="p-grid p-ai-center p-nogutter">
-            <div class="p-col p-mr-2">
-              <Dropdown
-                v-model="selectedFolder"
-                :options="folders"
-                :placeholder="loading ? '...' : 'Name'"
-                :disabled="loading"
-                :showClear="true"
-              />
-            </div>
-            <div class="p-col">
-              <Button
-                label="Train"
-                class="p-button-success p-button-sm"
-                :disabled="filesSelected.length === 0 || !selectedFolder"
-                @click="trainFiles($event)"
-              />
-            </div>
-          </div>
+    <div class="fixed p-shadow-5 p-pl-3 p-pr-3 p-d-flex p-jc-between">
+      <div class="p-d-inline-flex p-ai-center">
+        <div class="p-mr-2">
+          <Dropdown
+            v-model="selectedFolder"
+            :options="folders"
+            :placeholder="loading ? '...' : 'Name'"
+            :disabled="loading"
+            :showClear="true"
+          />
         </div>
-        <div class="p-col-6 p-text-right">
+        <div>
+          <Button
+            label="Train"
+            class="p-button-success p-button-sm"
+            :disabled="filesSelected.length === 0 || !selectedFolder"
+            @click="trainFiles($event)"
+          />
+        </div>
+      </div>
+      <div class="p-d-inline-flex p-ai-center">
+        <div class="p-mr-2">
           <Button
             @click="toggleAll"
             :label="toggleAllSelected ? 'Deselect All' : 'Select All'"
-            class="p-button-primary p-button-sm p-mr-2"
+            class="p-button-primary p-button-sm"
             :disabled="loading"
           />
+        </div>
+        <div>
           <Button
             @click="deleteFiles($event)"
             label="Delete"
@@ -40,11 +40,11 @@
       </div>
     </div>
 
-    <div class="p-d-flex p-jc-center">
-      <div v-if="loading" class="p-pt-5 p-pb-5">
+    <div class="p-d-flex p-jc-center p-p-3">
+      <div v-if="loading">
         <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
       </div>
-      <div v-else>
+      <div v-else style="width: 100%">
         <ImageTable :files="files" @toggle="selected" @files-rendered="lazy"></ImageTable>
       </div>
     </div>
@@ -199,7 +199,7 @@ export default {
 
 <style scoped lang="scss">
 .fixed {
-  background-color: var(--surface-b);
+  background: var(--surface-a);
   position: fixed;
   top: 0;
   left: 50%;
@@ -214,6 +214,6 @@ export default {
   padding-top: 60px;
 }
 .p-dropdown {
-  width: 100%;
+  width: 115px;
 }
 </style>

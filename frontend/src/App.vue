@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper p-pl-3 p-pr-3">
+  <div class="wrapper">
     <Toast />
     <ConfirmDialog />
     <Manage />
@@ -42,11 +42,27 @@ body {
 #app {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol';
 }
+.match-image-component {
+  .p-card .p-card-content {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .p-card-body {
+    overflow: hidden;
+  }
+}
+
 @media only screen and (max-width: 576px) {
   .p-toast {
     width: auto;
     left: 20px;
+  }
+
+  .match-image-component .p-card .p-card-body {
+    padding: 1rem 0.75rem;
   }
 }
 </style>
@@ -55,6 +71,5 @@ body {
 .wrapper {
   max-width: 1000px;
   margin: auto;
-  background: var(--surface-a);
 }
 </style>
