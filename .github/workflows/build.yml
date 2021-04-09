@@ -43,9 +43,9 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          platforms: ${ARCH}
+          platforms: ${{env.ARCH}}
           push: true
-          tags: jakowenko/double-take:${TAG}
+          tags: jakowenko/double-take:${{env.TAG}}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
       - # Temp fix
