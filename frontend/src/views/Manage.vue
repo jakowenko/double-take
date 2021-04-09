@@ -76,14 +76,29 @@ export default {
       selectedFolder: null,
     };
   },
-  mounted() {
-    axios.get(`${process.env.VUE_APP_API}/train/manage`).then((response) => {
-      this.folders = response.data.folders;
-      this.files = response.data.files;
-      this.loading = false;
-    });
+  async mounted() {
+    await this.fetchFiles();
   },
   methods: {
+    async fetchFiles() {
+      try {
+        this.loading = true;
+        const { data } = await axios.get(`${process.env.VUE_APP_API}/train/manage`);
+        this.folders = data.folders;
+        this.files = data.files;
+        this.loading = false;
+      } catch (error) {
+        this.$toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error fetching files, trying again in 10 seconds',
+          life: 3000,
+        });
+        setTimeout(async () => {
+          await this.fetchFiles();
+        }, 10000);
+      }
+    },
     trainFiles() {
       const description = `${this.filesSelected.length} ${this.filesSelected.length > 1 ? 'files' : 'file'}`;
       this.$confirm.require({
@@ -145,6 +160,10 @@ export default {
                 detail: `${description} deleted`,
                 life: 3000,
               });
+              if (this.toggleAllSelected) {
+                this.fetchFiles();
+                this.toggleAllSelected = false;
+              }
             })
             .catch((/* error */) => {
               this.$toast.add({
