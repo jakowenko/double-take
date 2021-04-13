@@ -11,7 +11,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/storage/train', express.static(`${STORAGE_PATH}/train`));
 app.use('/', express.static(`./frontend`));
 
-app.use(router);
+app.use('/api', router);
 
 let routes = [];
 // eslint-disable-next-line no-underscore-dangle

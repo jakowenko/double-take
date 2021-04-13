@@ -30,7 +30,7 @@ The API can also be invoked manually for processing. See below for more informat
 
 ## API
 
-### `GET - /recognize`
+### `GET - /api/recognize`
 
 Process images for recognition with a `GET` request.
 
@@ -71,22 +71,21 @@ Process images for recognition with a `GET` request.
 }
 ```
 
-### `GET - /train/add/:name`
+### `GET - /api/train/add/:name`
 
 Train detectors with images from `./storage/train/:name`. Once an image is trained, it will not be reprocessed unless it is removed via the API.
 
-### `GET - /train/remove/:name`
+### `GET - /api/train/remove/:name`
 
 Remove all images for the specific name from detectors.
 
-### `GET - /train/:camera/:name`
+### `GET - /api/train/:camera/:name`
 
 Train detectors with the `latest.jpg` image from a Frigate camera.
 
 | Query Params | Default | Description                          |
 | ------------ | ------- | ------------------------------------ |
 | attempts     | `1`     | Number of `latest.jpg` images to use |
-| output       | `html`  | Options: `html`, `json`              |
 
 ## MQTT
 

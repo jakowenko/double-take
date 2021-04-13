@@ -50,7 +50,7 @@ module.exports.connect = () => {
     .on('message', async (topic, message) => {
       await axios({
         method: 'post',
-        url: `http://0.0.0.0:${PORT}/recognize`,
+        url: `http://0.0.0.0:${PORT}/api/recognize`,
         data: JSON.parse(message.toString()),
         validateStatus() {
           return true;
