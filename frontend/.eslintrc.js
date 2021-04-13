@@ -3,7 +3,7 @@ module.exports = {
   parserOptions: {
     sourceType: 'module',
   },
-  extends: ['plugin:vue/essential', '@vue/prettier', '@vue/airbnb'],
+  extends: ['plugin:vue/vue3-essential', '@vue/prettier', '@vue/airbnb'],
   rules: {
     // Only allow debugger in development
     'no-debugger': process.env.PRE_COMMIT ? 'error' : 'warn',

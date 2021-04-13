@@ -1,178 +1,209 @@
 <template>
   <div class="wrapper">
-    <div class="fixed p-shadow-5 p-pl-3 p-pr-3 p-d-flex p-jc-between">
-      <div class="p-d-inline-flex p-ai-center">
-        <div class="p-mr-2">
-          <Dropdown
-            v-model="selectedFolder"
-            :options="folders"
-            :placeholder="loading ? '...' : 'Name'"
-            :disabled="loading"
-            :showClear="true"
-          />
-        </div>
-        <div>
-          <Button
-            label="Train"
-            class="p-button-success p-button-sm"
-            :disabled="filesSelected.length === 0 || !selectedFolder"
-            @click="trainFiles($event)"
-          />
-        </div>
-      </div>
-      <div class="p-d-inline-flex p-ai-center">
-        <div class="p-mr-2">
-          <Button
-            @click="toggleAll"
-            :label="toggleAllSelected ? 'Deselect All' : 'Select All'"
-            class="p-button-primary p-button-sm"
-            :disabled="loading"
-          />
-        </div>
-        <div>
-          <Button
-            @click="deleteFiles($event)"
-            label="Delete"
-            class="p-button-danger p-button-sm"
-            :disabled="filesSelected.length === 0"
-          />
-        </div>
-      </div>
-    </div>
-
+    <HeaderManage
+      :loading="loading"
+      :folders="folders"
+      :filesSelected="filesSelected"
+      @selectedFolder="selectedFolder = $event"
+    />
     <div class="p-d-flex p-jc-center p-p-3">
-      <div v-if="loading">
-        <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
-      </div>
-      <div v-else style="width: 100%">
-        <ImageTable :files="files" @toggle="selected" @files-rendered="lazy"></ImageTable>
-      </div>
+      <i v-if="loading.files" class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
+      <ImageTable v-else :files="files" @toggle="selected" @files-rendered="lazy" style="width: 100%"></ImageTable>
     </div>
   </div>
 </template>
 
 <script>
-/* eslint-disable no-restricted-globals */
-/* eslint-disable no-restricted-globals */ /* eslint-disable no-alert */
-import Button from 'primevue/button';
-import Dropdown from 'primevue/dropdown';
-import axios from 'axios';
+import ApiService from '@/services/api.service';
 import ImageTable from '@/components/ImageTable.vue';
+import HeaderManage from '@/components/HeaderManage.vue';
 
 export default {
   components: {
+    HeaderManage,
     ImageTable,
-    Dropdown,
-    Button,
   },
   data() {
     return {
       info: null,
       folders: [],
+      filteredFolders: [],
       files: [],
-      toggleAllSelected: false,
-      toggleAllText: 'Select All',
-      loading: true,
+      loading: {
+        folders: false,
+        files: false,
+        createFolder: false,
+      },
       selectedFolder: null,
+      displayAddFolderModal: false,
+      newFolder: null,
     };
   },
+  computed: {
+    filesSelected() {
+      const files = this.files.filter((file) => file.selected && !file.disabled);
+      files.forEach((file) => {
+        delete file.tmp;
+      });
+      return files;
+    },
+    isNewFolder() {
+      if (!this.selectedFolder) return false;
+      return !this.folders.includes(this.selectedFolder);
+    },
+  },
   async mounted() {
-    await this.fetchFiles();
+    await this.init();
   },
   methods: {
-    async fetchFiles() {
-      try {
-        this.loading = true;
-        const { data } = await axios.get(`${process.env.VUE_APP_API}/train/manage`);
-        this.folders = data.folders;
-        this.files = data.files;
-        this.loading = false;
-      } catch (error) {
-        this.$toast.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Error fetching files, trying again in 10 seconds',
-          life: 3000,
-        });
-        setTimeout(async () => {
-          await this.fetchFiles();
-        }, 10000);
-      }
+    async init() {
+      const promises = [];
+      promises.push(this.get().files());
+      promises.push(this.get().folders());
+      await Promise.all(promises);
     },
-    trainFiles() {
+    get() {
+      const app = this;
+      return {
+        async folders() {
+          try {
+            app.loading.folders = true;
+            const { data } = await ApiService.get('filesystem/folders');
+            setTimeout(() => {
+              app.folders = ['add new', ...data];
+              app.loading.folders = false;
+            }, 250);
+          } catch (error) {
+            app.$toast.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: error.message,
+              life: 3000,
+            });
+          }
+        },
+        async files() {
+          try {
+            app.loading.files = true;
+            const { data } = await ApiService.get('filesystem/files');
+            app.files = data;
+            app.loading.files = false;
+          } catch (error) {
+            app.$toast.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: error.message,
+              life: 3000,
+            });
+          }
+        },
+      };
+    },
+    remove() {
+      const app = this;
+      return {
+        async files() {
+          try {
+            const description = `${app.filesSelected.length} ${app.filesSelected.length > 1 ? 'files' : 'file'}`;
+            app.$confirm.require({
+              header: 'Confirmation',
+              message: `Do you want to delete ${description}?`,
+              acceptClass: 'p-button-danger',
+              position: 'top',
+              accept: async () => {
+                const files = app.filesSelected.map((file) => ({ key: file.key }));
+                try {
+                  await ApiService.delete('filesystem/files', files);
+                  app.files.forEach((file) => {
+                    if (file.selected) {
+                      file.disabled = true;
+                      file.selected = false;
+                    }
+                  });
+                  app.toast({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: `${description} deleted`,
+                  });
+                  if (app.toggleAllSelected) {
+                    app.get().files();
+                    app.toggleAllSelected = false;
+                  }
+                } catch (error) {
+                  app.toast({ severity: 'error', summary: 'Error', detail: error.message });
+                }
+              },
+            });
+          } catch (error) {
+            app.toast({ severity: 'error', summary: 'Error', detail: error.message });
+          }
+        },
+      };
+    },
+    create() {
+      const app = this;
+      return {
+        async folder() {
+          try {
+            await ApiService.post(`filesystem/folders/${app.selectedFolder}`);
+            app.get().folders();
+            app.$toast.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'Folder created',
+            });
+          } catch (error) {
+            app.$toast.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: error.message,
+              life: 3000,
+            });
+          }
+        },
+      };
+    },
+    toast({ severity, summary, detail }) {
+      this.$toast.add({
+        severity,
+        summary,
+        detail,
+        life: 3000,
+      });
+    },
+    train() {
       const description = `${this.filesSelected.length} ${this.filesSelected.length > 1 ? 'files' : 'file'}`;
       this.$confirm.require({
-        header: 'Train Confirmation',
+        header: 'Confirmation',
         message: `Do you want to train ${description} for ${this.selectedFolder}?`,
         acceptClass: 'p-button-success',
         position: 'top',
         accept: () => {
-          axios
-            .post(`${process.env.VUE_APP_API}/train/manage/move`, {
+          try {
+            ApiService.post('/filesystem/files/move', {
               folder: this.selectedFolder,
               files: this.filesSelected,
-            })
-            .then((/* response */) => {
-              this.files.forEach((file) => {
-                if (file.selected) {
-                  file.disabled = true;
-                  file.selected = false;
-                }
-              });
-              this.$toast.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: `${description} trained for ${this.selectedFolder}`,
-                life: 3000,
-              });
-            })
-            .catch((/* error */) => {
-              this.$toast.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Error training ${description} for ${this.selectedFolder}`,
-                life: 3000,
-              });
             });
-        },
-      });
-    },
-    deleteFiles() {
-      const description = `${this.filesSelected.length} ${this.filesSelected.length > 1 ? 'files' : 'file'}`;
-      this.$confirm.require({
-        header: 'Delete Confirmation',
-        message: `Do you want to delete ${description}?`,
-        acceptClass: 'p-button-danger',
-        position: 'top',
-        accept: () => {
-          axios
-            .post(`${process.env.VUE_APP_API}/train/manage/delete`, this.filesSelected)
-            .then((/* response */) => {
-              this.files.forEach((file) => {
-                if (file.selected) {
-                  file.disabled = true;
-                  file.selected = false;
-                }
-              });
-              this.$toast.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: `${description} deleted`,
-                life: 3000,
-              });
-              if (this.toggleAllSelected) {
-                this.fetchFiles();
-                this.toggleAllSelected = false;
+            ApiService.get(`/train/add/${this.selectedFolder}`);
+            this.files.forEach((file) => {
+              if (file.selected) {
+                file.disabled = true;
+                file.selected = false;
               }
-            })
-            .catch((/* error */) => {
-              this.$toast.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Error deleting ${description}`,
-                life: 3000,
-              });
             });
+            this.toast({
+              severity: 'success',
+              summary: 'Success',
+              detail: `${description} trained for ${this.selectedFolder}`,
+            });
+          } catch (error) {
+            this.toast({
+              severity: 'error',
+              summary: 'Error',
+              detail: error.message,
+              life: 3000,
+            });
+          }
         },
       });
     },
@@ -183,11 +214,10 @@ export default {
       if (file.disabled) return;
       file.selected = !file.selected;
     },
-    toggleAll() {
-      this.toggleAllSelected = !this.toggleAllSelected;
+    toggleAll(toggleAllState) {
       this.files = this.files.map((file) => ({
         ...file,
-        selected: !!this.toggleAllSelected && !file.disabled,
+        selected: !!toggleAllState && !file.disabled,
       }));
     },
     lazyLoad() {
@@ -204,35 +234,8 @@ export default {
       });
     },
   },
-  computed: {
-    filesSelected() {
-      const files = this.files.filter((file) => file.selected && !file.disabled);
-      files.forEach((file) => {
-        delete file.tmp;
-      });
-      return files;
-    },
-  },
 };
 </script>
 
 <style scoped lang="scss">
-.fixed {
-  background: var(--surface-a);
-  position: fixed;
-  top: 0;
-  left: 50%;
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 1000px;
-  z-index: 3 !important;
-}
-.wrapper {
-  padding-top: 60px;
-}
-.p-dropdown {
-  width: 115px;
-}
 </style>

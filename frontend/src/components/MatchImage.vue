@@ -1,22 +1,18 @@
 <template>
-  <div class="wrapper match-image-component" :class="{ disabled: file.disabled }">
+  <div class="wrapper" :class="{ disabled: file.disabled }">
     <Card>
       <template v-slot:header>
         <div class="file-wrapper">
+          <div class="open-link">
+            <i class="pi pi-external-link" @click="openLink(`${VUE_APP_API_URL}/storage/${file.key}?bbox=true`)"></i>
+          </div>
           <div class="selected-overlay" :class="{ selected: file.selected }"></div>
           <div v-if="file.bbox !== null && file.loaded" class="bbox" :style="file.bbox"></div>
           <img
-            v-if="!file.loaded"
             @click="$parent.$emit('toggle', file)"
-            class="thumbnail lazy"
+            :class="file.loaded ? 'thumbnail' : 'thumbnail lazy'"
             :data-src="'data:image/jpg;base64,' + file.base64"
-            :data-key="file.key"
-          />
-          <img
-            v-else
-            @click="$parent.$emit('toggle', file)"
-            class="thumbnail"
-            :src="'data:image/jpg;base64,' + file.base64"
+            :src="file.loaded ? 'data:image/jpg;base64,' + file.base64 : ''"
             :data-key="file.key"
           />
         </div>
@@ -36,13 +32,16 @@
           </div>
         </div>
       </template>
-      <template v-slot:subtitle>{{ file.ago }}</template>
+      <!-- <template v-slot:subtitle></template> -->
       <template v-slot:content>
         <Badge class="p-mt-2" v-if="file.type" :value="file.type"></Badge>
         <Badge class="p-mt-2" v-if="file.detector" :value="file.detector"></Badge>
         <Badge class="p-mt-2" v-if="file.dimensions" :value="file.dimensions"></Badge>
         <Badge class="p-mt-2" v-if="file.confidence" :value="file.confidence"></Badge>
         <Badge class="p-mt-2" v-if="file.duration" :value="file.duration"></Badge>
+      </template>
+      <template v-slot:footer>
+        {{ file.ago }}
       </template>
     </Card>
   </div>
@@ -60,10 +59,29 @@ export default {
     Badge,
     Card,
   },
+  data() {
+    return {
+      VUE_APP_API_URL: process.env.VUE_APP_API_URL,
+    };
+  },
+  methods: {
+    openLink(url) {
+      window.open(url);
+    },
+  },
 };
 </script>
 
 <style scoped lang="scss">
+.open-link {
+  position: absolute;
+  top: 0;
+  right: 0;
+  cursor: pointer;
+  padding: 0.5rem;
+  z-index: 2;
+}
+
 .wrapper.disabled {
   opacity: 0.2;
 
@@ -71,6 +89,7 @@ export default {
     cursor: not-allowed;
   }
 }
+
 img.thumbnail {
   width: 100%;
   display: block;
@@ -80,10 +99,6 @@ img.thumbnail {
   &.lazy {
     opacity: 0;
   }
-}
-
-.p-card.match {
-  color: #78cc86;
 }
 
 .file-wrapper {
@@ -120,5 +135,13 @@ img.thumbnail {
   position: absolute;
   border: 2px solid #78cc86;
   pointer-events: none;
+}
+
+.p-card ::v-deep {
+  @media only screen and (max-width: 576px) {
+    .p-card-body {
+      padding: 1rem 0.75rem;
+    }
+  }
 }
 </style>

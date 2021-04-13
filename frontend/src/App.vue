@@ -45,24 +45,18 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol';
 }
-.match-image-component {
-  .p-card .p-card-content {
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-  .p-card-body {
-    overflow: hidden;
-  }
-}
 
 @media only screen and (max-width: 576px) {
   .p-toast {
     width: auto;
     left: 20px;
   }
+}
 
-  .match-image-component .p-card .p-card-body {
-    padding: 1rem 0.75rem;
+.p-dialog.p-confirm-dialog {
+  .p-confirm-dialog-message {
+    text-align: center;
+    margin-left: 0;
   }
 }
 </style>
