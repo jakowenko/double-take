@@ -79,7 +79,8 @@ module.exports.files = () => {
           })
         );
         exiftool.end();
-
+        // TODO: remove hardcoded limit
+        files = files.splice(0, 30);
         respond(HTTPSuccess(OK, files), res);
       } catch (error) {
         respond(error, res);

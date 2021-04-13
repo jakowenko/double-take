@@ -41,7 +41,9 @@ module.exports.matches = async (req, res) => {
       const canvas = createCanvas(width, height);
       const ctx = canvas.getContext('2d');
       const image = await loadImage(source);
-      registerFont('./src/static/fonts/Roboto/Roboto-Medium.ttf', { family: 'Roboto-Medium' });
+      registerFont(`${__dirname}/../static/fonts/Roboto/Roboto-Medium.ttf`, {
+        family: 'Roboto-Medium',
+      });
       ctx.drawImage(image, 0, 0);
       ctx.font = `${fontSize}px Roboto-Medium`;
       ctx.textBaseline = 'top';
