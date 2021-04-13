@@ -34,6 +34,7 @@ export default {
         files: false,
         createFolder: false,
       },
+      toggleAllState: null,
       selectedFolder: null,
       displayAddFolderModal: false,
       newFolder: null,
@@ -125,9 +126,9 @@ export default {
                     summary: 'Success',
                     detail: `${description} deleted`,
                   });
-                  if (app.toggleAllSelected) {
+                  if (app.toggleAllState) {
                     app.get().files();
-                    app.toggleAllSelected = false;
+                    app.toggleAllState = false;
                   }
                 } catch (error) {
                   app.toast({ severity: 'error', summary: 'Error', detail: error.message });
@@ -215,6 +216,7 @@ export default {
       file.selected = !file.selected;
     },
     toggleAll(toggleAllState) {
+      this.toggleAllState = toggleAllState;
       this.files = this.files.map((file) => ({
         ...file,
         selected: !!toggleAllState && !file.disabled,
@@ -237,5 +239,4 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
-</style>
+<style scoped lang="scss"></style>

@@ -137,11 +137,9 @@ img.thumbnail {
   pointer-events: none;
 }
 
-.p-card ::v-deep {
+.p-card ::v-deep(.p-card-body) {
   @media only screen and (max-width: 576px) {
-    .p-card-body {
-      padding: 1rem 0.75rem;
-    }
+    padding: 1rem 0.75rem;
   }
 }
 </style>

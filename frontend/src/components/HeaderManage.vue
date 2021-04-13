@@ -60,11 +60,16 @@
           </div>
           <div>
             <Button
-              iconPos="left"
               icon="pi pi-trash"
-              class="p-button-danger p-button-sm"
+              class="p-button-danger p-button-sm p-mr-1"
               @click="$parent.remove().files($event)"
               :disabled="filesSelected.length === 0"
+            />
+            <Button
+              icon="pi pi-refresh"
+              class="p-button p-button-sm"
+              @click="$parent.get().files()"
+              :disabled="loading.files"
             />
           </div>
         </div>
@@ -137,9 +142,9 @@ export default {
   }
 }
 
-.p-dropdown ::v-deep {
+.p-dropdown {
   width: 135px;
-  .p-dropdown-label {
+  &::v-deep(.p-dropdown-label) {
     @media only screen and (max-width: 576px) {
       font-size: 16px;
     }
