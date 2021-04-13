@@ -113,6 +113,11 @@ export default {
       }
       this.$emit('selectedFolder', value);
     },
+    filesSelected(value) {
+      if (!value.length && this.toggleAllState) {
+        this.toggleAllState = false;
+      }
+    },
   },
 };
 </script>

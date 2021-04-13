@@ -85,6 +85,7 @@ export default {
         },
         async files() {
           try {
+            app.files = [];
             app.loading.files = true;
             const { data } = await ApiService.get('filesystem/files');
             app.files = data;
