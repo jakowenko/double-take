@@ -22,7 +22,6 @@
     "form-data": "^4.0.0",
     "image-size": "^0.9.7",
     "luxon": "^1.26.0",
-    "md5-file": "^5.0.0",
     "mqtt": "^4.2.6",
     "node-schedule": "^2.0.0",
     "sharp": "^0.28.0",

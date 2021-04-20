@@ -7,6 +7,10 @@ module.exports.current = () => {
     : DateTime.now().setZone(TZ.toUpperCase()).toString();
 };
 
+module.exports.utc = () => {
+  return DateTime.now().setZone('UTC').toString();
+};
+
 module.exports.unix = () => {
   return DateTime.now().toMillis();
 };

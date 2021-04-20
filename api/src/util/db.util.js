@@ -4,13 +4,12 @@ const time = require('./time.util');
 const filesystem = require('./fs.util');
 const logger = require('./logger.util');
 
-const { STORAGE_PATH } = require('../constants');
+const { STORAGE_PATH, SAVE_UNKNOWN } = require('../constants');
 
 const database = this;
 let connection = false;
 
 module.exports.connect = () => {
-  // new Database(':memory:')
   if (!connection) connection = new Database(`${STORAGE_PATH}/database.db`);
   return connection;
 };
@@ -43,6 +42,14 @@ module.exports.init = async () => {
         meta JSON,
         createdAt TIMESTAMP,
         UNIQUE(fileId, detector)
+    )`
+    ).run();
+
+    db.prepare(
+      `CREATE TABLE IF NOT EXISTS match (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        meta JSON,
+        createdAt TIMESTAMP
     )`
     ).run();
 
@@ -164,5 +171,32 @@ module.exports.insert = (type, data = []) => {
       }
     });
     transaction(data);
+  }
+
+  if (type === 'match') {
+    const records = [];
+    data.forEach((result) => {
+      let results = SAVE_UNKNOWN ? [...result.matches, ...result.misses] : [...result.matches];
+      results = results.map((obj) => {
+        obj.detector = result.detector;
+        return obj;
+      });
+      records.push(...results);
+    });
+    const insert = db.prepare(`
+      INSERT INTO match
+      VALUES (:id, :meta, :createdAt);
+    `);
+    const transaction = db.transaction((items) => {
+      for (const item of items) {
+        console.log(item);
+        insert.run({
+          id: null,
+          meta: JSON.stringify(item),
+          createdAt: time.utc(),
+        });
+      }
+    });
+    transaction(records);
   }
 };

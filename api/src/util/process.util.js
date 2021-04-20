@@ -43,14 +43,16 @@ module.exports.polling = async ({
         if (Array.isArray(results)) {
           const matches = results
             .filter((result) => result.match)
-            .map((miss) => {
-              miss.tmp = tmp;
-              return miss;
+            .map((match) => {
+              match.tmp = tmp;
+              match.filename = `${uuidv4()}.jpg`;
+              return match;
             });
           const misses = results
             .filter((result) => !result.match)
             .map((miss) => {
               miss.tmp = tmp;
+              miss.filename = `${uuidv4()}.jpg`;
               return miss;
             });
 
@@ -61,7 +63,6 @@ module.exports.polling = async ({
           if (matches.length) {
             allResults.push(...results);
             MATCH_IDS.push(id);
-            // await filesystem.writer(fs.createReadStream(tmp), file);
             if (breakMatch === true) break;
           }
         }
@@ -74,7 +75,6 @@ module.exports.polling = async ({
   return {
     duration,
     type,
-    // results: allResults,
     misses: allMisses,
     matches: allResults.filter((result) => result.match),
     attempts,

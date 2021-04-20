@@ -88,7 +88,7 @@ module.exports.delete = async (req, res) => {
   }
 };
 
-module.exports.init = async (req, res) => {
+module.exports.add = async (req, res) => {
   try {
     const { name } = req.params;
     const files = await filesystem.files().train();

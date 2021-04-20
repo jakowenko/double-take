@@ -7,6 +7,7 @@ const recognize = require('../util/recognize.util');
 const filesystem = require('../util/fs.util');
 const frigate = require('../util/frigate.util');
 const mqtt = require('../util/mqtt.util');
+const database = require('../util/db.util');
 const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
 const { OK, BAD_REQUEST } = require('../constants/http-status');
 
@@ -134,7 +135,6 @@ module.exports.start = async (req, res) => {
       camera,
       room,
       matches: JSON.parse(JSON.stringify(matches)).map((match) => {
-        delete match.box;
         delete match.tmp;
         return match;
       }),
@@ -144,7 +144,6 @@ module.exports.start = async (req, res) => {
       output.results = JSON.parse(JSON.stringify(results)).map((result) => {
         ['matches', 'misses'].forEach((array) => {
           result[array].forEach((obj) => {
-            delete obj.box;
             delete obj.tmp;
           });
         });
@@ -162,11 +161,9 @@ module.exports.start = async (req, res) => {
       await filesystem.save().unknown(results);
     }
 
-    const filenames = await filesystem.save().matches(id, matches);
-    output.matches.map((match, i) => {
-      match.filename = filenames[i];
-      return match;
-    });
+    await filesystem.save().matches(id, matches);
+
+    database.insert('match', results);
 
     PROCESSING = false;
 

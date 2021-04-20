@@ -11,7 +11,6 @@ const { STORAGE_PATH } = require('../constants');
 
 module.exports.matches = async (req, res) => {
   try {
-    const { bbox } = req.query;
     const { name, filename } = req.params;
     const source = `${STORAGE_PATH}/matches/${name}/${filename}`;
 
@@ -19,7 +18,7 @@ module.exports.matches = async (req, res) => {
       throw HTTPError(BAD_REQUEST, `${source} does not exist`);
     }
 
-    if (bbox === 'true') {
+    if (req.query.box === 'true') {
       const exiftool = new ExifTool({ taskTimeoutMillis: 1000 });
       const { UserComment: exif } = await exiftool.read(source);
       exiftool.end();
