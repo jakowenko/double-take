@@ -239,7 +239,7 @@ export default {
       else this.matches.selected.push(match);
     },
     toggleAll(state) {
-      const available = this.filtered.filter((obj) => !this.matches.disabled.includes(obj.id)).map((obj) => obj.id);
+      const available = this.filtered.filter((obj) => !this.matches.disabled.includes(obj.id)).map((obj) => obj);
       this.matches.selected = state ? available : [];
       this.toggleAllState = state;
     },
