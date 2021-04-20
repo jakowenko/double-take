@@ -211,6 +211,10 @@ export default {
       }
       this.$emit('trainingFolder', value);
     },
+    // eslint-disable-next-line object-shorthand
+    'matches.source'() {
+      this.toggleAllState = false;
+    },
   },
   computed: {
     names() {

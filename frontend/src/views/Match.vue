@@ -109,6 +109,8 @@ export default {
           try {
             $this.loading.files = true;
             const { data } = await ApiService.get('match');
+            $this.matches.selected = [];
+            $this.matches.disabled = [];
             $this.matches.source = data.matches;
             $this.loading.files = false;
           } catch (error) {
@@ -150,7 +152,6 @@ export default {
                   });
                   if ($this.toggleAllState) {
                     $this.get().matches();
-                    $this.toggleAllState = false;
                   }
                 } catch (error) {
                   $this.toast({ severity: 'error', summary: 'Error', detail: error.message });
