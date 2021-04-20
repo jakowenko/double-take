@@ -9,9 +9,10 @@
   "dependencies": {
     "axios": "^0.21.1",
     "core-js": "^3.10.1",
+    "luxon": "^1.26.0",
     "primeflex": "^2.0.0",
     "primeicons": "^4.1.0",
-    "primevue": "^3.3.5",
+    "primevue": "^3.4.0",
     "vue": "^3.0.0",
     "vue-axios": "^3.2.4"
   },
@@ -24,8 +25,8 @@
     "@vue/eslint-config-prettier": "^6.0.0",
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
-    "eslint-plugin-prettier": "^3.3.1",
-    "eslint-plugin-vue": "^7.8.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-vue": "^7.9.0",
     "node-sass": "^5.0.0",
     "prettier": "^2.2.1",
     "sass-loader": "^10.1.1"

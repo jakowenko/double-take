@@ -16,6 +16,9 @@ const ApiService = {
   post(resource, params, queryParams) {
     return app.axios.post(resource, params, queryParams);
   },
+  patch(resource, params, queryParams) {
+    return app.axios.patch(resource, params, queryParams);
+  },
   delete(resource, params, queryParams) {
     return app.axios.delete(resource, { data: params }, queryParams);
   },

@@ -2,7 +2,7 @@
   <div class="wrapper">
     <Toast />
     <ConfirmDialog />
-    <Manage />
+    <Match />
   </div>
 </template>
 
@@ -11,14 +11,14 @@ import 'primevue/resources/themes/bootstrap4-dark-blue/theme.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
-import Manage from '@/views/Manage.vue';
+import Match from '@/views/Match.vue';
 import Toast from 'primevue/toast';
 import ConfirmDialog from 'primevue/confirmdialog';
 
 export default {
   name: 'App',
   components: {
-    Manage,
+    Match,
     Toast,
     ConfirmDialog,
   },
@@ -58,6 +58,10 @@ body {
     text-align: center;
     margin-left: 0;
   }
+}
+
+.p-multiselect-panel .p-multiselect-items {
+  font-size: 0.9rem;
 }
 </style>
 
