@@ -9,10 +9,12 @@ const {
   MQTT_PASSWORD,
   MQTT_TOPIC,
   MQTT_TOPIC_MATCHES,
+  MQTT_TOPIC_CAMERAS,
   FACEBOX_URL,
   COMPREFACE_URL,
   FRIGATE_URL,
   FRIGATE_CAMERAS,
+  FRIGATE_ZONES,
   DEEPSTACK_URL,
   FRIGATE_IMAGE_HEIGHT,
   COMPREFACE_API_KEY,
@@ -45,6 +47,7 @@ let constants = {
   MQTT_PASSWORD: MQTT_PASSWORD || null,
   MQTT_TOPIC: MQTT_HOST && FRIGATE_URL ? MQTT_TOPIC || 'frigate/events' : null,
   MQTT_TOPIC_MATCHES: MQTT_HOST ? MQTT_TOPIC_MATCHES || 'double-take/matches' : null,
+  MQTT_TOPIC_CAMERAS: MQTT_HOST ? MQTT_TOPIC_CAMERAS || 'double-take/cameras' : null,
 
   FACEBOX_URL: FACEBOX_URL ? FACEBOX_URL.replace(/\/$/, '') : null,
 
@@ -55,6 +58,7 @@ let constants = {
 
   FRIGATE_URL: FRIGATE_URL ? FRIGATE_URL.replace(/\/$/, '') : null,
   FRIGATE_CAMERAS: FRIGATE_CAMERAS ? FRIGATE_CAMERAS.replace(/ /g, '').split(',') : null,
+  FRIGATE_ZONES: FRIGATE_ZONES ? FRIGATE_ZONES.replace(/ /g, '').split(',') : null,
   FRIGATE_IMAGE_HEIGHT: FRIGATE_URL ? parseInt(FRIGATE_IMAGE_HEIGHT, 10) || 800 : null,
   SNAPSHOT_RETRIES: FRIGATE_URL ? parseInt(SNAPSHOT_RETRIES, 10) || 10 : null,
   LATEST_RETRIES: FRIGATE_URL ? parseInt(LATEST_RETRIES, 10) || 10 : null,

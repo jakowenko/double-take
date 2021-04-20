@@ -6,6 +6,7 @@ const {
   MQTT_HOST,
   MQTT_TOPIC,
   MQTT_TOPIC_MATCHES,
+  MQTT_TOPIC_CAMERAS,
   MQTT_USERNAME,
   MQTT_PASSWORD,
 } = require('../constants');
@@ -61,7 +62,8 @@ module.exports.connect = () => {
 
 module.exports.publish = (data) => {
   try {
-    const { matches } = data;
+    const { matches, camera } = data;
+
     matches.forEach((match) => {
       const configData = JSON.parse(JSON.stringify(data));
       const matchData = JSON.parse(JSON.stringify(match));
@@ -72,6 +74,18 @@ module.exports.publish = (data) => {
       };
       client.publish(`${MQTT_TOPIC_MATCHES}/${match.name}`, JSON.stringify(payload));
     });
+
+    if (matches.length) {
+      const configData = JSON.parse(JSON.stringify(data));
+      delete configData.matches;
+      const combined = matches.map((match) => {
+        return {
+          ...configData,
+          ...match,
+        };
+      });
+      client.publish(`${MQTT_TOPIC_CAMERAS}/${camera}`, JSON.stringify(combined));
+    }
   } catch (error) {
     logger.log(`MQTT: publish error: ${error.message}`);
   }

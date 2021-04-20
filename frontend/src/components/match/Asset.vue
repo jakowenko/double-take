@@ -35,6 +35,8 @@
         </div>
       </template>
       <template v-slot:content>
+        <Badge class="p-mt-2" v-if="match.camera" :value="match.camera"></Badge>
+        <Badge class="p-mt-2" v-if="match.zones.length" :value="[...match.zones].join(', ')"></Badge>
         <Badge class="p-mt-2" v-if="match.type" :value="match.type"></Badge>
         <Badge class="p-mt-2" v-if="match.detector" :value="match.detector"></Badge>
         <Badge class="p-mt-2" v-if="match.box" :value="match.box.width + 'x' + match.box.height"></Badge>

@@ -174,14 +174,17 @@ module.exports.insert = (type, data = []) => {
   }
 
   if (type === 'match') {
+    const { camera, results, zones } = data;
     const records = [];
-    data.forEach((result) => {
-      let results = SAVE_UNKNOWN ? [...result.matches, ...result.misses] : [...result.matches];
-      results = results.map((obj) => {
+    results.forEach((result) => {
+      let combined = SAVE_UNKNOWN ? [...result.matches, ...result.misses] : [...result.matches];
+      combined = combined.map((obj) => {
         obj.detector = result.detector;
+        obj.camera = camera;
+        obj.zones = zones;
         return obj;
       });
-      records.push(...results);
+      records.push(...combined);
     });
     const insert = db.prepare(`
       INSERT INTO match
@@ -189,7 +192,6 @@ module.exports.insert = (type, data = []) => {
     `);
     const transaction = db.transaction((items) => {
       for (const item of items) {
-        console.log(item);
         insert.run({
           id: null,
           meta: JSON.stringify(item),

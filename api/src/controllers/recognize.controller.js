@@ -43,9 +43,9 @@ module.exports.start = async (req, res) => {
       processing,
     } = req.query;
     const attributes = req.body.after ? req.body.after : req.body.before;
-    const { id, label, camera } = isFrigateEvent
+    const { id, label, camera, current_zones: zones } = isFrigateEvent
       ? attributes
-      : { id: uuidv4(), camera: req.query.camera };
+      : { id: uuidv4(), camera: req.query.camera, current_zones: [] };
     const room = isFrigateEvent
       ? camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
       : req.query.room;
@@ -57,6 +57,7 @@ module.exports.start = async (req, res) => {
           type,
           label,
           camera,
+          zones,
           PROCESSING,
           LAST_CAMERA,
           IDS,
@@ -133,6 +134,7 @@ module.exports.start = async (req, res) => {
       timestamp: time.current(),
       attempts,
       camera,
+      zones,
       room,
       matches: JSON.parse(JSON.stringify(matches)).map((match) => {
         delete match.tmp;
@@ -163,7 +165,7 @@ module.exports.start = async (req, res) => {
 
     await filesystem.save().matches(id, matches);
 
-    database.insert('match', results);
+    database.insert('match', { camera, zones, results });
 
     PROCESSING = false;
 

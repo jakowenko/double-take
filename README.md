@@ -185,11 +185,13 @@ Configurable options that can be passed as environment variables to the Docker c
 | MQTT_PASSWORD        |                       | MQTT password                                                                                                                                     |
 | MQTT_TOPIC           | `frigate/events`      | MQTT topic for message subscription                                                                                                               |
 | MQTT_TOPIC_MATCHES   | `double-take/matches` | MQTT topic where matches are published                                                                                                            |
+| MQTT_TOPIC_CAMERAS   | `double-take/cameras` | MQTT topic where matches are published by camera name                                                                                             |
 | DEEPSTACK_URL        |                       | Base URL for DeepStack API                                                                                                                        |
 | FACEBOX_URL          |                       | Base URL for Facebox API                                                                                                                          |
 | COMPREFACE_URL       |                       | Base URL for CompreFace API                                                                                                                       |
 | FRIGATE_URL          |                       | Base URL for Frigate                                                                                                                              |
-| FRIGATE_CAMERAS      |                       | To only watch specific cameras pass the names in a comma seperated list: `family-room`, `office`, `basement`                                      |
+| FRIGATE_CAMERAS      |                       | To only watch specific cameras pass the names in a comma seperated list: `family-room, office, basement`                                          |
+| FRIGATE_ZONES        |                       | To only watch within specific zones pass the camera name and zone in a list: `camera-name:zone-name, front-door:porch`                            |
 | FRIGATE_IMAGE_HEIGHT | `800`                 | Height of image passed for facial recognition                                                                                                     |
 | COMPREFACE_API_KEY   |                       | API Key for CompreFace collection                                                                                                                 |
 | SNAPSHOT_RETRIES     | `10`                  | Amount of times API will request a Frigate `snapshot.jpg` for analysis                                                                            |

@@ -17,9 +17,18 @@ module.exports.get = async (req, res) => {
     matches = await Promise.all(
       matches.map(async (obj) => {
         const { id } = obj;
-        const { match, name, detector, confidence, type, filename, box, duration } = JSON.parse(
-          obj.meta
-        );
+        const {
+          match,
+          name,
+          detector,
+          confidence,
+          type,
+          filename,
+          box,
+          duration,
+          camera,
+          zones,
+        } = JSON.parse(obj.meta);
         const key = `matches/${match ? name : 'unknown'}/${filename}`;
         if (!fs.existsSync(`${STORAGE_PATH}/${key}`)) {
           return [];
@@ -36,6 +45,8 @@ module.exports.get = async (req, res) => {
           confidence,
           type,
           match,
+          camera,
+          zones,
           box,
           file: {
             key,
