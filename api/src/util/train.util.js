@@ -1,19 +1,11 @@
-const axios = require('axios');
 const fs = require('fs');
-const FormData = require('form-data');
 const perf = require('execution-time')();
 const time = require('./time.util');
 const logger = require('./logger.util');
 const database = require('./db.util');
+const { train, remove } = require('./detectors/actions');
 
-const {
-  COMPREFACE_URL,
-  FACEBOX_URL,
-  COMPREFACE_API_KEY,
-  DETECTORS,
-  PORT,
-  DEEPSTACK_URL,
-} = require('../constants');
+const { DETECTORS } = require('../constants');
 
 module.exports.queue = async (files) => {
   try {
@@ -23,24 +15,18 @@ module.exports.queue = async (files) => {
     const inserts = [];
     const outputs = [];
     for (let i = 0; i < files.length; i++) {
-      const output = {
-        detectors: [],
-      };
+      const output = [];
       const promises = [];
       const { id, name, filename, key, uuid } = files[i];
       logger.log(`file ${i + 1}: ${name} - ${filename}`);
 
       DETECTORS.forEach((detector) => {
-        promises.push(this.train({ name, key, detector }));
+        promises.push(this.process({ name, key, detector }));
       });
       const results = await Promise.all(promises);
 
       results.forEach((result, j) => {
-        output.uuid = uuid;
-        output.key = key;
-        output.base64 = Buffer.from(fs.readFileSync(key)).toString('base64');
-        output.url = `http://0.0.0.0:${PORT}/storage/train/${name}/${filename}`;
-        output.detectors.push(result);
+        output.push({ ...result, key, uuid });
         inserts.push({
           fileId: id,
           name,
@@ -59,73 +45,28 @@ module.exports.queue = async (files) => {
   }
 };
 
-module.exports.train = async ({ name, key, detector }) => {
-  const formData = new FormData();
-  let request;
-
+module.exports.process = async ({ name, key, detector }) => {
   try {
-    if (detector === 'compreface') {
-      formData.append('file', fs.createReadStream(key));
-      request = await axios({
-        method: 'post',
-        headers: {
-          ...formData.getHeaders(),
-          'x-api-key': COMPREFACE_API_KEY,
-        },
-        url: `${COMPREFACE_URL}/api/v1/faces`,
-        params: {
-          subject: name,
-        },
-        data: formData,
-      });
-    }
-
-    if (detector === 'facebox') {
-      formData.append('file', fs.createReadStream(key));
-      request = await axios({
-        method: 'post',
-        headers: {
-          ...formData.getHeaders(),
-        },
-        url: `${FACEBOX_URL}/facebox/teach`,
-        params: {
-          name,
-          id: name,
-        },
-        data: formData,
-      });
-    }
-
-    if (detector === 'deepstack') {
-      formData.append('image', fs.createReadStream(key));
-      formData.append('userid', name);
-      request = await axios({
-        method: 'post',
-        headers: {
-          ...formData.getHeaders(),
-        },
-        url: `${DEEPSTACK_URL}/v1/vision/face/register`,
-        data: formData,
-      });
-    }
-
-    const { status, data } = request;
+    const { status, data } = await train({ name, key, detector });
     return {
       ...data,
       status,
       detector,
     };
   } catch (error) {
-    if (error.response.data.message) {
-      logger.log(`${detector} training error: ${error.response.data.message}`);
-    } else if (error.response.data.error) {
-      logger.log(`${detector} training error: ${error.response.data.error}`);
+    const { status, data } = error.response;
+    const message = typeof data === 'string' ? { data } : { ...data };
+
+    if (data.message) {
+      logger.log(`${detector} training error: ${data.message}`);
+    } else if (data.error) {
+      logger.log(`${detector} training error: ${data.error}`);
     } else {
       logger.log(`${detector} training error: ${error.message}`);
     }
-    const { status, data } = error.response;
+
     return {
-      ...data,
+      ...message,
       status,
       detector,
     };
@@ -133,61 +74,21 @@ module.exports.train = async ({ name, key, detector }) => {
 };
 
 module.exports.remove = async ({ detector, name }) => {
-  if (detector === 'compreface') {
-    const request = await axios({
-      method: 'delete',
-      headers: {
-        'x-api-key': COMPREFACE_API_KEY,
-      },
-      url: `${COMPREFACE_URL}/api/v1/faces`,
-      params: {
-        subject: name,
-      },
-      validateStatus() {
-        return true;
-      },
-    });
-    return request.data;
-  }
-  if (detector === 'facebox') {
-    const request = await axios({
-      method: 'delete',
-      url: `${FACEBOX_URL}/facebox/teach/${name}`,
-      validateStatus() {
-        return true;
-      },
-    });
-    return request.data;
-  }
-  if (detector === 'deepstack') {
-    const formData = new FormData();
-    formData.append('userid', name);
-    const request = await axios({
-      method: 'post',
-      url: `${DEEPSTACK_URL}/v1/vision/face/delete`,
-      headers: {
-        ...formData.getHeaders(),
-      },
-      validateStatus() {
-        return true;
-      },
-      data: formData,
-    });
-    return request.data;
-  }
+  const { data } = await remove({ detector, name });
+  return { [detector]: data };
 };
 
 module.exports.cleanup = (results) => {
   const db = database.connect();
   results.forEach((result) => {
     const notFound = [];
-    result.detectors.forEach((detector) => {
-      const { success, code } = detector;
+    result.forEach((detector, i) => {
+      const { success, code, key, uuid } = detector;
       if (success === false || code === 28) notFound.push(true);
+      if (i + 1 === result.length && notFound.length === result.length && fs.existsSync(key)) {
+        fs.unlinkSync(key);
+        db.prepare(`UPDATE file SET isActive = 0 WHERE uuid = ?`).run(uuid);
+      }
     });
-    if (notFound.length === result.detectors.length && fs.existsSync(result.key)) {
-      fs.unlinkSync(result.key);
-      db.prepare(`UPDATE file SET isActive = 0 WHERE uuid = ?`).run(result.uuid);
-    }
   });
 };

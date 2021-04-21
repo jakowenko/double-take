@@ -1,8 +1,6 @@
 const axios = require('axios');
 const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
-const FormData = require('form-data');
-const fs = require('fs');
 const logger = require('./logger.util');
 const sleep = require('./sleep.util');
 const filesystem = require('./fs.util');
@@ -85,13 +83,7 @@ module.exports.polling = async ({
 module.exports.process = async ({ attempt, detector, tmp }) => {
   try {
     perf.start(detector);
-    const formData = new FormData();
-    if (detector === 'compreface' || detector === 'facebox') {
-      formData.append('file', fs.createReadStream(tmp));
-    } else {
-      formData.append('image', fs.createReadStream(tmp));
-    }
-    const { data } = await recognize({ detector, formData });
+    const { data } = await recognize({ detector, key: tmp });
     const duration = parseFloat((perf.stop(detector).time / 1000).toFixed(2));
 
     return normalize({ detector, data, attempt, duration });

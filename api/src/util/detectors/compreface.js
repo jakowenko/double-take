@@ -1,8 +1,12 @@
 const axios = require('axios');
+const FormData = require('form-data');
+const fs = require('fs');
 const { COMPREFACE_URL, COMPREFACE_API_KEY, CONFIDENCE } = require('../../constants');
 
-module.exports.recognize = (formData) =>
-  axios({
+module.exports.recognize = (key) => {
+  const formData = new FormData();
+  formData.append('file', fs.createReadStream(key));
+  return axios({
     method: 'post',
     headers: {
       ...formData.getHeaders(),
@@ -13,6 +17,39 @@ module.exports.recognize = (formData) =>
       det_prob_threshold: 0.8,
     },
     data: formData,
+  });
+};
+
+module.exports.train = ({ name, key }) => {
+  const formData = new FormData();
+  formData.append('file', fs.createReadStream(key));
+  return axios({
+    method: 'post',
+    headers: {
+      ...formData.getHeaders(),
+      'x-api-key': COMPREFACE_API_KEY,
+    },
+    url: `${COMPREFACE_URL}/api/v1/faces`,
+    params: {
+      subject: name,
+    },
+    data: formData,
+  });
+};
+
+module.exports.remove = ({ name }) =>
+  axios({
+    method: 'delete',
+    headers: {
+      'x-api-key': COMPREFACE_API_KEY,
+    },
+    url: `${COMPREFACE_URL}/api/v1/faces`,
+    params: {
+      subject: name,
+    },
+    validateStatus() {
+      return true;
+    },
   });
 
 module.exports.normalize = ({ data, duration, attempt }) => {

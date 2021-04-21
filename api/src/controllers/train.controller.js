@@ -74,14 +74,7 @@ module.exports.delete = async (req, res) => {
       )} sec`
     );
 
-    const output = results.map((result, i) => {
-      return {
-        detector: DETECTORS[i],
-        results: result,
-      };
-    });
-
-    respond(HTTPSuccess(OK, output), res);
+    respond(HTTPSuccess(OK, results), res);
   } catch (error) {
     logger.log(`train delete error: ${error.message}`);
     respond(error, res);

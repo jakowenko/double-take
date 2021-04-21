@@ -1,8 +1,12 @@
 const axios = require('axios');
+const FormData = require('form-data');
+const fs = require('fs');
 const { DEEPSTACK_URL, CONFIDENCE } = require('../../constants');
 
-module.exports.recognize = (formData) =>
-  axios({
+module.exports.recognize = (key) => {
+  const formData = new FormData();
+  formData.append('image', fs.createReadStream(key));
+  return axios({
     method: 'post',
     headers: {
       ...formData.getHeaders(),
@@ -10,6 +14,37 @@ module.exports.recognize = (formData) =>
     url: `${DEEPSTACK_URL}/v1/vision/face/recognize`,
     data: formData,
   });
+};
+
+module.exports.train = ({ name, key }) => {
+  const formData = new FormData();
+  formData.append('image', fs.createReadStream(key));
+  formData.append('userid', name);
+  return axios({
+    method: 'post',
+    headers: {
+      ...formData.getHeaders(),
+    },
+    url: `${DEEPSTACK_URL}/v1/vision/face/register`,
+    data: formData,
+  });
+};
+
+module.exports.remove = ({ name }) => {
+  const formData = new FormData();
+  formData.append('userid', name);
+  return axios({
+    method: 'post',
+    url: `${DEEPSTACK_URL}/v1/vision/face/delete`,
+    headers: {
+      ...formData.getHeaders(),
+    },
+    validateStatus() {
+      return true;
+    },
+    data: formData,
+  });
+};
 
 module.exports.normalize = ({ data, duration, attempt }) => {
   const normalized = data.predictions.map((obj) => {

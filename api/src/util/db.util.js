@@ -147,7 +147,7 @@ module.exports.insert = (type, data = []) => {
     const transaction = db.transaction((items) => {
       for (const item of items) {
         item.id = null;
-        item.createdAt = time.unix();
+        item.createdAt = time.utc();
         insert.run(item);
       }
     });
@@ -164,7 +164,7 @@ module.exports.insert = (type, data = []) => {
       for (const item of items) {
         item.id = null;
         item.uuid = item.uuid || uuidv4();
-        item.createdAt = time.unix();
+        item.createdAt = time.utc();
         item.meta = null;
         item.isActive = 1;
         insert.run(item);
@@ -179,6 +179,7 @@ module.exports.insert = (type, data = []) => {
     results.forEach((result) => {
       let combined = SAVE_UNKNOWN ? [...result.matches, ...result.misses] : [...result.matches];
       combined = combined.map((obj) => {
+        obj.type = result.type;
         obj.detector = result.detector;
         obj.camera = camera;
         obj.zones = zones;
