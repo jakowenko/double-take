@@ -37,7 +37,6 @@ module.exports.get = async (req, res) => {
         const base64 = await sharp(`${STORAGE_PATH}/${key}`).resize(500).toBuffer();
         const { width, height } = await sizeOf(`${STORAGE_PATH}/${key}`);
 
-        delete match.meta;
         return {
           id,
           name,
