@@ -26,10 +26,7 @@ const { IDS, MATCH_IDS } = {
   MATCH_IDS: [],
 };
 
-let { PROCESSING, LAST_CAMERA } = {
-  PROCESSING: false,
-  LAST_CAMERA: false,
-};
+let PROCESSING = false;
 
 module.exports.start = async (req, res) => {
   try {
@@ -59,7 +56,6 @@ module.exports.start = async (req, res) => {
           camera,
           zones,
           PROCESSING,
-          LAST_CAMERA,
           IDS,
         });
         if (typeof check === 'string') {
@@ -176,16 +172,11 @@ module.exports.start = async (req, res) => {
     }
 
     if (output.matches.length) {
-      LAST_CAMERA = camera;
       IDS.push(id);
-      setTimeout(() => {
-        LAST_CAMERA = false;
-      }, 3 * 60 * 1000);
     }
   } catch (error) {
     logger.log(error.message);
     PROCESSING = false;
-    LAST_CAMERA = false;
     respond(error, res);
   }
 };

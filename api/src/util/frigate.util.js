@@ -4,16 +4,7 @@ const { FRIGATE_URL, FRIGATE_CAMERAS, FRIGATE_ZONES } = require('../constants');
 
 const frigate = this;
 
-module.exports.checks = async ({
-  id,
-  type,
-  label,
-  camera,
-  zones,
-  PROCESSING,
-  LAST_CAMERA,
-  IDS,
-}) => {
+module.exports.checks = async ({ id, type, label, camera, zones, PROCESSING, IDS }) => {
   try {
     await frigate.status();
 
@@ -50,10 +41,6 @@ module.exports.checks = async ({
 
     if (label !== 'person') {
       return `${id} - label not a person, ${label} found`;
-    }
-
-    if (LAST_CAMERA === camera) {
-      return `${id} - paused processing ${camera}, recent match found`;
     }
 
     if (IDS.includes(id)) {
