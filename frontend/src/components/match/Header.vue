@@ -8,7 +8,7 @@
           </div>
           <div>
             <Button
-              label="Create"
+              icon="pi pi-check"
               class="p-button-success p-button-sm"
               @click="
                 createFolder.show = false;
@@ -47,23 +47,21 @@
           </div>
         </div>
         <div class="p-d-inline-flex p-ai-center">
-          <div class="p-mr-1">
-            <Button
-              :label="toggleAllState ? 'Deselect All' : 'Select All'"
-              class="p-button-text p-button-sm"
-              @click="
-                toggleAllState = !toggleAllState;
-                $parent.toggleAll(toggleAllState);
-              "
-              :disabled="loading.files"
-            />
-          </div>
           <div>
             <Button
               icon="pi pi-trash"
               class="p-button-danger p-button-sm p-mr-1"
               @click="$parent.remove().files($event)"
               :disabled="matches.selected.length === 0"
+            />
+            <Button
+              :icon="toggleAllState ? 'fa fa-check-square' : 'far fa-check-square'"
+              class="p-button p-button-sm p-mr-1"
+              @click="
+                toggleAllState = !toggleAllState;
+                $parent.toggleAll(toggleAllState);
+              "
+              :disabled="loading.files"
             />
             <Button
               icon="pi pi-refresh"
@@ -86,63 +84,61 @@
         <div class="p-col-4 p-md-2 p-lg-2">
           <div class="p-fluid">
             <label class="p-d-block p-mb-1">Filter by name:</label>
-            <MultiSelect v-model="filter.name" :options="names" @change="$emit('filter', filter)" />
+            <MultiSelect v-model="filter.name" :options="names" />
           </div>
         </div>
         <div class="p-col-4 p-md-2 p-lg-2">
           <div class="p-fluid">
             <label class="p-d-block p-mb-1">Filter by match:</label>
-            <MultiSelect v-model="filter.match" :options="['match', 'miss']" @change="$emit('filter', filter)" />
+            <MultiSelect v-model="filter.match" :options="['match', 'miss']" />
           </div>
         </div>
         <div class="p-col-4 p-md-2 p-lg-2">
           <div class="p-fluid">
             <label class="p-d-block p-mb-1">Filter by detector:</label>
-            <MultiSelect v-model="filter.detector" :options="detectors" @change="$emit('filter', filter)" />
+            <MultiSelect v-model="filter.detector" :options="detectors" />
           </div>
         </div>
         <div class="p-col-4 p-md-2 p-lg-2">
           <div class="p-fluid">
-            <label class="p-d-block p-mb-1">Min confidence:</label>
-            <InputNumber
+            <label class="p-d-block p-mb-1">Min confidence (%):</label>
+            <InputText
               v-model="filter.confidence"
-              mode="decimal"
-              :min="0"
-              :max="100"
-              suffix="%"
+              type="number"
               @input="
-                filter.confidence = $event.value > 100 ? 100 : $event.value < 0 ? 0 : $event.value;
-                $emit('filter', filter);
+                $event.target.value =
+                  $event.target.value > 100
+                    ? 100
+                    : $event.target.value < 0 || $event.target.value === ''
+                    ? 0
+                    : $event.target.value;
+                filter.confidence = $event.target.value === '' ? 0 : parseFloat($event.target.value);
               "
             />
           </div>
         </div>
         <div class="p-col-4 p-md-2 p-lg-2">
           <div class="p-fluid">
-            <label class="p-d-block p-mb-1">Min box width:</label>
-            <InputNumber
+            <label class="p-d-block p-mb-1">Min box width (px):</label>
+            <InputText
               v-model="filter.width"
-              mode="decimal"
-              :min="0"
-              suffix="px"
+              type="number"
               @input="
-                filter.width = $event.value;
-                $emit('filter', filter);
+                $event.target.value = $event.target.value < 0 || $event.target.value === '' ? 0 : $event.target.value;
+                filter.width = $event.target.value === '' ? 0 : parseFloat($event.target.value);
               "
             />
           </div>
         </div>
         <div class="p-col-4 p-md-2 p-lg-2">
           <div class="p-fluid">
-            <label class="p-d-block p-mb-1">Min box height:</label>
-            <InputNumber
+            <label class="p-d-block p-mb-1">Min box height (px):</label>
+            <InputText
               v-model="filter.height"
-              mode="decimal"
-              :min="0"
-              suffix="px"
+              type="number"
               @input="
-                filter.height = $event.value;
-                $emit('filter', filter);
+                $event.target.value = $event.target.value < 0 || $event.target.value === '' ? 0 : $event.target.value;
+                filter.height = $event.target.value === '' ? 0 : parseFloat($event.target.value);
               "
             />
           </div>
@@ -156,7 +152,6 @@
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
-import InputNumber from 'primevue/inputnumber';
 import MultiSelect from 'primevue/multiselect';
 
 export default {
@@ -164,7 +159,6 @@ export default {
     Button,
     Dropdown,
     InputText,
-    InputNumber,
     MultiSelect,
   },
   data() {
@@ -245,6 +239,12 @@ export default {
   max-width: 1000px;
   z-index: 4;
 
+  .p-button ::v-deep(.fa.p-button-icon),
+  .p-button ::v-deep(.fas.p-button-icon),
+  .p-button ::v-deep(.far.p-button-icon) {
+    font-size: 1rem;
+  }
+
   .p-dropdown {
     width: 120px;
     &::v-deep(.p-dropdown-label) {
@@ -263,9 +263,15 @@ export default {
 
   ::v-deep(.p-dropdown .p-inputtext) {
     font-size: 0.9rem;
+    @media only screen and (max-width: 576px) {
+      font-size: 16px;
+    }
   }
   ::v-deep(.p-inputnumber .p-inputtext) {
     font-size: 0.9rem;
+    @media only screen and (max-width: 576px) {
+      font-size: 16px;
+    }
   }
   ::v-deep(.p-multiselect .p-multiselect-label) {
     font-size: 0.9rem;
@@ -286,9 +292,13 @@ export default {
 
     label {
       font-size: 13px;
+      @media only screen and (max-width: 576px) {
+        font-size: 11px;
+      }
     }
 
-    .p-dropdown {
+    .p-dropdown,
+    .p-inputtext {
       width: 100%;
     }
   }

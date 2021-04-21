@@ -2,7 +2,8 @@
   <div class="wrapper">
     <Toast />
     <ConfirmDialog />
-    <Match />
+    <!-- <Navigation /> -->
+    <router-view />
   </div>
 </template>
 
@@ -11,16 +12,17 @@ import 'primevue/resources/themes/bootstrap4-dark-blue/theme.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
-import Match from '@/views/Match.vue';
+import '@/assets/font-awesome/css/all.min.css';
 import Toast from 'primevue/toast';
 import ConfirmDialog from 'primevue/confirmdialog';
+// import Navigation from '@/components/Navigation.vue';
 
 export default {
   name: 'App',
   components: {
-    Match,
     Toast,
     ConfirmDialog,
+    // Navigation,
   },
   data() {
     return {
