@@ -55,7 +55,7 @@ module.exports.remove = ({ name }) =>
 module.exports.normalize = ({ data, duration, attempt }) => {
   const normalized = data.result.map((obj) => {
     const [face] = obj.faces;
-    const confidence = parseFloat((face ? face.similarity : obj.box.probability * 100).toFixed(2));
+    const confidence = parseFloat((face ? face.similarity : 0 * 100).toFixed(2));
     return {
       attempt,
       duration,
