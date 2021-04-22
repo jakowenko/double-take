@@ -57,18 +57,8 @@ module.exports.files = () => {
   };
 };
 
-module.exports.writer = async (stream, file) => {
-  return new Promise((resolve) => {
-    const out = fs.createWriteStream(file);
-    stream.pipe(out);
-    out
-      .on('finish', () => {
-        resolve();
-      })
-      .on('error', (error) => {
-        logger.log(`writer error: ${error.message}`);
-      });
-  });
+module.exports.writer = async (file, data) => {
+  fs.writeFileSync(file, data);
 };
 
 module.exports.writeMatches = (name, source, destination) => {

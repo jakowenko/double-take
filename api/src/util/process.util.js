@@ -34,11 +34,11 @@ module.exports.polling = async ({
       const filename = `${uuidv4()}.jpg`;
 
       const stream = await this.stream(url);
-      if (stream && previousContentLength !== stream.headers['content-length']) {
+      if (stream && previousContentLength !== stream.length) {
         attempts = i + 1;
-        previousContentLength = stream.headers['content-length'];
+        previousContentLength = stream.length;
         const promises = [];
-        await filesystem.writer(stream, tmp);
+        filesystem.writer(tmp, stream);
 
         // eslint-disable-next-line no-loop-func
         DETECTORS.forEach((detector) => {
@@ -123,7 +123,7 @@ module.exports.stream = async (url) => {
     const request = await axios({
       method: 'get',
       url,
-      responseType: 'stream',
+      responseType: 'arraybuffer',
     });
     return request.data;
   } catch (error) {
