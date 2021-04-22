@@ -52,16 +52,14 @@ module.exports.remove = ({ name }) =>
     },
   });
 
-module.exports.normalize = ({ data, duration, attempt }) => {
+module.exports.normalize = ({ data }) => {
   const normalized = data.result.map((obj) => {
     const [face] = obj.faces;
-    const confidence = parseFloat((face ? face.similarity : 0 * 100).toFixed(2));
+    const confidence = face ? parseFloat((face.similarity * 100).toFixed(2)) : 0;
     return {
-      attempt,
-      duration,
       name: face ? face.face_name.toLowerCase() : 'unknown',
       confidence,
-      match: face && confidence >= CONFIDENCE,
+      match: confidence >= CONFIDENCE,
       box: {
         top: obj.box.y_min,
         left: obj.box.x_min,

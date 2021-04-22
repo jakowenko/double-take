@@ -5,10 +5,10 @@ const logger = require('./logger.util');
 const sleep = require('./sleep.util');
 const filesystem = require('./fs.util');
 const { recognize, normalize } = require('./detectors/actions');
+const { DETECTORS } = require('../constants');
 
 module.exports.polling = async ({
   isFrigateEvent,
-  detector,
   retries,
   id,
   type,
@@ -18,75 +18,75 @@ module.exports.polling = async ({
 }) => {
   breakMatch = !!(breakMatch === 'true' || breakMatch === true);
   const allResults = [];
-  const allMisses = [];
   let attempts = 0;
-  perf.start(`${detector}-${type}`);
+  perf.start(type);
 
-  if (await this.isValidURL({ detector, type, url })) {
+  if (await this.isValidURL({ type, url })) {
     for (let i = 0; i < retries; i++) {
       if (breakMatch === true && MATCH_IDS.includes(id)) break;
       attempts = i + 1;
 
       if (isFrigateEvent) await this.addJitter(1);
 
-      logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
+      logger.log(`${type} attempt ${attempts}`, { verbose: true });
 
       const tmp = `/tmp/${id}-${type}-${uuidv4()}.jpg`;
+      const filename = `${uuidv4()}.jpg`;
 
       const stream = await this.stream(url);
       if (stream) {
+        const promises = [];
         await filesystem.writer(stream, tmp);
-        const results = await this.process({ attempt: attempts, detector, tmp });
 
-        if (Array.isArray(results)) {
-          const matches = results
-            .filter((result) => result.match)
-            .map((match) => {
-              match.tmp = tmp;
-              match.filename = `${uuidv4()}.jpg`;
-              return match;
-            });
-          const misses = results
-            .filter((result) => !result.match)
-            .map((miss) => {
-              miss.tmp = tmp;
-              miss.filename = `${uuidv4()}.jpg`;
-              return miss;
-            });
+        // eslint-disable-next-line no-loop-func
+        DETECTORS.forEach((detector) => {
+          promises.push(this.process({ attempt: attempts, detector, tmp }));
+        });
+        let results = await Promise.all(promises);
 
-          if (misses.length) {
-            allMisses.push(...misses);
-          }
+        // eslint-disable-next-line no-loop-func
+        results = results.map((array, j) => {
+          const matches = array.results.filter((obj) => obj.match);
+          const misses = array.results.filter((obj) => !obj.match);
+          return {
+            detector: DETECTORS[j],
+            duration: array.duration,
+            attempt: attempts,
+            matches,
+            misses,
+            tmp,
+            filename,
+          };
+        });
 
-          if (matches.length) {
-            allResults.push(...results);
-            MATCH_IDS.push(id);
-            if (breakMatch === true) break;
-          }
+        const foundMatch = !!results.flatMap((obj) => (obj.matches.length ? true : [])).length;
+        allResults.push(...results);
+
+        if (foundMatch) {
+          MATCH_IDS.push(id);
+          if (breakMatch === true) break;
         }
       }
     }
   }
 
-  const duration = parseFloat((perf.stop(`${detector}-${type}`).time / 1000).toFixed(2));
+  const duration = parseFloat((perf.stop(type).time / 1000).toFixed(2));
 
   return {
     duration,
     type,
-    misses: allMisses,
-    matches: allResults.filter((result) => result.match),
     attempts,
-    detector,
+    results: allResults,
   };
 };
 
-module.exports.process = async ({ attempt, detector, tmp }) => {
+module.exports.process = async ({ detector, tmp }) => {
   try {
     perf.start(detector);
     const { data } = await recognize({ detector, key: tmp });
     const duration = parseFloat((perf.stop(detector).time / 1000).toFixed(2));
 
-    return normalize({ detector, data, attempt, duration });
+    return { duration, results: normalize({ detector, data }) };
   } catch (error) {
     if (error.response && error.response.data.error) {
       logger.log(`${detector} process error: ${error.response.data.error}`);
@@ -96,7 +96,7 @@ module.exports.process = async ({ attempt, detector, tmp }) => {
   }
 };
 
-module.exports.isValidURL = async ({ detector, type, url }) => {
+module.exports.isValidURL = async ({ type, url }) => {
   const validOptions = ['image/jpg', 'image/jpeg', 'image/png'];
   try {
     const request = await axios({
@@ -106,7 +106,7 @@ module.exports.isValidURL = async ({ detector, type, url }) => {
     const { headers } = request;
     const isValid = validOptions.includes(headers['content-type']);
     if (!isValid) {
-      logger.log(`${detector} url validation failed for ${type}: ${url}`);
+      logger.log(`url validation failed for ${type}: ${url}`);
       logger.log(`content type: ${headers['content-type']}`);
     }
     return isValid;

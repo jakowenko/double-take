@@ -6,10 +6,6 @@ module.exports.recognize = ({ get }) => {
   let validations = [
     query('results').default('best').isIn(['best', 'all']).withMessage('not a valid result type'),
     query('break').default(true).isIn([true, false]),
-    query('processing')
-      .default('parallel')
-      .isIn(['parallel', 'serial'])
-      .withMessage('not a valid processing type'),
   ];
   if (get) {
     validations = validations.concat([

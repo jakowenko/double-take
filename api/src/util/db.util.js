@@ -176,17 +176,24 @@ module.exports.insert = (type, data = []) => {
   if (type === 'match') {
     const { camera, results, zones } = data;
     const records = [];
-    results.forEach((result) => {
-      let combined = SAVE_UNKNOWN ? [...result.matches, ...result.misses] : [...result.matches];
-      combined = combined.map((obj) => {
-        obj.type = result.type;
-        obj.detector = result.detector;
-        obj.camera = camera;
-        obj.zones = zones;
-        return obj;
+    results.forEach((group) => {
+      group.results.forEach((attempt) => {
+        let combined = SAVE_UNKNOWN
+          ? [...attempt.matches, ...attempt.misses]
+          : [...attempt.matches];
+
+        combined = combined.map((obj) => {
+          obj.filename = attempt.filename;
+          obj.type = group.type;
+          obj.detector = attempt.detector;
+          obj.camera = camera;
+          obj.zones = zones;
+          return obj;
+        });
+        records.push(...combined);
       });
-      records.push(...combined);
     });
+
     const insert = db.prepare(`
       INSERT INTO match
       VALUES (:id, :meta, :createdAt);

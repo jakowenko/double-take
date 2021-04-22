@@ -1,8 +1,9 @@
 const fs = require('fs');
 const { promisify } = require('util');
 const sizeOf = promisify(require('image-size'));
-const { ExifTool } = require('exiftool-vendored');
 const { createCanvas, loadImage, registerFont } = require('canvas');
+const database = require('../util/db.util');
+// const { ExifTool } = require('exiftool-vendored');
 const { tryParseJSON } = require('../util/validators.util');
 const { respond, HTTPError } = require('../util/respond.util');
 const { BAD_REQUEST } = require('../constants/http-status');
@@ -11,6 +12,7 @@ const { STORAGE_PATH } = require('../constants');
 
 module.exports.matches = async (req, res) => {
   try {
+    const { id, box: showBox } = req.query;
     const { name, filename } = req.params;
     const source = `${STORAGE_PATH}/matches/${name}/${filename}`;
 
@@ -18,20 +20,21 @@ module.exports.matches = async (req, res) => {
       throw HTTPError(BAD_REQUEST, `${source} does not exist`);
     }
 
-    if (req.query.box === 'true') {
-      const exiftool = new ExifTool({ taskTimeoutMillis: 1000 });
-      const { UserComment: exif } = await exiftool.read(source);
-      exiftool.end();
+    if (showBox === 'true') {
+      // const exiftool = new ExifTool({ taskTimeoutMillis: 1000 });
+      // const { UserComment: exif } = await exiftool.read(source);
+      // exiftool.end();
 
-      const match = tryParseJSON(exif);
-      if (!match) {
+      const db = database.connect();
+      const match = db.prepare('SELECT * FROM match WHERE id = ?').bind(id).get();
+      if (!match || !tryParseJSON(match.meta)) {
         const buffer = fs.readFileSync(source);
         res.set('Content-Type', 'image/jpeg');
         return res.end(buffer);
       }
-      const { box } = match;
+      const { box, confidence, name: matchName } = JSON.parse(match.meta);
 
-      const text = `${match.name} - ${match.confidence}%`;
+      const text = `${matchName} - ${confidence}%`;
       const fontSize = 18;
       const textPadding = 10;
       const lineWidth = 4;

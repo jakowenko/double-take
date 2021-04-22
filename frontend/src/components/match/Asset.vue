@@ -6,7 +6,7 @@
           <div class="open-link">
             <i
               class="pi pi-external-link"
-              @click="openLink(`${VUE_APP_API_URL}/storage/${match.file.key}?box=true`)"
+              @click="openLink(`${VUE_APP_API_URL}/storage/${match.file.key}?id=${match.id}&box=true`)"
             ></i>
           </div>
           <div class="selected-overlay" :class="{ selected: selected }"></div>

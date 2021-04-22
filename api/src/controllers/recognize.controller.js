@@ -16,7 +16,6 @@ const {
   FRIGATE_IMAGE_HEIGHT,
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
-  DETECTORS,
   SAVE_UNKNOWN,
   MQTT_HOST,
 } = require('../constants');
@@ -32,13 +31,7 @@ module.exports.start = async (req, res) => {
   try {
     const isFrigateEvent = req.method === 'POST';
     const { type } = req.body;
-    const {
-      url,
-      attempts: manualAttempts,
-      results: resultsOutput,
-      break: breakMatch,
-      processing,
-    } = req.query;
+    const { url, attempts: manualAttempts, results: resultsOutput, break: breakMatch } = req.query;
     const attributes = req.body.after ? req.body.after : req.body.before;
     const { id, label, camera, current_zones: zones } = isFrigateEvent
       ? attributes
@@ -71,58 +64,45 @@ module.exports.start = async (req, res) => {
     perf.start('request');
     PROCESSING = true;
 
-    let promises = [];
-    let results = [];
+    const promises = [];
 
-    for (let i = 0; i < DETECTORS.length; i++) {
-      if (processing === 'serial') {
-        promises = [];
-      }
-      const detector = DETECTORS[i];
-      const config = {
-        isFrigateEvent,
-        breakMatch,
-        detector,
-        id,
-        MATCH_IDS,
-      };
+    const config = {
+      isFrigateEvent,
+      breakMatch,
+      id,
+      MATCH_IDS,
+    };
 
-      if (isFrigateEvent) {
-        promises.push(
-          process.polling({
-            ...config,
-            retries: LATEST_RETRIES,
-            type: 'latest',
-            url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=${FRIGATE_IMAGE_HEIGHT}`,
-          })
-        );
-        promises.push(
-          process.polling({
-            ...config,
-            retries: SNAPSHOT_RETRIES,
-            type: 'snapshot',
-            url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}`,
-          })
-        );
-      } else {
-        promises.push(
-          process.polling({
-            ...config,
-            retries: parseInt(manualAttempts, 10),
-            type: 'manual',
-            url,
-          })
-        );
-      }
-      if (processing === 'serial') {
-        results = results.concat(await Promise.all(promises));
-      }
-    }
-    if (processing !== 'serial') {
-      results = await Promise.all(promises);
+    if (isFrigateEvent) {
+      promises.push(
+        process.polling({
+          ...config,
+          retries: LATEST_RETRIES,
+          type: 'latest',
+          url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=${FRIGATE_IMAGE_HEIGHT}`,
+        })
+      );
+      promises.push(
+        process.polling({
+          ...config,
+          retries: SNAPSHOT_RETRIES,
+          type: 'snapshot',
+          url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}`,
+        })
+      );
+    } else {
+      promises.push(
+        process.polling({
+          ...config,
+          retries: parseInt(manualAttempts, 10),
+          type: 'manual',
+          url,
+        })
+      );
     }
 
-    const { attempts, matches } = recognize.filter(results);
+    const { best, results, attempts } = recognize.normalize(await Promise.all(promises));
+
     const duration = parseFloat((perf.stop('request').time / 1000).toFixed(2));
     const output = {
       id,
@@ -132,21 +112,18 @@ module.exports.start = async (req, res) => {
       camera,
       zones,
       room,
-      matches: JSON.parse(JSON.stringify(matches)).map((match) => {
-        delete match.tmp;
-        return match;
+      matches: JSON.parse(JSON.stringify(best)).map((obj) => {
+        delete obj.tmp;
+        return obj;
       }),
     };
 
     if (resultsOutput === 'all')
-      output.results = JSON.parse(JSON.stringify(results)).map((result) => {
-        ['matches', 'misses'].forEach((array) => {
-          result[array].forEach((obj) => {
-            delete obj.tmp;
-          });
+      output.results = JSON.parse(JSON.stringify(results)).map((group) => {
+        group.results.forEach((attempt) => {
+          delete attempt.tmp;
         });
-
-        return result;
+        return group;
       });
 
     logger.log('response:');
@@ -159,7 +136,7 @@ module.exports.start = async (req, res) => {
       await filesystem.save().unknown(results);
     }
 
-    await filesystem.save().matches(id, matches);
+    await filesystem.save().matches(id, best);
 
     database.insert('match', { camera, zones, results });
 

@@ -123,22 +123,24 @@ module.exports.save = () => {
         await this.writer(fs.createReadStream(match.tmp), tmp);
         const destination = `${STORAGE_PATH}/matches/${match.name}/${match.filename}`;
         this.writeMatches(match.name, tmp, destination);
-        await this.writeExif(destination, match);
+        // await this.writeExif(destination, match);
       }
     },
     unknown: async (results) => {
-      const unknown = results.reduce((array, result) => {
-        const tmps = [];
-        result.misses.forEach((miss) => {
-          tmps.push({ ...miss, detector: result.detector, type: result.type });
-        });
-        array.push(...tmps);
-        return array;
-      }, []);
-      for (let i = 0; i < unknown.length; i++) {
-        const destination = `${STORAGE_PATH}/matches/unknown/${unknown[i].filename}`;
-        this.copy(unknown[i].tmp, destination);
-        await this.writeExif(destination, unknown[i]);
+      const files = [];
+      for (let i = 0; i < results.length; i++) {
+        const group = results[i];
+        for (let j = 0; j < group.results.length; j++) {
+          const attempt = group.results[j];
+          if (attempt.misses.length && !files.filter((obj) => attempt.tmp === obj.tmp).length) {
+            files.push({ tmp: attempt.tmp, filename: attempt.filename });
+          }
+        }
+      }
+      for (let i = 0; i < files.length; i++) {
+        const destination = `${STORAGE_PATH}/matches/unknown/${files[i].filename}`;
+        this.copy(files[i].tmp, destination);
+        // await this.writeExif(destination, files[i]);
       }
     },
   };

@@ -42,13 +42,11 @@ module.exports.remove = ({ name }) =>
     },
   });
 
-module.exports.normalize = ({ data, duration, attempt }) => {
+module.exports.normalize = ({ data }) => {
   const normalized = data.faces.map((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
     const { rect: box } = obj;
     return {
-      attempt,
-      duration,
       name: obj.matched ? obj.name.toLowerCase() : 'unknown',
       confidence,
       match: obj.matched && confidence >= CONFIDENCE,

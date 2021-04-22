@@ -46,12 +46,10 @@ module.exports.remove = ({ name }) => {
   });
 };
 
-module.exports.normalize = ({ data, duration, attempt }) => {
+module.exports.normalize = ({ data }) => {
   const normalized = data.predictions.map((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
     return {
-      attempt,
-      duration,
       name: obj.userid.toLowerCase(),
       confidence,
       match: obj.userid !== 'unknown' && confidence >= CONFIDENCE,

@@ -12,7 +12,7 @@ const { STORAGE_PATH } = require('../constants');
 module.exports.get = async (req, res) => {
   try {
     const db = database.connect();
-    let matches = db.prepare('SELECT * FROM match ORDER BY createdAt DESC').all();
+    let matches = db.prepare('SELECT * FROM match ORDER BY createdAt DESC LIMIT 100').all();
 
     matches = await Promise.all(
       matches.map(async (obj) => {
