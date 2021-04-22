@@ -19,12 +19,12 @@ module.exports.polling = async ({
   breakMatch = !!(breakMatch === 'true' || breakMatch === true);
   const allResults = [];
   let attempts = 0;
+  let previousContentLength;
   perf.start(type);
 
   if (await this.isValidURL({ type, url })) {
     for (let i = 0; i < retries; i++) {
       if (breakMatch === true && MATCH_IDS.includes(id)) break;
-      attempts = i + 1;
 
       if (isFrigateEvent) await this.addJitter(1);
 
@@ -34,7 +34,9 @@ module.exports.polling = async ({
       const filename = `${uuidv4()}.jpg`;
 
       const stream = await this.stream(url);
-      if (stream) {
+      if (stream && previousContentLength !== stream.headers['content-length']) {
+        attempts = i + 1;
+        previousContentLength = stream.headers['content-length'];
         const promises = [];
         await filesystem.writer(stream, tmp);
 
