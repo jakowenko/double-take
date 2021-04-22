@@ -49,6 +49,7 @@ module.exports.get = async (req, res) => {
           box,
           file: {
             key,
+            filename,
             base64: base64.toString('base64'),
             width,
             height,
@@ -74,7 +75,7 @@ module.exports.patch = async (req, res) => {
         `${STORAGE_PATH}/train/${folder}/${uuidv4()}.jpg`
       );
       const db = database.connect();
-      db.prepare('DELETE FROM match WHERE id = ?').run(obj.id);
+      db.prepare("DELETE FROM match WHERE json_extract(meta, '$.filename') = ?").run(obj.filename);
     });
     respond(HTTPSuccess(OK, { sucess: true }), res);
   } catch (error) {
@@ -86,9 +87,9 @@ module.exports.delete = async (req, res) => {
   try {
     const files = req.body;
     files.forEach((file) => {
-      filesystem.delete(`${STORAGE_PATH}/${file.key}`);
       const db = database.connect();
-      db.prepare('DELETE FROM match WHERE id = ?').run(file.id);
+      db.prepare("DELETE FROM match WHERE json_extract(meta, '$.filename') = ?").run(file.filename);
+      filesystem.delete(`${STORAGE_PATH}/${file.key}`);
     });
     respond(HTTPSuccess(OK, { sucess: true }), res);
   } catch (error) {
