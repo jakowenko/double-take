@@ -32,6 +32,7 @@ export default {
         folders: false,
         files: false,
         createFolder: false,
+        lazy: false,
       },
       matches: {
         source: [],
@@ -76,8 +77,10 @@ export default {
     await this.init();
   },
   watch: {
-    filtered(current, previous) {
-      if (current.length !== previous.length) this.lazyLoad();
+    filtered(current /* , previous */) {
+      if (current.length && !this.loading.lazy) {
+        this.lazyLoad();
+      }
     },
   },
   methods: {
@@ -113,6 +116,7 @@ export default {
             $this.matches.disabled = [];
             $this.matches.source = data.matches;
             $this.loading.files = false;
+            $this.loading.lazy = false;
           } catch (error) {
             $this.$toast.add({
               severity: 'error',
@@ -139,7 +143,11 @@ export default {
               position: 'top',
               accept: async () => {
                 try {
-                  const matches = $this.matches.selected.map((obj) => ({ id: obj.id, key: obj.file.key }));
+                  const matches = $this.matches.selected.map((obj) => ({
+                    id: obj.id,
+                    key: obj.file.key,
+                    filename: obj.file.filename,
+                  }));
                   const ids = $this.matches.selected.map((obj) => obj.id);
                   await ApiService.delete('match', matches);
                   $this.matches.disabled = $this.matches.disabled.concat(ids);
@@ -197,7 +205,11 @@ export default {
         position: 'top',
         accept: async () => {
           try {
-            const matches = $this.matches.selected.map((obj) => ({ id: obj.id, key: obj.file.key }));
+            const matches = $this.matches.selected.map((obj) => ({
+              id: obj.id,
+              key: obj.file.key,
+              filename: obj.file.filename,
+            }));
             const ids = $this.matches.selected.map((obj) => obj.id);
             await ApiService.patch('match', {
               folder: this.trainingFolder,
@@ -245,11 +257,15 @@ export default {
       this.toggleAllState = state;
     },
     lazyLoad() {
-      const matches = this.filtered;
+      const matches = this.filtered.filter((obj) => !this.matches.loaded.includes(obj.id));
+      if (!matches.length) return;
+
+      this.loading.lazy = true;
       matches.forEach((match, i) => {
         setTimeout(() => {
           this.matches.loaded.push(match.id);
-        }, 200 * i);
+          if (i + 1 === matches.length) this.loading.lazy = false;
+        }, 200 * i + 50);
       });
     },
   },
