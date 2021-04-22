@@ -40,7 +40,6 @@ Process images for recognition with a `GET` request.
 | attempts     | `1`           | Number of attempts before stopping without a match   |
 | results      | `best`        | Options: `best`, `all`                               |
 | break        | `true`        | Break attempt loop if a match is found               |
-| processing   | `parallel`    | Options: `parallel`, `serial`                        |
 | camera       | `double-take` | Camera name used in output results                   |
 | room         | `Double Take` | Room name used in output results                     |
 
