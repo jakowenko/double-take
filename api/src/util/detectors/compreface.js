@@ -8,7 +8,7 @@ module.exports.recognize = (formData) =>
       ...formData.getHeaders(),
       'x-api-key': COMPREFACE_API_KEY,
     },
-    url: `${COMPREFACE_URL}/api/v1/faces/recognize`,
+    url: `${COMPREFACE_URL}/api/v1/recognition/recognize`,
     params: {
       det_prob_threshold: 0.8,
     },
@@ -17,12 +17,12 @@ module.exports.recognize = (formData) =>
 
 module.exports.normalize = ({ data, duration, attempt }) => {
   const normalized = data.result.map((obj) => {
-    const [face] = obj.faces;
+    const [face] = obj.subjects;
     const confidence = parseFloat((face.similarity * 100).toFixed(2));
     return {
       attempt,
       duration,
-      name: face.face_name.toLowerCase(),
+      name: face.subject.toLowerCase(),
       confidence,
       match: confidence >= CONFIDENCE,
       box: {

@@ -72,7 +72,7 @@ module.exports.train = async ({ name, key, detector }) => {
           ...formData.getHeaders(),
           'x-api-key': COMPREFACE_API_KEY,
         },
-        url: `${COMPREFACE_URL}/api/v1/faces`,
+        url: `${COMPREFACE_URL}/api/v1/recognition/faces`,
         params: {
           subject: name,
         },
@@ -139,7 +139,7 @@ module.exports.remove = async ({ detector, name }) => {
       headers: {
         'x-api-key': COMPREFACE_API_KEY,
       },
-      url: `${COMPREFACE_URL}/api/v1/faces`,
+      url: `${COMPREFACE_URL}/api/v1/recognition/faces`,
       params: {
         subject: name,
       },
