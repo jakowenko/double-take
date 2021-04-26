@@ -12,7 +12,7 @@ module.exports.recognize = (key) => {
       ...formData.getHeaders(),
       'x-api-key': COMPREFACE_API_KEY,
     },
-    url: `${COMPREFACE_URL}/api/v1/faces/recognize`,
+    url: `${COMPREFACE_URL}/api/v1/recognition/recognize`,
     params: {
       det_prob_threshold: 0.8,
     },
@@ -29,7 +29,7 @@ module.exports.train = ({ name, key }) => {
       ...formData.getHeaders(),
       'x-api-key': COMPREFACE_API_KEY,
     },
-    url: `${COMPREFACE_URL}/api/v1/faces`,
+    url: `${COMPREFACE_URL}/api/v1/recognition/faces`,
     params: {
       subject: name,
     },
@@ -43,7 +43,7 @@ module.exports.remove = ({ name }) =>
     headers: {
       'x-api-key': COMPREFACE_API_KEY,
     },
-    url: `${COMPREFACE_URL}/api/v1/faces`,
+    url: `${COMPREFACE_URL}/api/v1/recognition/faces`,
     params: {
       subject: name,
     },
@@ -54,10 +54,10 @@ module.exports.remove = ({ name }) =>
 
 module.exports.normalize = ({ data }) => {
   const normalized = data.result.map((obj) => {
-    const [face] = obj.faces;
-    const confidence = face ? parseFloat((face.similarity * 100).toFixed(2)) : 0;
+    const [face] = obj.subjects;
+    const confidence = parseFloat((face.similarity * 100).toFixed(2));
     return {
-      name: face ? face.face_name.toLowerCase() : 'unknown',
+      name: face ? face.subject.toLowerCase() : 'unknown',
       confidence,
       match: confidence >= CONFIDENCE,
       box: {
