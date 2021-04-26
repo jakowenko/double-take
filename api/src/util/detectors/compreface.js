@@ -55,7 +55,7 @@ module.exports.remove = ({ name }) =>
 module.exports.normalize = ({ data }) => {
   const normalized = data.result.map((obj) => {
     const [face] = obj.subjects;
-    const confidence = parseFloat((face.similarity * 100).toFixed(2));
+    const confidence = face ? parseFloat((face.similarity * 100).toFixed(2)) : 0;
     return {
       name: face ? face.subject.toLowerCase() : 'unknown',
       confidence,
