@@ -61,6 +61,20 @@ module.exports.writer = async (file, data) => {
   fs.writeFileSync(file, data);
 };
 
+module.exports.writerStream = async (stream, file) => {
+  return new Promise((resolve) => {
+    const out = fs.createWriteStream(file);
+    stream.pipe(out);
+    out
+      .on('finish', () => {
+        resolve();
+      })
+      .on('error', (error) => {
+        logger.log(`writer error: ${error.message}`);
+      });
+  });
+};
+
 module.exports.writeMatches = (name, source, destination) => {
   try {
     if (!fs.existsSync(`${STORAGE_PATH}/matches/${name}`)) {
@@ -110,7 +124,7 @@ module.exports.save = () => {
       for (let i = 0; i < matches.length; i++) {
         const match = matches[i];
         const tmp = `/tmp/{${uuidv4()}}.jpg`;
-        await this.writer(fs.createReadStream(match.tmp), tmp);
+        await this.writerStream(fs.createReadStream(match.tmp), tmp);
         const destination = `${STORAGE_PATH}/matches/${match.name}/${match.filename}`;
         this.writeMatches(match.name, tmp, destination);
         // await this.writeExif(destination, match);
