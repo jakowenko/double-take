@@ -12,7 +12,7 @@ const { STORAGE_PATH } = require('../constants');
 
 module.exports.matches = async (req, res) => {
   try {
-    const { id, box: showBox } = req.query;
+    const { box: showBox } = req.query;
     const { filename } = req.params;
     const source = `${STORAGE_PATH}/matches/${filename}`;
 
@@ -26,7 +26,8 @@ module.exports.matches = async (req, res) => {
       // exiftool.end();
 
       const db = database.connect();
-      const match = db.prepare('SELECT * FROM match WHERE id = ?').bind(id).get();
+      const match = db.prepare('SELECT * FROM match WHERE filename = ?').bind(filename).get();
+
       if (!match || !tryParseJSON(match.response)) {
         const buffer = fs.readFileSync(source);
         res.set('Content-Type', 'image/jpeg');
