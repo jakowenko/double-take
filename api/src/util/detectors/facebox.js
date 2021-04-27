@@ -12,6 +12,9 @@ module.exports.recognize = (key) => {
       ...formData.getHeaders(),
     },
     url: `${FACEBOX_URL}/facebox/check`,
+    validateStatus() {
+      return true;
+    },
     data: formData,
   });
 };

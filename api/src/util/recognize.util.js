@@ -6,8 +6,9 @@ module.exports.normalize = (results = []) => {
   results.forEach((group) => {
     attempts += group.attempts;
     group.results.forEach((attempt) => {
-      if (attempt.matches.length) {
-        attempt.matches.forEach((match) => {
+      const matches = attempt.results.filter((obj) => obj.match);
+      if (matches.length) {
+        matches.forEach((match) => {
           if (tmp[match.name] === undefined || tmp[match.name].confidence < match.confidence) {
             tmp[match.name] = {
               ...match,

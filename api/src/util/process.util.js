@@ -1,21 +1,20 @@
 const axios = require('axios');
+const fs = require('fs');
 const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
 const logger = require('./logger.util');
 const sleep = require('./sleep.util');
 const filesystem = require('./fs.util');
+const database = require('./db.util');
+const time = require('./time.util');
 const { recognize, normalize } = require('./detectors/actions');
-const { DETECTORS } = require('../constants');
+const { SAVE_UNKNOWN, DETECTORS, STORAGE_PATH } = require('../constants');
 
-module.exports.polling = async ({
-  isFrigateEvent,
-  retries,
-  id,
-  type,
-  url,
-  breakMatch,
-  MATCH_IDS,
-}) => {
+module.exports.polling = async (
+  event,
+  { isFrigateEvent, retries, id, type, url, breakMatch, MATCH_IDS }
+) => {
+  event.type = type;
   breakMatch = !!(breakMatch === 'true' || breakMatch === true);
   const allResults = [];
   let attempts = 0;
@@ -48,20 +47,22 @@ module.exports.polling = async ({
 
         // eslint-disable-next-line no-loop-func
         results = results.map((array, j) => {
-          const matches = array.results.filter((obj) => obj.match);
-          const misses = array.results.filter((obj) => !obj.match);
           return {
             detector: DETECTORS[j],
             duration: array.duration,
             attempt: attempts,
-            matches,
-            misses,
-            tmp,
+            results: array.results,
             filename,
           };
         });
 
-        const foundMatch = !!results.flatMap((obj) => (obj.matches.length ? true : [])).length;
+        const foundMatch = !!results.flatMap((obj) => obj.results.filter((item) => item.match))
+          .length;
+        const totalFaces = results.flatMap((obj) => obj.results.filter((item) => item)).length;
+
+        if (foundMatch || (SAVE_UNKNOWN && totalFaces > 0))
+          await this.save(event, results, filename, tmp);
+
         allResults.push(...results);
 
         if (foundMatch) {
@@ -80,6 +81,24 @@ module.exports.polling = async ({
     attempts,
     results: allResults,
   };
+};
+
+module.exports.save = async (event, results, filename, tmp) => {
+  try {
+    const db = database.connect();
+    db.prepare(
+      `INSERT INTO match (id, filename, event, response, createdAt) VALUES (:id, :filename, :event, :response, :createdAt)`
+    ).run({
+      id: null,
+      filename,
+      event: JSON.stringify(event),
+      response: JSON.stringify(results),
+      createdAt: time.utc(),
+    });
+    await filesystem.writerStream(fs.createReadStream(tmp), `${STORAGE_PATH}/matches/${filename}`);
+  } catch (error) {
+    logger.log(`save results error: ${error.message}`);
+  }
 };
 
 module.exports.process = async ({ detector, tmp }) => {

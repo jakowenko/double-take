@@ -17,8 +17,6 @@ module.exports.connect = () => {
 module.exports.init = async () => {
   try {
     const db = database.connect();
-    // db.prepare(`DROP TABLE IF EXISTS file`).run();
-    // db.prepare(`DROP TABLE IF EXISTS train`).run();
     db.prepare(
       `CREATE TABLE IF NOT EXISTS file (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,15 +43,26 @@ module.exports.init = async () => {
     )`
     ).run();
 
+    const query = db
+      .prepare('PRAGMA table_info(match)')
+      .all()
+      .filter((obj) => obj.name === 'filename');
+
+    if (!query.length) {
+      db.prepare('DROP TABLE IF EXISTS match').run();
+    }
+
     db.prepare(
       `CREATE TABLE IF NOT EXISTS match (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        meta JSON,
+        filename,
+        event JSON,
+        response JSON,
         createdAt TIMESTAMP
     )`
     ).run();
 
-    // database.transactions();
+    // database.migrations();
 
     const files = await filesystem.files().train();
     database.insert('init', files);
@@ -62,12 +71,13 @@ module.exports.init = async () => {
   }
 };
 
-module.exports.transactions = () => {
-  let db;
+module.exports.migrations = () => {
   try {
-    db = database.connect();
-    const transactions = db.transaction(() => {});
-    transactions();
+    const db = database.connect();
+    const transactions = db.transaction((migrations) => {
+      for (const migration of migrations) db.prepare(migration).run();
+    });
+    transactions([]);
   } catch (error) {
     logger.log(`db transaction error: ${error.message}`);
   }

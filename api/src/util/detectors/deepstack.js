@@ -12,6 +12,9 @@ module.exports.recognize = (key) => {
       ...formData.getHeaders(),
     },
     url: `${DEEPSTACK_URL}/v1/vision/face/recognize`,
+    validateStatus() {
+      return true;
+    },
     data: formData,
   });
 };

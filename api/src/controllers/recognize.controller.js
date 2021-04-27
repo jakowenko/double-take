@@ -4,10 +4,8 @@ const process = require('../util/process.util');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
 const recognize = require('../util/recognize.util');
-const filesystem = require('../util/fs.util');
 const frigate = require('../util/frigate.util');
 const mqtt = require('../util/mqtt.util');
-const database = require('../util/db.util');
 const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
 const { OK, BAD_REQUEST } = require('../constants/http-status');
 
@@ -16,7 +14,6 @@ const {
   FRIGATE_IMAGE_HEIGHT,
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
-  SAVE_UNKNOWN,
   MQTT_HOST,
 } = require('../constants');
 
@@ -30,24 +27,32 @@ let PROCESSING = false;
 module.exports.start = async (req, res) => {
   try {
     const isFrigateEvent = req.method === 'POST';
-    const { type } = req.body;
-    const { url, attempts: manualAttempts, results: resultsOutput, break: breakMatch } = req.query;
-    const attributes = req.body.after ? req.body.after : req.body.before;
-    const { id, label, camera, current_zones: zones } = isFrigateEvent
-      ? attributes
-      : { id: uuidv4(), camera: req.query.camera, current_zones: [] };
-    const room = isFrigateEvent
-      ? camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
-      : req.query.room;
+    let event = {
+      options: {
+        break: req.query.break,
+        results: req.query.results,
+        attempts: req.query.attempts,
+      },
+    };
+
+    if (isFrigateEvent) {
+      const { type } = req.body;
+      const attributes = req.body.after ? req.body.after : req.body.before;
+      const { id, label, camera, current_zones: zones } = attributes;
+      event = { id, label, camera, zones, type, ...event };
+    } else {
+      const { url, camera } = req.query;
+
+      event = { id: uuidv4(), url, camera, zones: [], ...event };
+    }
+
+    const { id, camera, zones, url } = event;
+    const { break: breakMatch, results: resultsOutput, attempts: manualAttempts } = event.options;
 
     if (isFrigateEvent && FRIGATE_URL) {
       try {
         const check = await frigate.checks({
-          id,
-          type,
-          label,
-          camera,
-          zones,
+          ...event,
           PROCESSING,
           IDS,
         });
@@ -75,7 +80,7 @@ module.exports.start = async (req, res) => {
 
     if (isFrigateEvent) {
       promises.push(
-        process.polling({
+        process.polling(event, {
           ...config,
           retries: LATEST_RETRIES,
           type: 'latest',
@@ -83,7 +88,7 @@ module.exports.start = async (req, res) => {
         })
       );
       promises.push(
-        process.polling({
+        process.polling(event, {
           ...config,
           retries: SNAPSHOT_RETRIES,
           type: 'snapshot',
@@ -92,7 +97,7 @@ module.exports.start = async (req, res) => {
       );
     } else {
       promises.push(
-        process.polling({
+        process.polling(event, {
           ...config,
           retries: parseInt(manualAttempts, 10),
           type: 'manual',
@@ -111,7 +116,6 @@ module.exports.start = async (req, res) => {
       attempts,
       camera,
       zones,
-      room,
       matches: JSON.parse(JSON.stringify(best)).map((obj) => {
         delete obj.tmp;
         return obj;
@@ -131,14 +135,6 @@ module.exports.start = async (req, res) => {
     logger.log(`${time.current()}\ndone processing ${camera}: ${id} in ${duration} sec`, {
       dashes: true,
     });
-
-    if (SAVE_UNKNOWN) {
-      await filesystem.save().unknown(results);
-    }
-
-    await filesystem.save().matches(id, best);
-
-    database.insert('match', { camera, zones, results });
 
     PROCESSING = false;
 

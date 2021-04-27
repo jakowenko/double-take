@@ -27,4 +27,6 @@ router.get(
   storage.matches
 );
 
+router.get('/storage/matches/:filename', validate(validators.storage().matches()), storage.matches);
+
 module.exports = router;
