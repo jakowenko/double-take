@@ -6,7 +6,7 @@ const frigate = this;
 
 module.exports.checks = async ({ id, type, label, camera, zones, PROCESSING, IDS }) => {
   try {
-    await frigate.status();
+    await frigate.status(id);
 
     if (FRIGATE_CAMERAS && !FRIGATE_CAMERAS.includes(camera)) {
       return `${id} - ${camera} not on approved list`;
@@ -51,14 +51,14 @@ module.exports.checks = async ({ id, type, label, camera, zones, PROCESSING, IDS
   }
 };
 
-module.exports.status = async () => {
+module.exports.status = async (id) => {
   try {
     const request = await axios({
       method: 'get',
-      url: `${FRIGATE_URL}/api/version`,
+      url: `${FRIGATE_URL}/api/events/${id}`,
     });
     return request.data;
   } catch (error) {
-    throw new Error(`frigate status error: ${error.message}`);
+    throw new Error(`frigate status error: ${error.response.data || error.message}`);
   }
 };
