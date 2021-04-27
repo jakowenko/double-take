@@ -25,7 +25,7 @@ module.exports.start = async () => {
   });
 
   mqtt.connect();
-  storage.purge();
+  // storage.purge();
 };
 
 this.start();
