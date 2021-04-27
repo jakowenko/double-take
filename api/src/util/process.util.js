@@ -7,7 +7,7 @@ const sleep = require('./sleep.util');
 const filesystem = require('./fs.util');
 const database = require('./db.util');
 const time = require('./time.util');
-const frigate = require('./frigate.util');
+// const frigate = require('./frigate.util');
 const { recognize, normalize } = require('./detectors/actions');
 const { SAVE_UNKNOWN, DETECTORS, STORAGE_PATH } = require('../constants');
 
@@ -22,10 +22,7 @@ module.exports.polling = async (
   let previousContentLength;
   perf.start(type);
 
-  if (
-    (type === 'snapshot' ? await frigate.snapshotReady(id) : true) &&
-    (await this.isValidURL({ type, url }))
-  ) {
+  if (await this.isValidURL({ type, url })) {
     for (let i = 0; i < retries; i++) {
       if (breakMatch === true && MATCH_IDS.includes(id)) break;
 
