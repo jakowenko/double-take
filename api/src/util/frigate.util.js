@@ -1,4 +1,6 @@
 const axios = require('axios');
+const sleep = require('./sleep.util');
+const logger = require('./logger.util');
 
 const { FRIGATE_URL, FRIGATE_CAMERAS, FRIGATE_ZONES } = require('../constants');
 
@@ -6,7 +8,7 @@ const frigate = this;
 
 module.exports.checks = async ({ id, type, label, camera, zones, PROCESSING, IDS }) => {
   try {
-    await frigate.status(id);
+    await frigate.status();
 
     if (FRIGATE_CAMERAS && !FRIGATE_CAMERAS.includes(camera)) {
       return `${id} - ${camera} not on approved list`;
@@ -51,14 +53,43 @@ module.exports.checks = async ({ id, type, label, camera, zones, PROCESSING, IDS
   }
 };
 
-module.exports.status = async (id) => {
+module.exports.status = async () => {
   try {
     const request = await axios({
       method: 'get',
-      url: `${FRIGATE_URL}/api/events/${id}`,
+      url: `${FRIGATE_URL}/api/version`,
     });
     return request.data;
   } catch (error) {
-    throw new Error(`frigate status error: ${error.response.data || error.message}`);
+    throw new Error(`frigate status error: ${error.message}`);
   }
+};
+
+module.exports.snapshotReady = async (id) => {
+  let loop = true;
+  let ready = false;
+  setTimeout(() => {
+    loop = false;
+  }, 15000);
+
+  while (loop) {
+    try {
+      const request = await axios({
+        method: 'get',
+        url: `${FRIGATE_URL}/api/events/${id}`,
+      });
+      console.log(request.data);
+      if (request.data.has_snapshot) {
+        ready = true;
+        break;
+      }
+      // eslint-disable-next-line no-empty
+    } catch (error) {}
+    await sleep(0.05);
+  }
+  console.log(ready);
+  if (!ready) {
+    logger.log('frigate snapshot ready error');
+  }
+  return ready;
 };
