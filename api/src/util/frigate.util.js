@@ -78,7 +78,6 @@ module.exports.snapshotReady = async (id) => {
         method: 'get',
         url: `${FRIGATE_URL}/api/events/${id}`,
       });
-      console.log(request.data);
       if (request.data.has_snapshot) {
         ready = true;
         break;
@@ -87,7 +86,6 @@ module.exports.snapshotReady = async (id) => {
     } catch (error) {}
     await sleep(0.05);
   }
-  console.log(ready);
   if (!ready) {
     logger.log('frigate snapshot ready error');
   }
