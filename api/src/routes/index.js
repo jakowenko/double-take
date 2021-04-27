@@ -21,12 +21,6 @@ router.get('/train/add/:name', train.add);
 router.get('/train/remove/:name', train.delete);
 router.get('/train/:camera/:name', train.camera);
 
-router.get(
-  '/storage/matches/:name/:filename',
-  validate(validators.storage().matches()),
-  storage.matches
-);
-
 router.get('/storage/matches/:filename', validate(validators.storage().matches()), storage.matches);
 
 module.exports = router;
