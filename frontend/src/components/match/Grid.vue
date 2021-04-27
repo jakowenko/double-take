@@ -2,7 +2,7 @@
   <div class="p-grid p-nogutter">
     <div v-if="matches.filtered.length" class="p-col-12">
       <div class="p-grid p-ai-center">
-        <div v-for="match in matches.filtered" class="p-col-6 p-md-6 p-lg-4" :key="match">
+        <div v-for="match in matches.filtered" class="p-col-12 p-md-6 p-lg-6" :key="match">
           <Asset
             :match="match"
             :selected="matches.selected.filter((obj) => obj.id === match.id).length === 1"

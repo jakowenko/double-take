@@ -212,12 +212,24 @@ export default {
   },
   computed: {
     names() {
-      return this.matches.source.map((obj) => obj.name).filter((value, index, self) => self.indexOf(value) === index);
+      const names = [];
+      this.matches.source.forEach((obj) => {
+        obj.response.forEach((detector) => {
+          names.push(...detector.results.map((item) => item.name));
+        });
+      });
+
+      return names.filter((item, i, ar) => ar.indexOf(item) === i);
     },
     detectors() {
-      return this.matches.source
-        .map((obj) => obj.detector)
-        .filter((value, index, self) => self.indexOf(value) === index);
+      const detectors = [];
+      this.matches.source.forEach((obj) => {
+        obj.response.forEach(({ detector }) => {
+          detectors.push(detector);
+        });
+      });
+
+      return detectors.filter((item, i, ar) => ar.indexOf(item) === i);
     },
   },
 };

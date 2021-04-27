@@ -9,7 +9,14 @@
     />
     <div class="p-d-flex p-jc-center p-p-3">
       <i v-if="loading.files" class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
-      <Grid v-else :matches="{ filtered, ...matches }" :loading="loading" @toggle="selected" style="width: 100%" />
+      <Grid
+        v-else
+        :matches="{ filtered, ...matches }"
+        :loading="loading"
+        @toggle="selected"
+        @assetLoaded="assetLoaded"
+        style="width: 100%"
+      />
     </div>
   </div>
 </template>
@@ -52,19 +59,38 @@ export default {
       const name = this.filter.name || [];
       const match = this.filter.match || [];
       const detector = this.filter.detector || [];
-      const confidence = this.filter.confidence || [];
+      const confidence = this.filter.confidence || 0;
       const width = this.filter.width || 0;
       const height = this.filter.height || 0;
 
       const filtered = files.map((file) => {
-        const convertedMatch = file.match ? 'match' : 'miss';
+        const largest = {
+          confidence: 0,
+          width: 0,
+          height: 0,
+        };
+        const names = [];
+        const matches = [];
+        const detectors = [];
+
+        file.response.forEach((obj) => {
+          names.push(...obj.results.map((item) => item.name));
+          matches.push(...obj.results.map((item) => (item.match ? 'match' : 'miss')));
+          detectors.push(obj.detector);
+          obj.results.forEach((item) => {
+            if (item.confidence > largest.confidence) largest.confidence = item.confidence;
+            if (item.box.width > largest.width) largest.width = item.box.width;
+            if (item.box.height > largest.height) largest.height = item.box.height;
+          });
+        });
+
         if (
-          name.includes(file.name) &&
-          match.includes(convertedMatch) &&
-          detector.includes(file.detector) &&
-          confidence <= file.confidence &&
-          width <= file.box.width &&
-          height <= file.box.height
+          names.some((r) => name.includes(r)) &&
+          matches.some((r) => match.includes(r)) &&
+          detectors.some((r) => detector.includes(r)) &&
+          largest.confidence >= confidence &&
+          largest.width >= width &&
+          largest.height >= height
         ) {
           return file;
         }
@@ -251,6 +277,9 @@ export default {
       if (index !== -1) this.matches.selected.splice(index, 1);
       else this.matches.selected.push(match);
     },
+    assetLoaded(id) {
+      this.matches.loaded.push(id);
+    },
     toggleAll(state) {
       const available = this.filtered.filter((obj) => !this.matches.disabled.includes(obj.id)).map((obj) => obj);
       this.matches.selected = state ? available : [];
@@ -263,7 +292,6 @@ export default {
       this.loading.lazy = true;
       matches.forEach((match, i) => {
         setTimeout(() => {
-          this.matches.loaded.push(match.id);
           if (i + 1 === matches.length) this.loading.lazy = false;
         }, 200 * i + 50);
       });

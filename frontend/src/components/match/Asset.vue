@@ -10,41 +10,51 @@
             ></i>
           </div>
           <div class="selected-overlay" :class="{ selected: selected }"></div>
-          <div v-if="match.box !== undefined && loaded" class="bbox" :style="box"></div>
+          <!-- <div v-if="match.box !== undefined && loaded" class="bbox" :style="box"></div> -->
+          <div v-for="detector in results" :key="detector">
+            <div v-if="detector.box !== undefined && loaded" class="bbox" :style="box(detector.box)"></div>
+          </div>
           <img
             @click="$parent.$emit('toggle', match)"
             :class="loaded ? 'thumbnail' : 'thumbnail lazy'"
-            :src="loaded ? 'data:image/jpg;base64,' + match.file.base64 : ''"
+            :src="'data:image/jpg;base64,' + match.file.base64"
             :data-key="match.file.key"
+            :onload="assetLoaded"
           />
         </div>
         <div v-if="!loaded" class="p-text-center p-mt-5">
           <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
         </div>
       </template>
-      <template v-slot:title>
-        <div>
-          <div class="p-d-inline-flex p-ai-center">
-            {{ match.name }}
-            <Badge
-              class="p-ml-2"
-              :severity="match.match ? 'success' : 'danger'"
-              :value="match.match ? 'match' : 'miss'"
-            ></Badge>
-          </div>
-        </div>
-      </template>
       <template v-slot:content>
-        <Badge class="p-mt-2" v-if="match.camera" :value="match.camera"></Badge>
-        <Badge class="p-mt-2" v-if="match.zones.length" :value="[...match.zones].join(', ')"></Badge>
-        <Badge class="p-mt-2" v-if="match.type" :value="match.type"></Badge>
-        <Badge class="p-mt-2" v-if="match.detector" :value="match.detector"></Badge>
-        <Badge class="p-mt-2" v-if="match.box" :value="match.box.width + 'x' + match.box.height"></Badge>
-        <Badge class="p-mt-2" v-if="match.confidence" :value="match.confidence + '%'"></Badge>
-        <Badge class="p-mt-2" v-if="match.duration" :value="match.duration + ' sec'"></Badge>
+        <DataTable :value="results" class="p-datatable-sm" responsiveLayout="scroll">
+          <Column field="detector" header="Detector">
+            <template v-slot:body="slotProps">
+              <Badge
+                :value="slotProps.data.detector"
+                :severity="detector(slotProps.data.detector).match ? 'success' : 'danger'"
+              />
+            </template>
+          </Column>
+          <Column field="name" header="Name"></Column>
+          <Column field="confidence" header="%"></Column>
+          <Column field="box" header="Box">
+            <template v-slot:body="slotProps">
+              {{ slotProps.data.box.width }}x{{ slotProps.data.box.height }}
+            </template>
+          </Column>
+          <Column field="duration" header="Time">
+            <template v-slot:body="slotProps">
+              {{ slotProps.data.duration || 'N/A' }}
+            </template>
+          </Column>
+        </DataTable>
       </template>
       <template v-slot:footer>
-        {{ ago }}
+        <Badge class="p-mt-2" :value="createdAt.ago" />
+        <Badge class="p-mt-2" v-if="match.camera" :value="match.camera" />
+        <Badge class="p-mt-2" v-if="match.type" :value="match.type" />
+        <Badge class="p-mt-2" v-if="match.zones.length" :value="[...match.zones].join(', ')" />
       </template>
     </Card>
   </div>
@@ -54,6 +64,8 @@
 import { DateTime } from 'luxon';
 import Badge from 'primevue/badge';
 import Card from 'primevue/card';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
 
 export default {
   props: {
@@ -65,31 +77,62 @@ export default {
   components: {
     Badge,
     Card,
+    DataTable,
+    Column,
   },
   data() {
     return {
       VUE_APP_API_URL: process.env.VUE_APP_API_URL,
+      timestamp: Date.now(),
     };
   },
+  created() {
+    setInterval(() => {
+      this.timestamp = Date.now();
+    }, 1000);
+  },
   methods: {
+    assetLoaded() {
+      this.$parent.$emit('assetLoaded', this.match.id);
+    },
     openLink(url) {
       window.open(url);
     },
-  },
-  computed: {
-    box() {
+    detector(detector) {
+      const [match] = this.results.filter((obj) => obj.detector === detector);
+      return match;
+    },
+    box(obj) {
       const { width, height } = this.match.file;
-      const { box } = this.match;
       const values = {
-        top: box.width ? `${(box.top / height) * 100}%` : 0,
-        width: box.width ? `${(box.width / width) * 100}%` : 0,
-        height: box.width ? `${(box.height / height) * 100}%` : 0,
-        left: box.width ? `${(box.left / width) * 100}%` : 0,
+        top: obj.width ? `${(obj.top / height) * 100}%` : 0,
+        width: obj.width ? `${(obj.width / width) * 100}%` : 0,
+        height: obj.width ? `${(obj.height / height) * 100}%` : 0,
+        left: obj.width ? `${(obj.left / width) * 100}%` : 0,
       };
 
       return `width: ${values.width}; height: ${values.height}; top: ${values.top}; left: ${values.left}`;
     },
-    ago() {
+  },
+  computed: {
+    results() {
+      let data = [];
+      if (Array.isArray(this.match.response)) {
+        this.match.response.forEach((result) => {
+          const results = result.results.map((obj) => ({
+            detector: result.detector,
+            duration: result.duration,
+            ...obj,
+          }));
+          data = data.concat(results);
+        });
+      } else {
+        data.push(this.match.meta);
+      }
+
+      return data;
+    },
+    createdAt() {
       const units = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
 
       const dateTime = DateTime.fromISO(this.match.createdAt);
@@ -99,13 +142,25 @@ export default {
       const relativeFormatter = new Intl.RelativeTimeFormat('en', {
         numeric: 'auto',
       });
-      return relativeFormatter.format(Math.trunc(diff.as(unit)), unit);
+      return { ago: relativeFormatter.format(Math.trunc(diff.as(unit)), unit), timestamp: this.timestamp };
     },
   },
 };
 </script>
 
 <style scoped lang="scss">
+::v-deep(.p-datatable-table) {
+  font-size: 0.9rem;
+
+  .p-datatable-thead > tr > th {
+    border-top: 0;
+  }
+
+  .p-badge {
+    font-size: 0.75rem;
+  }
+}
+
 .open-link {
   position: absolute;
   top: 0;
@@ -144,7 +199,6 @@ img.thumbnail {
 
 .p-badge {
   flex: 1 1 auto;
-  font-size: 11px;
   margin-right: 5px;
   &:last-child {
     margin-right: 0;
@@ -174,9 +228,14 @@ img.thumbnail {
   pointer-events: none;
 }
 
-.p-card ::v-deep(.p-card-body) {
-  @media only screen and (max-width: 576px) {
-    padding: 1rem 0.75rem;
-  }
+// .p-card ::v-deep(.p-card-body) {
+//   padding-top: 0.5rem;
+//   @media only screen and (max-width: 576px) {
+//     padding: 0 0.75rem;
+//   }
+// }
+.p-card ::v-deep(.p-card-content) {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 </style>
