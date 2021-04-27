@@ -80,29 +80,38 @@ module.exports.start = async (req, res) => {
 
     if (isFrigateEvent) {
       promises.push(
-        process.polling(event, {
-          ...config,
-          retries: LATEST_RETRIES,
-          type: 'latest',
-          url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=${FRIGATE_IMAGE_HEIGHT}`,
-        })
+        process.polling(
+          { ...event },
+          {
+            ...config,
+            retries: LATEST_RETRIES,
+            type: 'latest',
+            url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=${FRIGATE_IMAGE_HEIGHT}`,
+          }
+        )
       );
       promises.push(
-        process.polling(event, {
-          ...config,
-          retries: SNAPSHOT_RETRIES,
-          type: 'snapshot',
-          url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}`,
-        })
+        process.polling(
+          { ...event },
+          {
+            ...config,
+            retries: SNAPSHOT_RETRIES,
+            type: 'snapshot',
+            url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}`,
+          }
+        )
       );
     } else {
       promises.push(
-        process.polling(event, {
-          ...config,
-          retries: parseInt(manualAttempts, 10),
-          type: 'manual',
-          url,
-        })
+        process.polling(
+          { ...event },
+          {
+            ...config,
+            retries: parseInt(manualAttempts, 10),
+            type: 'manual',
+            url,
+          }
+        )
       );
     }
 
