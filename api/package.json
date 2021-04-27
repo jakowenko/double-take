@@ -1,6 +1,6 @@
 {
   "name": "double-take-api",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "scripts": {
     "start": "node server.js",
     "debug": "nodemon server.js"
