@@ -10,9 +10,8 @@
             ></i>
           </div>
           <div class="selected-overlay" :class="{ selected: selected }"></div>
-          <!-- <div v-if="match.box !== undefined && loaded" class="bbox" :style="box"></div> -->
-          <div v-for="detector in results" :key="detector">
-            <div v-if="detector.box !== undefined && loaded" class="bbox" :style="box(detector.box)"></div>
+          <div v-for="(detector, i) in results" :key="detector" :class="'box-holder-' + parseInt(i + 1)">
+            <div v-if="detector.box !== undefined && loaded" class="box" :style="box(detector.box)"></div>
           </div>
           <img
             @click="$parent.$emit('toggle', match)"
@@ -27,13 +26,19 @@
         </div>
       </template>
       <template v-slot:content>
+        <div class="p-d-block p-text-center p-mb-3">
+          <Badge v-if="match.camera" :value="match.camera" />
+          <Badge v-if="match.type" :value="match.type" />
+          <Badge v-if="match.zones.length" :value="[...match.zones].join(', ')" />
+        </div>
         <DataTable :value="results" class="p-datatable-sm" responsiveLayout="scroll">
           <Column field="detector" header="Detector">
             <template v-slot:body="slotProps">
               <Badge
-                :value="slotProps.data.detector"
+                :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
                 :severity="detector(slotProps.data.detector).match ? 'success' : 'danger'"
               />
+              <div class="icon"></div>
             </template>
           </Column>
           <Column field="name" header="Name"></Column>
@@ -51,10 +56,7 @@
         </DataTable>
       </template>
       <template v-slot:footer>
-        <Badge class="p-mt-2" :value="createdAt.ago" />
-        <Badge class="p-mt-2" v-if="match.camera" :value="match.camera" />
-        <Badge class="p-mt-2" v-if="match.type" :value="match.type" />
-        <Badge class="p-mt-2" v-if="match.zones.length" :value="[...match.zones].join(', ')" />
+        <small>{{ createdAt.ago }}</small>
       </template>
     </Card>
   </div>
@@ -156,8 +158,33 @@ export default {
     border-top: 0;
   }
 
+  tr:nth-child(1) > td > .icon {
+    background: var(--blue-600);
+  }
+  tr:nth-child(2) > td > .icon {
+    background: var(--orange-600);
+  }
+  tr:nth-child(3) > td > .icon {
+    background: var(--indigo-600);
+  }
+
+  td {
+    position: relative;
+  }
+
   .p-badge {
     font-size: 0.75rem;
+  }
+
+  .icon {
+    width: 10px;
+    height: 10px;
+    display: inline-block;
+    border-radius: 100%;
+    position: absolute;
+    top: 50%;
+    margin-top: -5px;
+    margin-left: -19px;
   }
 }
 
@@ -221,19 +248,23 @@ img.thumbnail {
   }
 }
 
-.bbox {
+.box {
   z-index: 1;
   position: absolute;
-  border: 2px solid #78cc86;
+  border: 2px solid;
   pointer-events: none;
 }
 
-// .p-card ::v-deep(.p-card-body) {
-//   padding-top: 0.5rem;
-//   @media only screen and (max-width: 576px) {
-//     padding: 0 0.75rem;
-//   }
-// }
+.box-holder-1 > .box {
+  border-color: var(--blue-600);
+}
+.box-holder-2 > .box {
+  border-color: var(--orange-600);
+}
+.box-holder-3 > .box {
+  border-color: var(--indigo-600);
+}
+
 .p-card ::v-deep(.p-card-content) {
   padding-top: 0;
   padding-bottom: 0;
