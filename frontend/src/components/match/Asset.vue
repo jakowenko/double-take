@@ -2,31 +2,33 @@
   <div class="wrapper" :class="{ disabled: disabled }">
     <Card>
       <template v-slot:header>
-        <div class="match-wrapper">
-          <div class="open-link">
-            <i
-              class="pi pi-external-link"
-              @click="openLink(`${VUE_APP_API_URL}/storage/${match.file.key}?id=${match.id}&box=true`)"
-            ></i>
+        <div style="position: relative">
+          <div class="match-wrapper">
+            <div class="open-link">
+              <i
+                class="pi pi-external-link"
+                @click="openLink(`${VUE_APP_API_URL}/storage/${match.file.key}?id=${match.id}&box=true`)"
+              ></i>
+            </div>
+            <div class="selected-overlay" :class="{ selected: selected }"></div>
+            <div v-for="detector in results" :key="detector">
+              <div
+                v-if="detector.box !== undefined && loaded"
+                :class="'box ' + detector.detector"
+                :style="box(detector.box)"
+              ></div>
+            </div>
+            <img
+              @click="$parent.$emit('toggle', match)"
+              :class="loaded ? 'thumbnail' : 'thumbnail lazy'"
+              :src="'data:image/jpg;base64,' + match.file.base64"
+              :data-key="match.file.key"
+              :onload="assetLoaded"
+            />
           </div>
-          <div class="selected-overlay" :class="{ selected: selected }"></div>
-          <div v-for="detector in results" :key="detector">
-            <div
-              v-if="detector.box !== undefined && loaded"
-              :class="'box ' + detector.detector"
-              :style="box(detector.box)"
-            ></div>
+          <div v-if="!loaded" style="position: absolute; top: 50%; left: 50%; margin-top: -1rem; margin-left: -1rem">
+            <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
           </div>
-          <img
-            @click="$parent.$emit('toggle', match)"
-            :class="loaded ? 'thumbnail' : 'thumbnail lazy'"
-            :src="'data:image/jpg;base64,' + match.file.base64"
-            :data-key="match.file.key"
-            :onload="assetLoaded"
-          />
-        </div>
-        <div v-if="!loaded" class="p-text-center p-mt-5">
-          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
         </div>
       </template>
       <template v-slot:content>

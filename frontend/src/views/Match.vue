@@ -8,7 +8,7 @@
       @filter="filter = $event"
     />
     <div class="p-d-flex p-jc-center p-p-3">
-      <i v-if="loading.files" class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
+      <i v-if="loading.files" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
       <Grid
         v-else
         :matches="{ filtered, ...matches }"
@@ -101,13 +101,7 @@ export default {
   async mounted() {
     await this.init();
   },
-  watch: {
-    filtered(current /* , previous */) {
-      if (current.length && !this.loading.lazy) {
-        this.lazyLoad();
-      }
-    },
-  },
+  watch: {},
   methods: {
     async init() {
       const promises = [];
@@ -137,11 +131,13 @@ export default {
           try {
             $this.loading.files = true;
             const { data } = await ApiService.get('match');
-            $this.matches.selected = [];
-            $this.matches.disabled = [];
-            $this.matches.source = data.matches;
-            $this.loading.files = false;
-            $this.loading.lazy = false;
+            setTimeout(() => {
+              $this.matches.selected = [];
+              $this.matches.disabled = [];
+              $this.matches.source = data.matches;
+              $this.loading.files = false;
+              $this.loading.lazy = false;
+            }, 1000);
           } catch (error) {
             $this.$toast.add({
               severity: 'error',
@@ -283,17 +279,6 @@ export default {
       const available = this.filtered.filter((obj) => !this.matches.disabled.includes(obj.id)).map((obj) => obj);
       this.matches.selected = state ? available : [];
       this.toggleAllState = state;
-    },
-    lazyLoad() {
-      const matches = this.filtered.filter((obj) => !this.matches.loaded.includes(obj.id));
-      if (!matches.length) return;
-
-      this.loading.lazy = true;
-      matches.forEach((match, i) => {
-        setTimeout(() => {
-          if (i + 1 === matches.length) this.loading.lazy = false;
-        }, 200 * i + 50);
-      });
     },
   },
 };
