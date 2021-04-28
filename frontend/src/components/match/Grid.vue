@@ -12,7 +12,7 @@
         </div>
       </div>
     </div>
-    <div v-else class="p-col-12 p-text-center p-text-bold p-pt-5">No matches found</div>
+    <div v-else class="p-col-12 p-text-center p-text-bold p-pt-5">No files found</div>
   </div>
 </template>
 
