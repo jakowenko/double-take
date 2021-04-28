@@ -12,7 +12,6 @@
       <Grid
         v-else
         :matches="{ filtered, ...matches }"
-        :loading="loading"
         @toggle="selected"
         @assetLoaded="assetLoaded"
         style="width: 100%"
