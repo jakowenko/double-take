@@ -53,11 +53,17 @@ module.exports.matches = async (req, res) => {
       const textHeight = fontSize + textPadding;
 
       response.forEach((obj) => {
+        const { detector } = obj;
         obj.results.forEach(({ name, confidence, box }) => {
           const text = `${name} - ${confidence}%`;
           const textWidth = ctx.measureText(text).width + textPadding;
 
-          ctx.fillStyle = '#4caf50';
+          let fillStyle = '#78cc86';
+          if (detector === 'compreface') fillStyle = '#095fd7';
+          if (detector === 'deepstack') fillStyle = '#d66b11';
+          if (detector === 'facebox') fillStyle = '#5f39a4';
+
+          ctx.fillStyle = fillStyle;
           ctx.fillRect(box.left - lineWidth / 2, box.top - textHeight, textWidth, textHeight);
           ctx.fillStyle = '#fff';
           ctx.fillText(
@@ -66,7 +72,7 @@ module.exports.matches = async (req, res) => {
             box.top - textHeight + textPadding / 2
           );
 
-          ctx.strokeStyle = '#4caf50';
+          ctx.strokeStyle = fillStyle;
           ctx.lineWidth = lineWidth;
           ctx.beginPath();
 

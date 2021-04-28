@@ -10,8 +10,12 @@
             ></i>
           </div>
           <div class="selected-overlay" :class="{ selected: selected }"></div>
-          <div v-for="(detector, i) in results" :key="detector" :class="'box-holder-' + parseInt(i + 1)">
-            <div v-if="detector.box !== undefined && loaded" class="box" :style="box(detector.box)"></div>
+          <div v-for="detector in results" :key="detector">
+            <div
+              v-if="detector.box !== undefined && loaded"
+              :class="'box ' + detector.detector"
+              :style="box(detector.box)"
+            ></div>
           </div>
           <img
             @click="$parent.$emit('toggle', match)"
@@ -38,7 +42,7 @@
                 :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
                 :severity="detector(slotProps.data.detector).match ? 'success' : 'danger'"
               />
-              <div class="icon"></div>
+              <div :class="'icon ' + slotProps.data.detector"></div>
             </template>
           </Column>
           <Column field="name" header="Name"></Column>
@@ -158,16 +162,6 @@ export default {
     border-top: 0;
   }
 
-  tr:nth-child(1) > td > .icon {
-    background: var(--blue-600);
-  }
-  tr:nth-child(2) > td > .icon {
-    background: var(--orange-600);
-  }
-  tr:nth-child(3) > td > .icon {
-    background: var(--indigo-600);
-  }
-
   td {
     position: relative;
   }
@@ -185,6 +179,16 @@ export default {
     top: 50%;
     margin-top: -5px;
     margin-left: -19px;
+    background: #78cc86;
+  }
+  .icon.compreface {
+    background: var(--blue-600);
+  }
+  .icon.deepstack {
+    background: var(--orange-600);
+  }
+  .icon.facebox {
+    background: var(--indigo-600);
   }
 }
 
@@ -253,15 +257,16 @@ img.thumbnail {
   position: absolute;
   border: 2px solid;
   pointer-events: none;
+  border-color: #78cc86;
 }
 
-.box-holder-1 > .box {
+.box.compreface {
   border-color: var(--blue-600);
 }
-.box-holder-2 > .box {
+.box.deepstack {
   border-color: var(--orange-600);
 }
-.box-holder-3 > .box {
+.box.facebox {
   border-color: var(--indigo-600);
 }
 
