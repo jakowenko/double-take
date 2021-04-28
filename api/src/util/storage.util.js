@@ -1,34 +1,48 @@
 const fs = require('fs');
-const { DateTime } = require('luxon');
 const schedule = require('node-schedule');
 const logger = require('./logger.util');
 const time = require('./time.util');
+const database = require('./db.util');
 const { STORAGE_PATH, PURGE_UNKNOWN, PURGE_MATCHES } = require('../constants');
 
 module.exports.purge = async () => {
   schedule.scheduleJob('* * * * *', async () => {
     try {
-      let purged = 0;
-      const files = await fs.promises.readdir(`${STORAGE_PATH}/matches`, { withFileTypes: true });
-      const folders = files.filter((file) => file.isDirectory()).map((file) => file.name);
+      const db = database.connect();
+      const files = db
+        .prepare(
+          `SELECT match.id, match.filename
+        FROM match, json_tree(response)
+        WHERE key = 'match' AND value = 1 AND datetime(createdAt) <= datetime('now', '-${PURGE_MATCHES} hours')
+        GROUP BY match.id, value
+        UNION ALL
+        SELECT t1.id, t1.filename FROM (
+          SELECT *, COUNT(*) count FROM (
+            SELECT match.id, match.filename, match.createdAt, value
+            FROM match, json_tree(response)
+            WHERE key = 'match'
+            AND datetime(match.createdAt) <= datetime('now', '-${PURGE_UNKNOWN} hours')
+            GROUP BY match.id, value
+          ) t
+        GROUP BY t.id
+        HAVING count = 1
+        ) t1
+        WHERE t1.value = 0`
+        )
+        .all();
 
-      for (const folder of folders) {
-        const folderFiles = await fs.promises.readdir(`${STORAGE_PATH}/matches/${folder}`, {
-          withFileTypes: true,
-        });
-        const folderImages = folderFiles
-          .filter((file) => file.isFile())
-          .map((file) => file.name)
-          .filter(
-            (file) =>
-              file.toLowerCase().includes('.jpeg') ||
-              file.toLowerCase().includes('.jpg') ||
-              file.toLowerCase().includes('.png')
-          );
-        purged += await this.delete(`matches/${folder}`, folderImages);
-      }
+      const promises = [];
+      files.forEach(({ filename }) => {
+        if (fs.existsSync(`${STORAGE_PATH}/matches/${filename}`)) {
+          promises.push(fs.promises.unlink(`${STORAGE_PATH}/matches/${filename}`));
+        }
+      });
+      await Promise.all(promises);
 
-      if (purged > 0) logger.log(`${time.current()}\npurged ${purged} matched file(s)`);
+      const ids = files.map(({ id }) => id);
+      db.prepare(`DELETE FROM match WHERE id IN (${ids.join(',')})`).run();
+
+      if (files.length > 0) logger.log(`${time.current()}\npurged ${files.length} file(s)`);
     } catch (error) {
       logger.log(`purge error: ${error.message}`);
     }
@@ -42,23 +56,4 @@ module.exports.setup = () => {
   if (!fs.existsSync(`${STORAGE_PATH}/train`)) {
     fs.mkdirSync(`${STORAGE_PATH}/train`, { recursive: true });
   }
-};
-
-module.exports.delete = async (path, images) => {
-  const purged = [];
-  for (const image of images) {
-    const { birthtime } = await fs.promises.stat(`${STORAGE_PATH}/${path}/${image}`);
-    const duration = DateTime.now().diff(DateTime.fromISO(birthtime.toISOString()), 'hours');
-    const { hours } = duration.toObject();
-    const purgeTime = path === 'matches/unknown' ? PURGE_UNKNOWN : PURGE_MATCHES;
-    if (hours >= purgeTime) {
-      try {
-        await fs.promises.unlink(`${STORAGE_PATH}/${path}/${image}`);
-        purged.push(image);
-      } catch (error) {
-        logger.log(`delete error: ${error.message}`);
-      }
-    }
-  }
-  return purged.length;
 };
