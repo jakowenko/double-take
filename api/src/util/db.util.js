@@ -1,16 +1,14 @@
 const Database = require('better-sqlite3');
-const { v4: uuidv4 } = require('uuid');
 const time = require('./time.util');
 const filesystem = require('./fs.util');
 const logger = require('./logger.util');
 
-const { STORAGE_PATH } = require('../constants');
+const { STORAGE_PATH, SAVE_UNKNOWN } = require('../constants');
 
 const database = this;
 let connection = false;
 
 module.exports.connect = () => {
-  // new Database(':memory:')
   if (!connection) connection = new Database(`${STORAGE_PATH}/database.db`);
   return connection;
 };
@@ -18,14 +16,14 @@ module.exports.connect = () => {
 module.exports.init = async () => {
   try {
     const db = database.connect();
-    // db.prepare(`DROP TABLE IF EXISTS file`).run();
-    // db.prepare(`DROP TABLE IF EXISTS train`).run();
+
+    database.migrations();
+
     db.prepare(
       `CREATE TABLE IF NOT EXISTS file (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name,
         filename,
-        uuid,
         meta JSON,
         isActive INTEGER,
         createdAt TIMESTAMP,
@@ -46,7 +44,15 @@ module.exports.init = async () => {
     )`
     ).run();
 
-    // database.transactions();
+    db.prepare(
+      `CREATE TABLE IF NOT EXISTS match (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        filename,
+        event JSON,
+        response JSON,
+        createdAt TIMESTAMP
+    )`
+    ).run();
 
     const files = await filesystem.files().train();
     database.insert('init', files);
@@ -55,14 +61,47 @@ module.exports.init = async () => {
   }
 };
 
-module.exports.transactions = () => {
-  let db;
+module.exports.migrations = () => {
   try {
-    db = database.connect();
-    const transactions = db.transaction(() => {});
-    transactions();
+    const db = database.connect();
+    if (
+      !db
+        .prepare('PRAGMA table_info(match)')
+        .all()
+        .filter((obj) => obj.name === 'filename').length
+    ) {
+      db.prepare('DROP TABLE IF EXISTS match').run();
+    }
+
+    if (
+      db
+        .prepare('PRAGMA table_info(file)')
+        .all()
+        .filter((obj) => obj.name === 'uuid').length
+    ) {
+      db.exec(
+        `
+          BEGIN TRANSACTION;
+          CREATE TEMPORARY TABLE file_backup (id, name, filename, meta, isActive, createdAt);
+          INSERT INTO file_backup SELECT id, name, filename, meta, isActive, createdAt FROM file;
+          DROP TABLE file;
+          CREATE TABLE file (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name,
+            filename,
+            meta JSON,
+            isActive INTEGER,
+            createdAt TIMESTAMP,
+            UNIQUE(name, filename)
+          );
+          INSERT INTO file SELECT id, name, filename, meta, isActive, createdAt FROM file_backup;
+          DROP TABLE file_backup;
+          COMMIT;
+      `
+      );
+    }
   } catch (error) {
-    logger.log(`db transaction error: ${error.message}`);
+    logger.log(`db migrations error: ${error.message}`);
   }
 };
 
@@ -77,15 +116,6 @@ module.exports.files = (status, data) => {
           `SELECT * FROM file WHERE id NOT IN (SELECT fileId FROM train) AND name = ? AND isActive = 1`
         )
         .all(data);
-    }
-
-    if (status === 'uuid') {
-      const uuids = data.map((uuid) => `'${uuid}'`).join(',');
-      files = db
-        .prepare(
-          `SELECT * FROM file WHERE uuid IN (${uuids}) AND id NOT IN (SELECT fileId FROM train)`
-        )
-        .all();
     }
 
     if (status === 'trained') {
@@ -140,7 +170,7 @@ module.exports.insert = (type, data = []) => {
     const transaction = db.transaction((items) => {
       for (const item of items) {
         item.id = null;
-        item.createdAt = time.unix();
+        item.createdAt = time.utc();
         insert.run(item);
       }
     });
@@ -150,19 +180,55 @@ module.exports.insert = (type, data = []) => {
   if (type === 'file') {
     const insert = db.prepare(`
       INSERT INTO file
-      VALUES (:id, :name, :filename, :uuid, :meta, :isActive, :createdAt)
+      VALUES (:id, :name, :filename, :meta, :isActive, :createdAt)
       ON CONFLICT (name, filename) DO UPDATE SET isActive = 1;
     `);
     const transaction = db.transaction((items) => {
       for (const item of items) {
         item.id = null;
-        item.uuid = item.uuid || uuidv4();
-        item.createdAt = time.unix();
+        item.createdAt = time.utc();
         item.meta = null;
         item.isActive = 1;
         insert.run(item);
       }
     });
     transaction(data);
+  }
+
+  if (type === 'match') {
+    const { camera, results, zones } = data;
+    const records = [];
+    results.forEach((group) => {
+      group.results.forEach((attempt) => {
+        let combined = SAVE_UNKNOWN
+          ? [...attempt.matches, ...attempt.misses]
+          : [...attempt.matches];
+
+        combined = combined.map((obj) => {
+          obj.filename = attempt.filename;
+          obj.type = group.type;
+          obj.detector = attempt.detector;
+          obj.camera = camera;
+          obj.zones = zones;
+          return obj;
+        });
+        records.push(...combined);
+      });
+    });
+
+    const insert = db.prepare(`
+      INSERT INTO match
+      VALUES (:id, :meta, :createdAt);
+    `);
+    const transaction = db.transaction((items) => {
+      for (const item of items) {
+        insert.run({
+          id: null,
+          meta: JSON.stringify(item),
+          createdAt: time.utc(),
+        });
+      }
+    });
+    transaction(records);
   }
 };

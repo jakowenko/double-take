@@ -1,6 +1,6 @@
 {
   "name": "double-take-api",
-  "version": "0.1.1",
+  "version": "0.3.2",
   "scripts": {
     "start": "node server.js",
     "debug": "nodemon server.js"
@@ -16,13 +16,11 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "execution-time": "^1.4.1",
-    "exiftool-vendored": "^14.1.1",
     "express": "^4.16.1",
     "express-validator": "^6.10.0",
     "form-data": "^4.0.0",
     "image-size": "^0.9.7",
     "luxon": "^1.26.0",
-    "md5-file": "^5.0.0",
     "mqtt": "^4.2.6",
     "node-schedule": "^2.0.0",
     "sharp": "^0.28.0",

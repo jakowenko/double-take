@@ -2,7 +2,8 @@
   <div class="wrapper">
     <Toast />
     <ConfirmDialog />
-    <Manage />
+    <!-- <Navigation /> -->
+    <router-view />
   </div>
 </template>
 
@@ -11,16 +12,17 @@ import 'primevue/resources/themes/bootstrap4-dark-blue/theme.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
-import Manage from '@/views/Manage.vue';
+import '@/assets/font-awesome/css/all.min.css';
 import Toast from 'primevue/toast';
 import ConfirmDialog from 'primevue/confirmdialog';
+// import Navigation from '@/components/Navigation.vue';
 
 export default {
   name: 'App',
   components: {
-    Manage,
     Toast,
     ConfirmDialog,
+    // Navigation,
   },
   data() {
     return {
@@ -45,25 +47,23 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol';
 }
-.match-image-component {
-  .p-card .p-card-content {
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-  .p-card-body {
-    overflow: hidden;
-  }
-}
 
 @media only screen and (max-width: 576px) {
   .p-toast {
     width: auto;
     left: 20px;
   }
+}
 
-  .match-image-component .p-card .p-card-body {
-    padding: 1rem 0.75rem;
+.p-dialog.p-confirm-dialog {
+  .p-confirm-dialog-message {
+    text-align: center;
+    margin-left: 0;
   }
+}
+
+.p-multiselect-panel .p-multiselect-items {
+  font-size: 0.9rem;
 }
 </style>
 

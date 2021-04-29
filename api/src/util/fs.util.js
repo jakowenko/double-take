@@ -1,10 +1,5 @@
 const fs = require('fs');
-const { promisify } = require('util');
-const sizeOf = promisify(require('image-size'));
-const { createCanvas, loadImage, registerFont } = require('canvas');
-const md5File = require('md5-file');
 const { v4: uuidv4 } = require('uuid');
-const { ExifTool } = require('exiftool-vendored');
 const logger = require('./logger.util');
 const { STORAGE_PATH } = require('../constants');
 
@@ -61,7 +56,11 @@ module.exports.files = () => {
   };
 };
 
-module.exports.writer = async (stream, file) => {
+module.exports.writer = async (file, data) => {
+  fs.writeFileSync(file, data);
+};
+
+module.exports.writerStream = async (stream, file) => {
   return new Promise((resolve) => {
     const out = fs.createWriteStream(file);
     stream.pipe(out);
@@ -118,90 +117,32 @@ module.exports.move = (source, destination) => {
   }
 };
 
-module.exports.drawBox = async (match, source) => {
-  const { box } = match;
-
-  const text = `${match.name} - ${match.confidence}%`;
-  const fontSize = 18;
-  const textPadding = 10;
-  const lineWidth = 4;
-
-  const { width, height } = await sizeOf(source);
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext('2d');
-  const image = await loadImage(source);
-  registerFont('./src/static/fonts/Roboto/Roboto-Medium.ttf', { family: 'Roboto-Medium' });
-  ctx.drawImage(image, 0, 0);
-  ctx.font = `${fontSize}px Roboto-Medium`;
-  ctx.textBaseline = 'top';
-  ctx.fillStyle = '#4caf50';
-  const textWidth = ctx.measureText(text).width + textPadding;
-  const textHeight = fontSize + textPadding;
-  ctx.fillRect(box.left - lineWidth / 2, box.top - textHeight, textWidth, textHeight);
-  ctx.fillStyle = '#fff';
-  ctx.fillText(
-    text,
-    box.left + textPadding / 2 - lineWidth / 2,
-    box.top - textHeight + textPadding / 2
-  );
-
-  ctx.strokeStyle = '#4caf50';
-  ctx.lineWidth = lineWidth;
-  ctx.beginPath();
-
-  ctx.rect(box.left, box.top, box.width, box.height);
-  ctx.stroke();
-
-  const buffer = canvas.toBuffer('image/jpeg');
-  fs.writeFileSync(source, buffer);
-};
-
 module.exports.save = () => {
   return {
     matches: async (id, matches) => {
-      const filenames = [];
       for (let i = 0; i < matches.length; i++) {
         const match = matches[i];
         const tmp = `/tmp/{${uuidv4()}}.jpg`;
-        await this.writer(fs.createReadStream(match.tmp), tmp);
-        // await this.drawBox(match, tmp);
-        const filename = `${id}-${match.type}.jpg`;
-        const destination = `${STORAGE_PATH}/matches/${match.name}/${filename}`;
+        await this.writerStream(fs.createReadStream(match.tmp), tmp);
+        const destination = `${STORAGE_PATH}/matches/${match.name}/${match.filename}`;
         this.writeMatches(match.name, tmp, destination);
-        await this.writeExif(destination, match);
-        filenames.push(filename);
       }
-      return filenames;
     },
     unknown: async (results) => {
-      const md5Misses = [];
-      const unknown = results.reduce((array, result) => {
-        const tmps = [];
-        result.misses.forEach((miss) => {
-          const md5 = md5File.sync(miss.tmp);
-          if (!md5Misses.includes(md5)) {
-            md5Misses.push(md5);
-            tmps.push({ ...miss, detector: result.detector, type: result.type });
+      const files = [];
+      for (let i = 0; i < results.length; i++) {
+        const group = results[i];
+        for (let j = 0; j < group.results.length; j++) {
+          const attempt = group.results[j];
+          if (attempt.misses.length && !files.filter((obj) => attempt.tmp === obj.tmp).length) {
+            files.push({ tmp: attempt.tmp, filename: attempt.filename });
           }
-        });
-        array.push(...tmps);
-        return array;
-      }, []);
-      for (let i = 0; i < unknown.length; i++) {
-        const destination = `${STORAGE_PATH}/matches/unknown/${uuidv4()}.jpg`;
-        this.copy(unknown[i].tmp, destination);
-        await this.writeExif(destination, unknown[i]);
+        }
+      }
+      for (let i = 0; i < files.length; i++) {
+        const destination = `${STORAGE_PATH}/matches/unknown/${files[i].filename}`;
+        this.copy(files[i].tmp, destination);
       }
     },
   };
-};
-
-module.exports.writeExif = async (destination, data) => {
-  const exiftool = new ExifTool({ taskTimeoutMillis: 1000 });
-  const exif = data;
-  delete exif.tmp;
-  await exiftool.write(destination, { UserComment: JSON.stringify({ ...exif }) }, [
-    '-overwrite_original',
-  ]);
-  exiftool.end();
 };

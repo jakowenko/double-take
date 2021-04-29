@@ -6,6 +6,7 @@ const {
   MQTT_HOST,
   MQTT_TOPIC,
   MQTT_TOPIC_MATCHES,
+  MQTT_TOPIC_CAMERAS,
   MQTT_USERNAME,
   MQTT_PASSWORD,
 } = require('../constants');
@@ -50,7 +51,7 @@ module.exports.connect = () => {
     .on('message', async (topic, message) => {
       await axios({
         method: 'post',
-        url: `http://0.0.0.0:${PORT}/recognize`,
+        url: `http://0.0.0.0:${PORT}/api/recognize`,
         data: JSON.parse(message.toString()),
         validateStatus() {
           return true;
@@ -61,7 +62,8 @@ module.exports.connect = () => {
 
 module.exports.publish = (data) => {
   try {
-    const { matches } = data;
+    const { matches, camera } = data;
+
     matches.forEach((match) => {
       const configData = JSON.parse(JSON.stringify(data));
       const matchData = JSON.parse(JSON.stringify(match));
@@ -72,6 +74,19 @@ module.exports.publish = (data) => {
       };
       client.publish(`${MQTT_TOPIC_MATCHES}/${match.name}`, JSON.stringify(payload));
     });
+
+    if (matches.length) {
+      const configData = JSON.parse(JSON.stringify(data));
+      delete configData.matches;
+
+      client.publish(
+        `${MQTT_TOPIC_CAMERAS}/${camera}`,
+        JSON.stringify({
+          ...configData,
+          matches,
+        })
+      );
+    }
   } catch (error) {
     logger.log(`MQTT: publish error: ${error.message}`);
   }

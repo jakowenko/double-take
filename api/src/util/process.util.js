@@ -1,100 +1,114 @@
 const axios = require('axios');
+const fs = require('fs');
 const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
-const FormData = require('form-data');
-const fs = require('fs');
 const logger = require('./logger.util');
 const sleep = require('./sleep.util');
 const filesystem = require('./fs.util');
+const database = require('./db.util');
+const time = require('./time.util');
+// const frigate = require('./frigate.util');
 const { recognize, normalize } = require('./detectors/actions');
+const { SAVE_UNKNOWN, DETECTORS, STORAGE_PATH } = require('../constants');
 
-module.exports.polling = async ({
-  isFrigateEvent,
-  detector,
-  retries,
-  id,
-  type,
-  url,
-  breakMatch,
-  MATCH_IDS,
-}) => {
+module.exports.polling = async (
+  event,
+  { isFrigateEvent, retries, id, type, url, breakMatch, MATCH_IDS }
+) => {
+  event.type = type;
   breakMatch = !!(breakMatch === 'true' || breakMatch === true);
   const allResults = [];
-  const allMisses = [];
   let attempts = 0;
-  perf.start(`${detector}-${type}`);
+  let previousContentLength;
+  perf.start(type);
 
-  if (await this.isValidURL({ detector, type, url })) {
+  if (await this.isValidURL({ type, url })) {
     for (let i = 0; i < retries; i++) {
       if (breakMatch === true && MATCH_IDS.includes(id)) break;
-      attempts = i + 1;
 
       if (isFrigateEvent) await this.addJitter(1);
 
-      logger.log(`${detector}: ${type} attempt ${attempts}`, { verbose: true });
+      logger.log(`${type} attempt ${attempts}`, { verbose: true });
 
       const tmp = `/tmp/${id}-${type}-${uuidv4()}.jpg`;
+      const filename = `${uuidv4()}.jpg`;
 
       const stream = await this.stream(url);
-      if (stream) {
-        await filesystem.writer(stream, tmp);
-        const results = await this.process({ attempt: attempts, detector, tmp });
+      if (stream && previousContentLength !== stream.length) {
+        attempts = i + 1;
+        previousContentLength = stream.length;
+        const promises = [];
+        filesystem.writer(tmp, stream);
 
-        if (Array.isArray(results)) {
-          const matches = results
-            .filter((result) => result.match)
-            .map((miss) => {
-              miss.tmp = tmp;
-              return miss;
-            });
-          const misses = results
-            .filter((result) => !result.match)
-            .map((miss) => {
-              miss.tmp = tmp;
-              return miss;
-            });
+        // eslint-disable-next-line no-loop-func
+        DETECTORS.forEach((detector) => {
+          promises.push(this.process({ attempt: attempts, detector, tmp }));
+        });
+        let results = await Promise.all(promises);
 
-          if (misses.length) {
-            allMisses.push(...misses);
-          }
+        // eslint-disable-next-line no-loop-func
+        results = results.map((array, j) => {
+          return {
+            detector: DETECTORS[j],
+            duration: array.duration,
+            attempt: attempts,
+            results: array.results,
+            filename,
+          };
+        });
 
-          if (matches.length) {
-            allResults.push(...results);
-            MATCH_IDS.push(id);
-            // await filesystem.writer(fs.createReadStream(tmp), file);
-            if (breakMatch === true) break;
-          }
+        const foundMatch = !!results.flatMap((obj) => obj.results.filter((item) => item.match))
+          .length;
+        const totalFaces = results.flatMap((obj) => obj.results.filter((item) => item)).length;
+
+        if (foundMatch || (SAVE_UNKNOWN && totalFaces > 0))
+          await this.save(event, results, filename, tmp);
+
+        allResults.push(...results);
+
+        if (foundMatch) {
+          MATCH_IDS.push(id);
+          if (breakMatch === true) break;
         }
       }
     }
   }
 
-  const duration = parseFloat((perf.stop(`${detector}-${type}`).time / 1000).toFixed(2));
+  const duration = parseFloat((perf.stop(type).time / 1000).toFixed(2));
 
   return {
     duration,
     type,
-    // results: allResults,
-    misses: allMisses,
-    matches: allResults.filter((result) => result.match),
     attempts,
-    detector,
+    results: allResults,
   };
 };
 
-module.exports.process = async ({ attempt, detector, tmp }) => {
+module.exports.save = async (event, results, filename, tmp) => {
+  try {
+    const db = database.connect();
+    db.prepare(
+      `INSERT INTO match (id, filename, event, response, createdAt) VALUES (:id, :filename, :event, :response, :createdAt)`
+    ).run({
+      id: null,
+      filename,
+      event: JSON.stringify(event),
+      response: JSON.stringify(results),
+      createdAt: time.utc(),
+    });
+    await filesystem.writerStream(fs.createReadStream(tmp), `${STORAGE_PATH}/matches/${filename}`);
+  } catch (error) {
+    logger.log(`save results error: ${error.message}`);
+  }
+};
+
+module.exports.process = async ({ detector, tmp }) => {
   try {
     perf.start(detector);
-    const formData = new FormData();
-    if (detector === 'compreface' || detector === 'facebox') {
-      formData.append('file', fs.createReadStream(tmp));
-    } else {
-      formData.append('image', fs.createReadStream(tmp));
-    }
-    const { data } = await recognize({ detector, formData });
+    const { data } = await recognize({ detector, key: tmp });
     const duration = parseFloat((perf.stop(detector).time / 1000).toFixed(2));
 
-    return normalize({ detector, data, attempt, duration });
+    return { duration, results: normalize({ detector, data }) };
   } catch (error) {
     if (error.response && error.response.data.error) {
       logger.log(`${detector} process error: ${error.response.data.error}`);
@@ -104,7 +118,7 @@ module.exports.process = async ({ attempt, detector, tmp }) => {
   }
 };
 
-module.exports.isValidURL = async ({ detector, type, url }) => {
+module.exports.isValidURL = async ({ type, url }) => {
   const validOptions = ['image/jpg', 'image/jpeg', 'image/png'];
   try {
     const request = await axios({
@@ -114,7 +128,7 @@ module.exports.isValidURL = async ({ detector, type, url }) => {
     const { headers } = request;
     const isValid = validOptions.includes(headers['content-type']);
     if (!isValid) {
-      logger.log(`${detector} url validation failed for ${type}: ${url}`);
+      logger.log(`url validation failed for ${type}: ${url}`);
       logger.log(`content type: ${headers['content-type']}`);
     }
     return isValid;
@@ -129,7 +143,7 @@ module.exports.stream = async (url) => {
     const request = await axios({
       method: 'get',
       url,
-      responseType: 'stream',
+      responseType: 'arraybuffer',
     });
     return request.data;
   } catch (error) {

@@ -6,15 +6,10 @@ module.exports.recognize = ({ get }) => {
   let validations = [
     query('results').default('best').isIn(['best', 'all']).withMessage('not a valid result type'),
     query('break').default(true).isIn([true, false]),
-    query('processing')
-      .default('parallel')
-      .isIn(['parallel', 'serial'])
-      .withMessage('not a valid processing type'),
   ];
   if (get) {
     validations = validations.concat([
       query('camera').default('double-take'),
-      query('room').default('Double Take'),
       query('url').isURL(),
       query('attempts').default(1).isInt().withMessage('not a valid number'),
     ]);
@@ -49,10 +44,6 @@ module.exports.storage = () => {
       return [query('bbox').default(false).isIn([true, false])];
     },
   };
-};
-
-module.exports.train = () => {
-  return [query('attempts').default(1).isInt().withMessage('not a valid number')];
 };
 
 module.exports.objects = () => {

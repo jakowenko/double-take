@@ -13,15 +13,8 @@ const { PORT } = constants;
 
 module.exports.start = async () => {
   storage.setup();
-
-  logger.log(
-    '____________________________________________________________________________________\n'
-  );
   logger.log(`Double Take v${version}\n${time.current()}\n`);
   logger.log(constants);
-  logger.log(
-    '\n____________________________________________________________________________________\n'
-  );
 
   await database.init();
 

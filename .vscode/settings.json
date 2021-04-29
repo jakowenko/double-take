@@ -1,6 +1,5 @@
 {
   "eslint.workingDirectories": [
-    "./api",
-    "./frontend"
+    { "mode": "auto" }
   ]
 }

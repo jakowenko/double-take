@@ -4,7 +4,6 @@ const process = require('../util/process.util');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
 const recognize = require('../util/recognize.util');
-const filesystem = require('../util/fs.util');
 const frigate = require('../util/frigate.util');
 const mqtt = require('../util/mqtt.util');
 const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
@@ -15,8 +14,6 @@ const {
   FRIGATE_IMAGE_HEIGHT,
   SNAPSHOT_RETRIES,
   LATEST_RETRIES,
-  DETECTORS,
-  SAVE_UNKNOWN,
   MQTT_HOST,
 } = require('../constants');
 
@@ -25,39 +22,38 @@ const { IDS, MATCH_IDS } = {
   MATCH_IDS: [],
 };
 
-let { PROCESSING, LAST_CAMERA } = {
-  PROCESSING: false,
-  LAST_CAMERA: false,
-};
+let PROCESSING = false;
 
 module.exports.start = async (req, res) => {
   try {
     const isFrigateEvent = req.method === 'POST';
-    const { type } = req.body;
-    const {
-      url,
-      attempts: manualAttempts,
-      results: resultsOutput,
-      break: breakMatch,
-      processing,
-    } = req.query;
-    const attributes = req.body.after ? req.body.after : req.body.before;
-    const { id, label, camera } = isFrigateEvent
-      ? attributes
-      : { id: uuidv4(), camera: req.query.camera };
-    const room = isFrigateEvent
-      ? camera.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
-      : req.query.room;
+    let event = {
+      options: {
+        break: req.query.break,
+        results: req.query.results,
+        attempts: req.query.attempts,
+      },
+    };
+
+    if (isFrigateEvent) {
+      const { type } = req.body;
+      const attributes = req.body.after ? req.body.after : req.body.before;
+      const { id, label, camera, current_zones: zones } = attributes;
+      event = { id, label, camera, zones, type, ...event };
+    } else {
+      const { url, camera } = req.query;
+
+      event = { id: uuidv4(), url, camera, zones: [], ...event };
+    }
+
+    const { id, camera, zones, url } = event;
+    const { break: breakMatch, results: resultsOutput, attempts: manualAttempts } = event.options;
 
     if (isFrigateEvent && FRIGATE_URL) {
       try {
         const check = await frigate.checks({
-          id,
-          type,
-          label,
-          camera,
+          ...event,
           PROCESSING,
-          LAST_CAMERA,
           IDS,
         });
         if (typeof check === 'string') {
@@ -73,58 +69,54 @@ module.exports.start = async (req, res) => {
     perf.start('request');
     PROCESSING = true;
 
-    let promises = [];
-    let results = [];
+    const promises = [];
 
-    for (let i = 0; i < DETECTORS.length; i++) {
-      if (processing === 'serial') {
-        promises = [];
-      }
-      const detector = DETECTORS[i];
-      const config = {
-        isFrigateEvent,
-        breakMatch,
-        detector,
-        id,
-        MATCH_IDS,
-      };
+    const config = {
+      isFrigateEvent,
+      breakMatch,
+      id,
+      MATCH_IDS,
+    };
 
-      if (isFrigateEvent) {
-        promises.push(
-          process.polling({
+    if (isFrigateEvent) {
+      promises.push(
+        process.polling(
+          { ...event },
+          {
             ...config,
             retries: LATEST_RETRIES,
             type: 'latest',
             url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=${FRIGATE_IMAGE_HEIGHT}`,
-          })
-        );
-        promises.push(
-          process.polling({
+          }
+        )
+      );
+      promises.push(
+        process.polling(
+          { ...event },
+          {
             ...config,
             retries: SNAPSHOT_RETRIES,
             type: 'snapshot',
             url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}`,
-          })
-        );
-      } else {
-        promises.push(
-          process.polling({
+          }
+        )
+      );
+    } else {
+      promises.push(
+        process.polling(
+          { ...event },
+          {
             ...config,
             retries: parseInt(manualAttempts, 10),
             type: 'manual',
             url,
-          })
-        );
-      }
-      if (processing === 'serial') {
-        results = results.concat(await Promise.all(promises));
-      }
-    }
-    if (processing !== 'serial') {
-      results = await Promise.all(promises);
+          }
+        )
+      );
     }
 
-    const { attempts, matches } = recognize.filter(results);
+    const { best, results, attempts } = recognize.normalize(await Promise.all(promises));
+
     const duration = parseFloat((perf.stop('request').time / 1000).toFixed(2));
     const output = {
       id,
@@ -132,40 +124,25 @@ module.exports.start = async (req, res) => {
       timestamp: time.current(),
       attempts,
       camera,
-      room,
-      matches: JSON.parse(JSON.stringify(matches)).map((match) => {
-        delete match.box;
-        delete match.tmp;
-        return match;
+      zones,
+      matches: JSON.parse(JSON.stringify(best)).map((obj) => {
+        delete obj.tmp;
+        return obj;
       }),
     };
 
     if (resultsOutput === 'all')
-      output.results = JSON.parse(JSON.stringify(results)).map((result) => {
-        ['matches', 'misses'].forEach((array) => {
-          result[array].forEach((obj) => {
-            delete obj.box;
-            delete obj.tmp;
-          });
+      output.results = JSON.parse(JSON.stringify(results)).map((group) => {
+        group.results.forEach((attempt) => {
+          delete attempt.tmp;
         });
-
-        return result;
+        return group;
       });
 
     logger.log('response:');
     logger.log(output);
     logger.log(`${time.current()}\ndone processing ${camera}: ${id} in ${duration} sec`, {
       dashes: true,
-    });
-
-    if (SAVE_UNKNOWN) {
-      await filesystem.save().unknown(results);
-    }
-
-    const filenames = await filesystem.save().matches(id, matches);
-    output.matches.map((match, i) => {
-      match.filename = filenames[i];
-      return match;
     });
 
     PROCESSING = false;
@@ -177,16 +154,11 @@ module.exports.start = async (req, res) => {
     }
 
     if (output.matches.length) {
-      LAST_CAMERA = camera;
       IDS.push(id);
-      setTimeout(() => {
-        LAST_CAMERA = false;
-      }, 3 * 60 * 1000);
     }
   } catch (error) {
     logger.log(error.message);
     PROCESSING = false;
-    LAST_CAMERA = false;
     respond(error, res);
   }
 };
