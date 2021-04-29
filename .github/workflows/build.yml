@@ -3,8 +3,11 @@ name: build
 on:
   push:
     branches:
-      - master
       - beta
+  release:
+    types: [released]
+    branches:
+      - master
 
 jobs:
   build-docker:
