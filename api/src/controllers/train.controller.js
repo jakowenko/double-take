@@ -20,7 +20,7 @@ module.exports.delete = async (req, res) => {
       const db = database.connect();
       db.prepare('DELETE FROM train WHERE detector = ? AND name = ?').run(detector, name);
     });
-    const results = await Promise.all(promises);
+    const results = [...(await Promise.all(promises))];
 
     logger.log(
       `${time.current()}\ndone untraining for ${name} in ${parseFloat(

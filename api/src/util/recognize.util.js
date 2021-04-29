@@ -13,6 +13,7 @@ module.exports.normalize = (results = []) => {
             tmp[match.name] = {
               ...match,
               type: group.type,
+              duration: attempt.duration,
               detector: attempt.detector,
               tmp: attempt.tmp,
               filename: attempt.filename,

@@ -10,7 +10,6 @@ module.exports.recognize = ({ get }) => {
   if (get) {
     validations = validations.concat([
       query('camera').default('double-take'),
-      query('room').default('Double Take'),
       query('url').isURL(),
       query('attempts').default(1).isInt().withMessage('not a valid number'),
     ]);
@@ -45,10 +44,6 @@ module.exports.storage = () => {
       return [query('bbox').default(false).isIn([true, false])];
     },
   };
-};
-
-module.exports.train = () => {
-  return [query('attempts').default(1).isInt().withMessage('not a valid number')];
 };
 
 module.exports.objects = () => {
