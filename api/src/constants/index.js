@@ -60,8 +60,8 @@ let constants = {
   FRIGATE_CAMERAS: FRIGATE_CAMERAS ? FRIGATE_CAMERAS.replace(/ /g, '').split(',') : null,
   FRIGATE_ZONES: FRIGATE_ZONES ? FRIGATE_ZONES.replace(/ /g, '').split(',') : null,
   FRIGATE_IMAGE_HEIGHT: FRIGATE_URL ? parseInt(FRIGATE_IMAGE_HEIGHT, 10) || 800 : null,
-  SNAPSHOT_RETRIES: FRIGATE_URL ? parseInt(SNAPSHOT_RETRIES, 10) || 10 : null,
-  LATEST_RETRIES: FRIGATE_URL ? parseInt(LATEST_RETRIES, 10) || 10 : null,
+  SNAPSHOT_RETRIES: FRIGATE_URL ? (SNAPSHOT_RETRIES ? parseInt(SNAPSHOT_RETRIES, 10) : 10) : null,
+  LATEST_RETRIES: FRIGATE_URL ? (LATEST_RETRIES ? parseInt(LATEST_RETRIES, 10) : 10) : null,
 };
 
 for (const [key, value] of Object.entries(constants)) {
