@@ -1,5 +1,4 @@
 const Database = require('better-sqlite3');
-const { v4: uuidv4 } = require('uuid');
 const time = require('./time.util');
 const filesystem = require('./fs.util');
 const logger = require('./logger.util');
@@ -22,7 +21,6 @@ module.exports.init = async () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name,
         filename,
-        uuid,
         meta JSON,
         isActive INTEGER,
         createdAt TIMESTAMP,
@@ -96,15 +94,6 @@ module.exports.files = (status, data) => {
         .all(data);
     }
 
-    if (status === 'uuid') {
-      const uuids = data.map((uuid) => `'${uuid}'`).join(',');
-      files = db
-        .prepare(
-          `SELECT * FROM file WHERE uuid IN (${uuids}) AND id NOT IN (SELECT fileId FROM train)`
-        )
-        .all();
-    }
-
     if (status === 'trained') {
       files = db.prepare(`SELECT * FROM train`).all();
     }
@@ -167,13 +156,12 @@ module.exports.insert = (type, data = []) => {
   if (type === 'file') {
     const insert = db.prepare(`
       INSERT INTO file
-      VALUES (:id, :name, :filename, :uuid, :meta, :isActive, :createdAt)
+      VALUES (:id, :name, :filename, :meta, :isActive, :createdAt)
       ON CONFLICT (name, filename) DO UPDATE SET isActive = 1;
     `);
     const transaction = db.transaction((items) => {
       for (const item of items) {
         item.id = null;
-        item.uuid = item.uuid || uuidv4();
         item.createdAt = time.utc();
         item.meta = null;
         item.isActive = 1;

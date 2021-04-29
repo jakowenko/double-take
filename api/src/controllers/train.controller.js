@@ -1,58 +1,12 @@
-const fs = require('fs');
 const perf = require('execution-time')();
-const axios = require('axios');
-const { v4: uuidv4 } = require('uuid');
-const { writer } = require('../util/fs.util');
 const database = require('../util/db.util');
-const sleep = require('../util/sleep.util');
 const train = require('../util/train.util');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
 const filesystem = require('../util/fs.util');
 const { respond, HTTPSuccess } = require('../util/respond.util');
 const { OK } = require('../constants/http-status');
-const { FRIGATE_URL, STORAGE_PATH, DETECTORS } = require('../constants');
-
-module.exports.camera = async (req, res) => {
-  const { name, camera } = req.params;
-  const { attempts } = req.query;
-
-  if (!fs.existsSync(`${STORAGE_PATH}/train/${name}`)) {
-    fs.mkdirSync(`${STORAGE_PATH}/train/${name}`);
-  }
-
-  try {
-    const uuids = [];
-    const inserts = [];
-    for (let i = 0; i < attempts; i++) {
-      await sleep(1);
-      const uuid = uuidv4();
-      const cameraStream = await axios({
-        method: 'get',
-        url: `${FRIGATE_URL}/api/${camera}/latest.jpg`,
-        responseType: 'stream',
-      });
-      await writer(cameraStream.data, `${STORAGE_PATH}/train/${name}/${camera}-${uuid}.jpg`);
-      inserts.push({
-        name,
-        filename: `${camera}-${uuid}.jpg`,
-        uuid,
-      });
-
-      uuids.push(uuid);
-    }
-
-    database.insert('file', inserts);
-    const files = database.files('uuid', uuids);
-    const results = await train.queue(files);
-    train.cleanup(results);
-
-    respond(HTTPSuccess(OK, { camera, name, results }), res);
-  } catch (error) {
-    logger.log(`train camera error: ${error.message}`);
-    respond(error, res);
-  }
-};
+const { DETECTORS } = require('../constants');
 
 module.exports.delete = async (req, res) => {
   try {

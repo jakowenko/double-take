@@ -1,4 +1,3 @@
-const fs = require('fs');
 const perf = require('execution-time')();
 const time = require('./time.util');
 const logger = require('./logger.util');
@@ -17,7 +16,7 @@ module.exports.queue = async (files) => {
     for (let i = 0; i < files.length; i++) {
       const output = [];
       const promises = [];
-      const { id, name, filename, key, uuid } = files[i];
+      const { id, name, filename, key } = files[i];
       logger.log(`file ${i + 1}: ${name} - ${filename}`);
 
       DETECTORS.forEach((detector) => {
@@ -26,7 +25,7 @@ module.exports.queue = async (files) => {
       const results = await Promise.all(promises);
 
       results.forEach((result, j) => {
-        output.push({ ...result, key, uuid });
+        output.push({ ...result, key });
         inserts.push({
           fileId: id,
           name,
@@ -75,20 +74,5 @@ module.exports.process = async ({ name, key, detector }) => {
 
 module.exports.remove = async ({ detector, name }) => {
   const { data } = await remove({ detector, name });
-  return { [detector]: data };
-};
-
-module.exports.cleanup = (results) => {
-  const db = database.connect();
-  results.forEach((result) => {
-    const notFound = [];
-    result.forEach((detector, i) => {
-      const { success, code, key, uuid } = detector;
-      if (success === false || code === 28) notFound.push(true);
-      if (i + 1 === result.length && notFound.length === result.length && fs.existsSync(key)) {
-        fs.unlinkSync(key);
-        db.prepare(`UPDATE file SET isActive = 0 WHERE uuid = ?`).run(uuid);
-      }
-    });
-  });
+  return { detector, results: data };
 };
