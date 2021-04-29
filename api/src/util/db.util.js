@@ -16,6 +16,9 @@ module.exports.connect = () => {
 module.exports.init = async () => {
   try {
     const db = database.connect();
+
+    database.migrations();
+
     db.prepare(
       `CREATE TABLE IF NOT EXISTS file (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,15 +44,6 @@ module.exports.init = async () => {
     )`
     ).run();
 
-    const query = db
-      .prepare('PRAGMA table_info(match)')
-      .all()
-      .filter((obj) => obj.name === 'filename');
-
-    if (!query.length) {
-      db.prepare('DROP TABLE IF EXISTS match').run();
-    }
-
     db.prepare(
       `CREATE TABLE IF NOT EXISTS match (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,8 +53,6 @@ module.exports.init = async () => {
         createdAt TIMESTAMP
     )`
     ).run();
-
-    // database.migrations();
 
     const files = await filesystem.files().train();
     database.insert('init', files);
@@ -72,12 +64,44 @@ module.exports.init = async () => {
 module.exports.migrations = () => {
   try {
     const db = database.connect();
-    const transactions = db.transaction((migrations) => {
-      for (const migration of migrations) db.prepare(migration).run();
-    });
-    transactions([]);
+    if (
+      !db
+        .prepare('PRAGMA table_info(match)')
+        .all()
+        .filter((obj) => obj.name === 'filename').length
+    ) {
+      db.prepare('DROP TABLE IF EXISTS match').run();
+    }
+
+    if (
+      db
+        .prepare('PRAGMA table_info(file)')
+        .all()
+        .filter((obj) => obj.name === 'uuid').length
+    ) {
+      db.exec(
+        `
+          BEGIN TRANSACTION;
+          CREATE TEMPORARY TABLE file_backup (id, name, filename, meta, isActive, createdAt);
+          INSERT INTO file_backup SELECT id, name, filename, meta, isActive, createdAt FROM file;
+          DROP TABLE file;
+          CREATE TABLE file (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name,
+            filename,
+            meta JSON,
+            isActive INTEGER,
+            createdAt TIMESTAMP,
+            UNIQUE(name, filename)
+          );
+          INSERT INTO file SELECT id, name, filename, meta, isActive, createdAt FROM file_backup;
+          DROP TABLE file_backup;
+          COMMIT;
+      `
+      );
+    }
   } catch (error) {
-    logger.log(`db transaction error: ${error.message}`);
+    logger.log(`db migrations error: ${error.message}`);
   }
 };
 
