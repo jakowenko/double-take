@@ -16,7 +16,6 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "execution-time": "^1.4.1",
-    "exiftool-vendored": "^14.1.1",
     "express": "^4.16.1",
     "express-validator": "^6.10.0",
     "form-data": "^4.0.0",

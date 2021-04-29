@@ -3,7 +3,6 @@ const { promisify } = require('util');
 const sizeOf = promisify(require('image-size'));
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const database = require('../util/db.util');
-// const { ExifTool } = require('exiftool-vendored');
 const { tryParseJSON } = require('../util/validators.util');
 const { respond, HTTPError } = require('../util/respond.util');
 const { BAD_REQUEST } = require('../constants/http-status');
@@ -21,10 +20,6 @@ module.exports.matches = async (req, res) => {
     }
 
     if (showBox === 'true') {
-      // const exiftool = new ExifTool({ taskTimeoutMillis: 1000 });
-      // const { UserComment: exif } = await exiftool.read(source);
-      // exiftool.end();
-
       const db = database.connect();
       const match = db.prepare('SELECT * FROM match WHERE filename = ?').bind(filename).get();
 

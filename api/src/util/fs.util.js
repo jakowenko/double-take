@@ -1,6 +1,5 @@
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
-const { ExifTool } = require('exiftool-vendored');
 const logger = require('./logger.util');
 const { STORAGE_PATH } = require('../constants');
 
@@ -127,7 +126,6 @@ module.exports.save = () => {
         await this.writerStream(fs.createReadStream(match.tmp), tmp);
         const destination = `${STORAGE_PATH}/matches/${match.name}/${match.filename}`;
         this.writeMatches(match.name, tmp, destination);
-        // await this.writeExif(destination, match);
       }
     },
     unknown: async (results) => {
@@ -144,18 +142,7 @@ module.exports.save = () => {
       for (let i = 0; i < files.length; i++) {
         const destination = `${STORAGE_PATH}/matches/unknown/${files[i].filename}`;
         this.copy(files[i].tmp, destination);
-        // await this.writeExif(destination, files[i]);
       }
     },
   };
-};
-
-module.exports.writeExif = async (destination, data) => {
-  const exiftool = new ExifTool({ taskTimeoutMillis: 1000 });
-  const exif = data;
-  delete exif.tmp;
-  await exiftool.write(destination, { UserComment: JSON.stringify({ ...exif }) }, [
-    '-overwrite_original',
-  ]);
-  exiftool.end();
 };
