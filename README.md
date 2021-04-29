@@ -22,7 +22,20 @@ When a Frigate event is received the API begins to process the [`snapshot.jpg`](
 
 Double Take can be paired with Home Assistant and Node-Red to create automations when matches are detected.
 
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/1081811/116505698-904ec780-a889-11eb-825e-b641203d9e95.jpg" width="70%">
+</p>
+
+
 More information for this can be found in the [docs](https://github.com/jakowenko/double-take/tree/master/docs/home-assistant-node-red.md).
+
+## UI
+
+The UI is accessible from `http://localhost:3000`.
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/1081811/116505792-cc822800-a889-11eb-91f3-f6a192767aa8.png" width="70%">
+</p>
 
 ## API
 
