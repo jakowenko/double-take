@@ -78,13 +78,14 @@ module.exports.publish = (data) => {
     if (matches.length) {
       const configData = JSON.parse(JSON.stringify(data));
       delete configData.matches;
-      const combined = matches.map((match) => {
-        return {
+
+      client.publish(
+        `${MQTT_TOPIC_CAMERAS}/${camera}`,
+        JSON.stringify({
           ...configData,
-          ...match,
-        };
-      });
-      client.publish(`${MQTT_TOPIC_CAMERAS}/${camera}`, JSON.stringify(combined));
+          matches,
+        })
+      );
     }
   } catch (error) {
     logger.log(`MQTT: publish error: ${error.message}`);
