@@ -8,7 +8,11 @@
       @filter="filter = $event"
     />
     <div class="p-d-flex p-jc-center p-p-3">
-      <i v-if="loading.files" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
+      <i
+        v-if="loading.files && !matches.source.length"
+        class="pi pi-spin pi-spinner p-mt-5"
+        style="font-size: 3rem"
+      ></i>
       <Grid
         v-else
         :matches="{ filtered, ...matches }"
@@ -132,8 +136,6 @@ export default {
             $this.loading.files = true;
             const { data } = await ApiService.get('match');
             setTimeout(() => {
-              $this.matches.selected = [];
-              $this.matches.disabled = [];
               $this.matches.source = data.matches;
               $this.loading.files = false;
               $this.loading.lazy = false;
@@ -179,9 +181,6 @@ export default {
                     summary: 'Success',
                     detail: `${description} deleted`,
                   });
-                  if ($this.toggleAllState) {
-                    $this.get().matches();
-                  }
                 } catch (error) {
                   $this.toast({ severity: 'error', summary: 'Error', detail: error.message });
                 }
