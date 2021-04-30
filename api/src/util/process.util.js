@@ -50,9 +50,9 @@ module.exports.polling = async (
         results = results.map((array, j) => {
           return {
             detector: DETECTORS[j],
-            duration: array.duration,
+            duration: array ? array.duration : 0,
             attempt: attempts,
-            results: array.results,
+            results: array ? array.results : [],
             filename,
           };
         });
