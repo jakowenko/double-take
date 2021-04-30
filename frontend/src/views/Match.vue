@@ -125,7 +125,6 @@ export default {
           } catch (error) {
             $this.$toast.add({
               severity: 'error',
-              summary: 'Error',
               detail: error.message,
               life: 3000,
             });
@@ -139,13 +138,16 @@ export default {
             const { data } = await ApiService.get('match', { sinceId: id });
             setTimeout(() => {
               if (data.matches.length) $this.matches.source.unshift(...data.matches);
+              $this.matches.source = $this.matches.source.slice(0, 100);
+              $this.matches.selected = $this.matches.source.filter((selected) =>
+                $this.matches.selected.some((filter) => filter.id === selected.id),
+              );
               $this.loading.files = false;
               $this.loading.lazy = false;
             }, 1000);
           } catch (error) {
             $this.$toast.add({
               severity: 'error',
-              summary: 'Error',
               detail: error.message,
               life: 3000,
             });
@@ -180,16 +182,15 @@ export default {
 
                   $this.toast({
                     severity: 'success',
-                    summary: 'Success',
                     detail: `${description} deleted`,
                   });
                 } catch (error) {
-                  $this.toast({ severity: 'error', summary: 'Error', detail: error.message });
+                  $this.toast({ severity: 'error', detail: error.message });
                 }
               },
             });
           } catch (error) {
-            $this.toast({ severity: 'error', summary: 'Error', detail: error.message });
+            $this.toast({ severity: 'error', detail: error.message });
           }
         },
       };
@@ -203,13 +204,11 @@ export default {
             $this.get().folders();
             $this.$toast.add({
               severity: 'success',
-              summary: 'Success',
               detail: 'Folder created',
             });
           } catch (error) {
             $this.$toast.add({
               severity: 'error',
-              summary: 'Error',
               detail: error.message,
               life: 3000,
             });
@@ -244,13 +243,11 @@ export default {
 
             this.toast({
               severity: 'success',
-              summary: 'Success',
               detail: `${description} trained for ${this.trainingFolder}`,
             });
           } catch (error) {
             this.toast({
               severity: 'error',
-              summary: 'Error',
               detail: error.message,
               life: 3000,
             });
@@ -258,10 +255,9 @@ export default {
         },
       });
     },
-    toast({ severity, summary, detail }) {
+    toast({ severity, detail }) {
       this.$toast.add({
         severity,
-        summary,
         detail,
         life: 3000,
       });
@@ -271,7 +267,7 @@ export default {
       if (this.matches.disabled.includes(id)) return;
       const index = this.matches.selected.findIndex((obj) => match.id === obj.id);
       if (index !== -1) this.matches.selected.splice(index, 1);
-      else this.matches.selected.push(match);
+      else this.matches.selected.unshift(match);
     },
     assetLoaded(id) {
       this.matches.loaded.push(id);

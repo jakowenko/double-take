@@ -10,7 +10,7 @@ const { STORAGE_PATH } = require('../constants');
 
 module.exports.get = async (req, res) => {
   try {
-    const { sinceId: id } = req.query;
+    const { sinceId } = req.query;
 
     const db = database.connect();
     let matches = db
@@ -22,7 +22,7 @@ module.exports.get = async (req, res) => {
           ORDER BY createdAt DESC LIMIT 100
         `
       )
-      .bind(id || 0)
+      .bind(sinceId || 0)
       .all();
 
     matches = await Promise.all(
