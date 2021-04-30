@@ -10,15 +10,19 @@ const { STORAGE_PATH } = require('../constants');
 
 module.exports.get = async (req, res) => {
   try {
+    const { sinceId: id } = req.query;
+
     const db = database.connect();
     let matches = db
       .prepare(
         `
           SELECT * FROM match
           WHERE filename NOT IN (SELECT filename FROM train)
+          AND id > ?
           ORDER BY createdAt DESC LIMIT 100
         `
       )
+      .bind(id || 0)
       .all();
 
     matches = await Promise.all(

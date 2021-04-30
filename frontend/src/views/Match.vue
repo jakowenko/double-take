@@ -134,9 +134,11 @@ export default {
         async matches() {
           try {
             $this.loading.files = true;
-            const { data } = await ApiService.get('match');
+            const id = $this.matches.source.length ? { ...$this.matches.source[0] }.id : 0;
+
+            const { data } = await ApiService.get('match', { sinceId: id });
             setTimeout(() => {
-              $this.matches.source = data.matches;
+              if (data.matches.length) $this.matches.source.unshift(...data.matches);
               $this.loading.files = false;
               $this.loading.lazy = false;
             }, 1000);

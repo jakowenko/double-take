@@ -75,7 +75,7 @@
     </div>
     <div class="fixed fixed-sub p-shadow-5 p-pl-3 p-pr-3" :class="{ show: showFilter }">
       <div class="p-grid">
-        <div class="p-col-12 p-d-flex p-jc-end">
+        <div class="p-col-12 p-d-flex p-jc-end p-pb-0">
           <div class="p-field-checkbox p-mb-0">
             <label for="liveReload" class="p-mr-1">Live Reload</label>
             <Checkbox id="liveReload" v-model="liveReload" :binary="true" />
@@ -198,7 +198,7 @@ export default {
       const $this = this;
       if (value) {
         $this.$parent.get().matches();
-        $this.reloadInterval = setInterval(async () => {
+        $this.reloadInterval = setInterval(() => {
           $this.$parent.get().matches();
         }, 2500);
       } else {
@@ -309,7 +309,7 @@ export default {
     background: var(--surface-50);
     top: -150px;
     z-index: 3;
-    padding-top: 0.6rem;
+    padding-top: 0.75rem;
     padding-bottom: 0;
     transition: all 0.25s;
 
