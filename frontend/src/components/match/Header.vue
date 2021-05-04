@@ -154,6 +154,7 @@ import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import MultiSelect from 'primevue/multiselect';
 import Checkbox from 'primevue/checkbox';
+import Sleep from '@/util/sleep.util';
 
 export default {
   components: {
@@ -171,7 +172,6 @@ export default {
         show: false,
       },
       liveReload: null,
-      reloadInterval: null,
       toggleAllState: false,
       showFilter: false,
       filter: {
@@ -192,17 +192,18 @@ export default {
   mounted() {
     this.$emit('filter', this.filter);
   },
-  methods: {},
+  methods: {
+    async getMatchesInterval() {
+      if (!this.liveReload) return;
+      await this.$parent.get().matches();
+      await Sleep(1000);
+      await this.getMatchesInterval();
+    },
+  },
   watch: {
-    liveReload(value) {
-      const $this = this;
+    async liveReload(value) {
       if (value) {
-        $this.$parent.get().matches();
-        $this.reloadInterval = setInterval(() => {
-          $this.$parent.get().matches();
-        }, 2500);
-      } else {
-        clearInterval($this.reloadInterval);
+        this.getMatchesInterval();
       }
     },
     names(values) {

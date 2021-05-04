@@ -28,6 +28,7 @@
 import ApiService from '@/services/api.service';
 import Grid from '@/components/match/Grid.vue';
 import Header from '@/components/match/Header.vue';
+import Sleep from '@/util/sleep.util';
 
 export default {
   components: {
@@ -133,18 +134,21 @@ export default {
         async matches() {
           try {
             $this.loading.files = true;
+            await Sleep(1000);
             const id = $this.matches.source.length ? { ...$this.matches.source[0] }.id : 0;
-
             const { data } = await ApiService.get('match', { sinceId: id });
-            setTimeout(() => {
-              if (data.matches.length) $this.matches.source.unshift(...data.matches);
-              $this.matches.source = $this.matches.source.slice(0, 100);
-              $this.matches.selected = $this.matches.source.filter((selected) =>
-                $this.matches.selected.some((filter) => filter.id === selected.id),
-              );
-              $this.loading.files = false;
-              $this.loading.lazy = false;
-            }, 1000);
+            if (data.matches.length) $this.matches.source.unshift(...data.matches);
+            $this.matches.selected = $this.matches.source.filter((selected) =>
+              $this.matches.selected.some((filter) => filter.id === selected.id),
+            );
+            $this.matches.source.forEach((obj, i) => {
+              if ($this.matches.disabled.includes(obj.id)) {
+                $this.matches.source.splice(i, 1);
+              }
+            });
+            if ($this.matches.source.length > 100) $this.matches.source.length = 100;
+            $this.loading.files = false;
+            $this.loading.lazy = false;
           } catch (error) {
             $this.$toast.add({
               severity: 'error',
