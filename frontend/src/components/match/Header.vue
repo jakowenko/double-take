@@ -202,6 +202,7 @@ export default {
   },
   watch: {
     async liveReload(value) {
+      this.$emit('liveReload', value);
       if (value) {
         this.getMatchesInterval();
       }

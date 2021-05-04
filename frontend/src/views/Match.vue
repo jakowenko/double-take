@@ -6,13 +6,10 @@
       :matches="matches"
       @trainingFolder="trainingFolder = $event"
       @filter="filter = $event"
+      @liveReload="liveReload = $event"
     />
     <div class="p-d-flex p-jc-center p-p-3">
-      <i
-        v-if="loading.files && !matches.source.length"
-        class="pi pi-spin pi-spinner p-mt-5"
-        style="font-size: 3rem"
-      ></i>
+      <i v-if="loading.files && !source.length" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
       <Grid
         v-else
         :matches="{ filtered, ...matches }"
@@ -52,13 +49,17 @@ export default {
         loaded: [],
       },
       filter: {},
-      toggleAllState: null,
+      toggleAllState: false,
       trainingFolder: null,
+      liveReload: false,
     };
   },
   computed: {
+    source() {
+      return JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
+    },
     filtered() {
-      const files = JSON.parse(JSON.stringify(this.matches.source));
+      const files = JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
 
       const name = this.filter.name || [];
       const match = this.filter.match || [];
@@ -141,11 +142,14 @@ export default {
             $this.matches.selected = $this.matches.source.filter((selected) =>
               $this.matches.selected.some((filter) => filter.id === selected.id),
             );
-            $this.matches.source.forEach((obj, i) => {
-              if ($this.matches.disabled.includes(obj.id)) {
-                $this.matches.source.splice(i, 1);
-              }
-            });
+
+            const deleteDisabled = $this.matches.source.flatMap((obj, i) =>
+              $this.matches.disabled.includes(obj.id) ? i : [],
+            );
+            for (let i = 0; i < deleteDisabled.length; i += 1) {
+              delete $this.matches.source[deleteDisabled[i]];
+            }
+
             if ($this.matches.source.length > 100) $this.matches.source.length = 100;
             $this.loading.files = false;
             $this.loading.lazy = false;
@@ -188,6 +192,9 @@ export default {
                     severity: 'success',
                     detail: `${description} deleted`,
                   });
+                  if ($this.toggleAllState && !$this.liveReload) {
+                    await $this.get().matches();
+                  }
                 } catch (error) {
                   $this.toast({ severity: 'error', detail: error.message });
                 }
