@@ -37,7 +37,7 @@
             <template v-slot:body="slotProps">
               <Badge
                 :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
-                :severity="detector(slotProps.data.detector).match ? 'success' : 'danger'"
+                :severity="slotProps.data.match ? 'success' : 'danger'"
               />
               <div :class="'icon ' + slotProps.data.detector"></div>
             </template>
@@ -107,10 +107,6 @@ export default {
     },
     openLink(url) {
       window.open(url);
-    },
-    detector(detector) {
-      const [match] = this.results.filter((obj) => obj.detector === detector);
-      return match;
     },
     box(obj) {
       const { width, height } = this.match.file;
