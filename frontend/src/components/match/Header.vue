@@ -61,12 +61,9 @@
               :disabled="liveReload || loading.files"
             />
             <Button
-              :icon="toggleAllState ? 'fa fa-check-square' : 'far fa-check-square'"
+              :icon="areAllSelected ? 'fa fa-check-square' : 'far fa-check-square'"
               class="p-button p-button-sm p-mr-1"
-              @click="
-                toggleAllState = !toggleAllState;
-                $parent.toggleAll(toggleAllState);
-              "
+              @click="$parent.toggleAll(!areAllSelected)"
             />
             <Button icon="pi pi-cog" class="p-button p-button-sm" @click="showFilter = !showFilter" />
           </div>
@@ -172,7 +169,6 @@ export default {
         show: false,
       },
       liveReload: null,
-      toggleAllState: false,
       showFilter: false,
       filter: {
         name: null,
@@ -185,6 +181,7 @@ export default {
     };
   },
   props: {
+    areAllSelected: Boolean,
     matches: Object,
     folders: Array,
     loading: Object,
@@ -221,10 +218,6 @@ export default {
         return;
       }
       this.$emit('trainingFolder', value);
-    },
-    // eslint-disable-next-line object-shorthand
-    'matches.source'() {
-      this.toggleAllState = false;
     },
   },
   computed: {

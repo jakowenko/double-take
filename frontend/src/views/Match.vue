@@ -4,6 +4,7 @@
       :loading="loading"
       :folders="['add new', ...folders]"
       :matches="matches"
+      :areAllSelected="areAllSelected"
       @trainingFolder="trainingFolder = $event"
       @filter="filter = $event"
       @liveReload="liveReload = $event"
@@ -49,7 +50,6 @@ export default {
         loaded: [],
       },
       filter: {},
-      toggleAllState: false,
       trainingFolder: null,
       liveReload: false,
     };
@@ -57,6 +57,9 @@ export default {
   computed: {
     source() {
       return JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
+    },
+    areAllSelected() {
+      return this.filtered.length > 0 && this.matches.selected.length === this.filtered.length;
     },
     filtered() {
       const files = JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
@@ -185,6 +188,7 @@ export default {
                   }));
                   const ids = $this.matches.selected.map((obj) => obj.id);
                   await ApiService.delete('match', matches);
+                  const { areAllSelected } = $this;
                   $this.matches.disabled = $this.matches.disabled.concat(ids);
                   $this.matches.selected = [];
 
@@ -192,7 +196,7 @@ export default {
                     severity: 'success',
                     detail: `${description} deleted`,
                   });
-                  if ($this.toggleAllState && !$this.liveReload) {
+                  if (areAllSelected && !$this.liveReload) {
                     await $this.get().matches();
                   }
                 } catch (error) {
@@ -286,7 +290,6 @@ export default {
     toggleAll(state) {
       const available = this.filtered.filter((obj) => !this.matches.disabled.includes(obj.id)).map((obj) => obj);
       this.matches.selected = state ? available : [];
-      this.toggleAllState = state;
     },
   },
 };
