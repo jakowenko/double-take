@@ -5,6 +5,7 @@
       :folders="['add new', ...folders]"
       :matches="matches"
       :areAllSelected="areAllSelected"
+      :stats="{ filtered: filtered.length, source: source.length }"
       @trainingFolder="trainingFolder = $event"
       @filter="filter = $event"
       @liveReload="liveReload = $event"
@@ -41,7 +42,6 @@ export default {
         folders: false,
         files: false,
         createFolder: false,
-        lazy: false,
       },
       matches: {
         source: [],
@@ -104,7 +104,7 @@ export default {
         }
         return [];
       });
-      return filtered.flat();
+      return filtered.flat().slice(0, 250);
     },
   },
   async mounted() {
@@ -153,9 +153,7 @@ export default {
               delete $this.matches.source[deleteDisabled[i]];
             }
 
-            if ($this.matches.source.length > 100) $this.matches.source.length = 100;
             $this.loading.files = false;
-            $this.loading.lazy = false;
           } catch (error) {
             $this.$toast.add({
               severity: 'error',

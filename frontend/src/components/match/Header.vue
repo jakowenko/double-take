@@ -71,8 +71,9 @@
       </div>
     </div>
     <div class="fixed fixed-sub p-shadow-5 p-pl-3 p-pr-3" :class="{ show: showFilter }">
-      <div class="p-grid">
-        <div class="p-col-12 p-d-flex p-jc-end p-pb-0">
+      <div class="p-grid p-ai-center">
+        <div class="p-col-6 p-pb-0 stats-text">{{ stats.filtered }} of {{ stats.source }}</div>
+        <div class="p-col-6 p-d-flex p-jc-end p-pb-0">
           <div class="p-field-checkbox p-mb-0">
             <label for="liveReload" class="p-mr-1">Live Reload</label>
             <Checkbox id="liveReload" v-model="liveReload" :binary="true" />
@@ -185,6 +186,7 @@ export default {
     matches: Object,
     folders: Array,
     loading: Object,
+    stats: Object,
   },
   mounted() {
     this.$emit('filter', this.filter);
@@ -313,7 +315,8 @@ export default {
       top: 55px;
     }
 
-    label {
+    label,
+    .stats-text {
       font-size: 13px;
       @media only screen and (max-width: 576px) {
         font-size: 11px;
