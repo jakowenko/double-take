@@ -26,7 +26,6 @@ Double Take can be paired with Home Assistant and Node-Red to create automations
   <img src="https://user-images.githubusercontent.com/1081811/116505698-904ec780-a889-11eb-825e-b641203d9e95.jpg" width="70%">
 </p>
 
-
 More information for this can be found in the [docs](https://github.com/jakowenko/double-take/tree/master/docs/home-assistant-node-red.md).
 
 ## UI
@@ -263,7 +262,8 @@ Configurable options that can be passed as environment variables to the Docker c
 | COMPREFACE_API_KEY   |                       | API Key for CompreFace collection                                                                                                                 |
 | SNAPSHOT_RETRIES     | `10`                  | Amount of times API will request a Frigate `snapshot.jpg` for analysis                                                                            |
 | LATEST_RETRIES       | `10`                  | Amount of times API will request a Frigate `latest.jpg` for analysis                                                                              |
-| CONFIDENCE           | `50`                  | Minimum confidence level for a face match                                                                                                         |
+| CONFIDENCE           | `50`                  | Minimum confidence needed to consider a result a match                                                                                            |
+| CONFIDENCE_UNKNOWN   | `40`                  | Minimum confidence needed before classifying a match name as unknown                                                                              |
 | SAVE_UNKNOWN         | `false`               | Save unknown faces to `/.storage/matches/unknown`                                                                                                 |
 | PURGE_UNKNOWN        | `48`                  | Hours to keep unknown images until they are deleted                                                                                               |
 | PURGE_MATCHES        | `48`                  | Hours to keep match images until they are deleted                                                                                                 |

@@ -1,7 +1,12 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
-const { COMPREFACE_URL, COMPREFACE_API_KEY, CONFIDENCE } = require('../../constants');
+const {
+  COMPREFACE_URL,
+  COMPREFACE_API_KEY,
+  CONFIDENCE,
+  CONFIDENCE_UNKNOWN,
+} = require('../../constants');
 
 module.exports.recognize = (key) => {
   const formData = new FormData();
@@ -61,7 +66,7 @@ module.exports.normalize = ({ data }) => {
     const [face] = obj.subjects;
     const confidence = face ? parseFloat((face.similarity * 100).toFixed(2)) : 0;
     return {
-      name: face ? face.subject.toLowerCase() : 'unknown',
+      name: face && confidence >= CONFIDENCE_UNKNOWN ? face.subject.toLowerCase() : 'unknown',
       confidence,
       match: confidence >= CONFIDENCE,
       box: {

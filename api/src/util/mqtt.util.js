@@ -62,23 +62,29 @@ module.exports.connect = () => {
 
 module.exports.publish = (data) => {
   try {
-    const { matches, camera } = data;
+    const { matches, unknown, camera } = data;
 
-    matches.forEach((match) => {
-      const configData = JSON.parse(JSON.stringify(data));
-      const matchData = JSON.parse(JSON.stringify(match));
-      delete configData.matches;
+    const configData = JSON.parse(JSON.stringify(data));
+    delete configData.matches;
+    delete configData.unknown;
+
+    if (unknown && Object.keys(unknown).length) {
       const payload = {
         ...configData,
-        match: matchData,
+        unknown,
+      };
+      client.publish(`${MQTT_TOPIC_MATCHES}/unknown`, JSON.stringify(payload));
+    }
+
+    matches.forEach((match) => {
+      const payload = {
+        ...configData,
+        match,
       };
       client.publish(`${MQTT_TOPIC_MATCHES}/${match.name}`, JSON.stringify(payload));
     });
 
     if (matches.length) {
-      const configData = JSON.parse(JSON.stringify(data));
-      delete configData.matches;
-
       client.publish(
         `${MQTT_TOPIC_CAMERAS}/${camera}`,
         JSON.stringify({

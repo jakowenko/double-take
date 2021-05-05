@@ -1,7 +1,7 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
-const { DEEPSTACK_URL, CONFIDENCE } = require('../../constants');
+const { DEEPSTACK_URL, CONFIDENCE, CONFIDENCE_UNKNOWN } = require('../../constants');
 
 module.exports.recognize = (key) => {
   const formData = new FormData();
@@ -53,7 +53,7 @@ module.exports.normalize = ({ data }) => {
   const normalized = data.predictions.map((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
     return {
-      name: obj.userid.toLowerCase(),
+      name: confidence >= CONFIDENCE_UNKNOWN ? obj.userid.toLowerCase() : 'unknown',
       confidence,
       match: obj.userid !== 'unknown' && confidence >= CONFIDENCE,
       box: {

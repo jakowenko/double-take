@@ -115,7 +115,7 @@ module.exports.start = async (req, res) => {
       );
     }
 
-    const { best, results, attempts } = recognize.normalize(await Promise.all(promises));
+    const { best, unknown, results, attempts } = recognize.normalize(await Promise.all(promises));
 
     const duration = parseFloat((perf.stop('request').time / 1000).toFixed(2));
     const output = {
@@ -130,6 +130,7 @@ module.exports.start = async (req, res) => {
         return obj;
       }),
     };
+    if (unknown && Object.keys(unknown).length) output.unknown = unknown;
 
     if (resultsOutput === 'all')
       output.results = JSON.parse(JSON.stringify(results)).map((group) => {
