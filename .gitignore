@@ -11,3 +11,4 @@ frontend/dist
 # local env files
 .env
 .env.*.local
+config.yml
