@@ -14,7 +14,7 @@ module.exports = {
     image: { height: 500 },
   },
   purge: {
-    matches: 72,
+    matches: 168,
     unknown: 8,
   },
   mqtt: {
