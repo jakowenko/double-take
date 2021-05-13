@@ -16,7 +16,7 @@ module.exports = () => {
 
   config = {};
   try {
-    config = { ...yaml.load(fs.readFileSync(`${__dirname}/../../config.yml`, 'utf8')) };
+    config = { ...yaml.load(fs.readFileSync(`${__dirname}/../../../config.yml`, 'utf8')) };
   } catch (error) {
     if (error.code === 'ENOENT') {
       config = { error: true, ...config };
