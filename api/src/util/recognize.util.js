@@ -17,7 +17,6 @@ module.exports.normalize = (results = []) => {
             type: group.type,
             duration: attempt.duration,
             detector: attempt.detector,
-            tmp: attempt.tmp,
             filename: attempt.filename,
           };
         }
@@ -30,7 +29,6 @@ module.exports.normalize = (results = []) => {
             type: group.type,
             duration: attempt.duration,
             detector: attempt.detector,
-            tmp: attempt.tmp,
             filename: attempt.filename,
           };
         }

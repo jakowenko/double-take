@@ -3,7 +3,7 @@ const schedule = require('node-schedule');
 const logger = require('./logger.util');
 const time = require('./time.util');
 const database = require('./db.util');
-const { STORAGE_PATH, PURGE_UNKNOWN, PURGE_MATCHES } = require('../constants');
+const { STORAGE, PURGE } = require('../constants');
 
 module.exports.purge = async () => {
   schedule.scheduleJob('* * * * *', async () => {
@@ -13,7 +13,7 @@ module.exports.purge = async () => {
         .prepare(
           `SELECT match.id, match.filename
         FROM match, json_tree(response)
-        WHERE key = 'match' AND value = 1 AND datetime(createdAt) <= datetime('now', '-${PURGE_MATCHES} hours')
+        WHERE key = 'match' AND value = 1 AND datetime(createdAt) <= datetime('now', '-${PURGE.MATCHES} hours')
         GROUP BY match.id, value
         UNION ALL
         SELECT t1.id, t1.filename FROM (
@@ -21,7 +21,7 @@ module.exports.purge = async () => {
             SELECT match.id, match.filename, match.createdAt, value
             FROM match, json_tree(response)
             WHERE key = 'match'
-            AND datetime(match.createdAt) <= datetime('now', '-${PURGE_UNKNOWN} hours')
+            AND datetime(match.createdAt) <= datetime('now', '-${PURGE.UNKNOWN} hours')
             GROUP BY match.id, value
           ) t
         GROUP BY t.id
@@ -33,8 +33,8 @@ module.exports.purge = async () => {
 
       const promises = [];
       files.forEach(({ filename }) => {
-        if (fs.existsSync(`${STORAGE_PATH}/matches/${filename}`)) {
-          promises.push(fs.promises.unlink(`${STORAGE_PATH}/matches/${filename}`));
+        if (fs.existsSync(`${STORAGE.PATH}/matches/${filename}`)) {
+          promises.push(fs.promises.unlink(`${STORAGE.PATH}/matches/${filename}`));
         }
       });
       await Promise.all(promises);
@@ -50,10 +50,10 @@ module.exports.purge = async () => {
 };
 
 module.exports.setup = () => {
-  if (!fs.existsSync(`${STORAGE_PATH}/matches`)) {
-    fs.mkdirSync(`${STORAGE_PATH}/matches`, { recursive: true });
+  if (!fs.existsSync(`${STORAGE.PATH}/matches`)) {
+    fs.mkdirSync(`${STORAGE.PATH}/matches`, { recursive: true });
   }
-  if (!fs.existsSync(`${STORAGE_PATH}/train`)) {
-    fs.mkdirSync(`${STORAGE_PATH}/train`, { recursive: true });
+  if (!fs.existsSync(`${STORAGE.PATH}/train`)) {
+    fs.mkdirSync(`${STORAGE.PATH}/train`, { recursive: true });
   }
 };

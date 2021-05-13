@@ -1,9 +1,14 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
-const { FACEBOX_URL, CONFIDENCE, CONFIDENCE_UNKNOWN } = require('../../constants');
+const { DETECTORS, CONFIDENCE } = require('../../constants');
+
+module.exports.config = () => {
+  return DETECTORS.FACEBOX;
+};
 
 module.exports.recognize = (key) => {
+  const { URL } = this.config();
   const formData = new FormData();
   formData.append('file', fs.createReadStream(key));
   return axios({
@@ -11,7 +16,7 @@ module.exports.recognize = (key) => {
     headers: {
       ...formData.getHeaders(),
     },
-    url: `${FACEBOX_URL}/facebox/check`,
+    url: `${URL}/facebox/check`,
     validateStatus() {
       return true;
     },
@@ -20,6 +25,7 @@ module.exports.recognize = (key) => {
 };
 
 module.exports.train = ({ name, key }) => {
+  const { URL } = this.config();
   const formData = new FormData();
   formData.append('file', fs.createReadStream(key));
   return axios({
@@ -27,7 +33,7 @@ module.exports.train = ({ name, key }) => {
     headers: {
       ...formData.getHeaders(),
     },
-    url: `${FACEBOX_URL}/facebox/teach`,
+    url: `${URL}/facebox/teach`,
     params: {
       name,
       id: name,
@@ -36,23 +42,25 @@ module.exports.train = ({ name, key }) => {
   });
 };
 
-module.exports.remove = ({ name }) =>
-  axios({
+module.exports.remove = ({ name }) => {
+  const { URL } = this.config();
+  return axios({
     method: 'delete',
-    url: `${FACEBOX_URL}/facebox/teach/${name}`,
+    url: `${URL}/facebox/teach/${name}`,
     validateStatus() {
       return true;
     },
   });
+};
 
 module.exports.normalize = ({ data }) => {
   const normalized = data.faces.map((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
     const { rect: box } = obj;
     return {
-      name: obj.matched && confidence >= CONFIDENCE_UNKNOWN ? obj.name.toLowerCase() : 'unknown',
+      name: obj.matched && confidence >= CONFIDENCE.UNKNOWN ? obj.name.toLowerCase() : 'unknown',
       confidence,
-      match: obj.matched && confidence >= CONFIDENCE,
+      match: obj.matched && confidence >= CONFIDENCE.MATCH,
       box: {
         top: box.top,
         left: box.left,

@@ -9,7 +9,7 @@ const database = require('./db.util');
 const time = require('./time.util');
 // const frigate = require('./frigate.util');
 const { recognize, normalize } = require('./detectors/actions');
-const { SAVE_UNKNOWN, DETECTORS, STORAGE_PATH } = require('../constants');
+const { DETECTORS, STORAGE, SAVE } = require('../constants');
 
 module.exports.polling = async (
   event,
@@ -28,7 +28,7 @@ module.exports.polling = async (
 
       if (isFrigateEvent) await this.addJitter(1);
 
-      logger.log(`${type} attempt ${attempts}`, { verbose: true });
+      logger.log(`${type} attempt ${attempts + 1}`, { verbose: true });
 
       const tmp = `/tmp/${id}-${type}-${uuidv4()}.jpg`;
       const filename = `${uuidv4()}.jpg`;
@@ -40,16 +40,18 @@ module.exports.polling = async (
         const promises = [];
         filesystem.writer(tmp, stream);
 
-        // eslint-disable-next-line no-loop-func
-        DETECTORS.forEach((detector) => {
+        const detectors = Object.fromEntries(
+          Object.entries(DETECTORS).map(([k, v]) => [k.toLowerCase(), v])
+        );
+        for (const [detector] of Object.entries(detectors)) {
           promises.push(this.process({ attempt: attempts, detector, tmp }));
-        });
+        }
         let results = await Promise.all(promises);
 
         // eslint-disable-next-line no-loop-func
         results = results.map((array, j) => {
           return {
-            detector: DETECTORS[j],
+            detector: Object.entries(detectors)[j][0],
             duration: array ? array.duration : 0,
             attempt: attempts,
             results: array ? array.results : [],
@@ -61,7 +63,7 @@ module.exports.polling = async (
           .length;
         const totalFaces = results.flatMap((obj) => obj.results.filter((item) => item)).length;
 
-        if (foundMatch || (SAVE_UNKNOWN && totalFaces > 0))
+        if (foundMatch || (SAVE.UNKNOWN && totalFaces > 0))
           await this.save(event, results, filename, tmp);
 
         allResults.push(...results);
@@ -96,7 +98,7 @@ module.exports.save = async (event, results, filename, tmp) => {
       response: JSON.stringify(results),
       createdAt: time.utc(),
     });
-    await filesystem.writerStream(fs.createReadStream(tmp), `${STORAGE_PATH}/matches/${filename}`);
+    await filesystem.writerStream(fs.createReadStream(tmp), `${STORAGE.PATH}/matches/${filename}`);
   } catch (error) {
     logger.log(`save results error: ${error.message}`);
   }

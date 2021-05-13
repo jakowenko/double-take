@@ -1,19 +1,19 @@
 const fs = require('fs');
-const { v4: uuidv4 } = require('uuid');
+// const { v4: uuidv4 } = require('uuid');
 const logger = require('./logger.util');
-const { STORAGE_PATH } = require('../constants');
+const { STORAGE } = require('../constants');
 
 module.exports.folders = () => {
   return {
     matches: async () => {
-      let folders = await fs.promises.readdir(`${STORAGE_PATH}/matches`, { withFileTypes: true });
+      let folders = await fs.promises.readdir(`${STORAGE.PATH}/matches`, { withFileTypes: true });
       folders = folders
         .filter((file) => file.isDirectory() && file.name !== 'unknown')
         .map((file) => file.name);
       return folders;
     },
     train: async () => {
-      let folders = await fs.promises.readdir(`${STORAGE_PATH}/train`, { withFileTypes: true });
+      let folders = await fs.promises.readdir(`${STORAGE.PATH}/train`, { withFileTypes: true });
       folders = folders.filter((file) => file.isDirectory()).map((file) => file.name);
       return folders;
     },
@@ -24,11 +24,11 @@ module.exports.files = () => {
   return {
     traverse: async (path) => {
       const output = [];
-      let folders = await fs.promises.readdir(`${STORAGE_PATH}/${path}`, { withFileTypes: true });
+      let folders = await fs.promises.readdir(`${STORAGE.PATH}/${path}`, { withFileTypes: true });
       folders = folders.filter((file) => file.isDirectory()).map((file) => file.name);
 
       for (const folder of folders) {
-        let images = await fs.promises.readdir(`${STORAGE_PATH}/${path}/${folder}`, {
+        let images = await fs.promises.readdir(`${STORAGE.PATH}/${path}/${folder}`, {
           withFileTypes: true,
         });
         images = images
@@ -41,7 +41,7 @@ module.exports.files = () => {
               file.toLowerCase().includes('.png')
           );
         images.forEach((filename) => {
-          const { birthtime } = fs.statSync(`${STORAGE_PATH}/${path}/${folder}/${filename}`);
+          const { birthtime } = fs.statSync(`${STORAGE.PATH}/${path}/${folder}/${filename}`);
           output.push({ name: folder, filename, key: `${path}/${folder}/${filename}`, birthtime });
         });
       }
@@ -76,8 +76,8 @@ module.exports.writerStream = async (stream, file) => {
 
 module.exports.writeMatches = (name, source, destination) => {
   try {
-    if (!fs.existsSync(`${STORAGE_PATH}/matches/${name}`)) {
-      fs.mkdirSync(`${STORAGE_PATH}/matches/${name}`);
+    if (!fs.existsSync(`${STORAGE.PATH}/matches/${name}`)) {
+      fs.mkdirSync(`${STORAGE.PATH}/matches/${name}`);
     }
     fs.copyFile(source, destination, (error) => {
       if (error) {
@@ -115,34 +115,4 @@ module.exports.move = (source, destination) => {
   } catch (error) {
     logger.log(`move error: ${error.message}`);
   }
-};
-
-module.exports.save = () => {
-  return {
-    matches: async (id, matches) => {
-      for (let i = 0; i < matches.length; i++) {
-        const match = matches[i];
-        const tmp = `/tmp/{${uuidv4()}}.jpg`;
-        await this.writerStream(fs.createReadStream(match.tmp), tmp);
-        const destination = `${STORAGE_PATH}/matches/${match.name}/${match.filename}`;
-        this.writeMatches(match.name, tmp, destination);
-      }
-    },
-    unknown: async (results) => {
-      const files = [];
-      for (let i = 0; i < results.length; i++) {
-        const group = results[i];
-        for (let j = 0; j < group.results.length; j++) {
-          const attempt = group.results[j];
-          if (attempt.misses.length && !files.filter((obj) => attempt.tmp === obj.tmp).length) {
-            files.push({ tmp: attempt.tmp, filename: attempt.filename });
-          }
-        }
-      }
-      for (let i = 0; i < files.length; i++) {
-        const destination = `${STORAGE_PATH}/matches/unknown/${files[i].filename}`;
-        this.copy(files[i].tmp, destination);
-      }
-    },
-  };
 };

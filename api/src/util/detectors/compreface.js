@@ -1,23 +1,23 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
-const {
-  COMPREFACE_URL,
-  COMPREFACE_API_KEY,
-  CONFIDENCE,
-  CONFIDENCE_UNKNOWN,
-} = require('../../constants');
+const { CONFIDENCE, DETECTORS } = require('../../constants');
+
+module.exports.config = () => {
+  return DETECTORS.COMPREFACE;
+};
 
 module.exports.recognize = (key) => {
+  const { URL, KEY } = this.config();
   const formData = new FormData();
   formData.append('file', fs.createReadStream(key));
   return axios({
     method: 'post',
     headers: {
       ...formData.getHeaders(),
-      'x-api-key': COMPREFACE_API_KEY,
+      'x-api-key': KEY,
     },
-    url: `${COMPREFACE_URL}/api/v1/recognition/recognize`,
+    url: `${URL}/api/v1/recognition/recognize`,
     validateStatus() {
       return true;
     },
@@ -29,15 +29,16 @@ module.exports.recognize = (key) => {
 };
 
 module.exports.train = ({ name, key }) => {
+  const { URL, KEY } = this.config();
   const formData = new FormData();
   formData.append('file', fs.createReadStream(key));
   return axios({
     method: 'post',
     headers: {
       ...formData.getHeaders(),
-      'x-api-key': COMPREFACE_API_KEY,
+      'x-api-key': KEY,
     },
-    url: `${COMPREFACE_URL}/api/v1/recognition/faces`,
+    url: `${URL}/api/v1/recognition/faces`,
     params: {
       subject: name,
     },
@@ -45,13 +46,14 @@ module.exports.train = ({ name, key }) => {
   });
 };
 
-module.exports.remove = ({ name }) =>
-  axios({
+module.exports.remove = ({ name }) => {
+  const { URL, KEY } = this.config();
+  return axios({
     method: 'delete',
     headers: {
-      'x-api-key': COMPREFACE_API_KEY,
+      'x-api-key': KEY,
     },
-    url: `${COMPREFACE_URL}/api/v1/recognition/faces`,
+    url: `${URL}/api/v1/recognition/faces`,
     params: {
       subject: name,
     },
@@ -59,6 +61,7 @@ module.exports.remove = ({ name }) =>
       return true;
     },
   });
+};
 
 module.exports.normalize = ({ data }) => {
   if (data.code === 28) return [];
@@ -66,9 +69,9 @@ module.exports.normalize = ({ data }) => {
     const [face] = obj.subjects;
     const confidence = face ? parseFloat((face.similarity * 100).toFixed(2)) : 0;
     return {
-      name: face && confidence >= CONFIDENCE_UNKNOWN ? face.subject.toLowerCase() : 'unknown',
+      name: face && confidence >= CONFIDENCE.UNKNOWN ? face.subject.toLowerCase() : 'unknown',
       confidence,
-      match: confidence >= CONFIDENCE,
+      match: confidence >= CONFIDENCE.MATCH,
       box: {
         top: obj.box.y_min,
         left: obj.box.x_min,

@@ -1,17 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const router = require('./routes');
-const { STORAGE_PATH } = require('./constants');
+const { STORAGE } = require('./constants');
 
 const app = express();
 app.use('*', cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false }));
-
-app.use('/storage/train', express.static(`${STORAGE_PATH}/train`));
-app.use('/', express.static(`./frontend`));
-
 app.use('/api', router);
+app.use('/api/storage/train', express.static(`${STORAGE.PATH}/train`));
+app.use('/', express.static(`./frontend`));
 
 let routes = [];
 // eslint-disable-next-line no-underscore-dangle

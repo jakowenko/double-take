@@ -1,9 +1,14 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
-const { DEEPSTACK_URL, CONFIDENCE, CONFIDENCE_UNKNOWN } = require('../../constants');
+const { CONFIDENCE, DETECTORS } = require('../../constants');
+
+module.exports.config = () => {
+  return DETECTORS.DEEPSTACK;
+};
 
 module.exports.recognize = (key) => {
+  const { URL } = this.config();
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
   return axios({
@@ -11,7 +16,7 @@ module.exports.recognize = (key) => {
     headers: {
       ...formData.getHeaders(),
     },
-    url: `${DEEPSTACK_URL}/v1/vision/face/recognize`,
+    url: `${URL}/v1/vision/face/recognize`,
     validateStatus() {
       return true;
     },
@@ -20,6 +25,7 @@ module.exports.recognize = (key) => {
 };
 
 module.exports.train = ({ name, key }) => {
+  const { URL } = this.config();
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
   formData.append('userid', name);
@@ -28,17 +34,18 @@ module.exports.train = ({ name, key }) => {
     headers: {
       ...formData.getHeaders(),
     },
-    url: `${DEEPSTACK_URL}/v1/vision/face/register`,
+    url: `${URL}/v1/vision/face/register`,
     data: formData,
   });
 };
 
 module.exports.remove = ({ name }) => {
+  const { URL } = this.config();
   const formData = new FormData();
   formData.append('userid', name);
   return axios({
     method: 'post',
-    url: `${DEEPSTACK_URL}/v1/vision/face/delete`,
+    url: `${URL}/v1/vision/face/delete`,
     headers: {
       ...formData.getHeaders(),
     },
@@ -53,9 +60,9 @@ module.exports.normalize = ({ data }) => {
   const normalized = data.predictions.map((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
     return {
-      name: confidence >= CONFIDENCE_UNKNOWN ? obj.userid.toLowerCase() : 'unknown',
+      name: confidence >= CONFIDENCE.UNKNOWN ? obj.userid.toLowerCase() : 'unknown',
       confidence,
-      match: obj.userid !== 'unknown' && confidence >= CONFIDENCE,
+      match: obj.userid !== 'unknown' && confidence >= CONFIDENCE.MATCH,
       box: {
         top: obj.y_min,
         left: obj.x_min,
