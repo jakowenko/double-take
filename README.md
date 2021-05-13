@@ -178,38 +178,19 @@ If MQTT is enabled and a match is found then two topics will be created.
 
 ## Usage
 
-### Basic: Docker Run
+### Docker Run
 
 ```shell
 docker run -d \
   --name=double-take \
   --restart=unless-stopped \
   -p 3000:3000 \
-  -e DETECTORS=facebox \
-  -e FRIGATE_URL=http://frigate-url.com \
-  -e FACEBOX_URL=http://facebox-url.com \
+  -v ${PWD}/config.yml:/double-take/config.yml \
+  -v ${PWD}/.storage:/.storage \
   jakowenko/double-take
 ```
 
-### Basic: Docker Compose
-
-```yaml
-version: "3.7"
-
-services:
-  double-take:
-    container_name: double-take
-    image: jakowenko/double-take
-    restart: unless-stopped
-    environment:
-      DETECTORS: compreface
-      FRIGATE_URL: http://compreface-url.com
-      FACEBOX_URL: http://facebox-url.com
-    ports:
-      - 3000:3000
-```
-
-### Advanced: Docker Compose
+### Docker Compose
 
 ```yaml
 version: "3.7"
@@ -220,57 +201,95 @@ services:
     image: jakowenko/double-take
     restart: unless-stopped
     volumes:
+      - ${PWD}/config.yml:/double-take/config.yml
       - ${PWD}/.storage:/.storage
-    environment:
-      DETECTORS: compreface, deepstack, facebox
-      MQTT_HOST: mqtt.server.com
-      FRIGATE_URL: http://frigate-url.com
-      FACEBOX_URL: http://facebox-url.com
-      DEEPSTACK_URL: http://deepstack-url.com
-      COMPREFACE_URL: http://compreface-url.com
-      COMPREFACE_API_KEY: COMPREFACE-API-KEY
-      SNAPSHOT_RETRIES: 20
-      LATEST_RETRIES: 20
-      CONFIDENCE: 65
-      SAVE_UNKNOWN: "true"
-      PURGE_UNKNOWN: 12
     ports:
       - 3000:3000
 ```
 
-## Options
+## Configuration
 
-Configurable options that can be passed as environment variables to the Docker container.
+Configurable options that can be passed by mounting a file at `/double-take/config.yml`.
 
-| Name                 | Default               | Description                                                                                                                                       |
-| -------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DETECTORS            |                       | Comma separated list of detectors to process images with: `compreface`, `deepstack`, `facebox`                                                    |
-| PORT                 | `3000`                | API port                                                                                                                                          |
-| MQTT_HOST            |                       | MQTT host address                                                                                                                                 |
-| MQTT_USERNAME        |                       | MQTT username                                                                                                                                     |
-| MQTT_PASSWORD        |                       | MQTT password                                                                                                                                     |
-| MQTT_TOPIC           | `frigate/events`      | MQTT topic for message subscription                                                                                                               |
-| MQTT_TOPIC_MATCHES   | `double-take/matches` | MQTT topic where matches are published                                                                                                            |
-| MQTT_TOPIC_CAMERAS   | `double-take/cameras` | MQTT topic where matches are published by camera name                                                                                             |
-| DEEPSTACK_URL        |                       | Base URL for DeepStack API                                                                                                                        |
-| FACEBOX_URL          |                       | Base URL for Facebox API                                                                                                                          |
-| COMPREFACE_URL       |                       | Base URL for CompreFace API                                                                                                                       |
-| FRIGATE_URL          |                       | Base URL for Frigate                                                                                                                              |
-| FRIGATE_CAMERAS      |                       | To only watch specific cameras pass the names in a comma separated list: `family-room, office, basement`                                          |
-| FRIGATE_ZONES        |                       | To only watch within specific zones pass the camera name and zone in a list: `camera-name:zone-name, front-door:porch`                            |
-| FRIGATE_IMAGE_HEIGHT | `800`                 | Height of image passed for facial recognition                                                                                                     |
-| COMPREFACE_API_KEY   |                       | API Key for CompreFace collection                                                                                                                 |
-| SNAPSHOT_RETRIES     | `10`                  | Amount of times API will request a Frigate `snapshot.jpg` for analysis                                                                            |
-| LATEST_RETRIES       | `10`                  | Amount of times API will request a Frigate `latest.jpg` for analysis                                                                              |
-| CONFIDENCE           | `50`                  | Minimum confidence needed to consider a result a match                                                                                            |
-| CONFIDENCE_UNKNOWN   | `40`                  | Minimum confidence needed before classifying a match name as unknown                                                                              |
-| SAVE_UNKNOWN         | `false`               | Save unknown faces to `/.storage/matches/unknown`                                                                                                 |
-| PURGE_UNKNOWN        | `48`                  | Hours to keep unknown images until they are deleted                                                                                               |
-| PURGE_MATCHES        | `48`                  | Hours to keep match images until they are deleted                                                                                                 |
-| LOGS                 |                       | Options: `verbose`                                                                                                                                |
-| TZ                   | `UTC`                 | Time zone used in logs                                                                                                                            |
-| DATE_TIME_FORMAT     |                       | Defaults to ISO 8601 format with support for [token-based formatting](https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens) |
+```yaml
+server:
+  port: 3000
+
+mqtt:
+  host: 192.168.1.1
+  topics:
+    frigate: frigate/events
+    matches: double-take/matches
+    cameras: double-take/cameras
+
+confidence:
+  match: 60
+  unknown: 40
+
+save:
+  matches: true
+  unknown: true
+
+purge:
+  matches: 168
+  unknown: 8
+
+frigate:
+  url: http://192.168.1.1:4000
+  image:
+    height: 500
+  attempts:
+    latest: 10
+    snapshot: 0
+  cameras:
+    - frontdoor
+    - backyard
+  zones:
+    - camera: driveway
+      name: zone-1
+
+detectors:
+  compreface:
+    url: http://192.168.1.1:8000
+    key: xxx-xxx-xxx-xxx-xxx
+  deepstack:
+    url: http://192.168.1.1:8001
+  facebox:
+    url: http://192.168.1.1:8002
+
+time:
+  format: F
+  timezone: America/Detroit
+```
+
+| Option                    | Default               | Description                                                                                                                                       |
+| ------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| server.port               | `3000`                | API Port                                                                                                                                          |
+| mqtt.host                 |                       | MQTT host                                                                                                                                         |
+| mqtt.username             |                       | MQTT username                                                                                                                                     |
+| mqtt.password             |                       | MQTT password                                                                                                                                     |
+| mqtt.topics.frigate       | `frigate/events`      | MQTT topic for Frigate message subscription                                                                                                       |
+| mqtt.topics.matches       | `double-take/matches` | MQTT topic where matches are published                                                                                                            |
+| mqtt.topics.cameras       | `double-take/cameras` | MQTT topic where matches are published by camera name                                                                                             |
+| confidence.match          | `60`                  | Minimum confidence needed to consider a result a match                                                                                            |
+| confidence.unknown        | `40`                  | Minimum confidence needed before classifying a match name as unknown                                                                              |
+| save.matches              | `true`                | Save match images                                                                                                                                 |
+| save.unknown              | `true`                | Save unknown images                                                                                                                               |
+| purge.matches             | `168`                 | Hours to keep match images until they are deleted                                                                                                 |
+| purge.unknown             | `8`                   | Hours to keep unknown images until they are deleted                                                                                               |
+| frigate.url               |                       | Base URL for Frigate                                                                                                                              |
+| frigate.attempts.latest   | `10`                  | Amount of times API will request a Frigate `latest.jpg` for analysis                                                                              |
+| frigate.attempts.snapshot | `0`                   | Amount of times API will request a Frigate `snapshot.jpg` for analysis                                                                            |
+| frigate.image.height      | `500`                 | Height of Frigate image passed for facial recognition                                                                                             |
+| frigate.cameras           |                       | Only process images from specific cameras                                                                                                         |
+| frigate.zones             |                       | Only process images from specific zones                                                                                                           |
+| detectors.compreface.url  |                       | Base URL for CompreFace API                                                                                                                       |
+| detectors.compreface.key  |                       | API Key for CompreFace collection                                                                                                                 |
+| detectors.deepstack.url   |                       | Base URL for DeepStack API                                                                                                                        |
+| detectors.facebox.url     |                       | Base URL for Facebox API                                                                                                                          |
+| time.format               |                       | Defaults to ISO 8601 format with support for [token-based formatting](https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens) |
+| time.timezone             | `UTC`                 | Time zone used in logs                                                                                                                            |
 
 ## Known Issues
 
-In rare scenarios, requesting images from Frigate's API causes Frigate to crash. There is an [open issue](https://github.com/blakeblackshear/frigate/discussions/853) with more information, but it appears sometimes the database connection isn't being closed in time causing Frigate's API to crash. Double Take does use random jitter up to 1 second before all Frigate API requests to help reduce the likelihood of the API crashing. This appears to be related to processing the `snapshot.jpg`. Setting `SNAPSHOT_RETRIES` to `0` will disable the processing of that image.
+In rare scenarios, requesting images from Frigate's API causes Frigate to crash. There is an [open issue](https://github.com/blakeblackshear/frigate/discussions/853) with more information, but it appears sometimes the database connection isn't being closed in time causing Frigate's API to crash. Double Take does use random jitter up to 1 second before all Frigate API requests to help reduce the likelihood of the API crashing. This appears to be related to processing the `snapshot.jpg`. Setting `frigate.attempts.snapshot` to `0` will disable the processing of that image.
