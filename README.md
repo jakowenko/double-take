@@ -226,6 +226,10 @@ confidence:
   match: 60
   unknown: 40
 
+objects:
+  face:
+    min_area_match: 10000
+
 save:
   matches: true
   unknown: true
