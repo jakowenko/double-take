@@ -1,7 +1,7 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
-const { DETECTORS, CONFIDENCE } = require('../../constants');
+const { DETECTORS, CONFIDENCE, OBJECTS } = require('../../constants');
 
 module.exports.config = () => {
   return DETECTORS.FACEBOX;
@@ -54,13 +54,15 @@ module.exports.remove = ({ name }) => {
 };
 
 module.exports.normalize = ({ data }) => {
+  const { MIN_AREA_MATCH } = OBJECTS.FACE;
   const normalized = data.faces.map((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
     const { rect: box } = obj;
     return {
       name: obj.matched && confidence >= CONFIDENCE.UNKNOWN ? obj.name.toLowerCase() : 'unknown',
       confidence,
-      match: obj.matched && confidence >= CONFIDENCE.MATCH,
+      match:
+        obj.matched && confidence >= CONFIDENCE.MATCH && box.width * box.height >= MIN_AREA_MATCH,
       box: {
         top: box.top,
         left: box.left,

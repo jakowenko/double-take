@@ -8,6 +8,9 @@ module.exports = {
     matches: true,
     unknown: true,
   },
+  objects: {
+    face: { min_area_match: 10000 },
+  },
   time: { timezone: 'UTC' },
   frigate: {
     attempts: { latest: 10, snapshot: 0 },

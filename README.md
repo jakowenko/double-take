@@ -262,33 +262,34 @@ time:
   timezone: America/Detroit
 ```
 
-| Option                    | Default               | Description                                                                                                                                       |
-| ------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| server.port               | `3000`                | API Port                                                                                                                                          |
-| mqtt.host                 |                       | MQTT host                                                                                                                                         |
-| mqtt.username             |                       | MQTT username                                                                                                                                     |
-| mqtt.password             |                       | MQTT password                                                                                                                                     |
-| mqtt.topics.frigate       | `frigate/events`      | MQTT topic for Frigate message subscription                                                                                                       |
-| mqtt.topics.matches       | `double-take/matches` | MQTT topic where matches are published                                                                                                            |
-| mqtt.topics.cameras       | `double-take/cameras` | MQTT topic where matches are published by camera name                                                                                             |
-| confidence.match          | `60`                  | Minimum confidence needed to consider a result a match                                                                                            |
-| confidence.unknown        | `40`                  | Minimum confidence needed before classifying a match name as unknown                                                                              |
-| save.matches              | `true`                | Save match images                                                                                                                                 |
-| save.unknown              | `true`                | Save unknown images                                                                                                                               |
-| purge.matches             | `168`                 | Hours to keep match images until they are deleted                                                                                                 |
-| purge.unknown             | `8`                   | Hours to keep unknown images until they are deleted                                                                                               |
-| frigate.url               |                       | Base URL for Frigate                                                                                                                              |
-| frigate.attempts.latest   | `10`                  | Amount of times API will request a Frigate `latest.jpg` for analysis                                                                              |
-| frigate.attempts.snapshot | `0`                   | Amount of times API will request a Frigate `snapshot.jpg` for analysis                                                                            |
-| frigate.image.height      | `500`                 | Height of Frigate image passed for facial recognition                                                                                             |
-| frigate.cameras           |                       | Only process images from specific cameras                                                                                                         |
-| frigate.zones             |                       | Only process images from specific zones                                                                                                           |
-| detectors.compreface.url  |                       | Base URL for CompreFace API                                                                                                                       |
-| detectors.compreface.key  |                       | API Key for CompreFace collection                                                                                                                 |
-| detectors.deepstack.url   |                       | Base URL for DeepStack API                                                                                                                        |
-| detectors.facebox.url     |                       | Base URL for Facebox API                                                                                                                          |
-| time.format               |                       | Defaults to ISO 8601 format with support for [token-based formatting](https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens) |
-| time.timezone             | `UTC`                 | Time zone used in logs                                                                                                                            |
+| Option                      | Default               | Description                                                                                                                                       |
+| --------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| server.port                 | `3000`                | API Port                                                                                                                                          |
+| mqtt.host                   |                       | MQTT host                                                                                                                                         |
+| mqtt.username               |                       | MQTT username                                                                                                                                     |
+| mqtt.password               |                       | MQTT password                                                                                                                                     |
+| mqtt.topics.frigate         | `frigate/events`      | MQTT topic for Frigate message subscription                                                                                                       |
+| mqtt.topics.matches         | `double-take/matches` | MQTT topic where matches are published                                                                                                            |
+| mqtt.topics.cameras         | `double-take/cameras` | MQTT topic where matches are published by camera name                                                                                             |
+| confidence.match            | `60`                  | Minimum confidence needed to consider a result a match                                                                                            |
+| confidence.unknown          | `40`                  | Minimum confidence needed before classifying a match name as unknown                                                                              |
+| objects.face.min_area_match | `10000`               | Minimum area in pixels to consider a result a match                                                                                               |
+| save.matches                | `true`                | Save match images                                                                                                                                 |
+| save.unknown                | `true`                | Save unknown images                                                                                                                               |
+| purge.matches               | `168`                 | Hours to keep match images until they are deleted                                                                                                 |
+| purge.unknown               | `8`                   | Hours to keep unknown images until they are deleted                                                                                               |
+| frigate.url                 |                       | Base URL for Frigate                                                                                                                              |
+| frigate.attempts.latest     | `10`                  | Amount of times API will request a Frigate `latest.jpg` for analysis                                                                              |
+| frigate.attempts.snapshot   | `0`                   | Amount of times API will request a Frigate `snapshot.jpg` for analysis                                                                            |
+| frigate.image.height        | `500`                 | Height of Frigate image passed for facial recognition                                                                                             |
+| frigate.cameras             |                       | Only process images from specific cameras                                                                                                         |
+| frigate.zones               |                       | Only process images from specific zones                                                                                                           |
+| detectors.compreface.url    |                       | Base URL for CompreFace API                                                                                                                       |
+| detectors.compreface.key    |                       | API Key for CompreFace collection                                                                                                                 |
+| detectors.deepstack.url     |                       | Base URL for DeepStack API                                                                                                                        |
+| detectors.facebox.url       |                       | Base URL for Facebox API                                                                                                                          |
+| time.format                 |                       | Defaults to ISO 8601 format with support for [token-based formatting](https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens) |
+| time.timezone               | `UTC`                 | Time zone used in logs                                                                                                                            |
 
 ## Known Issues
 
