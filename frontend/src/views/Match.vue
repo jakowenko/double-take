@@ -139,18 +139,27 @@ export default {
           try {
             $this.loading.files = true;
             await Sleep(1000);
-            const id = $this.matches.source.length ? { ...$this.matches.source[0] }.id : 0;
-            const { data } = await ApiService.get('match', { sinceId: id });
-            if (data.matches.length) $this.matches.source.unshift(...data.matches);
-            $this.matches.selected = $this.matches.source.filter((selected) =>
-              $this.matches.selected.some((filter) => filter.id === selected.id),
-            );
+            const sinceId =
+              $this.liveReload && $this.matches.source.length && $this.matches.source[0]
+                ? { ...$this.matches.source[0] }.id
+                : 0;
+            const { data } = await ApiService.get('match', { sinceId });
 
-            const deleteDisabled = $this.matches.source.flatMap((obj, i) =>
-              $this.matches.disabled.includes(obj.id) ? i : [],
-            );
-            for (let i = 0; i < deleteDisabled.length; i += 1) {
-              delete $this.matches.source[deleteDisabled[i]];
+            if (sinceId === 0) {
+              $this.matches.source = data.matches;
+            } else if (data.matches.length) $this.matches.source.unshift(...data.matches);
+
+            if (data.matches.length) {
+              $this.matches.selected = $this.matches.source.filter((selected) =>
+                $this.matches.selected.some((filter) => filter.id === selected.id),
+              );
+
+              const deleteDisabled = $this.matches.source.flatMap((obj, i) =>
+                $this.matches.disabled.includes(obj.id) ? i : [],
+              );
+              for (let i = 0; i < deleteDisabled.length; i += 1) {
+                delete $this.matches.source[deleteDisabled[i]];
+              }
             }
 
             $this.loading.files = false;
