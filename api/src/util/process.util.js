@@ -28,8 +28,6 @@ module.exports.polling = async (
 
       if (isFrigateEvent) await this.addJitter(1);
 
-      logger.log(`${type} attempt ${attempts + 1}`, { verbose: true });
-
       const tmp = `/tmp/${id}-${type}-${uuidv4()}.jpg`;
       const filename = `${uuidv4()}.jpg`;
 

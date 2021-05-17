@@ -55,7 +55,6 @@ module.exports.start = async (req, res) => {
           IDS,
         });
         if (typeof check === 'string') {
-          logger.log(check, { verbose: true });
           return respond(HTTPError(BAD_REQUEST, check), res);
         }
       } catch (error) {
