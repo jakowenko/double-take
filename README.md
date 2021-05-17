@@ -38,6 +38,50 @@ The UI is accessible from `http://localhost:3000`.
 
 ## API
 
+### `GET - /api/config`
+
+Output configuration
+
+```shell
+curl -X GET "http://localhost:3000/api/config" \
+-H "Content-type: application/json"
+```
+
+```json
+{
+  "confidence": { "match": 60, "unknown": 40 },
+  "detectors": {
+    "compreface": {
+      "url": "http://192.168.1.1:8000",
+      "key": "xxx-xxx-xxx-xxx-xxx"
+    },
+    "deepstack": { "url": "http://192.168.1.1:8001" },
+    "facebox": { "url": "http://192.168.1.1:8002" }
+  },
+  "frigate": {
+    "attempts": { "latest": 10, "snapshot": 0 },
+    "image": { "height": 500 },
+    "url": "http://192.168.1.1:4000",
+    "cameras": [],
+    "zones": []
+  },
+  "mqtt": {
+    "topics": {
+      "frigate": "frigate/events",
+      "matches": "double-take/matches",
+      "cameras": "double-take/cameras"
+    },
+    "host": "192.168.1.1"
+  },
+  "objects": { "face": { "min_area_match": 10000 } },
+  "purge": { "matches": 168, "unknown": 8 },
+  "save": { "matches": true, "unknown": true },
+  "server": { "port": 3000 },
+  "storage": { "path": "./.storage" },
+  "time": { "timezone": "UTC", "format": "F" }
+}
+```
+
 ### `GET - /api/recognize`
 
 Process image for recognition.

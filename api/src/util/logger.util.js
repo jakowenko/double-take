@@ -4,7 +4,7 @@ const { STORAGE } = require('../constants');
 
 let logStream = false;
 
-module.exports.log = (message, config = {}) => {
+module.exports.log = (message) => {
   try {
     if (!logStream)
       logStream = fs.createWriteStream(`${STORAGE.PATH}/messages.log`, { flags: 'a' });
@@ -15,8 +15,8 @@ module.exports.log = (message, config = {}) => {
         : JSON.stringify(message, null, '\t');
     logStream.write(logMessage + os.EOL);
 
-    console.log(message);
-    // if (config.dashes) this.dashes(message);
+    if (typeof message === 'object') console.dir(message, { depth: null });
+    else console.log(message);
   } catch (error) {
     console.log('logger error');
     console.log(error);
