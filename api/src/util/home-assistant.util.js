@@ -33,6 +33,7 @@ module.exports.publish = async (data) => {
         data: {
           state: camera,
           attributes: {
+            friendly_name: unknown.name,
             ...defaultConfig,
             ...unknown,
           },
@@ -51,6 +52,7 @@ module.exports.publish = async (data) => {
         data: {
           state: camera,
           attributes: {
+            friendly_name: match.name,
             ...defaultConfig,
             ...match,
           },
@@ -68,6 +70,7 @@ module.exports.publish = async (data) => {
         data: {
           state: matches.length + (unknown && Object.keys(unknown).length ? 1 : 0),
           attributes: {
+            friendly_name: camera,
             ...defaultConfig,
             matches,
             unknown,
