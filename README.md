@@ -40,7 +40,7 @@ The UI is accessible from `http://localhost:3000`.
 
 ### `GET - /api/config`
 
-Output configuration
+Output configuration.
 
 ```shell
 curl -X GET "http://localhost:3000/api/config" \
@@ -266,6 +266,10 @@ mqtt:
     matches: double-take/matches
     cameras: double-take/cameras
 
+home_assistant:
+  url: http://192.168.1.1:8123
+  token: xxx.xxx-xxx
+
 confidence:
   match: 60
   unknown: 40
@@ -332,6 +336,8 @@ time:
 | frigate.image.height        | `500`                 | Height of Frigate image passed for facial recognition                                                                                             |
 | frigate.cameras             |                       | Only process images from specific cameras                                                                                                         |
 | frigate.zones               |                       | Only process images from specific zones                                                                                                           |
+| home_assistant.url          |                       | Base URL for Home Assistant                                                                                                                       |
+| home_assistant.token        |                       | Home Assistant Long-Lived Access Token                                                                                                            |
 | detectors.compreface.url    |                       | Base URL for CompreFace API                                                                                                                       |
 | detectors.compreface.key    |                       | API Key for CompreFace collection                                                                                                                 |
 | detectors.deepstack.url     |                       | Base URL for DeepStack API                                                                                                                        |
