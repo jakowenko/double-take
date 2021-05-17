@@ -2,6 +2,7 @@ const yaml = require('js-yaml');
 const fs = require('fs');
 const _ = require('lodash');
 const defaults = require('./defaults');
+const { version } = require('../../package.json');
 
 let config = false;
 
@@ -25,6 +26,7 @@ module.exports = () => {
 
   config = _.isEmpty(config) ? defaults : _.mergeWith(defaults, config, customizer);
   config.storage = { path: './.storage', ...config.storage };
+  config.version = version;
   config = _(config).toPairs().sortBy(0).fromPairs().value();
   return config;
 };
