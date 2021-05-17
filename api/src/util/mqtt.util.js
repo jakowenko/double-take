@@ -62,6 +62,7 @@ module.exports.publish = (data) => {
     const configData = JSON.parse(JSON.stringify(data));
     delete configData.matches;
     delete configData.unknown;
+    delete configData.results;
 
     if (unknown && Object.keys(unknown).length) {
       const payload = {
@@ -79,12 +80,13 @@ module.exports.publish = (data) => {
       client.publish(`${MQTT.TOPICS.MATCHES}/${match.name}`, JSON.stringify(payload));
     });
 
-    if (matches.length) {
+    if (matches.length || (unknown && Object.keys(unknown).length)) {
       client.publish(
         `${MQTT.TOPICS.CAMERAS}/${camera}`,
         JSON.stringify({
           ...configData,
           matches,
+          unknown,
         })
       );
     }
