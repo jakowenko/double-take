@@ -23,7 +23,7 @@ module.exports.checks = async ({ id, type, label, camera, zones, PROCESSING, IDS
 
       if (cameraMatch) {
         const [match] = FRIGATE.ZONES.filter(
-          ({ CAMERA, NAME }) => camera === CAMERA && zones.includes(NAME)
+          ({ CAMERA, ZONE }) => camera === CAMERA && zones.includes(ZONE)
         );
 
         if (!match) {
