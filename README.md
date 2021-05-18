@@ -10,17 +10,26 @@ Unified UI and API for processing and training images for facial recognition.
 - [CompreFace](https://github.com/exadel-inc/CompreFace) v0.5.0
 - [Facebox](https://machinebox.io)
 
+### Supported NVRs
+
+- [Frigate](https://github.com/blakeblackshear/frigate) v0.8.0-0.8.4
+
 ## Use Cases
 
 ### [Frigate](https://github.com/blakeblackshear/frigate)
 
 Subscribe to Frigate's MQTT events topic and process images from the event for analysis.
 
-When a Frigate event is received the API begins to process the [`snapshot.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apieventsidsnapshotjpg) and [`latest.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apicamera_namelatestjpgh300) images from Frigate's API. These images are passed from the API to the detector(s) specified until a match is found above the defined confidence level. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found. If a match is found the image is then saved to `/.storage/matches/:filename`.
+When a Frigate event is received the API begins to process the [`snapshot.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apieventsidsnapshotjpg) and [`latest.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apicamera_namelatestjpgh300) images from Frigate's API. These images are passed from the API to the detector(s) specified until a match is found above the defined confidence level. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found. If a match is found the image is then saved to `/.storage/matches/${filename}`.
 
 ### [Home Assistant](https://www.home-assistant.io) + [Node-Red](https://nodered.org)
 
-Double Take can be paired with Home Assistant and Node-Red to create automations when matches are detected.
+Double Take can be paired with Home Assistant and Node-Red to create automations when images are processed.
+
+If Home Assistant is configured, then sensors will be dynamically created/updated when a match or unknown person is detected.
+
+- `sensor.double_take_${name}`
+- `sensor.double_take_${camera}`
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/1081811/116505698-904ec780-a889-11eb-825e-b641203d9e95.jpg" width="70%">
@@ -122,9 +131,71 @@ curl -X GET "http://localhost:3000/api/recognize?url=https://jakowenko.com/img/d
 }
 ```
 
+### `GET - /api/recognize/test`
+
+Process test image for recognition and output the configured detectors raw response.
+
+```shell
+curl -X GET "http://localhost:3000/api/recognize/test" \
+-H "Content-type: application/json"
+```
+
+```json
+[
+  {
+    "detector": "deepstack",
+    "response": {
+      "success": true,
+      "predictions": [
+        {
+          "confidence": 0.0260843,
+          "userid": "david",
+          "y_min": 194,
+          "x_min": 215,
+          "y_max": 392,
+          "x_max": 358
+        }
+      ],
+      "duration": 0
+    }
+  },
+  {
+    "detector": "compreface",
+    "response": {
+      "result": [
+        {
+          "box": {
+            "probability": 0.93259,
+            "x_max": 369,
+            "y_max": 412,
+            "x_min": 190,
+            "y_min": 165
+          },
+          "subjects": [{ "subject": "david", "similarity": 0.03813 }]
+        }
+      ]
+    }
+  },
+  {
+    "detector": "facebox",
+    "response": {
+      "success": true,
+      "facesCount": 1,
+      "faces": [
+        {
+          "rect": { "top": 219, "left": 218, "width": 155, "height": 155 },
+          "matched": false,
+          "confidence": 0
+        }
+      ]
+    }
+  }
+]
+```
+
 ### `GET - /api/train/add/:name`
 
-Train detectors with images from `./storage/train/:name`. Once an image is trained, it will not be reprocessed unless it is removed via the API.
+Train detectors with images from `./storage/train/${name}`. Once an image is trained, it will not be reprocessed unless it is removed via the API.
 
 ```shell
 curl -X GET "http://localhost:3000/api/train/add/david" \
@@ -169,10 +240,10 @@ Render match image.
 
 ## MQTT
 
-If MQTT is enabled and a match is found then two topics will be created.
+If MQTT is enabled and a match or unknown person is detected then two topics will be created.
 
-- `double-take/matches/:name`
-- `double-take/cameras/:camera`
+- `double-take/matches/${name}`
+- `double-take/cameras/${camera}`
 
 **double-take/matches/david**
 
@@ -298,7 +369,7 @@ frigate:
     - backyard
   zones:
     - camera: driveway
-      name: zone-1
+      zone: zone-1
 
 detectors:
   compreface:
