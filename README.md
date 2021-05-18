@@ -42,7 +42,7 @@ More information for this can be found in the [docs](https://github.com/jakowenk
 The UI is accessible from `http://localhost:3000`.
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/1081811/116505792-cc822800-a889-11eb-91f3-f6a192767aa8.png" width="70%">
+  <img src="https://user-images.githubusercontent.com/1081811/118581518-c633ed00-b75f-11eb-9c9d-77535484787d.png" width="80%">
 </p>
 
 ## API
