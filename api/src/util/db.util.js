@@ -3,13 +3,13 @@ const time = require('./time.util');
 const filesystem = require('./fs.util');
 const logger = require('./logger.util');
 
-const { STORAGE_PATH, SAVE_UNKNOWN } = require('../constants');
+const { STORAGE, SAVE } = require('../constants');
 
 const database = this;
 let connection = false;
 
 module.exports.connect = () => {
-  if (!connection) connection = new Database(`${STORAGE_PATH}/database.db`);
+  if (!connection) connection = new Database(`${STORAGE.PATH}/database.db`);
   return connection;
 };
 
@@ -129,7 +129,7 @@ module.exports.files = (status, data) => {
     files.forEach((file) => {
       const { name, filename } = file;
       if (file.response) file.response = JSON.parse(file.response);
-      file.key = `${STORAGE_PATH}/train/${name}/${filename}`;
+      file.key = `${STORAGE.PATH}/train/${name}/${filename}`;
     });
 
     return files;
@@ -174,6 +174,7 @@ module.exports.insert = (type, data = []) => {
         insert.run(item);
       }
     });
+    console.log(data);
     transaction(data);
   }
 
@@ -200,7 +201,7 @@ module.exports.insert = (type, data = []) => {
     const records = [];
     results.forEach((group) => {
       group.results.forEach((attempt) => {
-        let combined = SAVE_UNKNOWN
+        let combined = SAVE.UNKNOWN
           ? [...attempt.matches, ...attempt.misses]
           : [...attempt.matches];
 

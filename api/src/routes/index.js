@@ -1,5 +1,6 @@
 const express = require('express');
 const { validate } = require('../util/validate.util');
+const config = require('../controllers/config.controller');
 const recognize = require('../controllers/recognize.controller');
 const storage = require('../controllers/storage.controller');
 const train = require('../controllers/train.controller');
@@ -9,8 +10,11 @@ const validators = require('../util/validators.util');
 
 const router = express.Router();
 
+router.get('/config', config.get);
+
 router.post('/recognize', validate(validators.recognize({ post: true })), recognize.start);
 router.get('/recognize', validate(validators.recognize({ get: true })), recognize.start);
+router.get('/recognize/test', recognize.test);
 
 router.get('/match', match.get).patch('/match', match.patch).delete('/match', match.delete);
 

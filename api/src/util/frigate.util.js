@@ -2,29 +2,28 @@ const axios = require('axios');
 const sleep = require('./sleep.util');
 const logger = require('./logger.util');
 
-const { FRIGATE_URL, FRIGATE_CAMERAS, FRIGATE_ZONES } = require('../constants');
+const { FRIGATE } = require('../constants');
 
 const frigate = this;
 
 module.exports.checks = async ({ id, type, label, camera, zones, PROCESSING, IDS }) => {
   try {
+    if (!FRIGATE.URL) {
+      return `Frigate URL not configured`;
+    }
+
     await frigate.status();
 
-    if (FRIGATE_CAMERAS && !FRIGATE_CAMERAS.includes(camera)) {
+    if (FRIGATE.CAMERAS && !FRIGATE.CAMERAS.includes(camera)) {
       return `${id} - ${camera} not on approved list`;
     }
 
-    if (FRIGATE_ZONES) {
-      const frigateZones = FRIGATE_ZONES.map((obj) => {
-        const [cameraName, zoneName] = obj.split(':');
-        return { camera: cameraName, zone: zoneName };
-      });
-
-      const [cameraMatch] = frigateZones.filter((obj) => camera === obj.camera);
+    if (FRIGATE.ZONES) {
+      const [cameraMatch] = FRIGATE.ZONES.filter(({ CAMERA }) => camera === CAMERA);
 
       if (cameraMatch) {
-        const [match] = frigateZones.filter(
-          (obj) => camera === obj.camera && zones.includes(obj.zone)
+        const [match] = FRIGATE.ZONES.filter(
+          ({ CAMERA, ZONE }) => camera === CAMERA && zones.includes(ZONE)
         );
 
         if (!match) {
@@ -57,7 +56,7 @@ module.exports.status = async () => {
   try {
     const request = await axios({
       method: 'get',
-      url: `${FRIGATE_URL}/api/version`,
+      url: `${FRIGATE.URL}/api/version`,
     });
     return request.data;
   } catch (error) {
@@ -76,7 +75,7 @@ module.exports.snapshotReady = async (id) => {
     try {
       const request = await axios({
         method: 'get',
-        url: `${FRIGATE_URL}/api/events/${id}`,
+        url: `${FRIGATE.URL}/api/events/${id}`,
       });
       if (request.data.has_snapshot) {
         ready = true;

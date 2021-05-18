@@ -19,9 +19,12 @@ module.exports.queue = async (files) => {
       const { id, name, filename, key } = files[i];
       logger.log(`file ${i + 1}: ${name} - ${filename}`);
 
-      DETECTORS.forEach((detector) => {
+      const detectors = Object.fromEntries(
+        Object.entries(DETECTORS).map(([k, v]) => [k.toLowerCase(), v])
+      );
+      for (const [detector] of Object.entries(detectors)) {
         promises.push(this.process({ name, key, detector }));
-      });
+      }
       const results = await Promise.all(promises);
 
       results.forEach((result, j) => {
@@ -31,7 +34,7 @@ module.exports.queue = async (files) => {
           name,
           filename,
           meta: JSON.stringify(result),
-          detector: DETECTORS[j],
+          detector: Object.entries(detectors)[j][0],
         });
       });
       outputs.push(output);

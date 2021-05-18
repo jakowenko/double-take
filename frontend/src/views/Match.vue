@@ -4,11 +4,14 @@
       :loading="loading"
       :folders="['add new', ...folders]"
       :matches="matches"
+      :areAllSelected="areAllSelected"
+      :stats="{ filtered: filtered.length, source: source.length }"
       @trainingFolder="trainingFolder = $event"
       @filter="filter = $event"
+      @liveReload="liveReload = $event"
     />
     <div class="p-d-flex p-jc-center p-p-3">
-      <i v-if="loading.files" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
+      <i v-if="loading.files && !source.length" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
       <Grid
         v-else
         :matches="{ filtered, ...matches }"
@@ -24,6 +27,7 @@
 import ApiService from '@/services/api.service';
 import Grid from '@/components/match/Grid.vue';
 import Header from '@/components/match/Header.vue';
+import Sleep from '@/util/sleep.util';
 
 export default {
   components: {
@@ -38,7 +42,6 @@ export default {
         folders: false,
         files: false,
         createFolder: false,
-        lazy: false,
       },
       matches: {
         source: [],
@@ -47,13 +50,19 @@ export default {
         loaded: [],
       },
       filter: {},
-      toggleAllState: null,
       trainingFolder: null,
+      liveReload: false,
     };
   },
   computed: {
+    source() {
+      return JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
+    },
+    areAllSelected() {
+      return this.filtered.length > 0 && this.matches.selected.length === this.filtered.length;
+    },
     filtered() {
-      const files = JSON.parse(JSON.stringify(this.matches.source));
+      const files = JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
 
       const name = this.filter.name || [];
       const match = this.filter.match || [];
@@ -95,7 +104,7 @@ export default {
         }
         return [];
       });
-      return filtered.flat();
+      return filtered.flat().slice(0, 250);
     },
   },
   async mounted() {
@@ -121,7 +130,6 @@ export default {
           } catch (error) {
             $this.$toast.add({
               severity: 'error',
-              summary: 'Error',
               detail: error.message,
               life: 3000,
             });
@@ -130,18 +138,34 @@ export default {
         async matches() {
           try {
             $this.loading.files = true;
-            const { data } = await ApiService.get('match');
-            setTimeout(() => {
-              $this.matches.selected = [];
-              $this.matches.disabled = [];
+            await Sleep(1000);
+            const sinceId =
+              $this.liveReload && $this.matches.source.length && $this.matches.source[0]
+                ? { ...$this.matches.source[0] }.id
+                : 0;
+            const { data } = await ApiService.get('match', { sinceId });
+
+            if (sinceId === 0) {
               $this.matches.source = data.matches;
-              $this.loading.files = false;
-              $this.loading.lazy = false;
-            }, 1000);
+            } else if (data.matches.length) $this.matches.source.unshift(...data.matches);
+
+            if (data.matches.length) {
+              $this.matches.selected = $this.matches.source.filter((selected) =>
+                $this.matches.selected.some((filter) => filter.id === selected.id),
+              );
+
+              const deleteDisabled = $this.matches.source.flatMap((obj, i) =>
+                $this.matches.disabled.includes(obj.id) ? i : [],
+              );
+              for (let i = 0; i < deleteDisabled.length; i += 1) {
+                delete $this.matches.source[deleteDisabled[i]];
+              }
+            }
+
+            $this.loading.files = false;
           } catch (error) {
             $this.$toast.add({
               severity: 'error',
-              summary: 'Error',
               detail: error.message,
               life: 3000,
             });
@@ -171,24 +195,24 @@ export default {
                   }));
                   const ids = $this.matches.selected.map((obj) => obj.id);
                   await ApiService.delete('match', matches);
+                  const { areAllSelected } = $this;
                   $this.matches.disabled = $this.matches.disabled.concat(ids);
                   $this.matches.selected = [];
 
                   $this.toast({
                     severity: 'success',
-                    summary: 'Success',
                     detail: `${description} deleted`,
                   });
-                  if ($this.toggleAllState) {
-                    $this.get().matches();
+                  if (areAllSelected && !$this.liveReload) {
+                    await $this.get().matches();
                   }
                 } catch (error) {
-                  $this.toast({ severity: 'error', summary: 'Error', detail: error.message });
+                  $this.toast({ severity: 'error', detail: error.message });
                 }
               },
             });
           } catch (error) {
-            $this.toast({ severity: 'error', summary: 'Error', detail: error.message });
+            $this.toast({ severity: 'error', detail: error.message });
           }
         },
       };
@@ -202,13 +226,11 @@ export default {
             $this.get().folders();
             $this.$toast.add({
               severity: 'success',
-              summary: 'Success',
               detail: 'Folder created',
             });
           } catch (error) {
             $this.$toast.add({
               severity: 'error',
-              summary: 'Error',
               detail: error.message,
               life: 3000,
             });
@@ -243,13 +265,11 @@ export default {
 
             this.toast({
               severity: 'success',
-              summary: 'Success',
               detail: `${description} trained for ${this.trainingFolder}`,
             });
           } catch (error) {
             this.toast({
               severity: 'error',
-              summary: 'Error',
               detail: error.message,
               life: 3000,
             });
@@ -257,10 +277,9 @@ export default {
         },
       });
     },
-    toast({ severity, summary, detail }) {
+    toast({ severity, detail }) {
       this.$toast.add({
         severity,
-        summary,
         detail,
         life: 3000,
       });
@@ -270,7 +289,7 @@ export default {
       if (this.matches.disabled.includes(id)) return;
       const index = this.matches.selected.findIndex((obj) => match.id === obj.id);
       if (index !== -1) this.matches.selected.splice(index, 1);
-      else this.matches.selected.push(match);
+      else this.matches.selected.unshift(match);
     },
     assetLoaded(id) {
       this.matches.loaded.push(id);
@@ -278,7 +297,6 @@ export default {
     toggleAll(state) {
       const available = this.filtered.filter((obj) => !this.matches.disabled.includes(obj.id)).map((obj) => obj);
       this.matches.selected = state ? available : [];
-      this.toggleAllState = state;
     },
   },
 };

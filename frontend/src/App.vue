@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <Toast />
+    <Toast position="bottom-left" />
     <ConfirmDialog />
     <!-- <Navigation /> -->
     <router-view />
@@ -48,10 +48,18 @@ body {
     'Segoe UI Emoji', 'Segoe UI Symbol';
 }
 
+.p-toast .p-toast-message-content {
+  align-items: center;
+}
+
+.p-toast .p-toast-detail {
+  margin-top: 0 !important;
+}
+
 @media only screen and (max-width: 576px) {
   .p-toast {
     width: auto;
-    left: 20px;
+    right: 20px;
   }
 }
 

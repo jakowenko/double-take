@@ -1,21 +1,17 @@
 const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
 const process = require('../util/process.util');
+const actions = require('../util/detectors/actions');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
 const recognize = require('../util/recognize.util');
 const frigate = require('../util/frigate.util');
 const mqtt = require('../util/mqtt.util');
+const homeAssistant = require('../util/home-assistant.util');
 const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
 const { OK, BAD_REQUEST } = require('../constants/http-status');
 
-const {
-  FRIGATE_URL,
-  FRIGATE_IMAGE_HEIGHT,
-  SNAPSHOT_RETRIES,
-  LATEST_RETRIES,
-  MQTT_HOST,
-} = require('../constants');
+const { FRIGATE, DETECTORS } = require('../constants');
 
 const { IDS, MATCH_IDS } = {
   IDS: [],
@@ -23,6 +19,26 @@ const { IDS, MATCH_IDS } = {
 };
 
 let PROCESSING = false;
+
+module.exports.test = async (req, res) => {
+  try {
+    const detectors = Object.fromEntries(
+      Object.entries(DETECTORS).map(([k, v]) => [k.toLowerCase(), v])
+    );
+    const promises = [];
+    for (const [detector] of Object.entries(detectors)) {
+      promises.push(actions.recognize({ detector, key: `${__dirname}/../static/img/lenna.png` }));
+    }
+    const results = await Promise.all(promises);
+    const output = results.map((result, i) => ({
+      detector: Object.entries(detectors)[i][0],
+      response: result.data,
+    }));
+    respond(HTTPError(OK, output), res);
+  } catch (error) {
+    respond(error, res);
+  }
+};
 
 module.exports.start = async (req, res) => {
   try {
@@ -49,7 +65,11 @@ module.exports.start = async (req, res) => {
     const { id, camera, zones, url } = event;
     const { break: breakMatch, results: resultsOutput, attempts: manualAttempts } = event.options;
 
-    if (isFrigateEvent && FRIGATE_URL) {
+    if (!DETECTORS) {
+      return respond(HTTPError(BAD_REQUEST, 'no detectors configured'), res);
+    }
+
+    if (isFrigateEvent) {
       try {
         const check = await frigate.checks({
           ...event,
@@ -57,7 +77,6 @@ module.exports.start = async (req, res) => {
           IDS,
         });
         if (typeof check === 'string') {
-          logger.log(check, { verbose: true });
           return respond(HTTPError(BAD_REQUEST, check), res);
         }
       } catch (error) {
@@ -79,28 +98,30 @@ module.exports.start = async (req, res) => {
     };
 
     if (isFrigateEvent) {
-      promises.push(
-        process.polling(
-          { ...event },
-          {
-            ...config,
-            retries: LATEST_RETRIES,
-            type: 'latest',
-            url: `${FRIGATE_URL}/api/${camera}/latest.jpg?h=${FRIGATE_IMAGE_HEIGHT}`,
-          }
-        )
-      );
-      promises.push(
-        process.polling(
-          { ...event },
-          {
-            ...config,
-            retries: SNAPSHOT_RETRIES,
-            type: 'snapshot',
-            url: `${FRIGATE_URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE_IMAGE_HEIGHT}`,
-          }
-        )
-      );
+      if (FRIGATE.ATTEMPTS.LATEST)
+        promises.push(
+          process.polling(
+            { ...event },
+            {
+              ...config,
+              retries: FRIGATE.ATTEMPTS.LATEST,
+              type: 'latest',
+              url: `${FRIGATE.URL}/api/${camera}/latest.jpg?h=${FRIGATE.IMAGE.HEIGHT}`,
+            }
+          )
+        );
+      if (FRIGATE.ATTEMPTS.SNAPSHOT)
+        promises.push(
+          process.polling(
+            { ...event },
+            {
+              ...config,
+              retries: FRIGATE.ATTEMPTS.SNAPSHOT,
+              type: 'snapshot',
+              url: `${FRIGATE.URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE.IMAGE.HEIGHT}`,
+            }
+          )
+        );
     } else {
       promises.push(
         process.polling(
@@ -115,7 +136,8 @@ module.exports.start = async (req, res) => {
       );
     }
 
-    const { best, results, attempts } = recognize.normalize(await Promise.all(promises));
+    // return res.json(await Promise.all(promises));
+    const { best, unknown, results, attempts } = recognize.normalize(await Promise.all(promises));
 
     const duration = parseFloat((perf.stop('request').time / 1000).toFixed(2));
     const output = {
@@ -125,19 +147,11 @@ module.exports.start = async (req, res) => {
       attempts,
       camera,
       zones,
-      matches: JSON.parse(JSON.stringify(best)).map((obj) => {
-        delete obj.tmp;
-        return obj;
-      }),
+      matches: best,
     };
+    if (unknown && Object.keys(unknown).length) output.unknown = unknown;
 
-    if (resultsOutput === 'all')
-      output.results = JSON.parse(JSON.stringify(results)).map((group) => {
-        group.results.forEach((attempt) => {
-          delete attempt.tmp;
-        });
-        return group;
-      });
+    if (resultsOutput === 'all') output.results = results;
 
     logger.log('response:');
     logger.log(output);
@@ -149,9 +163,8 @@ module.exports.start = async (req, res) => {
 
     respond(HTTPSuccess(OK, output), res);
 
-    if (MQTT_HOST) {
-      mqtt.publish(output);
-    }
+    mqtt.publish(output);
+    homeAssistant.publish(output);
 
     if (output.matches.length) {
       IDS.push(id);

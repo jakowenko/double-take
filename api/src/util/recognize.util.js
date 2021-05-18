@@ -1,26 +1,38 @@
 module.exports.normalize = (results = []) => {
   const best = [];
   const tmp = {};
+  let unknown = {};
 
   let attempts = 0;
   results.forEach((group) => {
     attempts += group.attempts;
     group.results.forEach((attempt) => {
       const matches = attempt.results.filter((obj) => obj.match);
-      if (matches.length) {
-        matches.forEach((match) => {
-          if (tmp[match.name] === undefined || tmp[match.name].confidence < match.confidence) {
-            tmp[match.name] = {
-              ...match,
-              type: group.type,
-              duration: attempt.duration,
-              detector: attempt.detector,
-              tmp: attempt.tmp,
-              filename: attempt.filename,
-            };
-          }
-        });
-      }
+      const unknowns = attempt.results.filter((obj) => obj.name === 'unknown');
+
+      unknowns.forEach((obj) => {
+        if (unknown.confidence === undefined || unknown.confidence < obj.confidence) {
+          unknown = {
+            ...obj,
+            type: group.type,
+            duration: attempt.duration,
+            detector: attempt.detector,
+            filename: attempt.filename,
+          };
+        }
+      });
+
+      matches.forEach((match) => {
+        if (tmp[match.name] === undefined || tmp[match.name].confidence < match.confidence) {
+          tmp[match.name] = {
+            ...match,
+            type: group.type,
+            duration: attempt.duration,
+            detector: attempt.detector,
+            filename: attempt.filename,
+          };
+        }
+      });
     });
   });
 
@@ -28,5 +40,5 @@ module.exports.normalize = (results = []) => {
     best.push(value);
   }
 
-  return { best, results, attempts };
+  return { best, results, attempts, unknown };
 };

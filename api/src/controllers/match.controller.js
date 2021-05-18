@@ -6,19 +6,23 @@ const database = require('../util/db.util');
 const filesystem = require('../util/fs.util');
 const { respond, HTTPSuccess /* , HTTPError */ } = require('../util/respond.util');
 const { OK } = require('../constants/http-status');
-const { STORAGE_PATH } = require('../constants');
+const { STORAGE } = require('../constants');
 
 module.exports.get = async (req, res) => {
   try {
+    const { sinceId } = req.query;
+
     const db = database.connect();
     let matches = db
       .prepare(
         `
           SELECT * FROM match
           WHERE filename NOT IN (SELECT filename FROM train)
+          AND id > ?
           ORDER BY createdAt DESC LIMIT 100
         `
       )
+      .bind(sinceId || 0)
       .all();
 
     matches = await Promise.all(
@@ -41,9 +45,9 @@ module.exports.get = async (req, res) => {
           createdAt: obj.createdAt,
         };
 
-        if (fs.existsSync(`${STORAGE_PATH}/${key}`)) {
-          const base64 = await sharp(`${STORAGE_PATH}/${key}`).resize(500).toBuffer();
-          const { width, height } = await sizeOf(`${STORAGE_PATH}/${key}`);
+        if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
+          const base64 = await sharp(`${STORAGE.PATH}/${key}`).resize(500).toBuffer();
+          const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
           output.file.base64 = base64.toString('base64');
           output.file.width = width;
           output.file.height = height;
@@ -64,8 +68,8 @@ module.exports.patch = async (req, res) => {
     const { folder, matches } = req.body;
     matches.forEach((obj) => {
       filesystem.move(
-        `${STORAGE_PATH}/${obj.key}`,
-        `${STORAGE_PATH}/train/${folder}/${obj.filename}`
+        `${STORAGE.PATH}/${obj.key}`,
+        `${STORAGE.PATH}/train/${folder}/${obj.filename}`
       );
     });
     respond(HTTPSuccess(OK, { sucess: true }), res);
@@ -80,7 +84,7 @@ module.exports.delete = async (req, res) => {
     files.forEach((file) => {
       const db = database.connect();
       db.prepare('DELETE FROM match WHERE id = ?').run(file.id);
-      filesystem.delete(`${STORAGE_PATH}/${file.key}`);
+      filesystem.delete(`${STORAGE.PATH}/${file.key}`);
     });
     respond(HTTPSuccess(OK, { sucess: true }), res);
   } catch (error) {

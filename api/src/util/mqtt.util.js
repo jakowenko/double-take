@@ -1,38 +1,30 @@
 const axios = require('axios');
 const mqtt = require('mqtt');
 const logger = require('./logger.util');
-const {
-  PORT,
-  MQTT_HOST,
-  MQTT_TOPIC,
-  MQTT_TOPIC_MATCHES,
-  MQTT_TOPIC_CAMERAS,
-  MQTT_USERNAME,
-  MQTT_PASSWORD,
-} = require('../constants');
+const { SERVER, MQTT, FRIGATE } = require('../constants');
 
 let client = false;
 
 module.exports.connect = () => {
-  if (!MQTT_HOST) {
+  if (!MQTT.HOST) {
     return;
   }
-  client = mqtt.connect(MQTT_HOST, {
+  client = mqtt.connect(`mqtt://${MQTT.HOST}`, {
     reconnectPeriod: 10000,
-    username: MQTT_USERNAME,
-    password: MQTT_PASSWORD,
+    username: MQTT.USERNAME,
+    password: MQTT.PASSWORD,
   });
 
   client
     .on('connect', () => {
       logger.log('MQTT: connected');
-      if (MQTT_TOPIC) {
-        client.subscribe(MQTT_TOPIC, (err) => {
+      if (FRIGATE.URL && MQTT.TOPICS.FRIGATE) {
+        client.subscribe(MQTT.TOPICS.FRIGATE, (err) => {
           if (err) {
-            logger.log(`MQTT: error subscribing to ${MQTT_TOPIC}`);
+            logger.log(`MQTT: error subscribing to ${MQTT.TOPICS.FRIGATE}`);
             return;
           }
-          logger.log(`MQTT: subscribed to ${MQTT_TOPIC}`);
+          logger.log(`MQTT: subscribed to ${MQTT.TOPICS.FRIGATE}`);
         });
       }
     })
@@ -51,7 +43,7 @@ module.exports.connect = () => {
     .on('message', async (topic, message) => {
       await axios({
         method: 'post',
-        url: `http://0.0.0.0:${PORT}/api/recognize`,
+        url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
         data: JSON.parse(message.toString()),
         validateStatus() {
           return true;
@@ -62,28 +54,39 @@ module.exports.connect = () => {
 
 module.exports.publish = (data) => {
   try {
-    const { matches, camera } = data;
+    if (!MQTT || !MQTT.HOST) {
+      return;
+    }
+    const { matches, unknown, camera } = data;
 
-    matches.forEach((match) => {
-      const configData = JSON.parse(JSON.stringify(data));
-      const matchData = JSON.parse(JSON.stringify(match));
-      delete configData.matches;
+    const configData = JSON.parse(JSON.stringify(data));
+    delete configData.matches;
+    delete configData.unknown;
+    delete configData.results;
+
+    if (unknown && Object.keys(unknown).length) {
       const payload = {
         ...configData,
-        match: matchData,
+        unknown,
       };
-      client.publish(`${MQTT_TOPIC_MATCHES}/${match.name}`, JSON.stringify(payload));
+      client.publish(`${MQTT.TOPICS.MATCHES}/unknown`, JSON.stringify(payload));
+    }
+
+    matches.forEach((match) => {
+      const payload = {
+        ...configData,
+        match,
+      };
+      client.publish(`${MQTT.TOPICS.MATCHES}/${match.name}`, JSON.stringify(payload));
     });
 
-    if (matches.length) {
-      const configData = JSON.parse(JSON.stringify(data));
-      delete configData.matches;
-
+    if (matches.length || (unknown && Object.keys(unknown).length)) {
       client.publish(
-        `${MQTT_TOPIC_CAMERAS}/${camera}`,
+        `${MQTT.TOPICS.CAMERAS}/${camera}`,
         JSON.stringify({
           ...configData,
           matches,
+          unknown,
         })
       );
     }

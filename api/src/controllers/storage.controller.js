@@ -7,13 +7,13 @@ const { tryParseJSON } = require('../util/validators.util');
 const { respond, HTTPError } = require('../util/respond.util');
 const { BAD_REQUEST } = require('../constants/http-status');
 
-const { STORAGE_PATH } = require('../constants');
+const { PATH } = require('../constants').STORAGE;
 
 module.exports.matches = async (req, res) => {
   try {
     const { box: showBox } = req.query;
     const { filename } = req.params;
-    const source = `${STORAGE_PATH}/matches/${filename}`;
+    const source = `${PATH}/matches/${filename}`;
 
     if (!fs.existsSync(source)) {
       throw HTTPError(BAD_REQUEST, `${source} does not exist`);

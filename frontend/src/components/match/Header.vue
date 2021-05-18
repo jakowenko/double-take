@@ -55,32 +55,30 @@
               :disabled="matches.selected.length === 0"
             />
             <Button
-              :icon="toggleAllState ? 'fa fa-check-square' : 'far fa-check-square'"
-              class="p-button p-button-sm p-mr-1"
-              @click="
-                toggleAllState = !toggleAllState;
-                $parent.toggleAll(toggleAllState);
-              "
-              :disabled="loading.files"
-            />
-            <Button
               icon="pi pi-refresh"
-              class="p-button p-button-sm p-mr-1"
+              :class="[{ loading: loading.files }, 'p-button p-button-sm p-mr-1 reload-btn']"
               @click="$parent.get().matches()"
-              :disabled="loading.files"
+              :disabled="liveReload || loading.files"
             />
             <Button
-              icon="pi pi-cog"
-              class="p-button p-button-sm"
-              @click="showFilter = !showFilter"
-              :disabled="loading.files"
+              :icon="areAllSelected ? 'fa fa-check-square' : 'far fa-check-square'"
+              class="p-button p-button-sm p-mr-1"
+              @click="$parent.toggleAll(!areAllSelected)"
             />
+            <Button icon="pi pi-cog" class="p-button p-button-sm" @click="showFilter = !showFilter" />
           </div>
         </div>
       </div>
     </div>
     <div class="fixed fixed-sub p-shadow-5 p-pl-3 p-pr-3" :class="{ show: showFilter }">
-      <div class="p-grid">
+      <div class="p-grid p-ai-center">
+        <div class="p-col-6 p-pb-0 stats-text">{{ stats.filtered }} of {{ stats.source }}</div>
+        <div class="p-col-6 p-d-flex p-jc-end p-pb-0">
+          <div class="p-field-checkbox p-mb-0">
+            <label for="liveReload" class="p-mr-1">Live Reload</label>
+            <Checkbox id="liveReload" v-model="liveReload" :binary="true" />
+          </div>
+        </div>
         <div class="p-col-4 p-md-2 p-lg-2">
           <div class="p-fluid">
             <label class="p-d-block p-mb-1">Filter by name:</label>
@@ -153,6 +151,8 @@ import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import MultiSelect from 'primevue/multiselect';
+import Checkbox from 'primevue/checkbox';
+import Sleep from '@/util/sleep.util';
 
 export default {
   components: {
@@ -160,6 +160,7 @@ export default {
     Dropdown,
     InputText,
     MultiSelect,
+    Checkbox,
   },
   data() {
     return {
@@ -168,7 +169,7 @@ export default {
         name: null,
         show: false,
       },
-      toggleAllState: false,
+      liveReload: null,
       showFilter: false,
       filter: {
         name: null,
@@ -181,15 +182,30 @@ export default {
     };
   },
   props: {
+    areAllSelected: Boolean,
     matches: Object,
     folders: Array,
     loading: Object,
+    stats: Object,
   },
   mounted() {
     this.$emit('filter', this.filter);
   },
-  methods: {},
+  methods: {
+    async getMatchesInterval() {
+      if (!this.liveReload) return;
+      await this.$parent.get().matches();
+      await Sleep(1000);
+      await this.getMatchesInterval();
+    },
+  },
   watch: {
+    async liveReload(value) {
+      this.$emit('liveReload', value);
+      if (value) {
+        this.getMatchesInterval();
+      }
+    },
     names(values) {
       this.filter.name = values;
     },
@@ -204,10 +220,6 @@ export default {
         return;
       }
       this.$emit('trainingFolder', value);
-    },
-    // eslint-disable-next-line object-shorthand
-    'matches.source'() {
-      this.toggleAllState = false;
     },
   },
   computed: {
@@ -253,7 +265,8 @@ export default {
 
   .p-button ::v-deep(.fa.p-button-icon),
   .p-button ::v-deep(.fas.p-button-icon),
-  .p-button ::v-deep(.far.p-button-icon) {
+  .p-button ::v-deep(.far.p-button-icon),
+  .p-button ::v-deep(.pi) {
     font-size: 1rem;
   }
 
@@ -291,9 +304,9 @@ export default {
 
   &.fixed-sub {
     background: var(--surface-50);
-    top: -100px;
+    top: -150px;
     z-index: 3;
-    padding-top: 0.6rem;
+    padding-top: 0.75rem;
     padding-bottom: 0;
     transition: all 0.25s;
 
@@ -302,7 +315,8 @@ export default {
       top: 55px;
     }
 
-    label {
+    label,
+    .stats-text {
       font-size: 13px;
       @media only screen and (max-width: 576px) {
         font-size: 11px;

@@ -15,11 +15,14 @@ module.exports.delete = async (req, res) => {
     perf.start();
     const promises = [];
 
-    DETECTORS.forEach((detector) => {
+    const detectors = Object.fromEntries(
+      Object.entries(DETECTORS).map(([k, v]) => [k.toLowerCase(), v])
+    );
+    for (const [detector] of Object.entries(detectors)) {
       promises.push(train.remove({ detector, name }));
       const db = database.connect();
       db.prepare('DELETE FROM train WHERE detector = ? AND name = ?').run(detector, name);
-    });
+    }
     const results = [...(await Promise.all(promises))];
 
     logger.log(

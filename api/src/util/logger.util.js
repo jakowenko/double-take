@@ -1,13 +1,13 @@
 const os = require('os');
 const fs = require('fs');
-const { LOGS, STORAGE_PATH } = require('../constants');
+const { STORAGE } = require('../constants');
 
 let logStream = false;
 
-module.exports.log = (message, config = {}) => {
+module.exports.log = (message) => {
   try {
     if (!logStream)
-      logStream = fs.createWriteStream(`${STORAGE_PATH}/messages.log`, { flags: 'a' });
+      logStream = fs.createWriteStream(`${STORAGE.PATH}/messages.log`, { flags: 'a' });
 
     const logMessage =
       typeof message === 'string'
@@ -15,16 +15,8 @@ module.exports.log = (message, config = {}) => {
         : JSON.stringify(message, null, '\t');
     logStream.write(logMessage + os.EOL);
 
-    if (config.verbose) {
-      if (LOGS === 'verbose') {
-        console.log(message);
-        // if (config.dashes) this.dashes(message);
-      }
-      return;
-    }
-
-    console.log(message);
-    // if (config.dashes) this.dashes(message);
+    if (typeof message === 'object') console.dir(message, { depth: null });
+    else console.log(message);
   } catch (error) {
     console.log('logger error');
     console.log(error);

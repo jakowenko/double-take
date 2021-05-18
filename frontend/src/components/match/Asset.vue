@@ -32,17 +32,12 @@
         </div>
       </template>
       <template v-slot:content>
-        <div class="p-d-block p-text-center p-mb-3">
-          <Badge v-if="match.camera" :value="match.camera" />
-          <Badge v-if="match.type" :value="match.type" />
-          <Badge v-if="match.zones.length" :value="[...match.zones].join(', ')" />
-        </div>
         <DataTable :value="results" class="p-datatable-sm" responsiveLayout="scroll">
           <Column field="detector" header="Detector">
             <template v-slot:body="slotProps">
               <Badge
                 :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
-                :severity="detector(slotProps.data.detector).match ? 'success' : 'danger'"
+                :severity="slotProps.data.match ? 'success' : 'danger'"
               />
               <div :class="'icon ' + slotProps.data.detector"></div>
             </template>
@@ -62,7 +57,14 @@
         </DataTable>
       </template>
       <template v-slot:footer>
-        <small>{{ createdAt.ago }}</small>
+        <div class="p-d-flex p-jc-between p-ai-center">
+          <small>{{ createdAt.ago }}</small>
+          <div>
+            <Badge v-if="match.camera" :value="match.camera" />
+            <Badge v-if="match.type" :value="match.type" />
+            <Badge v-if="match.zones.length" :value="[...match.zones].join(', ')" />
+          </div>
+        </div>
       </template>
     </Card>
   </div>
@@ -105,10 +107,6 @@ export default {
     },
     openLink(url) {
       window.open(url);
-    },
-    detector(detector) {
-      const [match] = this.results.filter((obj) => obj.detector === detector);
-      return match;
     },
     box(obj) {
       const { width, height } = this.match.file;
@@ -272,8 +270,15 @@ img.thumbnail {
   border-color: var(--indigo-600);
 }
 
-.p-card ::v-deep(.p-card-content) {
-  padding-top: 0;
-  padding-bottom: 0;
+.p-card {
+  ::v-deep(.p-card-content) {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  ::v-deep(.p-card-body) {
+    @media only screen and (max-width: 576px) {
+      padding: 0.75rem;
+    }
+  }
 }
 </style>
