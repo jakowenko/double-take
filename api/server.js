@@ -15,7 +15,7 @@ module.exports.start = async () => {
 
   if (ERROR) {
     logger.log('error loading config.yml');
-    logger.log('https://github.com/jakowenko/double-take/tree/beta#configuration');
+    logger.log('https://github.com/jakowenko/double-take#configuration');
   }
 
   logger.log(config());
