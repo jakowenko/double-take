@@ -1,6 +1,7 @@
 const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
 const process = require('../util/process.util');
+const actions = require('../util/detectors/actions');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
 const recognize = require('../util/recognize.util');
@@ -18,6 +19,26 @@ const { IDS, MATCH_IDS } = {
 };
 
 let PROCESSING = false;
+
+module.exports.test = async (req, res) => {
+  try {
+    const detectors = Object.fromEntries(
+      Object.entries(DETECTORS).map(([k, v]) => [k.toLowerCase(), v])
+    );
+    const promises = [];
+    for (const [detector] of Object.entries(detectors)) {
+      promises.push(actions.recognize({ detector, key: `${__dirname}/../static/img/lenna.png` }));
+    }
+    const results = await Promise.all(promises);
+    const output = results.map((result, i) => ({
+      detector: Object.entries(detectors)[i][0],
+      response: result.data,
+    }));
+    respond(HTTPError(OK, output), res);
+  } catch (error) {
+    respond(error, res);
+  }
+};
 
 module.exports.start = async (req, res) => {
   try {

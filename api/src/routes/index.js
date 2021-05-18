@@ -14,6 +14,7 @@ router.get('/config', config.get);
 
 router.post('/recognize', validate(validators.recognize({ post: true })), recognize.start);
 router.get('/recognize', validate(validators.recognize({ get: true })), recognize.start);
+router.get('/recognize/test', recognize.test);
 
 router.get('/match', match.get).patch('/match', match.patch).delete('/match', match.delete);
 
