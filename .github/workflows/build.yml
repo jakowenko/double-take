@@ -14,16 +14,6 @@ jobs:
     if: github.repository == 'jakowenko/double-take'
     runs-on: ubuntu-latest
     steps:
-      - name: Set ENV to beta
-        if: endsWith(github.ref, '/beta')
-        run: |
-          echo "TAG=beta" >> $GITHUB_ENV
-          echo "ARCH=linux/amd64" >> $GITHUB_ENV
-      - name: Set ENV to latest
-        if: ${{ github.event_name == 'release' && github.event.action == 'released' }}
-        run: |
-          echo "TAG=latest" >> $GITHUB_ENV
-          echo "ARCH=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64" >> $GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v2
       - name: Get VERSION
@@ -32,8 +22,18 @@ jobs:
         with:
           path: ./api/package.json
           prop_path: version
-      - name: Set VERSION
-        run: echo "VERSION=${{steps.version.outputs.prop}}" >> $GITHUB_ENV
+      - name: Set ENV to beta
+        if: endsWith(github.ref, '/beta')
+        run: |
+          echo "TAG=beta" >> $GITHUB_ENV
+          echo "ARCH=linux/amd64" >> $GITHUB_ENV
+          echo "VERSION=beta-${{steps.version.outputs.prop}}" >> $GITHUB_ENV
+      - name: Set ENV to latest
+        if: ${{ github.event_name == 'release' && github.event.action == 'released' }}
+        run: |
+          echo "TAG=latest" >> $GITHUB_ENV
+          echo "ARCH=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64" >> $GITHUB_ENV
+          echo "VERSION=${{steps.version.outputs.prop}}" >> $GITHUB_ENV
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
