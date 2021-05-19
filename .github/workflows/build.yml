@@ -26,6 +26,14 @@ jobs:
           echo "ARCH=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64" >> $GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Get VERSION
+        id: version
+        uses: notiz-dev/github-action-json-property@release
+        with:
+          path: ./api/package.json
+          prop_path: version
+      - name: Set VERSION
+        run: echo "VERSION=${{steps.version.outputs.prop}}" >> $GITHUB_ENV
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -48,7 +56,7 @@ jobs:
           context: .
           platforms: ${{env.ARCH}}
           push: true
-          tags: jakowenko/double-take:${{env.TAG}}
+          tags: jakowenko/double-take:${{env.VERSION}},jakowenko/double-take:${{env.TAG}}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
       - # Temp fix
