@@ -6,15 +6,20 @@ RUN apk add vips-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/comm
 WORKDIR /double-take/api
 COPY ./api/package.json .
 RUN npm install --production
-COPY ./api/server.js .
-COPY ./api/src ./src
 
 WORKDIR /double-take/frontend
 COPY ./frontend/package.json .
 RUN npm install
+
+WORKDIR /double-take/api
+COPY ./api/server.js .
+COPY ./api/src ./src
+
+WORKDIR /double-take/frontend
 COPY ./frontend/src ./src
 COPY ./frontend/public ./public
 COPY ./frontend/.env.production ./frontend/vue.config.js ./
+
 RUN npm run build
 RUN mv dist /tmp/dist && rm -r * && mv /tmp/dist/* .
 
@@ -23,5 +28,8 @@ RUN mkdir /.storage
 RUN ln -s /.storage /double-take/.storage
 
 WORKDIR /double-take
+RUN echo "# Double Take\n\n\n" >> config.yml
 
-CMD [ "node", "api/server.js" ]
+RUN npm install nodemon -g
+
+CMD nodemon --watch config.yml api/server.js
