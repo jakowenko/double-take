@@ -10,7 +10,8 @@ const validators = require('../util/validators.util');
 
 const router = express.Router();
 
-router.get('/config', config.get);
+router.get('/config', validate(validators.config()), config.get);
+router.patch('/config', config.patch);
 
 router.post('/recognize', validate(validators.recognize({ post: true })), recognize.start);
 router.get('/recognize', validate(validators.recognize({ get: true })), recognize.start);

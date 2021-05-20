@@ -13,8 +13,10 @@
     "primeflex": "^2.0.0",
     "primeicons": "^4.1.0",
     "primevue": "^3.4.0",
+    "prismjs": "^1.23.0",
     "vue": "^3.0.0",
     "vue-axios": "^3.2.4",
+    "vue-prism-editor": "^2.0.0-alpha.2",
     "vue-router": "^4.0.6"
   },
   "devDependencies": {

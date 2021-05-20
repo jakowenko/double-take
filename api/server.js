@@ -7,16 +7,11 @@ const logger = require('./src/util/logger.util');
 const storage = require('./src/util/storage.util');
 const database = require('./src/util/db.util');
 const config = require('./src/constants/config');
-const { SERVER, ERROR } = require('./src/constants');
+const { SERVER } = require('./src/constants');
 
 module.exports.start = async () => {
   storage.setup();
   logger.log(`Double Take v${version}`);
-
-  if (ERROR) {
-    logger.log('error loading config.yml');
-    logger.log('https://github.com/jakowenko/double-take#configuration');
-  }
 
   logger.log(config());
 

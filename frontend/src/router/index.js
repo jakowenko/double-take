@@ -1,5 +1,6 @@
-import { createWebHistory, createRouter } from 'vue-router';
+import { /* createWebHistory, */ createWebHashHistory, createRouter } from 'vue-router';
 import Match from '@/views/Match.vue';
+import Config from '@/views/Config.vue';
 
 const routes = [
   {
@@ -7,10 +8,15 @@ const routes = [
     name: 'Match',
     component: Match,
   },
+  {
+    path: '/config',
+    name: 'Config',
+    component: Config,
+  },
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
 });
 

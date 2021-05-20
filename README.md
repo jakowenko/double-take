@@ -6,7 +6,7 @@ Unified UI and API for processing and training images for facial recognition.
 
 ### Supported Detectors
 
-- [DeepStack](https://deepstack.cc) v1.2.1
+- [DeepStack](https://deepstack.cc) v2021.02.1
 - [CompreFace](https://github.com/exadel-inc/CompreFace) v0.5.0
 - [Facebox](https://machinebox.io)
 
@@ -324,7 +324,7 @@ services:
 
 ## Configuration
 
-Configurable options that can be passed by mounting a file at `/double-take/config.yml`.
+Configurable options that can be passed by mounting a file at `/double-take/config.yml` and is editable via the UI at `http://localhost:3000/#/config`.
 
 ```yaml
 server:

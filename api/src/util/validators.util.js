@@ -46,6 +46,8 @@ module.exports.storage = () => {
   };
 };
 
+module.exports.config = () => [query('format').default('json').isIn(['json', 'yaml'])];
+
 module.exports.objects = () => {
   return [
     query('url').isURL(),
