@@ -5,6 +5,7 @@ const fs = require('fs');
 const logger = require('./logger.util');
 const { SERVER, MQTT, FRIGATE } = require('../constants');
 
+let previousMqttLengths = [];
 let justSubscribed = false;
 let client = false;
 
@@ -40,6 +41,12 @@ module.exports.connect = () => {
         const camera = topic.split('/')[1];
         const filename = `${uuidv4()}.jpg`;
         const buffer = Buffer.from(message);
+        if (previousMqttLengths.includes(buffer.length)) {
+          // previous mqtt image processed
+          return;
+        }
+        previousMqttLengths.unshift(buffer.length);
+
         fs.writeFileSync(`/tmp/${filename}`, buffer);
         await axios({
           method: 'get',
@@ -53,6 +60,8 @@ module.exports.connect = () => {
             return true;
           },
         });
+        // only store last 10 mqtt lengths
+        previousMqttLengths = previousMqttLengths.slice(0, 10);
       } else if (topic.includes('/events')) {
         await axios({
           method: 'post',
