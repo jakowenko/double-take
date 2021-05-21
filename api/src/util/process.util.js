@@ -11,10 +11,7 @@ const time = require('./time.util');
 const { recognize, normalize } = require('./detectors/actions');
 const { DETECTORS, STORAGE, SAVE } = require('../constants');
 
-module.exports.polling = async (
-  event,
-  { isFrigateEvent, retries, id, type, url, breakMatch, MATCH_IDS }
-) => {
+module.exports.polling = async (event, { retries, id, type, url, breakMatch, MATCH_IDS }) => {
   event.type = type;
   breakMatch = !!(breakMatch === 'true' || breakMatch === true);
   const allResults = [];
@@ -25,8 +22,6 @@ module.exports.polling = async (
   if (await this.isValidURL({ type, url })) {
     for (let i = 0; i < retries; i++) {
       if (breakMatch === true && MATCH_IDS.includes(id)) break;
-
-      if (isFrigateEvent) await this.addJitter(1);
 
       const tmp = `/tmp/${id}-${type}-${uuidv4()}.jpg`;
       const filename = `${uuidv4()}.jpg`;
