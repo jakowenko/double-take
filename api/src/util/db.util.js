@@ -174,7 +174,6 @@ module.exports.insert = (type, data = []) => {
         insert.run(item);
       }
     });
-    console.log(data);
     transaction(data);
   }
 
