@@ -358,7 +358,7 @@ purge:
   unknown: 8
 
 frigate:
-  url: http://192.168.1.1:4000
+  url: http://192.168.1.1:5000
   image:
     height: 500
   attempts:
@@ -374,7 +374,7 @@ frigate:
 detectors:
   compreface:
     url: http://192.168.1.1:8000
-    key: xxx-xxx-xxx-xxx-xxx
+    key: xxx-xxx-xxx-xxx-xxx (key from Recognition service in created app)
   deepstack:
     url: http://192.168.1.1:8001
   facebox:
