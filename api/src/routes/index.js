@@ -22,6 +22,7 @@ router.get('/match', match.get).patch('/match', match.patch).delete('/match', ma
 router.get('/filesystem/folders', filesystem.folders().list);
 router.post('/filesystem/folders/:name', filesystem.folders().create);
 
+router.get('/train', train.get);
 router.get('/train/add/:name', train.add);
 router.get('/train/remove/:name', train.delete);
 

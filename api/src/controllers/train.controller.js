@@ -1,4 +1,6 @@
 const perf = require('execution-time')();
+const fs = require('fs');
+const sharp = require('sharp');
 const database = require('../util/db.util');
 const train = require('../util/train.util');
 const logger = require('../util/logger.util');
@@ -6,7 +8,41 @@ const time = require('../util/time.util');
 const filesystem = require('../util/fs.util');
 const { respond, HTTPSuccess } = require('../util/respond.util');
 const { OK } = require('../constants/http-status');
-const { DETECTORS } = require('../constants');
+const { STORAGE, DETECTORS } = require('../constants');
+const { tryParseJSON } = require('../util/validators.util');
+
+module.exports.get = async (req, res) => {
+  const db = database.connect();
+  let results = db.prepare('SELECT * FROM train').all();
+  results = await Promise.all(
+    results.map(async (obj) => {
+      const { id, name, filename, detector, meta, createdAt } = obj;
+
+      const key = `train/${name}/${filename}`;
+
+      const output = {
+        id,
+        name,
+        file: {
+          key,
+          filename,
+        },
+        detector: detector || 'N/A',
+        meta: tryParseJSON(meta) || null,
+        createdAt,
+      };
+
+      if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
+        const base64 = await sharp(`${STORAGE.PATH}/${key}`).resize(500).toBuffer();
+        output.file.base64 = base64.toString('base64');
+      }
+
+      return output;
+    })
+  );
+  results = results.flat();
+  respond(HTTPSuccess(OK, results), res);
+};
 
 module.exports.delete = async (req, res) => {
   try {
