@@ -260,7 +260,7 @@ export default {
   padding-bottom: 0.75rem;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 1000px;
+  max-width: 1200px;
   z-index: 4;
 
   .p-button ::v-deep(.fa.p-button-icon),

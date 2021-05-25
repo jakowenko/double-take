@@ -58,8 +58,7 @@
       </template>
       <template v-slot:footer>
         <div class="p-d-flex p-jc-between p-ai-center">
-          <small>{{ createdAt.ago }}</small>
-          <div>
+          <div class="p-mb-3">
             <Badge v-if="match.camera" :value="match.camera" />
             <Badge v-if="match.type" :value="match.type" />
             <Badge v-if="match.zones.length" :value="[...match.zones].join(', ')" />
@@ -67,6 +66,7 @@
             <Badge v-if="age" :value="age.join('-')" />
           </div>
         </div>
+        <small>{{ createdAt.ago }}</small>
       </template>
     </Card>
   </div>
