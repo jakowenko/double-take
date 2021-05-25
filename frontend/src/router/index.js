@@ -1,7 +1,7 @@
 import { /* createWebHistory, */ createWebHashHistory, createRouter } from 'vue-router';
 import Match from '@/views/Match.vue';
 import Config from '@/views/Config.vue';
-import Train from '@/views/Train.vue';
+import Files from '@/views/Files.vue';
 
 const routes = [
   {
@@ -15,9 +15,9 @@ const routes = [
     component: Config,
   },
   {
-    path: '/train',
-    name: 'Train',
-    component: Train,
+    path: '/files',
+    name: 'Files',
+    component: Files,
   },
 ];
 

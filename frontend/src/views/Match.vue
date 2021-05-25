@@ -14,6 +14,7 @@
       <i v-if="loading.files && !source.length" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
       <Grid
         v-else
+        type="match"
         :matches="{ filtered, ...matches }"
         @toggle="selected"
         @assetLoaded="assetLoaded"

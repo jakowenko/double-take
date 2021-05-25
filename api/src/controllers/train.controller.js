@@ -12,36 +12,55 @@ const { STORAGE, DETECTORS } = require('../constants');
 const { tryParseJSON } = require('../util/validators.util');
 
 module.exports.get = async (req, res) => {
-  const db = database.connect();
-  let results = db.prepare('SELECT * FROM train').all();
-  results = await Promise.all(
-    results.map(async (obj) => {
-      const { id, name, filename, detector, meta, createdAt } = obj;
+  try {
+    const db = database.connect();
+    let files = db
+      .prepare(
+        'SELECT id, name, filename, createdAt FROM file WHERE isActive = 1 ORDER BY createdAt DESC'
+      )
+      .all();
 
-      const key = `train/${name}/${filename}`;
+    files.forEach((file) => {
+      file.results = [];
+      const trainings = db.prepare('SELECT * FROM train WHERE fileId = ?').all(file.id);
+      trainings.forEach(({ detector, meta, createdAt }) => {
+        file.results.push({
+          detector,
+          result: tryParseJSON(meta) || null,
+          createdAt,
+        });
+      });
+    });
 
-      const output = {
-        id,
-        name,
-        file: {
-          key,
-          filename,
-        },
-        detector: detector || 'N/A',
-        meta: tryParseJSON(meta) || null,
-        createdAt,
-      };
+    files = await Promise.all(
+      files.map(async (obj) => {
+        const { id, name, filename, results, createdAt } = obj;
 
-      if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
-        const base64 = await sharp(`${STORAGE.PATH}/${key}`).resize(500).toBuffer();
-        output.file.base64 = base64.toString('base64');
-      }
+        const key = `train/${name}/${filename}`;
 
-      return output;
-    })
-  );
-  results = results.flat();
-  respond(HTTPSuccess(OK, results), res);
+        const output = {
+          id,
+          name,
+          file: {
+            key,
+            filename,
+          },
+          results,
+          createdAt,
+        };
+
+        if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
+          const base64 = await sharp(`${STORAGE.PATH}/${key}`).resize(500).toBuffer();
+          output.file.base64 = base64.toString('base64');
+        }
+
+        return output;
+      })
+    );
+    respond(HTTPSuccess(OK, files), res);
+  } catch (error) {
+    respond(error, res);
+  }
 };
 
 module.exports.delete = async (req, res) => {
