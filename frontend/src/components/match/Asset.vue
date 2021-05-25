@@ -63,6 +63,8 @@
             <Badge v-if="match.camera" :value="match.camera" />
             <Badge v-if="match.type" :value="match.type" />
             <Badge v-if="match.zones.length" :value="[...match.zones].join(', ')" />
+            <Badge v-if="gender" :value="gender" />
+            <Badge v-if="age" :value="age.join('-')" />
           </div>
         </div>
       </template>
@@ -132,11 +134,16 @@ export default {
           }));
           data = data.concat(results);
         });
-      } else {
-        data.push(this.match.meta);
       }
-
       return data;
+    },
+    gender() {
+      const [target] = this.results.filter((obj) => obj.detector === 'compreface');
+      return target && target.gender ? target.gender : null;
+    },
+    age() {
+      const [target] = this.results.filter((obj) => obj.detector === 'compreface');
+      return target && target.age ? target.age : null;
     },
     createdAt() {
       const units = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
