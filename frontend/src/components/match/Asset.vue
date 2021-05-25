@@ -33,7 +33,7 @@
       </template>
       <template v-slot:content>
         <DataTable :value="results" class="p-datatable-sm" responsiveLayout="scroll">
-          <Column field="detector" header="Detector">
+          <Column header="Detector">
             <template v-slot:body="slotProps">
               <Badge
                 :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
@@ -44,12 +44,12 @@
           </Column>
           <Column field="name" header="Name"></Column>
           <Column field="confidence" header="%"></Column>
-          <Column field="box" header="Box">
+          <Column header="Box">
             <template v-slot:body="slotProps">
               {{ slotProps.data.box.width }}x{{ slotProps.data.box.height }}
             </template>
           </Column>
-          <Column field="duration" header="Time">
+          <Column header="Time">
             <template v-slot:body="slotProps">
               {{ slotProps.data.duration || 'N/A' }}
             </template>
