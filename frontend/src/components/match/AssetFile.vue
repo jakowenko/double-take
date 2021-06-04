@@ -16,7 +16,7 @@
         </div>
       </template>
       <template v-slot:content>
-        <DataTable :value="asset.results" class="p-datatable-sm" responsiveLayout="scroll">
+        <DataTable v-if="asset.results.length" :value="asset.results" class="p-datatable-sm" responsiveLayout="scroll">
           <Column header="Detector">
             <template v-slot:body="slotProps">
               <Badge
@@ -31,6 +31,7 @@
             </template>
           </Column>
         </DataTable>
+        <small v-else>Untrained</small>
       </template>
       <template v-slot:footer>
         <div class="p-d-flex p-jc-between p-ai-center">
