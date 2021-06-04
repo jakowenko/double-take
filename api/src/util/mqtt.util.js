@@ -1,8 +1,12 @@
+const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const mqtt = require('mqtt');
+const fs = require('fs');
 const logger = require('./logger.util');
 const { SERVER, MQTT, FRIGATE } = require('../constants');
 
+let previousMqttLengths = [];
+let justSubscribed = false;
 let client = false;
 
 module.exports.connect = () => {
@@ -18,15 +22,7 @@ module.exports.connect = () => {
   client
     .on('connect', () => {
       logger.log('MQTT: connected');
-      if (FRIGATE.URL && MQTT.TOPICS.FRIGATE) {
-        client.subscribe(MQTT.TOPICS.FRIGATE, (err) => {
-          if (err) {
-            logger.log(`MQTT: error subscribing to ${MQTT.TOPICS.FRIGATE}`);
-            return;
-          }
-          logger.log(`MQTT: subscribed to ${MQTT.TOPICS.FRIGATE}`);
-        });
-      }
+      this.subscribe();
     })
     .on('error', (err) => {
       logger.log(`MQTT: ${err.code}`);
@@ -41,14 +37,41 @@ module.exports.connect = () => {
       logger.log('MQTT: attemping to reconnect');
     })
     .on('message', async (topic, message) => {
-      await axios({
-        method: 'post',
-        url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
-        data: JSON.parse(message.toString()),
-        validateStatus() {
-          return true;
-        },
-      });
+      if (topic.includes('/snapshot') && !justSubscribed) {
+        const camera = topic.split('/')[1];
+        const filename = `${uuidv4()}.jpg`;
+        const buffer = Buffer.from(message);
+        if (previousMqttLengths.includes(buffer.length)) {
+          // previous mqtt image processed
+          return;
+        }
+        previousMqttLengths.unshift(buffer.length);
+
+        fs.writeFileSync(`/tmp/${filename}`, buffer);
+        await axios({
+          method: 'get',
+          url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
+          params: {
+            url: `http://0.0.0.0:${SERVER.PORT}/api/tmp/${filename}`,
+            type: 'mqtt',
+            camera,
+          },
+          validateStatus() {
+            return true;
+          },
+        });
+        // only store last 10 mqtt lengths
+        previousMqttLengths = previousMqttLengths.slice(0, 10);
+      } else if (topic.includes('/events')) {
+        await axios({
+          method: 'post',
+          url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
+          data: JSON.parse(message.toString()),
+          validateStatus() {
+            return true;
+          },
+        });
+      }
     });
 };
 
@@ -92,5 +115,30 @@ module.exports.publish = (data) => {
     }
   } catch (error) {
     logger.log(`MQTT: publish error: ${error.message}`);
+  }
+};
+
+module.exports.subscribe = () => {
+  if (FRIGATE.URL && MQTT.TOPICS.FRIGATE) {
+    client.subscribe(MQTT.TOPICS.FRIGATE, (err) => {
+      if (err) {
+        logger.log(`MQTT: error subscribing to ${MQTT.TOPICS.FRIGATE}`);
+        return;
+      }
+      logger.log(`MQTT: subscribed to ${MQTT.TOPICS.FRIGATE}`);
+    });
+
+    const [prefix] = MQTT.TOPICS.FRIGATE.split('/');
+    const topic = `${prefix}/+/person/snapshot`;
+
+    client.subscribe(topic, (err) => {
+      if (err) {
+        logger.log(`MQTT: error subscribing to ${topic}`);
+        return;
+      }
+      logger.log(`MQTT: subscribed to ${topic}`);
+      justSubscribed = true;
+      setTimeout(() => (justSubscribed = false), 5000);
+    });
   }
 };

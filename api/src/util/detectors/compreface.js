@@ -8,7 +8,7 @@ module.exports.config = () => {
 };
 
 module.exports.recognize = (key) => {
-  const { URL, KEY } = this.config();
+  const { URL, KEY, FACE_PLUGINS } = this.config();
   const formData = new FormData();
   formData.append('file', fs.createReadStream(key));
   return axios({
@@ -17,7 +17,7 @@ module.exports.recognize = (key) => {
       ...formData.getHeaders(),
       'x-api-key': KEY,
     },
-    url: `${URL}/api/v1/recognition/recognize`,
+    url: `${URL}/api/v1/recognition/recognize?face_plugins=${FACE_PLUGINS}`,
     validateStatus() {
       return true;
     },
@@ -70,7 +70,7 @@ module.exports.normalize = ({ data }) => {
     const [face] = obj.subjects;
     const confidence = face ? parseFloat((face.similarity * 100).toFixed(2)) : 0;
     const { box } = obj;
-    return {
+    const output = {
       name: face && confidence >= CONFIDENCE.UNKNOWN ? face.subject.toLowerCase() : 'unknown',
       confidence,
       match:
@@ -83,6 +83,9 @@ module.exports.normalize = ({ data }) => {
         height: box.y_max - box.y_min,
       },
     };
+    if (obj.age) output.age = obj.age;
+    if (obj.gender) output.gender = obj.gender;
+    return output;
   });
   return normalized;
 };

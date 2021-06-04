@@ -6,11 +6,12 @@ module.exports.recognize = ({ get }) => {
   let validations = [
     query('results').default('best').isIn(['best', 'all']).withMessage('not a valid result type'),
     query('break').default(true).isIn([true, false]),
+    query('type').default('manual'),
   ];
   if (get) {
     validations = validations.concat([
       query('camera').default('double-take'),
-      query('url').isURL(),
+      query('url').isLength({ min: 1 }),
       query('attempts').default(1).isInt().withMessage('not a valid number'),
     ]);
   }
@@ -46,9 +47,11 @@ module.exports.storage = () => {
   };
 };
 
+module.exports.config = () => [query('format').default('json').isIn(['json', 'yaml'])];
+
 module.exports.objects = () => {
   return [
-    query('url').isURL(),
+    query('url').isLength({ min: 1 }),
     query('break').default(true).isIn([true, false]),
     query('attempts').default(1).isInt().withMessage('not a valid number'),
   ];

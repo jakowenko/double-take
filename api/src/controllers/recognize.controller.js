@@ -42,8 +42,8 @@ module.exports.test = async (req, res) => {
 
 module.exports.start = async (req, res) => {
   try {
-    const isFrigateEvent = req.method === 'POST';
     let event = {
+      type: req.method === 'POST' ? 'frigate' : req.query.type,
       options: {
         break: req.query.break,
         results: req.query.results,
@@ -51,7 +51,7 @@ module.exports.start = async (req, res) => {
       },
     };
 
-    if (isFrigateEvent) {
+    if (event.type === 'frigate') {
       const { type } = req.body;
       const attributes = req.body.after ? req.body.after : req.body.before;
       const { id, label, camera, current_zones: zones } = attributes;
@@ -69,7 +69,7 @@ module.exports.start = async (req, res) => {
       return respond(HTTPError(BAD_REQUEST, 'no detectors configured'), res);
     }
 
-    if (isFrigateEvent) {
+    if (event.type === 'frigate') {
       try {
         const check = await frigate.checks({
           ...event,
@@ -91,13 +91,12 @@ module.exports.start = async (req, res) => {
     const promises = [];
 
     const config = {
-      isFrigateEvent,
       breakMatch,
       id,
       MATCH_IDS,
     };
 
-    if (isFrigateEvent) {
+    if (event.type === 'frigate') {
       if (FRIGATE.ATTEMPTS.LATEST)
         promises.push(
           process.polling(
@@ -129,7 +128,7 @@ module.exports.start = async (req, res) => {
           {
             ...config,
             retries: parseInt(manualAttempts, 10),
-            type: 'manual',
+            type: event.type,
             url,
           }
         )

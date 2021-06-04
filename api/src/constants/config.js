@@ -18,11 +18,8 @@ module.exports = () => {
   config = {};
   try {
     config = { ...yaml.load(fs.readFileSync(`${__dirname}/../../../config.yml`, 'utf8')) };
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      config = { error: true, ...config };
-    }
-  }
+    // eslint-disable-next-line no-empty
+  } catch (error) {}
 
   config = _.isEmpty(config) ? defaults : _.mergeWith(defaults, config, customizer);
   config.storage = { path: './.storage', ...config.storage };

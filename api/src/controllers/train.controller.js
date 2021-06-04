@@ -1,4 +1,6 @@
 const perf = require('execution-time')();
+const fs = require('fs');
+const sharp = require('sharp');
 const database = require('../util/db.util');
 const train = require('../util/train.util');
 const logger = require('../util/logger.util');
@@ -6,7 +8,60 @@ const time = require('../util/time.util');
 const filesystem = require('../util/fs.util');
 const { respond, HTTPSuccess } = require('../util/respond.util');
 const { OK } = require('../constants/http-status');
-const { DETECTORS } = require('../constants');
+const { STORAGE, DETECTORS } = require('../constants');
+const { tryParseJSON } = require('../util/validators.util');
+
+module.exports.get = async (req, res) => {
+  try {
+    const db = database.connect();
+    let files = db
+      .prepare(
+        'SELECT id, name, filename, createdAt FROM file WHERE isActive = 1 ORDER BY createdAt DESC'
+      )
+      .all();
+
+    files.forEach((file) => {
+      file.results = [];
+      const trainings = db.prepare('SELECT * FROM train WHERE fileId = ?').all(file.id);
+      trainings.forEach(({ detector, meta, createdAt }) => {
+        file.results.push({
+          detector,
+          result: tryParseJSON(meta) || null,
+          createdAt,
+        });
+      });
+    });
+
+    files = await Promise.all(
+      files.map(async (obj) => {
+        const { id, name, filename, results, createdAt } = obj;
+
+        const key = `train/${name}/${filename}`;
+
+        const output = {
+          id,
+          name,
+          file: {
+            key,
+            filename,
+          },
+          results,
+          createdAt,
+        };
+
+        if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
+          const base64 = await sharp(`${STORAGE.PATH}/${key}`).resize(500).toBuffer();
+          output.file.base64 = base64.toString('base64');
+        }
+
+        return output;
+      })
+    );
+    respond(HTTPSuccess(OK, files), res);
+  } catch (error) {
+    respond(error, res);
+  }
+};
 
 module.exports.delete = async (req, res) => {
   try {

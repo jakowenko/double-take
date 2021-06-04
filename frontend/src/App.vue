@@ -76,8 +76,9 @@ body {
 </style>
 
 <style scoped lang="scss">
+@import '@/assets/scss/_variables.scss';
 .wrapper {
-  max-width: 1000px;
+  max-width: $max-width;
   margin: auto;
 }
 </style>

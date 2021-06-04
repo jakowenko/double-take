@@ -248,6 +248,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
+@import '@/assets/scss/_variables.scss';
 .wrapper {
   padding-top: 60px;
 }
@@ -260,7 +261,7 @@ export default {
   padding-bottom: 0.75rem;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 1000px;
+  max-width: $max-width;
   z-index: 4;
 
   .p-button ::v-deep(.fa.p-button-icon),

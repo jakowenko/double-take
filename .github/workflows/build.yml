@@ -14,18 +14,26 @@ jobs:
     if: github.repository == 'jakowenko/double-take'
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Get VERSION
+        id: version
+        uses: notiz-dev/github-action-json-property@release
+        with:
+          path: ./api/package.json
+          prop_path: version
       - name: Set ENV to beta
         if: endsWith(github.ref, '/beta')
         run: |
           echo "TAG=beta" >> $GITHUB_ENV
           echo "ARCH=linux/amd64" >> $GITHUB_ENV
+          echo "VERSION=beta-${{steps.version.outputs.prop}}" >> $GITHUB_ENV
       - name: Set ENV to latest
         if: ${{ github.event_name == 'release' && github.event.action == 'released' }}
         run: |
           echo "TAG=latest" >> $GITHUB_ENV
           echo "ARCH=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64" >> $GITHUB_ENV
-      - name: Checkout
-        uses: actions/checkout@v2
+          echo "VERSION=${{steps.version.outputs.prop}}" >> $GITHUB_ENV
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -48,7 +56,7 @@ jobs:
           context: .
           platforms: ${{env.ARCH}}
           push: true
-          tags: jakowenko/double-take:${{env.TAG}}
+          tags: jakowenko/double-take:${{env.VERSION}},jakowenko/double-take:${{env.TAG}}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
       - # Temp fix

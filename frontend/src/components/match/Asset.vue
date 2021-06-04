@@ -33,7 +33,7 @@
       </template>
       <template v-slot:content>
         <DataTable :value="results" class="p-datatable-sm" responsiveLayout="scroll">
-          <Column field="detector" header="Detector">
+          <Column header="Detector">
             <template v-slot:body="slotProps">
               <Badge
                 :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
@@ -44,12 +44,12 @@
           </Column>
           <Column field="name" header="Name"></Column>
           <Column field="confidence" header="%"></Column>
-          <Column field="box" header="Box">
+          <Column header="Box">
             <template v-slot:body="slotProps">
               {{ slotProps.data.box.width }}x{{ slotProps.data.box.height }}
             </template>
           </Column>
-          <Column field="duration" header="Time">
+          <Column header="Time">
             <template v-slot:body="slotProps">
               {{ slotProps.data.duration || 'N/A' }}
             </template>
@@ -58,13 +58,15 @@
       </template>
       <template v-slot:footer>
         <div class="p-d-flex p-jc-between p-ai-center">
-          <small>{{ createdAt.ago }}</small>
-          <div>
+          <div class="p-mb-3">
             <Badge v-if="match.camera" :value="match.camera" />
             <Badge v-if="match.type" :value="match.type" />
             <Badge v-if="match.zones.length" :value="[...match.zones].join(', ')" />
+            <Badge v-if="gender" :value="gender" />
+            <Badge v-if="age" :value="age.join('-')" />
           </div>
         </div>
+        <small>{{ createdAt.ago }}</small>
       </template>
     </Card>
   </div>
@@ -132,11 +134,16 @@ export default {
           }));
           data = data.concat(results);
         });
-      } else {
-        data.push(this.match.meta);
       }
-
       return data;
+    },
+    gender() {
+      const [target] = this.results.filter((obj) => obj.detector === 'compreface');
+      return target && target.gender ? target.gender : null;
+    },
+    age() {
+      const [target] = this.results.filter((obj) => obj.detector === 'compreface');
+      return target && target.age ? target.age : null;
     },
     createdAt() {
       const units = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
