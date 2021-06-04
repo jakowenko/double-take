@@ -69,6 +69,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
+@import '@/assets/scss/_variables.scss';
 .wrapper {
   position: relative;
 }
@@ -79,7 +80,7 @@ export default {
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 1000px;
+  max-width: $max-width;
   z-index: 2;
 
   button {
@@ -100,14 +101,4 @@ export default {
 ::v-deep(.prism-editor__textarea:focus) {
   outline: none;
 }
-
-// ::v-deep(.prism-editor__textarea) {
-//   // width: 999999px !important;
-// }
-// ::v-deep(.prism-editor__editor) {
-//   white-space: pre !important;
-// }
-// ::v-deep(.prism-editor__container) {
-//   overflow-x: scroll !important;
-// }
 </style>
