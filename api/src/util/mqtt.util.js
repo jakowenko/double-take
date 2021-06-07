@@ -96,7 +96,8 @@ module.exports.publish = (data) => {
         JSON.stringify({
           ...configData,
           unknown,
-        })
+        }),
+        { retain: true }
       );
     }
 
@@ -106,7 +107,8 @@ module.exports.publish = (data) => {
         JSON.stringify({
           ...configData,
           match,
-        })
+        }),
+        { retain: true }
       );
     });
 
@@ -117,7 +119,8 @@ module.exports.publish = (data) => {
           ...configData,
           matches,
           unknown,
-        })
+        }),
+        { retain: true }
       );
     }
   } catch (error) {
