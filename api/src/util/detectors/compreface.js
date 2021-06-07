@@ -65,6 +65,7 @@ module.exports.remove = ({ name }) => {
 
 module.exports.normalize = ({ data }) => {
   if (!data.result) {
+    if (data.code === 28) return [];
     throw new Error(data.message);
   }
   const { MIN_AREA_MATCH } = OBJECTS.FACE;
