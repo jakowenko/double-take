@@ -41,8 +41,11 @@ module.exports.connect = () => {
         const camera = topic.split('/')[1];
         const filename = `${uuidv4()}.jpg`;
         const buffer = Buffer.from(message);
-        if (previousMqttLengths.includes(buffer.length)) {
-          // previous mqtt image processed
+
+        if (
+          (FRIGATE.CAMERAS && !FRIGATE.CAMERAS.includes(camera)) ||
+          previousMqttLengths.includes(buffer.length)
+        ) {
           return;
         }
         previousMqttLengths.unshift(buffer.length);
