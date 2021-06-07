@@ -42,10 +42,7 @@ module.exports.connect = () => {
         const filename = `${uuidv4()}.jpg`;
         const buffer = Buffer.from(message);
 
-        if (
-          (FRIGATE.CAMERAS && !FRIGATE.CAMERAS.includes(camera)) ||
-          previousMqttLengths.includes(buffer.length)
-        ) {
+        if (previousMqttLengths.includes(buffer.length)) {
           return;
         }
         previousMqttLengths.unshift(buffer.length);
@@ -139,8 +136,9 @@ module.exports.subscribe = () => {
     });
 
     const [prefix] = MQTT.TOPICS.FRIGATE.split('/');
-    const topic = `${prefix}/+/person/snapshot`;
-
+    const topic = FRIGATE.CAMERAS
+      ? FRIGATE.CAMERAS.map((camera) => `${prefix}/${camera}/person/snapshot`)
+      : `${prefix}/+/person/snapshot`;
     client.subscribe(topic, (err) => {
       if (err) {
         logger.log(`MQTT: error subscribing to ${topic}`);
