@@ -91,19 +91,23 @@ module.exports.publish = (data) => {
     delete configData.results;
 
     if (unknown && Object.keys(unknown).length) {
-      const payload = {
-        ...configData,
-        unknown,
-      };
-      client.publish(`${MQTT.TOPICS.MATCHES}/unknown`, JSON.stringify(payload));
+      client.publish(
+        `${MQTT.TOPICS.MATCHES}/unknown`,
+        JSON.stringify({
+          ...configData,
+          unknown,
+        })
+      );
     }
 
     matches.forEach((match) => {
-      const payload = {
-        ...configData,
-        match,
-      };
-      client.publish(`${MQTT.TOPICS.MATCHES}/${match.name}`, JSON.stringify(payload));
+      client.publish(
+        `${MQTT.TOPICS.MATCHES}/${match.name}`,
+        JSON.stringify({
+          ...configData,
+          match,
+        })
+      );
     });
 
     if (matches.length || (unknown && Object.keys(unknown).length)) {
