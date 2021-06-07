@@ -22,9 +22,9 @@ Subscribe to Frigate's MQTT events topic and process images from the event for a
 
 When a Frigate event is received the API begins to process the [`snapshot.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apieventsidsnapshotjpg) and [`latest.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apicamera_namelatestjpgh300) images from Frigate's API. These images are passed from the API to the detector(s) specified until a match is found above the defined confidence level. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found. If a match is found the image is then saved to `/.storage/matches/${filename}`.
 
-### [Home Assistant](https://www.home-assistant.io) + [Node-Red](https://nodered.org)
+### [Home Assistant](https://www.home-assistant.io)
 
-Double Take can be paired with Home Assistant and Node-Red to create automations when images are processed.
+Double Take can be paired with Home Assistant to create automations when images are processed.
 
 If the MQTT integration is configured within Home Assistant, then sensors can be created from the topics that Double Take publishes to.
 
@@ -41,8 +41,6 @@ sensor:
 <p align="center">
   <img src="https://user-images.githubusercontent.com/1081811/116505698-904ec780-a889-11eb-825e-b641203d9e95.jpg" width="70%">
 </p>
-
-More information for this can be found in the [docs](https://github.com/jakowenko/double-take/tree/master/docs/home-assistant-node-red.md).
 
 ## UI
 
