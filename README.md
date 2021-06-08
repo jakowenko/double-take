@@ -384,7 +384,7 @@ frigate:
 detectors:
   compreface:
     url: http://192.168.1.1:8000
-    key: xxx-xxx-xxx-xxx-xxx # key from Recognition service in created app
+    key: xxx-xxx-xxx-xxx-xxx # key from recognition service in created app
   deepstack:
     url: http://192.168.1.1:8001
   facebox:
