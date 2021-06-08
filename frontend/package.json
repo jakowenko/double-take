@@ -1,11 +1,17 @@
 {
   "name": "double-take-frontend",
   "version": "0.6.1",
+  "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jakowenko/double-take.git"
+  },
+  "license": "MIT",
   "dependencies": {
     "axios": "^0.21.1",
     "core-js": "^3.10.1",

@@ -1,6 +1,7 @@
 {
   "name": "double-take-api",
   "version": "0.6.1",
+  "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "start": "node server.js",
     "debug": "nodemon server.js"
@@ -9,6 +10,7 @@
     "type": "git",
     "url": "https://github.com/jakowenko/double-take.git"
   },
+  "license": "MIT",
   "dependencies": {
     "axios": "^0.21.1",
     "better-sqlite3": "^7.1.4",
