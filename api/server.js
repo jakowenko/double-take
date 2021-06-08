@@ -7,6 +7,7 @@ const logger = require('./src/util/logger.util');
 const storage = require('./src/util/storage.util');
 const database = require('./src/util/db.util');
 const config = require('./src/constants/config');
+const shutdown = require('./src/util/shutdown.util');
 const { SERVER } = require('./src/constants');
 
 module.exports.start = async () => {
@@ -27,4 +28,5 @@ module.exports.start = async () => {
   storage.purge();
 };
 
+shutdown.listen();
 this.start();

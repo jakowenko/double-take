@@ -7,7 +7,6 @@ const time = require('../util/time.util');
 const recognize = require('../util/recognize.util');
 const frigate = require('../util/frigate.util');
 const mqtt = require('../util/mqtt.util');
-const homeAssistant = require('../util/home-assistant.util');
 const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
 const { OK, BAD_REQUEST } = require('../constants/http-status');
 
@@ -163,7 +162,6 @@ module.exports.start = async (req, res) => {
     respond(HTTPSuccess(OK, output), res);
 
     mqtt.publish(output);
-    homeAssistant.publish(output);
 
     if (output.matches.length) {
       IDS.push(id);

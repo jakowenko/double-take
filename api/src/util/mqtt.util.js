@@ -22,6 +22,7 @@ module.exports.connect = () => {
   client
     .on('connect', () => {
       logger.log('MQTT: connected');
+      this.available('online');
       this.subscribe();
     })
     .on('error', (err) => {
@@ -34,15 +35,15 @@ module.exports.connect = () => {
       logger.log('MQTT: disconnected');
     })
     .on('reconnect', () => {
-      logger.log('MQTT: attemping to reconnect');
+      logger.log('MQTT: attempting to reconnect');
     })
     .on('message', async (topic, message) => {
       if (topic.includes('/snapshot') && !justSubscribed) {
         const camera = topic.split('/')[1];
         const filename = `${uuidv4()}.jpg`;
         const buffer = Buffer.from(message);
+
         if (previousMqttLengths.includes(buffer.length)) {
-          // previous mqtt image processed
           return;
         }
         previousMqttLengths.unshift(buffer.length);
@@ -75,6 +76,10 @@ module.exports.connect = () => {
     });
 };
 
+module.exports.available = async (state) => {
+  if (client) await client.publish('double-take/available', state);
+};
+
 module.exports.publish = (data) => {
   try {
     if (!MQTT || !MQTT.HOST) {
@@ -88,19 +93,25 @@ module.exports.publish = (data) => {
     delete configData.results;
 
     if (unknown && Object.keys(unknown).length) {
-      const payload = {
-        ...configData,
-        unknown,
-      };
-      client.publish(`${MQTT.TOPICS.MATCHES}/unknown`, JSON.stringify(payload));
+      client.publish(
+        `${MQTT.TOPICS.MATCHES}/unknown`,
+        JSON.stringify({
+          ...configData,
+          unknown,
+        }),
+        { retain: true }
+      );
     }
 
     matches.forEach((match) => {
-      const payload = {
-        ...configData,
-        match,
-      };
-      client.publish(`${MQTT.TOPICS.MATCHES}/${match.name}`, JSON.stringify(payload));
+      client.publish(
+        `${MQTT.TOPICS.MATCHES}/${match.name}`,
+        JSON.stringify({
+          ...configData,
+          match,
+        }),
+        { retain: true }
+      );
     });
 
     if (matches.length || (unknown && Object.keys(unknown).length)) {
@@ -110,7 +121,8 @@ module.exports.publish = (data) => {
           ...configData,
           matches,
           unknown,
-        })
+        }),
+        { retain: true }
       );
     }
   } catch (error) {
@@ -129,8 +141,9 @@ module.exports.subscribe = () => {
     });
 
     const [prefix] = MQTT.TOPICS.FRIGATE.split('/');
-    const topic = `${prefix}/+/person/snapshot`;
-
+    const topic = FRIGATE.CAMERAS
+      ? FRIGATE.CAMERAS.map((camera) => `${prefix}/${camera}/person/snapshot`)
+      : `${prefix}/+/person/snapshot`;
     client.subscribe(topic, (err) => {
       if (err) {
         logger.log(`MQTT: error subscribing to ${topic}`);

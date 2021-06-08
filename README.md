@@ -22,28 +22,42 @@ Subscribe to Frigate's MQTT events topic and process images from the event for a
 
 When a Frigate event is received the API begins to process the [`snapshot.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apieventsidsnapshotjpg) and [`latest.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apicamera_namelatestjpgh300) images from Frigate's API. These images are passed from the API to the detector(s) specified until a match is found above the defined confidence level. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found. If a match is found the image is then saved to `/.storage/matches/${filename}`.
 
-### [Home Assistant](https://www.home-assistant.io) + [Node-Red](https://nodered.org)
+### [Home Assistant](https://www.home-assistant.io)
 
-Double Take can be paired with Home Assistant and Node-Red to create automations when images are processed.
+Double Take can be paired with Home Assistant to create automations when images are processed.
 
-If Home Assistant is configured, then sensors will be dynamically created/updated when a match or unknown person is detected.
+If the MQTT integration is configured within Home Assistant, then sensors can be created from the topics that Double Take publishes to.
 
-- `sensor.double_take_${name}`
-- `sensor.double_take_${camera}`
+```yaml
+sensor:
+  - platform: mqtt
+    name: David
+    icon: mdi:account
+    state_topic: "double-take/matches/david"
+    json_attributes_topic: "double-take/matches/david"
+    value_template: "{{ value_json.camera }}"
+    availability_topic: "double-take/available"
+```
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/1081811/116505698-904ec780-a889-11eb-825e-b641203d9e95.jpg" width="70%">
 </p>
 
-More information for this can be found in the [docs](https://github.com/jakowenko/double-take/tree/master/docs/home-assistant-node-red.md).
-
 ## UI
 
-The UI is accessible from `http://localhost:3000`.
+The UI is accessible from `http://localhost:3000/#/`.
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/1081811/118581518-c633ed00-b75f-11eb-9c9d-77535484787d.png" width="80%">
 </p>
+
+### `/#/config`
+
+Make changes to the configuration and restart the API.
+
+### `/#/files`
+
+View files and training results from detectors.
 
 ## API
 
@@ -70,7 +84,7 @@ curl -X GET "http://localhost:3000/api/config" \
   "frigate": {
     "attempts": { "latest": 10, "snapshot": 0 },
     "image": { "height": 500 },
-    "url": "http://192.168.1.1:4000",
+    "url": "http://192.168.1.1:5000",
     "cameras": [],
     "zones": []
   },
@@ -337,10 +351,6 @@ mqtt:
     matches: double-take/matches
     cameras: double-take/cameras
 
-home_assistant:
-  url: http://192.168.1.1:8123
-  token: xxx.xxx-xxx
-
 confidence:
   match: 60
   unknown: 40
@@ -358,7 +368,7 @@ purge:
   unknown: 8
 
 frigate:
-  url: http://192.168.1.1:4000
+  url: http://192.168.1.1:5000
   image:
     height: 500
   attempts:
@@ -374,7 +384,7 @@ frigate:
 detectors:
   compreface:
     url: http://192.168.1.1:8000
-    key: xxx-xxx-xxx-xxx-xxx
+    key: xxx-xxx-xxx-xxx-xxx # key from recognition service in created app
   deepstack:
     url: http://192.168.1.1:8001
   facebox:
@@ -407,8 +417,6 @@ time:
 | frigate.image.height              | `500`                 | Height of Frigate image passed for facial recognition                                                                                             |
 | frigate.cameras                   |                       | Only process images from specific cameras                                                                                                         |
 | frigate.zones                     |                       | Only process images from specific zones                                                                                                           |
-| home_assistant.url                |                       | Base URL for Home Assistant                                                                                                                       |
-| home_assistant.token              |                       | Home Assistant Long-Lived Access Token                                                                                                            |
 | detectors.compreface.url          |                       | Base URL for CompreFace API                                                                                                                       |
 | detectors.compreface.key          |                       | API Key for CompreFace collection                                                                                                                 |
 | detectors.compreface.face_plugins |                       | Comma-separated slugs of [face plugins](https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)                   |
