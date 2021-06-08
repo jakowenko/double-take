@@ -36,6 +36,7 @@ sensor:
     state_topic: "double-take/matches/david"
     json_attributes_topic: "double-take/matches/david"
     value_template: "{{ value_json.camera }}"
+    availability_topic: "double-take/available"
 ```
 
 <p align="center">

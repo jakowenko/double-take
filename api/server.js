@@ -27,4 +27,9 @@ module.exports.start = async () => {
   storage.purge();
 };
 
+process.on('SIGINT', async () => {
+  await mqtt.available('offline');
+  process.exit(0);
+});
+
 this.start();

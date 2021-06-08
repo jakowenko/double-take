@@ -22,6 +22,7 @@ module.exports.connect = () => {
   client
     .on('connect', () => {
       logger.log('MQTT: connected');
+      this.available('online');
       this.subscribe();
     })
     .on('error', (err) => {
@@ -34,7 +35,7 @@ module.exports.connect = () => {
       logger.log('MQTT: disconnected');
     })
     .on('reconnect', () => {
-      logger.log('MQTT: attemping to reconnect');
+      logger.log('MQTT: attempting to reconnect');
     })
     .on('message', async (topic, message) => {
       if (topic.includes('/snapshot') && !justSubscribed) {
@@ -73,6 +74,10 @@ module.exports.connect = () => {
         });
       }
     });
+};
+
+module.exports.available = async (state) => {
+  if (client) await client.publish('double-take/available', state);
 };
 
 module.exports.publish = (data) => {
