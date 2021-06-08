@@ -7,6 +7,7 @@ const logger = require('./src/util/logger.util');
 const storage = require('./src/util/storage.util');
 const database = require('./src/util/db.util');
 const config = require('./src/constants/config');
+const shutdown = require('./src/util/shutdown.util');
 const { SERVER } = require('./src/constants');
 
 module.exports.start = async () => {
@@ -27,9 +28,5 @@ module.exports.start = async () => {
   storage.purge();
 };
 
-process.on('SIGINT', async () => {
-  await mqtt.available('offline');
-  process.exit(0);
-});
-
+shutdown.listen();
 this.start();
