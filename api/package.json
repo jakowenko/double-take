@@ -1,6 +1,6 @@
 {
   "name": "double-take-api",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "start": "node server.js",
@@ -13,8 +13,8 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.21.1",
-    "better-sqlite3": "^7.1.4",
-    "canvas": "^2.7.0",
+    "better-sqlite3": "^7.4.1",
+    "canvas": "^2.8.0",
     "cors": "^2.8.5",
     "execution-time": "^1.4.1",
     "express": "^4.16.1",
@@ -23,18 +23,18 @@
     "image-size": "^0.9.7",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
-    "luxon": "^1.26.0",
+    "luxon": "^1.27.0",
     "mqtt": "^4.2.6",
     "node-schedule": "^2.0.0",
-    "sharp": "^0.28.0",
+    "sharp": "^0.28.3",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "eslint": "^7.23.0",
+    "eslint": "^7.28.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^8.1.0",
-    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-prettier": "^3.3.1",
-    "prettier": "^2.2.1"
+    "prettier": "^2.3.1"
   }
 }

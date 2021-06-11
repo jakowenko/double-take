@@ -77,7 +77,7 @@ module.exports.connect = () => {
 };
 
 module.exports.available = async (state) => {
-  if (client) await client.publish('double-take/available', state);
+  if (client) await client.publish('double-take/available', state, { retain: true });
 };
 
 module.exports.publish = (data) => {
