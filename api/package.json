@@ -1,6 +1,6 @@
 {
   "name": "double-take-api",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "start": "node server.js",
