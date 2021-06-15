@@ -1,6 +1,6 @@
 {
   "name": "double-take-frontend",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -18,7 +18,7 @@
     "luxon": "^1.27.0",
     "primeflex": "^2.0.0",
     "primeicons": "^4.1.0",
-    "primevue": "^3.5.0",
+    "primevue": "^3.5.1",
     "prismjs": "^1.23.0",
     "vue": "^3.1.1",
     "vue-axios": "^3.2.4",
@@ -35,7 +35,7 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-prettier": "^3.4.0",
-    "eslint-plugin-vue": "^7.10.0",
+    "eslint-plugin-vue": "^7.11.1",
     "node-sass": "^5.0.0",
     "prettier": "^2.3.1",
     "sass-loader": "^10.2.0"

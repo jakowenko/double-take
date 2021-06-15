@@ -117,7 +117,7 @@ module.exports.isValidURL = async ({ type, url }) => {
   const validOptions = ['image/jpg', 'image/jpeg', 'image/png'];
   try {
     const request = await axios({
-      method: 'head',
+      method: 'get',
       url,
     });
     const { headers } = request;
