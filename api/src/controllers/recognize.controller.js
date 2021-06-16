@@ -12,7 +12,7 @@ const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
 const { lowercaseKeys } = require('../util/helpers.util');
 const { OK, BAD_REQUEST } = require('../constants/http-status');
 
-const { FRIGATE, DETECTORS, NOTIFY } = require('../constants');
+const { FRIGATE, DETECTORS } = require('../constants');
 
 const { IDS, MATCH_IDS } = {
   IDS: [],
@@ -162,16 +162,7 @@ module.exports.start = async (req, res) => {
 
     mqtt.publish(output);
 
-    for (const [service] of Object.entries(lowercaseKeys(NOTIFY))) {
-      const check = notify.checks(service, { camera, zones });
-      if (check === true) {
-        notify.send(service, output).catch((error) => {
-          logger.log(`${service} send error: ${error.message}`);
-        });
-      } else {
-        logger.log(check);
-      }
-    }
+    notify.publish(output, camera, results);
 
     if (output.matches.length) {
       IDS.push(id);
