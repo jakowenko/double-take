@@ -422,6 +422,11 @@ time:
 | detectors.compreface.face_plugins |                       | Comma-separated slugs of [face plugins](https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)                   |
 | detectors.deepstack.url           |                       | Base URL for DeepStack API                                                                                                                        |
 | detectors.facebox.url             |                       | Base URL for Facebox API                                                                                                                          |
+| notify.gotify.url                 |                       | Base URL for Gotify                                                                                                                               |
+| notify.gotify.token               |                       | Gotify application token Gotify                                                                                                                   |
+| notify.gotify.priority            | `5`                   | Gotify message priority                                                                                                                           |
+| notify.gotify.cameras             |                       | Only notify from specific cameras                                                                                                                 |
+| notify.gotify.zones               |                       | Only notify from specific zones                                                                                                                   |
 | time.format                       |                       | Defaults to ISO 8601 format with support for [token-based formatting](https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens) |
 | time.timezone                     | `UTC`                 | Time zone used in logs                                                                                                                            |
 
