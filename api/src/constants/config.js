@@ -21,6 +21,9 @@ module.exports = () => {
     // eslint-disable-next-line no-empty
   } catch (error) {}
 
+  if (!config.notify || !config.notify.gotify) {
+    delete defaults.notify.gotify;
+  }
   config = _.isEmpty(config) ? defaults : _.mergeWith(defaults, config, customizer);
   config.storage = { path: './.storage', ...config.storage };
   config.version = version;
