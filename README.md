@@ -4,6 +4,10 @@
 
 Unified UI and API for processing and training images for facial recognition.
 
+## Why?
+
+There's a lot of great open source software to perform facial recognition, but each of them behave differently. Double Take was created to abstract the complexities of the detection services and combine them into an easy to use UI and API.
+
 ### Supported Detectors
 
 - [DeepStack](https://deepstack.cc) v2021.02.1
@@ -18,13 +22,35 @@ Unified UI and API for processing and training images for facial recognition.
 
 ### [Frigate](https://github.com/blakeblackshear/frigate)
 
-Subscribe to Frigate's MQTT events topic and process images from the event for analysis.
+Subscribe to Frigate's MQTT topics and process images for analysis.
 
-When a Frigate event is received the API begins to process the [`snapshot.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apieventsidsnapshotjpg) and [`latest.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apicamera_namelatestjpgh300) images from Frigate's API. These images are passed from the API to the detector(s) specified until a match is found above the defined confidence level. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found. If a match is found the image is then saved to `/.storage/matches/${filename}`.
+When the `frigate/events` topic is updated the API begins to process the [`snapshot.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apieventsidsnapshotjpg) and [`latest.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apicamera_namelatestjpgh300) images from Frigate's API. These images are passed from the API to the configured detector(s) until a match is found that meets the configured requirements. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found.
+
+When the `frigate/+/person/snapshot` topic is updated the API will process that image with the configured detector(s). It is recommended to increase the MQTT snapshot size in the [Frigate camera config](https://blakeblackshear.github.io/frigate/configuration/cameras#full-example).
+
+```yaml
+cameras:
+  front-door:
+    mqtt:
+      timestamp: False
+      bounding_box: False
+      crop: True
+      height: 500
+```
+
+If a match is found the image is saved to `/.storage/matches/${filename}`.
+
+```yaml
+mqtt:
+  host: 192.168.1.1
+
+frigate:
+  url: http://192.168.1.1:5000
+```
 
 ### [Home Assistant](https://www.home-assistant.io)
 
-Double Take can be paired with Home Assistant to create automations when images are processed.
+Trigger automations / notifications when images are processed.
 
 If the MQTT integration is configured within Home Assistant, then sensors can be created from the topics that Double Take publishes to.
 
@@ -42,6 +68,17 @@ sensor:
 <p align="center">
   <img src="https://user-images.githubusercontent.com/1081811/116505698-904ec780-a889-11eb-825e-b641203d9e95.jpg" width="70%">
 </p>
+
+## Notify Services
+
+### [Gotify](https://gotify.net)
+
+```yaml
+notify:
+  gotify:
+    url: http://192.168.1.1:8080
+    token: XXXXXXX
+```
 
 ## UI
 
