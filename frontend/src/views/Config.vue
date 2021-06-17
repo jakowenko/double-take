@@ -22,7 +22,6 @@
 </template>
 
 <script>
-/* eslint-disable import/no-extraneous-dependencies */
 import Button from 'primevue/button';
 import Sleep from '@/util/sleep.util';
 

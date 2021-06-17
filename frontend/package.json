@@ -13,6 +13,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "ace-builds": "^1.4.12",
     "axios": "^0.21.1",
     "core-js": "^3.14.0",
     "luxon": "^1.27.0",
