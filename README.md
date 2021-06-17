@@ -24,6 +24,14 @@ There's a lot of great open source software to perform facial recognition, but e
 
 Subscribe to Frigate's MQTT topics and process images for analysis.
 
+```yaml
+mqtt:
+  host: 192.168.1.1
+
+frigate:
+  url: http://192.168.1.1:5000
+```
+
 When the `frigate/events` topic is updated the API begins to process the [`snapshot.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apieventsidsnapshotjpg) and [`latest.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apicamera_namelatestjpgh300) images from Frigate's API. These images are passed from the API to the configured detector(s) until a match is found that meets the configured requirements. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found.
 
 When the `frigate/+/person/snapshot` topic is updated the API will process that image with the configured detector(s). It is recommended to increase the MQTT snapshot size in the [Frigate camera config](https://blakeblackshear.github.io/frigate/configuration/cameras#full-example).
@@ -39,14 +47,6 @@ cameras:
 ```
 
 If a match is found the image is saved to `/.storage/matches/${filename}`.
-
-```yaml
-mqtt:
-  host: 192.168.1.1
-
-frigate:
-  url: http://192.168.1.1:5000
-```
 
 ### [Home Assistant](https://www.home-assistant.io)
 
@@ -291,28 +291,32 @@ Render match image.
 
 ## MQTT
 
-If MQTT is enabled and a match or unknown person is detected then two topics will be created.
+Publish results to `double-take/matches/${name}` and `double-take/cameras/${camera}`.
 
-- `double-take/matches/${name}`
-- `double-take/cameras/${camera}`
+```yaml
+mqtt:
+  host: 192.168.1.1
+```
 
 **double-take/matches/david**
 
 ```json
 {
-  "id": "1614931108.689332-6uu8kk",
-  "duration": 0.85,
-  "time": "03/05/2021 02:58:57 AM",
-  "attempts": 4,
+  "id": "1623906078.684285-5l9hw6",
+  "duration": 1.26,
+  "timestamp": "2021-06-17T05:01:36.030Z",
+  "attempts": 3,
   "camera": "living-room",
-  "room": "Living Room",
+  "zones": [],
   "match": {
     "name": "david",
-    "confidence": 82.6,
-    "attempt": 1,
+    "confidence": 66.07,
+    "match": true,
+    "box": { "top": 308, "left": 1018, "width": 164, "height": 177 },
+    "type": "latest",
+    "duration": 0.28,
     "detector": "compreface",
-    "type": "snapshot",
-    "duration": 0.39
+    "filename": "2f07d1ad-9252-43fd-9233-2786a36a15a9.jpg"
   }
 }
 ```
@@ -323,9 +327,9 @@ If MQTT is enabled and a match or unknown person is detected then two topics wil
 {
   "id": "ff894ff3-2215-4cea-befa-43fe00898b65",
   "duration": 4.25,
-  "timestamp": "4/29/2021, 12:29:53 AM",
-  "attempts": 1,
-  "camera": "double-take",
+  "timestamp": "2021-06-17T03:19:55.695Z",
+  "attempts": 5,
+  "camera": "back-door",
   "zones": [],
   "matches": [
     {
