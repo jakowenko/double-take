@@ -9,7 +9,7 @@ module.exports.send = async (output) => {
     method: 'post',
     url: `${GOTIFY.URL}/message?token=${GOTIFY.TOKEN}`,
     data: {
-      message,
+      message: `${message} ![Camera Image](http://0.0.0.0:${SERVER.PORT}/api/storage/matches/${filename}?box=true)`,
       priority: GOTIFY.PRIORITY,
       extras: {
         'client::display': {
