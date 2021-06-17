@@ -23,7 +23,7 @@
     "vue": "^3.1.1",
     "vue-axios": "^3.2.4",
     "vue-prism-editor": "^2.0.0-alpha.2",
-    "vue-router": "^4.0.8"
+    "vue-router": "^4.0.9"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.5.13",
@@ -33,10 +33,10 @@
     "@vue/eslint-config-airbnb": "^5.3.0",
     "@vue/eslint-config-prettier": "^6.0.0",
     "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
+    "eslint": "^7.28.0",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-vue": "^7.11.1",
-    "node-sass": "^5.0.0",
+    "node-sass": "^6.0.0",
     "prettier": "^2.3.1",
     "sass-loader": "^10.2.0"
   },
