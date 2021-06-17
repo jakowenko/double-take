@@ -11,3 +11,14 @@ module.exports.oxfordComma = (array) =>
         .concat(`and ${array.slice(-1)}`)
         .join(', ')
     : array.join(' and ');
+
+module.exports.ip = () => {
+  try {
+    // eslint-disable-next-line global-require
+    return Object.values(require('os').networkInterfaces())
+      .flat()
+      .find((i) => i.family === 'IPv4' && !i.internal).address;
+  } catch (error) {
+    return false;
+  }
+};

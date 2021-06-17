@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { oxfordComma } = require('../helpers.util');
+const { oxfordComma, ip } = require('../helpers.util');
 const { SERVER } = require('../../constants');
 const { GOTIFY } = require('../../constants').NOTIFY;
 
@@ -9,7 +9,13 @@ module.exports.send = async (output) => {
     method: 'post',
     url: `${GOTIFY.URL}/message?token=${GOTIFY.TOKEN}`,
     data: {
-      message: `${message} ![Camera Image](http://0.0.0.0:${SERVER.PORT}/api/storage/matches/${filename}?box=true)`,
+      message: `${message} ${
+        ip() === false
+          ? ''
+          : `![Camera Image](http://${ip()}:${
+              SERVER.PORT
+            }/api/storage/matches/${filename}?box=true)`
+      }`,
       priority: GOTIFY.PRIORITY,
       extras: {
         'client::display': {
