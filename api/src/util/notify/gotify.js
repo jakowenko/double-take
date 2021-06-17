@@ -1,28 +1,27 @@
 const axios = require('axios');
-const { oxfordComma, ip } = require('../helpers.util');
+const { oxfordComma } = require('../helpers.util');
 const { SERVER } = require('../../constants');
 const { GOTIFY } = require('../../constants').NOTIFY;
 
 module.exports.send = async (output) => {
   const { filename, message } = this.normalize(output);
+  const { data: buffer } = await axios({
+    method: 'get',
+    url: `http://0.0.0.0:${SERVER.PORT}/api/storage/matches/${filename}?box=true`,
+    responseType: 'arraybuffer',
+  });
   return axios({
     method: 'post',
     url: `${GOTIFY.URL}/message?token=${GOTIFY.TOKEN}`,
     data: {
-      message: `${message} ${
-        ip() === false
-          ? ''
-          : `![Camera Image](http://${ip()}:${
-              SERVER.PORT
-            }/api/storage/matches/${filename}?box=true)`
-      }`,
+      message: `${message} ![Camera Image](data:image/jpg;base64,${buffer.toString('base64')})`,
       priority: GOTIFY.PRIORITY,
       extras: {
         'client::display': {
           contentType: 'text/markdown',
         },
         'client::notification': {
-          click: { url: `http://0.0.0.0:${SERVER.PORT}/api/storage/matches/${filename}?box=true` },
+          click: { url: `data:image/jpg;base64,${buffer.toString('base64')}` },
         },
       },
     },
