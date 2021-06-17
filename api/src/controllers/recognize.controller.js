@@ -74,7 +74,7 @@ module.exports.start = async (req, res) => {
           PROCESSING,
           IDS,
         });
-        if (typeof check === 'string') {
+        if (check !== true) {
           return respond(HTTPError(BAD_REQUEST, check), res);
         }
       } catch (error) {

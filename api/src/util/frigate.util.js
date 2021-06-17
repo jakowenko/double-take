@@ -47,6 +47,8 @@ module.exports.checks = async ({ id, type, label, camera, zones, PROCESSING, IDS
     if (IDS.includes(id)) {
       return `already processed ${id}`;
     }
+
+    return true;
   } catch (error) {
     throw new Error(error.message);
   }
