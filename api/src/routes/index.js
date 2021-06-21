@@ -3,6 +3,7 @@ const { validate } = require('../util/validate.util');
 const config = require('../controllers/config.controller');
 const recognize = require('../controllers/recognize.controller');
 const storage = require('../controllers/storage.controller');
+const cameras = require('../controllers/cameras.controller');
 const train = require('../controllers/train.controller');
 const match = require('../controllers/match.controller');
 const filesystem = require('../controllers/fs.controller');
@@ -12,6 +13,8 @@ const router = express.Router();
 
 router.get('/config', validate(validators.config()), config.get);
 router.patch('/config', config.patch);
+
+router.get('/cameras/:camera', validate(validators.cameras()), cameras.event);
 
 router.post('/recognize', validate(validators.recognize({ post: true })), recognize.start);
 router.get('/recognize', validate(validators.recognize({ get: true })), recognize.start);

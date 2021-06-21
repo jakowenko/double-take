@@ -1,6 +1,6 @@
 const { expressValidator } = require('./validate.util');
 
-const { query /* , body */ } = expressValidator;
+const { query, param /* , body */ } = expressValidator;
 
 module.exports.recognize = ({ get }) => {
   let validations = [
@@ -52,6 +52,14 @@ module.exports.config = () => [query('format').default('json').isIn(['json', 'ya
 module.exports.objects = () => {
   return [
     query('url').isLength({ min: 1 }),
+    query('break').default(true).isIn([true, false]),
+    query('attempts').default(1).isInt().withMessage('not a valid number'),
+  ];
+};
+
+module.exports.cameras = () => {
+  return [
+    param('camera').isLength({ min: 1 }),
     query('break').default(true).isIn([true, false]),
     query('attempts').default(1).isInt().withMessage('not a valid number'),
   ];
