@@ -36,8 +36,8 @@ jobs:
           echo "VERSION=${{steps.version.outputs.prop}}" >> $GITHUB_ENV
       - name: Version with SHA-7
         run: |
-          cd ./api && npm version ${{env.VERSION}}-$(echo ${GITHUB_SHA} | cut -c1-7)
-          cd ../frontend && npm version ${{env.VERSION}}-$(echo ${GITHUB_SHA} | cut -c1-7)
+          cd ./api && npm version ${{steps.version.outputs.prop}}-$(echo ${GITHUB_SHA} | cut -c1-7)
+          cd ../frontend && npm version ${{steps.version.outputs.prop}}-$(echo ${GITHUB_SHA} | cut -c1-7)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
