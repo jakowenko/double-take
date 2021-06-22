@@ -2,7 +2,7 @@
   <div class="wrapper">
     <Toast position="bottom-left" />
     <ConfirmDialog />
-    <!-- <Navigation /> -->
+    <Toolbar />
     <router-view />
   </div>
 </template>
@@ -15,14 +15,14 @@ import 'primeicons/primeicons.css';
 import '@/assets/font-awesome/css/all.min.css';
 import Toast from 'primevue/toast';
 import ConfirmDialog from 'primevue/confirmdialog';
-// import Navigation from '@/components/Navigation.vue';
+import Toolbar from '@/components/Toolbar.vue';
 
 export default {
-  name: 'App',
+  name: 'Double Take',
   components: {
     Toast,
     ConfirmDialog,
-    // Navigation,
+    Toolbar,
   },
   data() {
     return {
@@ -40,6 +40,7 @@ body {
   margin: 0;
   background: var(--surface-b);
   color: var(--text-color);
+  padding-top: 20px;
 }
 #app {
   -webkit-font-smoothing: antialiased;

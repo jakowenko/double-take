@@ -255,7 +255,7 @@ export default {
 .fixed {
   background: var(--surface-a);
   position: fixed;
-  top: 0;
+  top: 20px;
   left: 50%;
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
