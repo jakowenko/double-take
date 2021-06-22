@@ -90,6 +90,7 @@ export default {
 
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
+
 .wrapper {
   position: relative;
 }
@@ -105,8 +106,12 @@ export default {
 
   button {
     position: relative;
-    top: 45px;
+    top: 65px;
   }
+}
+
+.ace_editor {
+  background: var(--surface-a);
 }
 
 ::v-deep(.ace_editor) .ace_mobile-menu {
