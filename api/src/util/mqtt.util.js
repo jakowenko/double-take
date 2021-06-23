@@ -48,7 +48,7 @@ module.exports.connect = () => {
       logger.log('MQTT: attempting to reconnect');
     })
     .on('message', async (topic, message) => {
-      if ((topic.includes('/snapshot') || cameraTopics.includes(topic)) && !justSubscribed) {
+      if ((topic.includes('/snapshot') || cameraTopics().includes(topic)) && !justSubscribed) {
         const camera = topic.split('/')[1];
         const filename = `${uuidv4()}.jpg`;
         const buffer = Buffer.from(message);
