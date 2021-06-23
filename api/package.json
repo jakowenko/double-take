@@ -10,7 +10,12 @@
     "type": "git",
     "url": "https://github.com/jakowenko/double-take.git"
   },
+  "author": "David Jakowenko",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jakowenko/double-take/issues"
+  },
+  "homepage": "https://github.com/jakowenko/double-take#readme",
   "dependencies": {
     "axios": "^0.21.1",
     "better-sqlite3": "^7.4.1",
