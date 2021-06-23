@@ -305,7 +305,7 @@ export default {
 
   &.fixed-sub {
     background: var(--surface-50);
-    top: -150px;
+    top: -100px;
     z-index: 3;
     padding-top: 0.75rem;
     padding-bottom: 0;
@@ -313,7 +313,7 @@ export default {
 
     &.show {
       display: block;
-      top: 55px;
+      top: 75px;
     }
 
     label,
