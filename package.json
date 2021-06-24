@@ -2,6 +2,15 @@
   "name": "double-take",
   "version": "0.7.0",
   "description": "Unified UI and API for processing and training images for facial recognition",
+  "scripts": {
+    "prepare": "husky install",
+    "setup": "npm install && cd ./api && npm install && cd ../frontend && npm install",
+    "update": "npm update && cd ./api && npm update && cd ../frontend && npm update",
+    "audit": "npm audit fix && cd ./api && npm audit fix && cd ../frontend && npm audit fix",
+    "frontend": "cd ./frontend && npm run serve",
+    "api": "cd ./api && nodemon -q server.js || true",
+    "bump": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jakowenko/double-take.git"
@@ -21,6 +30,7 @@
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-prettier": "^3.3.1",
     "husky": "^6.0.0",
+    "nodemon": "^2.0.7",
     "prettier": "^2.3.1"
   }
 }
