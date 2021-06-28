@@ -50,6 +50,7 @@ export default {
       this.code = data;
       this.editor.session.setValue(data);
       this.editor.gotoPageDown();
+      this.editor.session.setTabSize(2);
       this.ready = true;
     } catch (error) {
       this.$toast.add({
@@ -58,6 +59,7 @@ export default {
         life: 3000,
       });
     }
+    this.updateHeight();
     window.onresize = this.updateHeight;
   },
   methods: {
@@ -65,7 +67,7 @@ export default {
       this.editor = editor;
     },
     updateHeight() {
-      this.height = `${window.innerHeight}px`;
+      this.height = `${window.innerHeight - 40}px`;
     },
     highlighter(code) {
       return highlight(code, languages.js);
@@ -97,16 +99,17 @@ export default {
 
 .fixed {
   position: fixed;
-  top: -35px;
+  top: -$tool-bar-height;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
   max-width: $max-width;
-  z-index: 2;
+  z-index: 12;
+  background: red;
 
   button {
     position: relative;
-    top: 65px;
+    top: $tool-bar-height * 2 + 15px;
   }
 }
 
