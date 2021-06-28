@@ -191,6 +191,9 @@ export default {
   mounted() {
     this.$emit('filter', this.filter);
   },
+  beforeUnmount() {
+    this.liveReload = false;
+  },
   methods: {
     async getMatchesInterval() {
       if (!this.liveReload) return;
@@ -250,12 +253,12 @@ export default {
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
 .wrapper {
-  padding-top: 60px;
+  padding-top: $match-header-height;
 }
 .fixed {
   background: var(--surface-a);
   position: fixed;
-  top: 20px;
+  top: $tool-bar-height;
   left: 50%;
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
@@ -313,7 +316,7 @@ export default {
 
     &.show {
       display: block;
-      top: 75px;
+      top: $tool-bar-height + $match-header-height;
     }
 
     label,

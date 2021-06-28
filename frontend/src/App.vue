@@ -33,6 +33,7 @@ export default {
 </script>
 
 <style lang="scss">
+@import '@/assets/scss/_variables.scss';
 html {
   font-size: 15px;
 }
@@ -40,7 +41,7 @@ body {
   margin: 0;
   background: var(--surface-b);
   color: var(--text-color);
-  padding-top: 20px;
+  padding-top: $tool-bar-height;
 }
 #app {
   -webkit-font-smoothing: antialiased;
