@@ -27,4 +27,9 @@ module.exports = {
       cameras: 'double-take/cameras',
     },
   },
+  notify: {
+    gotify: {
+      priority: 5,
+    },
+  },
 };

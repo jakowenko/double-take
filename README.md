@@ -1,13 +1,17 @@
-[![Docker Pulls](https://flat.badgen.net/docker/pulls/jakowenko/double-take)](https://hub.docker.com/r/jakowenko/double-take)
+[![Double Take](https://badgen.net/github/release/jakowenko/double-take/stable)](https://github.com/jakowenko/double-take) [![Double Take](https://badgen.net/github/stars/jakowenko/double-take)](https://github.com/jakowenko/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/jakowenko/double-take)](https://hub.docker.com/r/jakowenko/double-take)
 
 # Double Take
 
 Unified UI and API for processing and training images for facial recognition.
 
+## Why?
+
+There's a lot of great open source software to perform facial recognition, but each of them behave differently. Double Take was created to abstract the complexities of the detection services and combine them into an easy to use UI and API.
+
 ### Supported Detectors
 
-- [DeepStack](https://deepstack.cc) v2021.02.1
-- [CompreFace](https://github.com/exadel-inc/CompreFace) v0.5.0
+- [DeepStack](https://deepstack.cc) v2021.02.1-2021.06.01
+- [CompreFace](https://github.com/exadel-inc/CompreFace) v0.5.0-0.5.1
 - [Facebox](https://machinebox.io)
 
 ### Supported NVRs
@@ -18,13 +22,35 @@ Unified UI and API for processing and training images for facial recognition.
 
 ### [Frigate](https://github.com/blakeblackshear/frigate)
 
-Subscribe to Frigate's MQTT events topic and process images from the event for analysis.
+Subscribe to Frigate's MQTT topics and process images for analysis.
 
-When a Frigate event is received the API begins to process the [`snapshot.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apieventsidsnapshotjpg) and [`latest.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apicamera_namelatestjpgh300) images from Frigate's API. These images are passed from the API to the detector(s) specified until a match is found above the defined confidence level. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found. If a match is found the image is then saved to `/.storage/matches/${filename}`.
+```yaml
+mqtt:
+  host: 192.168.1.1
+
+frigate:
+  url: http://192.168.1.1:5000
+```
+
+When the `frigate/events` topic is updated the API begins to process the [`snapshot.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apieventsidsnapshotjpg) and [`latest.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apicamera_namelatestjpgh300) images from Frigate's API. These images are passed from the API to the configured detector(s) until a match is found that meets the configured requirements. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found.
+
+When the `frigate/+/person/snapshot` topic is updated the API will process that image with the configured detector(s). It is recommended to increase the MQTT snapshot size in the [Frigate camera config](https://blakeblackshear.github.io/frigate/configuration/cameras#full-example).
+
+```yaml
+cameras:
+  front-door:
+    mqtt:
+      timestamp: False
+      bounding_box: False
+      crop: True
+      height: 500
+```
+
+If a match is found the image is saved to `/.storage/matches/${filename}`.
 
 ### [Home Assistant](https://www.home-assistant.io)
 
-Double Take can be paired with Home Assistant to create automations when images are processed.
+Trigger automations / notifications when images are processed.
 
 If the MQTT integration is configured within Home Assistant, then sensors can be created from the topics that Double Take publishes to.
 
@@ -33,15 +59,26 @@ sensor:
   - platform: mqtt
     name: David
     icon: mdi:account
-    state_topic: "double-take/matches/david"
-    json_attributes_topic: "double-take/matches/david"
-    value_template: "{{ value_json.camera }}"
-    availability_topic: "double-take/available"
+    state_topic: 'double-take/matches/david'
+    json_attributes_topic: 'double-take/matches/david'
+    value_template: '{{ value_json.camera }}'
+    availability_topic: 'double-take/available'
 ```
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/1081811/116505698-904ec780-a889-11eb-825e-b641203d9e95.jpg" width="70%">
 </p>
+
+## Notify Services
+
+### [Gotify](https://gotify.net)
+
+```yaml
+notify:
+  gotify:
+    url: http://192.168.1.1:8080
+    token: XXXXXXX
+```
 
 ## UI
 
@@ -207,6 +244,51 @@ curl -X GET "http://localhost:3000/api/recognize/test" \
 ]
 ```
 
+### `GET - /api/cameras/:camera`
+
+Process images via HTTP or MQTT for configured cameras.
+
+| Query Params | Default | Description                                        |
+| ------------ | ------- | -------------------------------------------------- |
+| attempts     | `1`     | Number of attempts before stopping without a match |
+| break        | `true`  | Break attempt loop if a match is found             |
+
+```yaml
+cameras:
+  driveway:
+    snapshot:
+      topic: driveway/snapshot
+      url: http://192.168.1.1/latest.jpg
+```
+
+```shell
+curl -X GET "http://localhost:3000/api/cameras/driveway" \
+-H "Content-type: application/json"
+```
+
+```json
+{
+  "id": "01da75f4-47c5-4558-bc48-d6a90ddc9f05",
+  "duration": 1.41,
+  "timestamp": "2021-06-28T04:10:21.485Z",
+  "attempts": 1,
+  "camera": "driveway",
+  "zones": [],
+  "matches": [
+    {
+      "name": "david",
+      "confidence": 100,
+      "match": true,
+      "box": { "top": 91, "left": 145, "width": 101, "height": 135 },
+      "type": "camera-event",
+      "duration": 0.83,
+      "detector": "deepstack",
+      "filename": "bd7b3ed5-4a9a-46e9-a162-d73e4ca58f1f.jpg"
+    }
+  ]
+}
+```
+
 ### `GET - /api/train/add/:name`
 
 Train detectors with images from `./storage/train/${name}`. Once an image is trained, it will not be reprocessed unless it is removed via the API.
@@ -235,9 +317,7 @@ curl -X GET "http://localhost:3000/api/train/remove/david" \
 [
   {
     "detector": "compreface",
-    "results": [
-      { "image_id": "46f0db76-38ec-4b50-b8c7-de7d4080517d", "subject": "david" }
-    ]
+    "results": [{ "image_id": "46f0db76-38ec-4b50-b8c7-de7d4080517d", "subject": "david" }]
   },
   { "detector": "deepstack", "results": { "success": true, "duration": 0 } },
   { "detector": "facebox", "results": { "success": true } }
@@ -254,28 +334,32 @@ Render match image.
 
 ## MQTT
 
-If MQTT is enabled and a match or unknown person is detected then two topics will be created.
+Publish results to `double-take/matches/${name}` and `double-take/cameras/${camera}`.
 
-- `double-take/matches/${name}`
-- `double-take/cameras/${camera}`
+```yaml
+mqtt:
+  host: 192.168.1.1
+```
 
 **double-take/matches/david**
 
 ```json
 {
-  "id": "1614931108.689332-6uu8kk",
-  "duration": 0.85,
-  "time": "03/05/2021 02:58:57 AM",
-  "attempts": 4,
+  "id": "1623906078.684285-5l9hw6",
+  "duration": 1.26,
+  "timestamp": "2021-06-17T05:01:36.030Z",
+  "attempts": 3,
   "camera": "living-room",
-  "room": "Living Room",
+  "zones": [],
   "match": {
     "name": "david",
-    "confidence": 82.6,
-    "attempt": 1,
+    "confidence": 66.07,
+    "match": true,
+    "box": { "top": 308, "left": 1018, "width": 164, "height": 177 },
+    "type": "latest",
+    "duration": 0.28,
     "detector": "compreface",
-    "type": "snapshot",
-    "duration": 0.39
+    "filename": "2f07d1ad-9252-43fd-9233-2786a36a15a9.jpg"
   }
 }
 ```
@@ -286,9 +370,9 @@ If MQTT is enabled and a match or unknown person is detected then two topics wil
 {
   "id": "ff894ff3-2215-4cea-befa-43fe00898b65",
   "duration": 4.25,
-  "timestamp": "4/29/2021, 12:29:53 AM",
-  "attempts": 1,
-  "camera": "double-take",
+  "timestamp": "2021-06-17T03:19:55.695Z",
+  "attempts": 5,
+  "camera": "back-door",
   "zones": [],
   "matches": [
     {
@@ -322,7 +406,7 @@ docker run -d \
 ### Docker Compose
 
 ```yaml
-version: "3.7"
+version: '3.7'
 
 services:
   double-take:
@@ -338,7 +422,7 @@ services:
 
 ## Configuration
 
-Configurable options that can be passed by mounting a file at `/double-take/config.yml` and is editable via the UI at `http://localhost:3000/#/config`.
+Configurable options that can be passed by mounting a file at `/double-take/config.yml` and is editable via the UI at `http://localhost:3000/#/config`. _Default values do not need to be specified in configuration unless they need to be overwritten._
 
 ```yaml
 server:
@@ -381,6 +465,12 @@ frigate:
     - camera: driveway
       zone: zone-1
 
+cameras:
+  driveway:
+    snapshot:
+      topic: driveway/snapshot
+      url: http://192.168.1.1/latest.jpg
+
 detectors:
   compreface:
     url: http://192.168.1.1:8000
@@ -395,35 +485,42 @@ time:
   timezone: America/Detroit
 ```
 
-| Option                            | Default               | Description                                                                                                                                       |
-| --------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| server.port                       | `3000`                | API Port                                                                                                                                          |
-| mqtt.host                         |                       | MQTT host                                                                                                                                         |
-| mqtt.username                     |                       | MQTT username                                                                                                                                     |
-| mqtt.password                     |                       | MQTT password                                                                                                                                     |
-| mqtt.topics.frigate               | `frigate/events`      | MQTT topic for Frigate message subscription                                                                                                       |
-| mqtt.topics.matches               | `double-take/matches` | MQTT topic where matches are published                                                                                                            |
-| mqtt.topics.cameras               | `double-take/cameras` | MQTT topic where matches are published by camera name                                                                                             |
-| confidence.match                  | `60`                  | Minimum confidence needed to consider a result a match                                                                                            |
-| confidence.unknown                | `40`                  | Minimum confidence needed before classifying a match name as unknown                                                                              |
-| objects.face.min_area_match       | `10000`               | Minimum area in pixels to consider a result a match                                                                                               |
-| save.matches                      | `true`                | Save match images                                                                                                                                 |
-| save.unknown                      | `true`                | Save unknown images                                                                                                                               |
-| purge.matches                     | `168`                 | Hours to keep match images until they are deleted                                                                                                 |
-| purge.unknown                     | `8`                   | Hours to keep unknown images until they are deleted                                                                                               |
-| frigate.url                       |                       | Base URL for Frigate                                                                                                                              |
-| frigate.attempts.latest           | `10`                  | Amount of times API will request a Frigate `latest.jpg` for analysis                                                                              |
-| frigate.attempts.snapshot         | `0`                   | Amount of times API will request a Frigate `snapshot.jpg` for analysis                                                                            |
-| frigate.image.height              | `500`                 | Height of Frigate image passed for facial recognition                                                                                             |
-| frigate.cameras                   |                       | Only process images from specific cameras                                                                                                         |
-| frigate.zones                     |                       | Only process images from specific zones                                                                                                           |
-| detectors.compreface.url          |                       | Base URL for CompreFace API                                                                                                                       |
-| detectors.compreface.key          |                       | API Key for CompreFace collection                                                                                                                 |
-| detectors.compreface.face_plugins |                       | Comma-separated slugs of [face plugins](https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)                   |
-| detectors.deepstack.url           |                       | Base URL for DeepStack API                                                                                                                        |
-| detectors.facebox.url             |                       | Base URL for Facebox API                                                                                                                          |
-| time.format                       |                       | Defaults to ISO 8601 format with support for [token-based formatting](https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens) |
-| time.timezone                     | `UTC`                 | Time zone used in logs                                                                                                                            |
+| Option                             | Default               | Description                                                                                                                                       |
+| ---------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| server.port                        | `3000`                | API Port                                                                                                                                          |
+| mqtt.host                          |                       | MQTT host                                                                                                                                         |
+| mqtt.username                      |                       | MQTT username                                                                                                                                     |
+| mqtt.password                      |                       | MQTT password                                                                                                                                     |
+| mqtt.topics.frigate                | `frigate/events`      | MQTT topic for Frigate message subscription                                                                                                       |
+| mqtt.topics.matches                | `double-take/matches` | MQTT topic where matches are published                                                                                                            |
+| mqtt.topics.cameras                | `double-take/cameras` | MQTT topic where matches are published by camera name                                                                                             |
+| confidence.match                   | `60`                  | Minimum confidence needed to consider a result a match                                                                                            |
+| confidence.unknown                 | `40`                  | Minimum confidence needed before classifying a match name as unknown                                                                              |
+| objects.face.min_area_match        | `10000`               | Minimum area in pixels to consider a result a match                                                                                               |
+| save.matches                       | `true`                | Save match images                                                                                                                                 |
+| save.unknown                       | `true`                | Save unknown images                                                                                                                               |
+| purge.matches                      | `168`                 | Hours to keep match images until they are deleted                                                                                                 |
+| purge.unknown                      | `8`                   | Hours to keep unknown images until they are deleted                                                                                               |
+| frigate.url                        |                       | Base URL for Frigate                                                                                                                              |
+| frigate.attempts.latest            | `10`                  | Amount of times API will request a Frigate `latest.jpg` for facial recognition                                                                    |
+| frigate.attempts.snapshot          | `0`                   | Amount of times API will request a Frigate `snapshot.jpg` for facial recognition                                                                  |
+| frigate.image.height               | `500`                 | Height of Frigate image passed for facial recognition                                                                                             |
+| frigate.cameras                    |                       | Only process images from specific cameras                                                                                                         |
+| frigate.zones                      |                       | Only process images from specific zones                                                                                                           |
+| cameras.camera-name.snapshot.topic |                       | Process jpeg encoded topic for facial recognition                                                                                                 |
+| cameras.camera-name.snapshot.url   |                       | Process HTTP image for facial recognition                                                                                                         |
+| detectors.compreface.url           |                       | Base URL for CompreFace API                                                                                                                       |
+| detectors.compreface.key           |                       | API Key for CompreFace collection                                                                                                                 |
+| detectors.compreface.face_plugins  |                       | Comma-separated slugs of [face plugins](https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)                   |
+| detectors.deepstack.url            |                       | Base URL for DeepStack API                                                                                                                        |
+| detectors.facebox.url              |                       | Base URL for Facebox API                                                                                                                          |
+| notify.gotify.url                  |                       | Base URL for Gotify                                                                                                                               |
+| notify.gotify.token                |                       | Gotify application token Gotify                                                                                                                   |
+| notify.gotify.priority             | `5`                   | Gotify message priority                                                                                                                           |
+| notify.gotify.cameras              |                       | Only notify from specific cameras                                                                                                                 |
+| notify.gotify.zones                |                       | Only notify from specific zones                                                                                                                   |
+| time.format                        |                       | Defaults to ISO 8601 format with support for [token-based formatting](https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens) |
+| time.timezone                      | `UTC`                 | Time zone used in logs                                                                                                                            |
 
 ## Known Issues
 

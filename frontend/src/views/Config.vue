@@ -9,7 +9,15 @@
       />
       <Button icon="fa fa-save" class="p-button p-button-sm p-button-success" @click="save" :disabled="loading" />
     </div>
-    <PrismEditor class="editor" v-model="code" :highlight="highlighter"></PrismEditor>
+    <VAceEditor
+      v-model:value="code"
+      lang="yaml"
+      :wrap="true"
+      :printMargin="false"
+      theme="nord_dark"
+      :style="{ height, opacity: ready ? '100%' : 0 }"
+      @init="editorInit"
+    />
   </div>
 </template>
 
@@ -18,8 +26,10 @@ import Button from 'primevue/button';
 import Sleep from '@/util/sleep.util';
 
 import ApiService from '@/services/api.service';
-import { PrismEditor } from 'vue-prism-editor';
-import 'vue-prism-editor/dist/prismeditor.min.css';
+
+import { VAceEditor } from 'vue3-ace-editor';
+import 'ace-builds/src-noconflict/theme-nord_dark';
+import 'ace-builds/src-noconflict/mode-yaml';
 
 import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-clike';
@@ -28,16 +38,20 @@ import 'prismjs/themes/prism-tomorrow.css';
 
 export default {
   components: {
-    PrismEditor,
+    VAceEditor,
     Button,
   },
-  data: () => ({ code: null, loading: false }),
+  data: () => ({ editor: null, code: '', ready: false, loading: false, height: `${window.innerHeight}px` }),
   async mounted() {
     try {
       this.loading = true;
       const { data } = await ApiService.get('config?format=yaml');
       this.loading = false;
       this.code = data;
+      this.editor.session.setValue(data);
+      this.editor.gotoPageDown();
+      this.editor.session.setTabSize(2);
+      this.ready = true;
     } catch (error) {
       this.$toast.add({
         severity: 'error',
@@ -45,8 +59,16 @@ export default {
         life: 3000,
       });
     }
+    this.updateHeight();
+    window.onresize = this.updateHeight;
   },
   methods: {
+    async editorInit(editor) {
+      this.editor = editor;
+    },
+    updateHeight() {
+      this.height = `${window.innerHeight - 40}px`;
+    },
     highlighter(code) {
       return highlight(code, languages.js);
     },
@@ -70,35 +92,32 @@ export default {
 
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
+
 .wrapper {
   position: relative;
 }
 
 .fixed {
   position: fixed;
-  top: -35px;
+  top: -$tool-bar-height;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
   max-width: $max-width;
-  z-index: 2;
+  z-index: 12;
+  background: red;
 
   button {
     position: relative;
-    top: 45px;
+    top: $tool-bar-height * 2 + 15px;
   }
 }
 
-.editor {
-  background: #2d2d2d;
-  color: #ccc;
-  font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  padding: 15px;
+.ace_editor {
+  background: var(--surface-a);
 }
 
-::v-deep(.prism-editor__textarea:focus) {
-  outline: none;
+::v-deep(.ace_editor) .ace_mobile-menu {
+  display: none !important;
 }
 </style>

@@ -2,12 +2,14 @@ const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
 const process = require('../util/process.util');
 const actions = require('../util/detectors/actions');
+const notify = require('../util/notify/actions');
 const logger = require('../util/logger.util');
 const time = require('../util/time.util');
 const recognize = require('../util/recognize.util');
 const frigate = require('../util/frigate.util');
 const mqtt = require('../util/mqtt.util');
 const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
+const { lowercaseKeys } = require('../util/helpers.util');
 const { OK, BAD_REQUEST } = require('../constants/http-status');
 
 const { FRIGATE, DETECTORS } = require('../constants');
@@ -21,16 +23,13 @@ let PROCESSING = false;
 
 module.exports.test = async (req, res) => {
   try {
-    const detectors = Object.fromEntries(
-      Object.entries(DETECTORS).map(([k, v]) => [k.toLowerCase(), v])
-    );
     const promises = [];
-    for (const [detector] of Object.entries(detectors)) {
+    for (const [detector] of Object.entries(lowercaseKeys(DETECTORS))) {
       promises.push(actions.recognize({ detector, key: `${__dirname}/../static/img/lenna.png` }));
     }
     const results = await Promise.all(promises);
     const output = results.map((result, i) => ({
-      detector: Object.entries(detectors)[i][0],
+      detector: Object.entries(lowercaseKeys(DETECTORS))[i][0],
       response: result.data,
     }));
     respond(HTTPError(OK, output), res);
@@ -75,7 +74,7 @@ module.exports.start = async (req, res) => {
           PROCESSING,
           IDS,
         });
-        if (typeof check === 'string') {
+        if (check !== true) {
           return respond(HTTPError(BAD_REQUEST, check), res);
         }
       } catch (error) {
@@ -162,6 +161,8 @@ module.exports.start = async (req, res) => {
     respond(HTTPSuccess(OK, output), res);
 
     mqtt.publish(output);
+
+    notify.publish(output, camera, results);
 
     if (output.matches.length) {
       IDS.push(id);

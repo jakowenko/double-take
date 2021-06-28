@@ -3,11 +3,21 @@ const axios = require('axios');
 const mqtt = require('mqtt');
 const fs = require('fs');
 const logger = require('./logger.util');
-const { SERVER, MQTT, FRIGATE } = require('../constants');
+const { SERVER, MQTT, FRIGATE, CAMERAS } = require('../constants');
 
 let previousMqttLengths = [];
 let justSubscribed = false;
 let client = false;
+
+const cameraTopics = () => {
+  return CAMERAS
+    ? Object.keys(CAMERAS)
+        .filter((key) => CAMERAS[key].SNAPSHOT && CAMERAS[key].SNAPSHOT.TOPIC)
+        .map((key) => {
+          return CAMERAS[key].SNAPSHOT.TOPIC;
+        })
+    : [];
+};
 
 module.exports.connect = () => {
   if (!MQTT.HOST) {
@@ -38,7 +48,7 @@ module.exports.connect = () => {
       logger.log('MQTT: attempting to reconnect');
     })
     .on('message', async (topic, message) => {
-      if (topic.includes('/snapshot') && !justSubscribed) {
+      if ((topic.includes('/snapshot') || cameraTopics().includes(topic)) && !justSubscribed) {
         const camera = topic.split('/')[1];
         const filename = `${uuidv4()}.jpg`;
         const buffer = Buffer.from(message);
@@ -131,25 +141,27 @@ module.exports.publish = (data) => {
 };
 
 module.exports.subscribe = () => {
-  if (FRIGATE.URL && MQTT.TOPICS.FRIGATE) {
-    client.subscribe(MQTT.TOPICS.FRIGATE, (err) => {
-      if (err) {
-        logger.log(`MQTT: error subscribing to ${MQTT.TOPICS.FRIGATE}`);
-        return;
-      }
-      logger.log(`MQTT: subscribed to ${MQTT.TOPICS.FRIGATE}`);
-    });
+  const topics = [];
 
+  topics.push(...cameraTopics());
+
+  if (FRIGATE.URL && MQTT.TOPICS.FRIGATE) {
     const [prefix] = MQTT.TOPICS.FRIGATE.split('/');
-    const topic = FRIGATE.CAMERAS
-      ? FRIGATE.CAMERAS.map((camera) => `${prefix}/${camera}/person/snapshot`)
-      : `${prefix}/+/person/snapshot`;
-    client.subscribe(topic, (err) => {
+    topics.push(MQTT.TOPICS.FRIGATE);
+    topics.push(
+      ...(FRIGATE.CAMERAS
+        ? FRIGATE.CAMERAS.map((camera) => `${prefix}/${camera}/person/snapshot`)
+        : [`${prefix}/+/person/snapshot`])
+    );
+  }
+
+  if (topics.length) {
+    client.subscribe(topics, (err) => {
       if (err) {
-        logger.log(`MQTT: error subscribing to ${topic}`);
+        logger.log(`MQTT: error subscribing to ${topics.join(', ')}`);
         return;
       }
-      logger.log(`MQTT: subscribed to ${topic}`);
+      logger.log(`MQTT: subscribed to ${topics.join(', ')}`);
       justSubscribed = true;
       setTimeout(() => (justSubscribed = false), 5000);
     });
