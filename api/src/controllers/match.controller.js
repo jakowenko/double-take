@@ -8,6 +8,8 @@ const { respond, HTTPSuccess /* , HTTPError */ } = require('../util/respond.util
 const { OK } = require('../constants/http-status');
 const { STORAGE } = require('../constants');
 
+let matchProps = [];
+
 module.exports.get = async (req, res) => {
   try {
     const { sinceId } = req.query;
@@ -45,18 +47,26 @@ module.exports.get = async (req, res) => {
           createdAt: obj.createdAt,
         };
 
-        if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
+        const [matchProp] = matchProps.filter((prop) => prop.key === key);
+
+        if (matchProp) {
+          output.file = matchProp.file;
+        } else if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
           const base64 = await sharp(`${STORAGE.PATH}/${key}`).resize(500).toBuffer();
           const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
           output.file.base64 = base64.toString('base64');
           output.file.width = width;
           output.file.height = height;
+          // push sharp and sizeOf results to an array to search against
+          matchProps.unshift({ key, file: output.file });
         }
 
         return output;
       })
     );
     matches = matches.flat();
+    matchProps = matchProps.slice(0, 500);
+
     respond(HTTPSuccess(OK, { matches }), res);
   } catch (error) {
     respond(error, res);
