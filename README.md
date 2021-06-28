@@ -1,4 +1,4 @@
-[![Docker Pulls](https://flat.badgen.net/docker/pulls/jakowenko/double-take)](https://hub.docker.com/r/jakowenko/double-take)
+[![Double Take](https://badgen.net/github/release/jakowenko/double-take/stable)](https://github.com/jakowenko/double-take) [![Double Take](https://badgen.net/github/stars/jakowenko/double-take)](https://github.com/jakowenko/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/jakowenko/double-take)](https://hub.docker.com/r/jakowenko/double-take)
 
 # Double Take
 
