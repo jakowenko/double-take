@@ -60,6 +60,7 @@ module.exports.remove = ({ name }) => {
 };
 
 module.exports.normalize = ({ data }) => {
+  if (data.success === false) return [];
   const { MIN_AREA_MATCH } = OBJECTS.FACE;
   const normalized = data.predictions.map((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
