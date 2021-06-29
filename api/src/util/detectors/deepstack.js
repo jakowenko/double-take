@@ -8,9 +8,10 @@ module.exports.config = () => {
 };
 
 module.exports.recognize = (key) => {
-  const { URL } = this.config();
+  const { URL, KEY } = this.config();
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
+  formData.append('api_key', KEY);
   return axios({
     method: 'post',
     headers: {
@@ -25,10 +26,11 @@ module.exports.recognize = (key) => {
 };
 
 module.exports.train = ({ name, key }) => {
-  const { URL } = this.config();
+  const { URL, KEY } = this.config();
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
   formData.append('userid', name);
+  formData.append('api_key', KEY);
   return axios({
     method: 'post',
     headers: {
@@ -40,9 +42,10 @@ module.exports.train = ({ name, key }) => {
 };
 
 module.exports.remove = ({ name }) => {
-  const { URL } = this.config();
+  const { URL, KEY } = this.config();
   const formData = new FormData();
   formData.append('userid', name);
+  formData.append('api_key', KEY);
   return axios({
     method: 'post',
     url: `${URL}/v1/vision/face/delete`,
