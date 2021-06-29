@@ -11,7 +11,7 @@ module.exports.recognize = (key) => {
   const { URL, KEY } = this.config();
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
-  formData.append('api_key', KEY);
+  if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
     headers: {
@@ -30,7 +30,7 @@ module.exports.train = ({ name, key }) => {
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
   formData.append('userid', name);
-  formData.append('api_key', KEY);
+  if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
     headers: {
@@ -45,7 +45,7 @@ module.exports.remove = ({ name }) => {
   const { URL, KEY } = this.config();
   const formData = new FormData();
   formData.append('userid', name);
-  formData.append('api_key', KEY);
+  if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
     url: `${URL}/v1/vision/face/delete`,
