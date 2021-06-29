@@ -334,7 +334,7 @@ Render match image.
 
 ## MQTT
 
-Publish results to `double-take/matches/${name}` and `double-take/cameras/${camera}`.
+Publish results to `double-take/matches/${name}` and `double-take/cameras/${camera}`. The number of results will also be published to `double-take/cameras/${camera}/person` and will reset back to `0` after 30 seconds.
 
 ```yaml
 mqtt:
@@ -477,6 +477,7 @@ detectors:
     key: xxx-xxx-xxx-xxx-xxx # key from recognition service in created app
   deepstack:
     url: http://192.168.1.1:8001
+    key: xxx-xxx-xxx-xxx-xxx # optional api key
   facebox:
     url: http://192.168.1.1:8002
 
@@ -513,6 +514,7 @@ time:
 | detectors.compreface.key           |                       | API Key for CompreFace collection                                                                                                                 |
 | detectors.compreface.face_plugins  |                       | Comma-separated slugs of [face plugins](https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)                   |
 | detectors.deepstack.url            |                       | Base URL for DeepStack API                                                                                                                        |
+| detectors.deepstack.key            |                       | API Key for DeepStack                                                                                                                             |
 | detectors.facebox.url              |                       | Base URL for Facebox API                                                                                                                          |
 | notify.gotify.url                  |                       | Base URL for Gotify                                                                                                                               |
 | notify.gotify.token                |                       | Gotify application token Gotify                                                                                                                   |
