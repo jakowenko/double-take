@@ -1,14 +1,18 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
+const { doesUrlResolve } = require('../validators.util');
 const { CONFIDENCE, DETECTORS, OBJECTS } = require('../../constants');
 
 module.exports.config = () => {
   return DETECTORS.DEEPSTACK;
 };
 
-module.exports.recognize = (key) => {
+module.exports.recognize = async ({ test, key }) => {
   const { URL, KEY } = this.config();
+  if (test && !(await doesUrlResolve(URL))) {
+    return { status: 404 };
+  }
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
   if (KEY) formData.append('api_key', KEY);

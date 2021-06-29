@@ -1,3 +1,5 @@
+const axios = require('axios');
+const logger = require('./logger.util');
 const { expressValidator } = require('./validate.util');
 
 const { query, param /* , body */ } = expressValidator;
@@ -75,4 +77,20 @@ module.exports.tryParseJSON = (json) => {
   } catch (e) {}
 
   return false;
+};
+
+module.exports.doesUrlResolve = async (url) => {
+  try {
+    const instance = axios.create({
+      timeout: 1000,
+    });
+    const data = await instance({
+      method: 'get',
+      url,
+    });
+    return data;
+  } catch (error) {
+    logger.log(`url resolve error: ${error.message}`);
+    return false;
+  }
 };
