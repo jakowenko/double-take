@@ -20,7 +20,7 @@ jobs:
         id: version
         uses: notiz-dev/github-action-json-property@release
         with:
-          path: ./api/package.json
+          path: ./package.json
           prop_path: version
       - name: Set ENV to beta
         if: endsWith(github.ref, '/beta')
