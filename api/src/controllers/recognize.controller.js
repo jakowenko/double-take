@@ -50,10 +50,10 @@ module.exports.start = async (req, res) => {
     };
 
     if (event.type === 'frigate') {
-      const { type } = req.body;
+      const { type: frigateEventType } = req.body;
       const attributes = req.body.after ? req.body.after : req.body.before;
       const { id, label, camera, current_zones: zones } = attributes;
-      event = { id, label, camera, zones, type, ...event };
+      event = { id, label, camera, zones, frigateEventType, ...event };
     } else {
       const { url, camera } = req.query;
 

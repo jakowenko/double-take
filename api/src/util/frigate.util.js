@@ -6,13 +6,19 @@ const { FRIGATE } = require('../constants');
 
 const frigate = this;
 
-module.exports.checks = async ({ id, type, label, camera, zones, PROCESSING, IDS }) => {
+module.exports.checks = async ({
+  id,
+  frigateEventType: type,
+  label,
+  camera,
+  zones,
+  PROCESSING,
+  IDS,
+}) => {
   try {
     if (!FRIGATE.URL) {
       return `Frigate URL not configured`;
     }
-
-    await frigate.status();
 
     if (FRIGATE.CAMERAS && !FRIGATE.CAMERAS.includes(camera)) {
       return `${id} - ${camera} not on approved list`;
@@ -47,6 +53,8 @@ module.exports.checks = async ({ id, type, label, camera, zones, PROCESSING, IDS
     if (IDS.includes(id)) {
       return `already processed ${id}`;
     }
+
+    await frigate.status();
 
     return true;
   } catch (error) {
