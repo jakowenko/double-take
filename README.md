@@ -16,7 +16,7 @@ There's a lot of great open source software to perform facial recognition, but e
 
 ### Supported NVRs
 
-- [Frigate](https://github.com/blakeblackshear/frigate) v0.8.0-0.8.4
+- [Frigate](https://github.com/blakeblackshear/frigate) v0.8.0-0.9.0
 
 ## Use Cases
 
