@@ -8,6 +8,7 @@ const { SERVER, MQTT, FRIGATE, CAMERAS } = require('../constants');
 let previousMqttLengths = [];
 let justSubscribed = false;
 let client = false;
+const personResetTimeout = {};
 
 const cameraTopics = () => {
   return CAMERAS
@@ -135,6 +136,18 @@ module.exports.publish = (data) => {
         { retain: true }
       );
     }
+
+    const personCount = matches.length + (unknown && Object.keys(unknown).length ? 1 : 0);
+    client.publish(`${MQTT.TOPICS.CAMERAS}/${camera}/person`, personCount.toString(), {
+      retain: true,
+    });
+
+    clearTimeout(personResetTimeout[camera]);
+    personResetTimeout[camera] = setTimeout(() => {
+      client.publish(`${MQTT.TOPICS.CAMERAS}/${camera}/person`, '0', {
+        retain: true,
+      });
+    }, 30000);
   } catch (error) {
     logger.log(`MQTT: publish error: ${error.message}`);
   }
