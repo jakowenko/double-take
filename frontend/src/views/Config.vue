@@ -1,16 +1,19 @@
 <template>
   <div class="wrapper">
     <div class="fixed p-d-flex p-jc-between p-pt-2 p-pb-2 p-pl-3 p-pr-3">
-      <div class="p-d-inline-flex p-as-center">
-        <div v-for="detector in detectors" :key="detector.detector" class="p-d-inline-block p-mr-2">
-          <Badge
-            v-tooltip.right="detector.status === 200 ? 'Working' : detector.response"
-            :value="detector.detector"
-            :severity="detector.status === 200 ? 'success' : detector.status === null ? 'info' : 'danger'"
-          />
+      <div class="p-d-flex p-ai-center">
+        <div v-for="detector in detectors" :key="detector.detector" class="p-d-flex p-mr-3">
+          <div class="p-as-center p-mr-1" style="font-size: 0.9rem">{{ detector.detector }}</div>
+          <div
+            v-if="detector.status"
+            class="icon p-as-center"
+            :style="{ background: detector.status === 200 ? '#78cc86' : '#c35f5f' }"
+            v-tooltip.right="detector.tooltip"
+          ></div>
+          <i v-if="!detector.status" class="pi pi-spin pi-spinner p-as-center" style="font-size: 13px"></i>
         </div>
       </div>
-      <div class="p-d-inline-flex p-as-center">
+      <div class="p-d-flex p-as-center">
         <Button
           icon="pi pi-refresh"
           class="p-button p-button-sm p-button-success p-mr-2"
@@ -33,7 +36,6 @@
 </template>
 
 <script>
-import Badge from 'primevue/badge';
 import Button from 'primevue/button';
 import Sleep from '@/util/sleep.util';
 
@@ -52,9 +54,9 @@ export default {
   components: {
     VAceEditor,
     Button,
-    Badge,
   },
   data: () => ({
+    restartCount: 0,
     detectors: null,
     editor: null,
     code: '',
@@ -85,6 +87,22 @@ export default {
     window.onresize = this.updateHeight;
   },
   methods: {
+    async waitForRestart() {
+      try {
+        await ApiService.get('config');
+        this.restartCount = 0;
+        this.loading = false;
+        this.checkDetectors();
+      } catch (error) {
+        if (this.restartCount < 10) {
+          this.restartCount += 1;
+          await Sleep(1000);
+          this.waitForRestart();
+          return;
+        }
+        this.restartCount = 0;
+      }
+    },
     async checkDetectors() {
       const { data } = await ApiService.get('config?format=json');
       this.detectors = data
@@ -95,9 +113,16 @@ export default {
           const { data: tests } = await ApiService.get('recognize/test');
           this.detectors = this.detectors.map((detector) => {
             const [result] = tests.filter((obj) => obj.detector === detector.detector);
+            let tooltip = null;
+            if (typeof result.response === 'string') tooltip = result.response;
+            else if (result.response && result.response.message) tooltip = result.response.message;
+            else if (result.response && result.response.error) tooltip = result.response.error;
+            else if (!tooltip && result.status === 404) tooltip = result.status;
+
             return {
               detector: detector.detector,
               status: result.status,
+              tooltip,
             };
           });
         } catch (error) {
@@ -112,7 +137,7 @@ export default {
       this.editor = editor;
     },
     updateHeight() {
-      this.height = `${window.innerHeight - 40}px`;
+      this.height = `${window.innerHeight - 86}px`;
     },
     highlighter(code) {
       return highlight(code, languages.js);
@@ -122,7 +147,8 @@ export default {
         this.loading = true;
         await Sleep(1000);
         await ApiService.patch('config', { code: this.code });
-        this.loading = false;
+        await Sleep(2000);
+        this.waitForRestart();
       } catch (error) {
         this.$toast.add({
           severity: 'error',
@@ -152,6 +178,12 @@ export default {
   width: 100%;
   background: var(--surface-b);
   max-width: $max-width;
+}
+
+.icon {
+  width: 13px;
+  height: 13px;
+  border-radius: 100%;
 }
 
 .ace_editor {
