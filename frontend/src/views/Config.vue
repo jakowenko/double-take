@@ -2,15 +2,15 @@
   <div class="wrapper">
     <div class="fixed p-d-flex p-jc-between p-pt-2 p-pb-2 p-pl-3 p-pr-3">
       <div class="p-d-flex p-ai-center">
-        <div v-for="detector in detectors" :key="detector.detector" class="p-d-flex p-mr-3">
-          <div class="p-as-center p-mr-1" style="font-size: 0.9rem">{{ detector.detector }}</div>
+        <div v-for="service in combined" :key="service.name" class="p-d-flex p-mr-3">
+          <div class="p-as-center p-mr-1" style="font-size: 0.9rem">{{ service.name }}</div>
           <div
-            v-if="detector.status"
+            v-if="service.status"
             class="icon p-as-center"
-            :style="{ background: detector.status === 200 ? '#78cc86' : '#c35f5f' }"
-            v-tooltip.right="detector.tooltip"
+            :style="{ background: service.status === 200 ? '#78cc86' : '#c35f5f' }"
+            v-tooltip.right="service.tooltip"
           ></div>
-          <i v-if="!detector.status" class="pi pi-spin pi-spinner p-as-center" style="font-size: 13px"></i>
+          <i v-if="!service.status" class="pi pi-spin pi-spinner p-as-center" style="font-size: 13px"></i>
         </div>
       </div>
       <div class="p-d-flex p-as-center">
@@ -57,7 +57,11 @@ export default {
   },
   data: () => ({
     restartCount: 0,
-    detectors: null,
+    services: [],
+    doubleTake: {
+      status: null,
+      name: 'Double Take',
+    },
     editor: null,
     code: '',
     ready: false,
@@ -68,66 +72,104 @@ export default {
     try {
       this.loading = true;
       const { data } = await ApiService.get('config?format=yaml');
+      this.doubleTake.status = 200;
       this.loading = false;
       this.code = data;
       this.editor.session.setValue(data);
       this.editor.gotoPageDown();
       this.editor.session.setTabSize(2);
       this.ready = true;
+      this.checkDetectors();
+      this.updateHeight();
+      window.addEventListener('keydown', this.escapeListener);
+      window.addEventListener('onresize', this.updateHeight);
     } catch (error) {
+      this.doubleTake.status = error.response && error.response.status ? error.response.status : 500;
       this.$toast.add({
         severity: 'error',
         detail: error.message,
         life: 3000,
       });
     }
-
-    this.checkDetectors();
-    this.updateHeight();
-    window.onresize = this.updateHeight;
+  },
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.escapeListener);
+    window.removeEventListener('onresize', this.updateHeight);
+  },
+  computed: {
+    combined() {
+      return [{ ...this.doubleTake }, ...this.services];
+    },
   },
   methods: {
+    escapeListener(event) {
+      if (event.key === 'Escape') {
+        alert('hi');
+      }
+    },
+    formatName(name) {
+      if (name === 'compreface') return 'CompreFace';
+      if (name === 'deepstack') return 'DeepStack';
+      if (name === 'facebox') return 'Facebox';
+      return name;
+    },
     async waitForRestart() {
       try {
+        await Sleep(5000);
         await ApiService.get('config');
         this.restartCount = 0;
+        this.doubleTake.status = 200;
         this.loading = false;
         this.checkDetectors();
+        this.$toast.add({
+          severity: 'success',
+          detail: 'Restart complete',
+          life: 3000,
+        });
       } catch (error) {
-        if (this.restartCount < 10) {
+        if (this.restartCount < 1) {
           this.restartCount += 1;
-          await Sleep(1000);
           this.waitForRestart();
           return;
         }
         this.restartCount = 0;
+        const status = error.response && error.response.status ? error.response.status : 500;
+        this.doubleTake.status = status;
+        this.services.forEach((service) => {
+          service.status = status;
+        });
+        this.$toast.add({
+          severity: 'error',
+          detail: 'Restart Error: check container logs',
+          life: 10000,
+        });
       }
     },
     async checkDetectors() {
       const { data } = await ApiService.get('config?format=json');
-      this.detectors = data
-        ? Object.keys(data.detectors).map((item) => ({ detector: item, status: null, response: 'Checking...' }))
-        : null;
-      if (this.detectors.length) {
+      this.services = data
+        ? Object.keys(data.detectors).map((item) => ({ name: this.formatName(item), status: null }))
+        : [];
+
+      if (this.services.length) {
         try {
           const { data: tests } = await ApiService.get('recognize/test');
-          this.detectors = this.detectors.map((detector) => {
-            const [result] = tests.filter((obj) => obj.detector === detector.detector);
+          this.services = this.services.map((detector) => {
+            const [result] = tests.filter((obj) => obj.detector.toLowerCase() === detector.name.toLowerCase());
             let tooltip = null;
             if (typeof result.response === 'string') tooltip = result.response;
             else if (result.response && result.response.message) tooltip = result.response.message;
             else if (result.response && result.response.error) tooltip = result.response.error;
             else if (!tooltip && result.status === 404) tooltip = result.status;
-
             return {
-              detector: detector.detector,
+              name: detector.name,
               status: result.status,
               tooltip,
             };
           });
         } catch (error) {
-          this.detectors = this.detectors.map((detector) => ({
-            detector: detector.detector,
+          this.services = this.services.map((detector) => ({
+            name: detector.detector,
             status: 404,
           }));
         }
@@ -145,9 +187,16 @@ export default {
     async save() {
       try {
         this.loading = true;
-        await Sleep(1000);
         await ApiService.patch('config', { code: this.code });
-        await Sleep(2000);
+        this.$toast.add({
+          severity: 'success',
+          detail: 'Restarting to load changes',
+          life: 3000,
+        });
+        this.services.forEach((detector) => {
+          delete detector.status;
+        });
+        delete this.doubleTake.status;
         this.waitForRestart();
       } catch (error) {
         this.$toast.add({
