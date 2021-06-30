@@ -1,25 +1,28 @@
 <template>
   <div class="wrapper">
-    <div class="fixed p-d-flex p-jc-between p-pt-2 p-pb-2 p-pl-3 p-pr-3">
+    <div class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3">
       <div class="p-d-flex p-ai-center">
-        <div v-for="service in combined" :key="service.name" class="p-d-flex p-mr-3">
-          <div class="p-as-center p-mr-1" style="font-size: 0.9rem">{{ service.name }}</div>
-          <div
-            v-if="service.status"
-            class="icon p-as-center"
-            :style="{ background: service.status === 200 ? '#78cc86' : '#c35f5f' }"
-            v-tooltip.right="service.tooltip"
-          ></div>
+        <div v-for="service in combined" :key="service.name" class="service p-d-flex p-mr-3">
+          <div class="name p-as-center p-mr-1" style="font-size: 0.9rem">{{ service.name }}</div>
+          <div class="p-as-center">
+            <div
+              v-if="service.status"
+              class="icon p-as-center"
+              :style="{ background: service.status === 200 ? '#78cc86' : '#c35f5f' }"
+              v-tooltip.right="service.tooltip"
+            ></div>
+          </div>
           <i v-if="!service.status" class="pi pi-spin pi-spinner p-as-center" style="font-size: 13px"></i>
         </div>
       </div>
-      <div class="p-d-flex p-as-center">
+      <div class="p-mr-3 buttons">
         <Button
           icon="pi pi-refresh"
-          class="p-button p-button-sm p-button-success p-mr-2"
+          class="p-button-sm p-button-success p-mb-2"
           @click="$router.go()"
           :disabled="loading"
         />
+        <br />
         <Button icon="fa fa-save" class="p-button p-button-sm p-button-success" @click="save" :disabled="loading" />
       </div>
     </div>
@@ -103,8 +106,9 @@ export default {
   },
   methods: {
     escapeListener(event) {
-      if (event.key === 'Escape') {
-        alert('hi');
+      if ((event.ctrlKey || event.metaKey) && [83].includes(event.keyCode)) {
+        if (!this.loading) this.save();
+        event.preventDefault();
       }
     },
     formatName(name) {
@@ -115,7 +119,7 @@ export default {
     },
     async waitForRestart() {
       try {
-        await Sleep(5000);
+        await Sleep(1000);
         await ApiService.get('config');
         this.restartCount = 0;
         this.doubleTake.status = 200;
@@ -179,7 +183,7 @@ export default {
       this.editor = editor;
     },
     updateHeight() {
-      this.height = `${window.innerHeight - 86}px`;
+      this.height = `${window.innerHeight - 31 - 40}px`;
     },
     highlighter(code) {
       return highlight(code, languages.js);
@@ -215,7 +219,32 @@ export default {
 
 .wrapper {
   position: relative;
-  padding-top: 46px;
+  padding-top: 31px;
+}
+
+.service {
+  .icon {
+    width: 13px;
+    height: 13px;
+    border-radius: 100%;
+  }
+
+  .name {
+    text-align: center;
+  }
+
+  @media only screen and (max-width: 576px) {
+    .name {
+      font-size: 0.75rem !important;
+    }
+    .pi-spinner {
+      font-size: 11px !important;
+    }
+    .icon {
+      width: 11px;
+      height: 11px;
+    }
+  }
 }
 
 .fixed {
@@ -227,12 +256,12 @@ export default {
   width: 100%;
   background: var(--surface-b);
   max-width: $max-width;
-}
 
-.icon {
-  width: 13px;
-  height: 13px;
-  border-radius: 100%;
+  .buttons {
+    position: absolute;
+    top: 31px + 10px;
+    right: 0;
+  }
 }
 
 .ace_editor {
