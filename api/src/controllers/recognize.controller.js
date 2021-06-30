@@ -26,7 +26,7 @@ module.exports.test = async (req, res) => {
     const promises = [];
     for (const [detector] of Object.entries(lowercaseKeys(DETECTORS))) {
       promises.push(
-        actions.recognize({ detector, test: true, key: `${__dirname}/../static/img/lenna.png` })
+        actions.recognize({ detector, test: true, key: `${__dirname}/../static/img/lenna.jpg` })
       );
     }
     const results = await Promise.all(promises);
