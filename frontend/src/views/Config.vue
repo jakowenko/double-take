@@ -221,6 +221,7 @@ export default {
           delete detector.status;
         });
         delete this.doubleTake.status;
+        delete this.frigate.status;
         this.waitForRestart();
       } catch (error) {
         this.$toast.add({
