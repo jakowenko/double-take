@@ -1,27 +1,22 @@
 <template>
   <div class="wrapper">
     <div class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3">
-      <div class="p-d-flex p-ai-center">
+      <div class="service-wrapper p-d-flex p-ai-center">
         <div v-for="service in combined" :key="service.name" class="service p-d-flex p-mr-3">
           <div class="name p-as-center p-mr-1" style="font-size: 0.9rem">{{ service.name }}</div>
-          <div class="p-as-center">
+          <div class="status p-as-center">
             <div
               v-if="service.status"
-              class="icon p-as-center"
+              class="icon"
               :style="{ background: service.status === 200 ? '#78cc86' : '#c35f5f' }"
               v-tooltip.right="service.tooltip"
             ></div>
+            <div v-else class="icon pulse" style="background: #a9a9a9" v-tooltip.right="'Checking...'"></div>
           </div>
-          <i v-if="!service.status" class="pi pi-spin pi-spinner p-as-center" style="font-size: 13px"></i>
         </div>
       </div>
       <div class="p-mr-3 buttons">
-        <Button
-          icon="pi pi-refresh"
-          class="p-button-sm p-button-success p-mb-2"
-          @click="$router.go()"
-          :disabled="loading"
-        />
+        <Button icon="pi pi-refresh" class="p-button-sm p-button-success p-mb-2" @click="reload" :disabled="loading" />
         <br />
         <Button icon="fa fa-save" class="p-button p-button-sm p-button-success" @click="save" :disabled="loading" />
       </div>
@@ -65,6 +60,11 @@ export default {
       status: null,
       name: 'Double Take',
     },
+    frigate: {
+      configured: false,
+      status: null,
+      name: 'Frigate',
+    },
     editor: null,
     code: '',
     ready: false,
@@ -84,7 +84,7 @@ export default {
       this.ready = true;
       this.checkDetectors();
       this.updateHeight();
-      window.addEventListener('keydown', this.escapeListener);
+      window.addEventListener('keydown', this.saveListener);
       window.addEventListener('onresize', this.updateHeight);
     } catch (error) {
       this.doubleTake.status = error.response && error.response.status ? error.response.status : 500;
@@ -96,16 +96,21 @@ export default {
     }
   },
   beforeUnmount() {
-    window.removeEventListener('keydown', this.escapeListener);
+    window.removeEventListener('keydown', this.saveListener);
     window.removeEventListener('onresize', this.updateHeight);
   },
   computed: {
     combined() {
-      return [{ ...this.doubleTake }, ...this.services];
+      return this.frigate.configured
+        ? [{ ...this.doubleTake }, { ...this.frigate }, ...this.services]
+        : [{ ...this.doubleTake }, ...this.services];
     },
   },
   methods: {
-    escapeListener(event) {
+    reload() {
+      window.location.reload();
+    },
+    saveListener(event) {
       if ((event.ctrlKey || event.metaKey) && [83].includes(event.keyCode)) {
         if (!this.loading) this.save();
         event.preventDefault();
@@ -149,8 +154,23 @@ export default {
         });
       }
     },
+    async checkFrigate(url) {
+      try {
+        await ApiService.get(`${url}/api/version`);
+        this.frigate.status = 200;
+      } catch (error) {
+        const status = error.response && error.response.status ? error.response.status : 500;
+        this.frigate.status = status;
+      }
+    },
     async checkDetectors() {
       const { data } = await ApiService.get('config?format=json');
+
+      if (data.frigate && data.frigate.url) {
+        this.frigate.configured = true;
+        this.checkFrigate(data.frigate.url);
+      }
+
       this.services = data
         ? Object.keys(data.detectors).map((item) => ({ name: this.formatName(item), status: null }))
         : [];
@@ -183,7 +203,7 @@ export default {
       this.editor = editor;
     },
     updateHeight() {
-      this.height = `${window.innerHeight - 31 - 40}px`;
+      this.height = `${window.innerHeight - 28 - 40}px`;
     },
     highlighter(code) {
       return highlight(code, languages.js);
@@ -219,30 +239,53 @@ export default {
 
 .wrapper {
   position: relative;
-  padding-top: 31px;
+  padding-top: 28px;
+}
+
+.service-wrapper {
+  @media only screen and (max-width: 576px) {
+    overflow-y: auto;
+    // padding-bottom: 7px;
+    // clip-path: inset(0 0 7px 0);
+  }
 }
 
 .service {
-  .icon {
+  .status {
     width: 13px;
-    height: 13px;
+  }
+  .icon,
+  .loader {
+    width: 70%;
+    padding-top: 70%;
     border-radius: 100%;
+    position: relative;
+    top: 1px;
+  }
+
+  .icon.pulse {
+    opacity: 1;
+    animation: fade 1.5s linear infinite;
+  }
+
+  @keyframes fade {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
   }
 
   .name {
     text-align: center;
+    white-space: nowrap;
   }
 
   @media only screen and (max-width: 576px) {
     .name {
       font-size: 0.75rem !important;
-    }
-    .pi-spinner {
-      font-size: 11px !important;
-    }
-    .icon {
-      width: 11px;
-      height: 11px;
     }
   }
 }
@@ -259,7 +302,7 @@ export default {
 
   .buttons {
     position: absolute;
-    top: 31px + 10px;
+    top: 28px + 10px;
     right: 0;
   }
 }
