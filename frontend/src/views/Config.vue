@@ -305,7 +305,7 @@ export default {
 
   .buttons {
     position: absolute;
-    top: 28px + 10px;
+    top: 28px + 10px + 5px;
     right: 0;
   }
 }
