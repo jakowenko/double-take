@@ -21,15 +21,17 @@
         <Button icon="fa fa-save" class="p-button p-button-sm p-button-success" @click="save" :disabled="loading" />
       </div>
     </div>
-    <VAceEditor
-      v-model:value="code"
-      lang="yaml"
-      :wrap="true"
-      :printMargin="false"
-      theme="nord_dark"
-      :style="{ height, opacity: ready ? '100%' : 0 }"
-      @init="editorInit"
-    />
+    <div class="editor-wrapper">
+      <VAceEditor
+        v-model:value="code"
+        lang="yaml"
+        :wrap="true"
+        :printMargin="false"
+        theme="nord_dark"
+        :style="{ height, opacity: ready ? '100%' : 0 }"
+        @init="editorInit"
+      />
+    </div>
   </div>
 </template>
 
@@ -203,7 +205,7 @@ export default {
       this.editor = editor;
     },
     updateHeight() {
-      this.height = `${window.innerHeight - 28 - 40}px`;
+      this.height = `${window.innerHeight - 28 - 40 - 10}px`;
     },
     highlighter(code) {
       return highlight(code, languages.js);
@@ -306,6 +308,11 @@ export default {
     top: 28px + 10px;
     right: 0;
   }
+}
+
+.editor-wrapper {
+  padding-top: 10px;
+  background: var(--surface-a);
 }
 
 .ace_editor {
