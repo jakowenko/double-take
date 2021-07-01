@@ -4,6 +4,10 @@
 
 Unified UI and API for processing and training images for facial recognition.
 
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/1081811/124193519-f4ae2300-da94-11eb-9720-15f2e7579355.jpg" width="100%">
+</p>
+
 ## Why?
 
 There's a lot of great open source software to perform facial recognition, but each of them behave differently. Double Take was created to abstract the complexities of the detection services and combine them into an easy to use UI and API.
@@ -83,10 +87,6 @@ notify:
 ## UI
 
 The UI is accessible from `http://localhost:3000/#/`.
-
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/1081811/118581518-c633ed00-b75f-11eb-9c9d-77535484787d.png" width="80%">
-</p>
 
 ### `/#/config`
 
