@@ -2,6 +2,14 @@
   <div class="wrapper p-pr-3 p-d-flex p-jc-between p-ai-center" ref="toolbar">
     <div class="p-as-end" style="padding-bottom: 1px"><TabMenu :model="items" /></div>
     <div v-if="version" class="version">
+      <a
+        href="https://hub.docker.com/repository/docker/jakowenko/double-take/tags?page=1&ordering=last_updated"
+        target="_blank"
+        class="update"
+        :class="{ visible: updateAvailable }"
+      >
+        <div v-tooltip.left="'Update Available'" class="icon p-d-inline-block p-mr-1"></div>
+      </a>
       <a href="https://github.com/jakowenko/double-take" target="_blank">v{{ version }}</a>
     </div>
   </div>
@@ -17,6 +25,7 @@ export default {
   },
   data: () => ({
     version: null,
+    updateAvailable: false,
     items: [
       { label: 'Matches', icon: 'pi pi-fw fa fa-portrait', to: '/' },
       { label: 'Files', icon: 'pi pi-fw fa fa-images', to: '/files' },
@@ -27,8 +36,33 @@ export default {
     try {
       const { data } = await ApiService.get('config');
       this.version = data.version;
+      this.checkVersion();
       // eslint-disable-next-line no-empty
     } catch (error) {}
+  },
+  methods: {
+    async checkVersion() {
+      if (this.version.includes('-')) {
+        try {
+          const sha7 = this.version.split('-')[1];
+          const { data: actions } = await ApiService.get(
+            'https://api.github.com/repos/jakowenko/double-take/actions/runs',
+          );
+          const [currentBuild] = actions.workflow_runs.filter((run) => run.head_sha.includes(sha7));
+          if (currentBuild) {
+            const [lastBuild] = actions.workflow_runs.filter(
+              (run) =>
+                run.head_branch === currentBuild.head_branch &&
+                run.status === 'completed' &&
+                run.conclusion === 'success',
+            );
+            if (currentBuild.id < lastBuild.id) this.updateAvailable = true;
+          }
+          // eslint-disable-next-line no-empty
+        } catch (error) {}
+        setTimeout(this.checkVersion, 30000);
+      }
+    },
   },
 };
 </script>
@@ -47,6 +81,23 @@ export default {
   max-width: $max-width;
   background: var(--surface-b);
   border-bottom: 1px solid var(--bluegray-700);
+}
+
+.icon {
+  background: #c35f5f;
+  width: 9px;
+  height: 9px;
+  border-radius: 100%;
+}
+a.update {
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+  user-select: none;
+}
+a.update.visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .version a {
