@@ -87,7 +87,7 @@ export default {
       this.checkDetectors();
       this.updateHeight();
       window.addEventListener('keydown', this.saveListener);
-      window.addEventListener('onresize', this.updateHeight);
+      window.addEventListener('resize', this.updateHeight);
     } catch (error) {
       this.doubleTake.status = error.response && error.response.status ? error.response.status : 500;
       this.$toast.add({
@@ -99,7 +99,7 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.saveListener);
-    window.removeEventListener('onresize', this.updateHeight);
+    window.removeEventListener('resize', this.updateHeight);
   },
   computed: {
     combined() {
