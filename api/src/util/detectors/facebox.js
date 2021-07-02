@@ -1,14 +1,18 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
+const { doesUrlResolve } = require('../validators.util');
 const { DETECTORS, CONFIDENCE, OBJECTS } = require('../../constants');
 
 module.exports.config = () => {
   return DETECTORS.FACEBOX;
 };
 
-module.exports.recognize = (key) => {
+module.exports.recognize = async ({ test, key }) => {
   const { URL } = this.config();
+  if (test && !(await doesUrlResolve(URL))) {
+    return { status: 404 };
+  }
   const formData = new FormData();
   formData.append('file', fs.createReadStream(key));
   return axios({

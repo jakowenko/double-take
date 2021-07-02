@@ -3,11 +3,13 @@ const axios = require('axios');
 const mqtt = require('mqtt');
 const fs = require('fs');
 const logger = require('./logger.util');
+const { contains } = require('./helpers.util');
 const { SERVER, MQTT, FRIGATE, CAMERAS } = require('../constants');
 
 let previousMqttLengths = [];
 let justSubscribed = false;
 let client = false;
+const personResetTimeout = {};
 
 const cameraTopics = () => {
   return CAMERAS
@@ -135,6 +137,29 @@ module.exports.publish = (data) => {
         { retain: true }
       );
     }
+
+    let personCount = matches.length;
+    // check to see if unknown bounding box is contained within or contains any of the match bounding boxes
+    // if false, then add 1 to the person count
+    if (matches.length && unknown && Object.keys(unknown).length) {
+      let unknownContained = false;
+      matches.forEach((match) => {
+        if (contains(match.box, unknown.box) || contains(unknown.box, match.box))
+          unknownContained = true;
+      });
+      if (!unknownContained) personCount += 1;
+    }
+
+    client.publish(`${MQTT.TOPICS.CAMERAS}/${camera}/person`, personCount.toString(), {
+      retain: true,
+    });
+
+    clearTimeout(personResetTimeout[camera]);
+    personResetTimeout[camera] = setTimeout(() => {
+      client.publish(`${MQTT.TOPICS.CAMERAS}/${camera}/person`, '0', {
+        retain: true,
+      });
+    }, 30000);
   } catch (error) {
     logger.log(`MQTT: publish error: ${error.message}`);
   }

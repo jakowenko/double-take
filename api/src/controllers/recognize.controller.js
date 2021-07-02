@@ -25,11 +25,14 @@ module.exports.test = async (req, res) => {
   try {
     const promises = [];
     for (const [detector] of Object.entries(lowercaseKeys(DETECTORS))) {
-      promises.push(actions.recognize({ detector, key: `${__dirname}/../static/img/lenna.png` }));
+      promises.push(
+        actions.recognize({ detector, test: true, key: `${__dirname}/../static/img/lenna.jpg` })
+      );
     }
     const results = await Promise.all(promises);
     const output = results.map((result, i) => ({
       detector: Object.entries(lowercaseKeys(DETECTORS))[i][0],
+      status: result.status,
       response: result.data,
     }));
     respond(HTTPError(OK, output), res);
@@ -50,10 +53,10 @@ module.exports.start = async (req, res) => {
     };
 
     if (event.type === 'frigate') {
-      const { type } = req.body;
+      const { type: frigateEventType } = req.body;
       const attributes = req.body.after ? req.body.after : req.body.before;
       const { id, label, camera, current_zones: zones } = attributes;
-      event = { id, label, camera, zones, type, ...event };
+      event = { id, label, camera, zones, frigateEventType, ...event };
     } else {
       const { url, camera } = req.query;
 

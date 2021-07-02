@@ -1,16 +1,21 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
+const { doesUrlResolve } = require('../validators.util');
 const { CONFIDENCE, DETECTORS, OBJECTS } = require('../../constants');
 
 module.exports.config = () => {
   return DETECTORS.DEEPSTACK;
 };
 
-module.exports.recognize = (key) => {
-  const { URL } = this.config();
+module.exports.recognize = async ({ test, key }) => {
+  const { URL, KEY } = this.config();
+  if (test && !(await doesUrlResolve(URL))) {
+    return { status: 404 };
+  }
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
+  if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
     headers: {
@@ -25,10 +30,11 @@ module.exports.recognize = (key) => {
 };
 
 module.exports.train = ({ name, key }) => {
-  const { URL } = this.config();
+  const { URL, KEY } = this.config();
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
   formData.append('userid', name);
+  if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
     headers: {
@@ -40,9 +46,10 @@ module.exports.train = ({ name, key }) => {
 };
 
 module.exports.remove = ({ name }) => {
-  const { URL } = this.config();
+  const { URL, KEY } = this.config();
   const formData = new FormData();
   formData.append('userid', name);
+  if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
     url: `${URL}/v1/vision/face/delete`,
@@ -57,6 +64,7 @@ module.exports.remove = ({ name }) => {
 };
 
 module.exports.normalize = ({ data }) => {
+  if (data.success === false) return [];
   const { MIN_AREA_MATCH } = OBJECTS.FACE;
   const normalized = data.predictions.map((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));

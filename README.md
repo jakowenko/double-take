@@ -1,8 +1,12 @@
-[![Double Take](https://badgen.net/github/release/jakowenko/double-take/stable)](https://github.com/jakowenko/double-take) [![Double Take](https://badgen.net/github/stars/jakowenko/double-take)](https://github.com/jakowenko/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/jakowenko/double-take)](https://hub.docker.com/r/jakowenko/double-take)
+[![Double Take](https://badgen.net/github/release/jakowenko/double-take/stable)](https://github.com/jakowenko/double-take) [![Double Take](https://badgen.net/github/stars/jakowenko/double-take)](https://github.com/jakowenko/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/jakowenko/double-take)](https://hub.docker.com/r/jakowenko/double-take) [![Discord](https://flat.badgen.net/discord/members/3pumsskdN5?label=Discord)](https://discord.gg/3pumsskdN5)
 
 # Double Take
 
 Unified UI and API for processing and training images for facial recognition.
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/1081811/124193519-f4ae2300-da94-11eb-9720-15f2e7579355.jpg" width="100%">
+</p>
 
 ## Why?
 
@@ -16,7 +20,7 @@ There's a lot of great open source software to perform facial recognition, but e
 
 ### Supported NVRs
 
-- [Frigate](https://github.com/blakeblackshear/frigate) v0.8.0-0.8.4
+- [Frigate](https://github.com/blakeblackshear/frigate) v0.8.0-0.9.0
 
 ## Use Cases
 
@@ -83,10 +87,6 @@ notify:
 ## UI
 
 The UI is accessible from `http://localhost:3000/#/`.
-
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/1081811/118581518-c633ed00-b75f-11eb-9c9d-77535484787d.png" width="80%">
-</p>
 
 ### `/#/config`
 
@@ -334,7 +334,7 @@ Render match image.
 
 ## MQTT
 
-Publish results to `double-take/matches/${name}` and `double-take/cameras/${camera}`.
+Publish results to `double-take/matches/${name}` and `double-take/cameras/${camera}`. The number of results will also be published to `double-take/cameras/${camera}/person` and will reset back to `0` after 30 seconds.
 
 ```yaml
 mqtt:
@@ -477,6 +477,7 @@ detectors:
     key: xxx-xxx-xxx-xxx-xxx # key from recognition service in created app
   deepstack:
     url: http://192.168.1.1:8001
+    key: xxx-xxx-xxx-xxx-xxx # optional api key
   facebox:
     url: http://192.168.1.1:8002
 
@@ -513,6 +514,7 @@ time:
 | detectors.compreface.key           |                       | API Key for CompreFace collection                                                                                                                 |
 | detectors.compreface.face_plugins  |                       | Comma-separated slugs of [face plugins](https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)                   |
 | detectors.deepstack.url            |                       | Base URL for DeepStack API                                                                                                                        |
+| detectors.deepstack.key            |                       | API Key for DeepStack                                                                                                                             |
 | detectors.facebox.url              |                       | Base URL for Facebox API                                                                                                                          |
 | notify.gotify.url                  |                       | Base URL for Gotify                                                                                                                               |
 | notify.gotify.token                |                       | Gotify application token Gotify                                                                                                                   |

@@ -2,7 +2,7 @@
   <div class="wrapper">
     <div class="p-d-flex p-jc-center p-p-3">
       <i v-if="loading && !files.length" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
-      <Grid v-else type="train" :files="files" @toggle="selected" @assetLoaded="assetLoaded" style="width: 100%" />
+      <Grid v-else type="train" :files="files" style="width: 100%" />
     </div>
   </div>
 </template>
