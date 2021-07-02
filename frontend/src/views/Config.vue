@@ -195,7 +195,7 @@ export default {
           });
         } catch (error) {
           this.services = this.services.map((detector) => ({
-            name: detector.detector,
+            name: detector.name,
             status: 404,
           }));
         }
@@ -212,6 +212,7 @@ export default {
     },
     async save() {
       try {
+        if (this.loading) return;
         this.loading = true;
         await ApiService.patch('config', { code: this.code });
         this.$toast.add({
