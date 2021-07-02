@@ -60,7 +60,7 @@ export default {
           }
           // eslint-disable-next-line no-empty
         } catch (error) {}
-        setTimeout(this.checkVersion, 30000);
+        setTimeout(this.checkVersion, 60000);
       }
     },
   },
@@ -84,7 +84,7 @@ export default {
 }
 
 .icon {
-  background: #c35f5f;
+  background: #dbab09;
   width: 9px;
   height: 9px;
   border-radius: 100%;
