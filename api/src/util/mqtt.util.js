@@ -3,6 +3,7 @@ const axios = require('axios');
 const mqtt = require('mqtt');
 const fs = require('fs');
 const logger = require('./logger.util');
+const { contains } = require('./helpers.util');
 const { SERVER, MQTT, FRIGATE, CAMERAS } = require('../constants');
 
 let previousMqttLengths = [];
@@ -137,7 +138,18 @@ module.exports.publish = (data) => {
       );
     }
 
-    const personCount = matches.length + (unknown && Object.keys(unknown).length ? 1 : 0);
+    let personCount = matches.length;
+    // check to see if unknown bounding box is contained within or contains any of the match bounding boxes
+    // if false, then add 1 to the person count
+    if (matches.length && unknown && Object.keys(unknown).length) {
+      let unknownContained = false;
+      matches.forEach((match) => {
+        if (contains(match.box, unknown.box) || contains(unknown.box, match.box))
+          unknownContained = true;
+      });
+      if (!unknownContained) personCount += 1;
+    }
+
     client.publish(`${MQTT.TOPICS.CAMERAS}/${camera}/person`, personCount.toString(), {
       retain: true,
     });
