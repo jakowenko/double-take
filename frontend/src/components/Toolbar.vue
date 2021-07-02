@@ -60,7 +60,7 @@ export default {
           }
           // eslint-disable-next-line no-empty
         } catch (error) {}
-        setTimeout(this.checkVersion, 60000);
+        if (!this.updateAvailable) setTimeout(this.checkVersion, 60000);
       }
     },
   },
