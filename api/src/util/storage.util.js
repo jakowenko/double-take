@@ -1,7 +1,5 @@
 const fs = require('fs');
 const schedule = require('node-schedule');
-const logger = require('./logger.util');
-const time = require('./time.util');
 const database = require('./db.util');
 const { STORAGE, PURGE } = require('../constants');
 
@@ -42,9 +40,9 @@ module.exports.purge = async () => {
       const ids = files.map(({ id }) => id);
       db.prepare(`DELETE FROM match WHERE id IN (${ids.join(',')})`).run();
 
-      if (files.length > 0) logger.log(`${time.current()}\npurged ${files.length} file(s)`);
+      if (files.length > 0) console.log(`purged ${files.length} file(s)`);
     } catch (error) {
-      logger.log(`purge error: ${error.message}`);
+      console.error(`purge error: ${error.message}`);
     }
   });
 };

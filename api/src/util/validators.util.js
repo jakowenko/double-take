@@ -1,5 +1,4 @@
 const axios = require('axios');
-const logger = require('./logger.util');
 const { expressValidator } = require('./validate.util');
 
 const { query, param /* , body */ } = expressValidator;
@@ -90,7 +89,7 @@ module.exports.doesUrlResolve = async (url) => {
     });
     return data;
   } catch (error) {
-    logger.log(`url resolve error: ${error.message}`);
+    console.error(`url resolve error: ${error.message}`);
     return false;
   }
 };

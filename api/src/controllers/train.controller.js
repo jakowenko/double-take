@@ -3,8 +3,6 @@ const fs = require('fs');
 const sharp = require('sharp');
 const database = require('../util/db.util');
 const train = require('../util/train.util');
-const logger = require('../util/logger.util');
-const time = require('../util/time.util');
 const filesystem = require('../util/fs.util');
 const { respond, HTTPSuccess } = require('../util/respond.util');
 const { OK } = require('../constants/http-status');
@@ -80,15 +78,13 @@ module.exports.delete = async (req, res) => {
     }
     const results = [...(await Promise.all(promises))];
 
-    logger.log(
-      `${time.current()}\ndone untraining for ${name} in ${parseFloat(
-        (perf.stop().time / 1000).toFixed(2)
-      )} sec`
+    console.log(
+      `done untraining for ${name} in ${parseFloat((perf.stop().time / 1000).toFixed(2))} sec`
     );
 
     respond(HTTPSuccess(OK, results), res);
   } catch (error) {
-    logger.log(`train delete error: ${error.message}`);
+    console.error(`train delete error: ${error.message}`);
     respond(error, res);
   }
 };
@@ -109,7 +105,7 @@ module.exports.add = async (req, res) => {
 
     await train.queue(images);
   } catch (error) {
-    logger.log(`train init error: ${error.message}`);
+    console.error(`train init error: ${error.message}`);
     respond(error, res);
   }
 };

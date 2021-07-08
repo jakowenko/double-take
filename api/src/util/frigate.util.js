@@ -1,6 +1,5 @@
 const axios = require('axios');
 const sleep = require('./sleep.util');
-const logger = require('./logger.util');
 
 const { FRIGATE } = require('../constants');
 
@@ -96,7 +95,7 @@ module.exports.snapshotReady = async (id) => {
     await sleep(0.05);
   }
   if (!ready) {
-    logger.log('frigate snapshot ready error');
+    console.error('frigate snapshot ready error');
   }
   return ready;
 };

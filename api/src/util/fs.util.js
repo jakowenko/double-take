@@ -1,6 +1,4 @@
 const fs = require('fs');
-// const { v4: uuidv4 } = require('uuid');
-const logger = require('./logger.util');
 const { STORAGE } = require('../constants');
 
 module.exports.folders = () => {
@@ -69,7 +67,7 @@ module.exports.writerStream = async (stream, file) => {
         resolve();
       })
       .on('error', (error) => {
-        logger.log(`writer error: ${error.message}`);
+        console.error(`writer error: ${error.message}`);
       });
   });
 };
@@ -81,18 +79,18 @@ module.exports.writeMatches = (name, source, destination) => {
     }
     fs.copyFile(source, destination, (error) => {
       if (error) {
-        logger.log(`write match error: ${error.message}`);
+        console.error(`write match error: ${error.message}`);
       }
     });
   } catch (error) {
-    logger.log(`create match folder error: ${error.message}`);
+    console.error(`create match folder error: ${error.message}`);
   }
 };
 
 module.exports.copy = (source, destination) => {
   fs.copyFile(source, destination, (error) => {
     if (error) {
-      logger.log(`copy file error: ${error.message}`);
+      console.error(`copy file error: ${error.message}`);
     }
   });
 };
@@ -103,7 +101,7 @@ module.exports.delete = (destination) => {
       fs.unlinkSync(destination);
     }
   } catch (error) {
-    logger.log(`delete error: ${error.message}`);
+    console.error(`delete error: ${error.message}`);
   }
 };
 
@@ -113,6 +111,6 @@ module.exports.move = (source, destination) => {
       fs.renameSync(source, destination);
     }
   } catch (error) {
-    logger.log(`move error: ${error.message}`);
+    console.error(`move error: ${error.message}`);
   }
 };

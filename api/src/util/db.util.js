@@ -1,7 +1,6 @@
 const Database = require('better-sqlite3');
 const time = require('./time.util');
 const filesystem = require('./fs.util');
-const logger = require('./logger.util');
 
 const { STORAGE, SAVE } = require('../constants');
 
@@ -57,7 +56,7 @@ module.exports.init = async () => {
     const files = await filesystem.files().train();
     database.insert('init', files);
   } catch (error) {
-    logger.log(`db init error: ${error.message}`);
+    console.error(`db init error: ${error.message}`);
   }
 };
 
@@ -101,7 +100,7 @@ module.exports.migrations = () => {
       );
     }
   } catch (error) {
-    logger.log(`db migrations error: ${error.message}`);
+    console.error(`db migrations error: ${error.message}`);
   }
 };
 
@@ -134,7 +133,7 @@ module.exports.files = (status, data) => {
 
     return files;
   } catch (error) {
-    logger.log(`files error: ${error.message}`);
+    console.error(`files error: ${error.message}`);
   }
 };
 

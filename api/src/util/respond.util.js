@@ -1,4 +1,3 @@
-const logger = require('./logger.util');
 const { BAD_REQUEST } = require('../constants/http-status');
 
 module.exports.respond = (err, res) => {
@@ -17,7 +16,7 @@ module.exports.respond = (err, res) => {
 
     return res.status(status).json(message);
   } catch (error) {
-    logger.log(err);
+    console.error(err.toString());
   }
 };
 

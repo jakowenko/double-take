@@ -1,6 +1,4 @@
 const perf = require('execution-time')();
-const time = require('./time.util');
-const logger = require('./logger.util');
 const database = require('./db.util');
 const { train, remove } = require('./detectors/actions');
 
@@ -9,7 +7,7 @@ const { DETECTORS } = require('../constants');
 module.exports.queue = async (files) => {
   try {
     perf.start();
-    logger.log(`${time.current()}\nqueuing ${files.length} file(s) for training`);
+    console.log(`queuing ${files.length} file(s) for training`);
 
     const inserts = [];
     const outputs = [];
@@ -17,7 +15,7 @@ module.exports.queue = async (files) => {
       const output = [];
       const promises = [];
       const { id, name, filename, key } = files[i];
-      logger.log(`file ${i + 1}: ${name} - ${filename}`);
+      console.log(`file ${i + 1}: ${name} - ${filename}`);
 
       const detectors = Object.fromEntries(
         Object.entries(DETECTORS).map(([k, v]) => [k.toLowerCase(), v])
@@ -40,10 +38,10 @@ module.exports.queue = async (files) => {
       outputs.push(output);
     }
     database.insert('train', inserts);
-    logger.log(`training complete in ${parseFloat((perf.stop().time / 1000).toFixed(2))} sec`);
+    console.log(`training complete in ${parseFloat((perf.stop().time / 1000).toFixed(2))} sec`);
     return outputs;
   } catch (error) {
-    logger.log(`queue error: ${error.message}`);
+    console.error(`queue error: ${error.message}`);
   }
 };
 
@@ -60,11 +58,11 @@ module.exports.process = async ({ name, key, detector }) => {
     const message = typeof data === 'string' ? { data } : { ...data };
 
     if (data.message) {
-      logger.log(`${detector} training error: ${data.message}`);
+      console.error(`${detector} training error: ${data.message}`);
     } else if (data.error) {
-      logger.log(`${detector} training error: ${data.error}`);
+      console.error(`${detector} training error: ${data.error}`);
     } else {
-      logger.log(`${detector} training error: ${error.message}`);
+      console.error(`${detector} training error: ${error.message}`);
     }
 
     return {
