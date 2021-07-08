@@ -1,6 +1,6 @@
 const { createLogger, format, transports } = require('winston');
 const util = require('util');
-const { STORAGE } = require('../constants');
+const { core: SYSTEM_CORE } = require('../constants/system');
 
 const combineMessageAndSplat = () => {
   return {
@@ -20,7 +20,7 @@ module.exports.init = () => {
         format: format.combine(format.colorize(), logFormat),
       }),
       new transports.File({
-        filename: `${STORAGE.PATH}/messages.log`,
+        filename: `${SYSTEM_CORE.storage.path}/messages.log`,
         format: format.combine(
           logFormat,
           format.timestamp({ format: 'YY-MM-DD HH:mm:ss' }),
