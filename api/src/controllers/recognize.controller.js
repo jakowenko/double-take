@@ -159,7 +159,7 @@ module.exports.start = async (req, res) => {
 
     respond(HTTPSuccess(OK, output), res);
 
-    mqtt.publish(output);
+    mqtt.recognize(output);
 
     notify.publish(output, camera, results);
 
