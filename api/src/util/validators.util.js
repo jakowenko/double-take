@@ -11,7 +11,7 @@ module.exports.recognize = ({ get }) => {
   ];
   if (get) {
     validations = validations.concat([
-      query('camera').default('double-take'),
+      query('camera').default('manual'),
       query('url').isLength({ min: 1 }),
       query('attempts').default(1).isInt().withMessage('not a valid number'),
     ]);
