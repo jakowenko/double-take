@@ -1,8 +1,7 @@
-/* eslint-disable no-irregular-whitespace */
 const http = require('http');
 const { version } = require('./package.json');
 const mqtt = require('./src/util/mqtt.util');
-const { app /* , routes */ } = require('./src/app');
+const { app } = require('./src/app');
 const logger = require('./src/util/logger.util');
 const storage = require('./src/util/storage.util');
 const database = require('./src/util/db.util');
@@ -18,11 +17,7 @@ module.exports.start = async () => {
 
   await database.init();
 
-  http.Server(app).listen(SERVER.PORT, () => {
-    // logger.log(`listening on 0.0.0.0:${PORT}`);
-    // logger.log('registered routes:');
-    // logger.log(routes);
-  });
+  http.Server(app).listen(SERVER.PORT);
 
   mqtt.connect();
   storage.purge();
