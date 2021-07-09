@@ -263,6 +263,17 @@ module.exports.recognize = (data) => {
     clearTimeout(PERSON_RESET_TIMEOUT[camera]);
     PERSON_RESET_TIMEOUT[camera] = setTimeout(() => {
       this.publish({ topic: `${MQTT.TOPICS.CAMERAS}/${camera}/person`, message: '0' });
+      if (MQTT.TOPICS.HOMEASSISTANT) {
+        this.publish({
+          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/${camera}/state`,
+          message: JSON.stringify({
+            ...configData,
+            matches,
+            unknown,
+            personCount: 0,
+          }),
+        });
+      }
     }, 30000);
   } catch (error) {
     console.error(`MQTT: recognize error: ${error.message}`);
