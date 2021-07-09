@@ -4,21 +4,21 @@ RUN apk add libimagequant-dev --repository=http://dl-cdn.alpinelinux.org/alpine/
 RUN apk add vips-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
 
 WORKDIR /double-take/api
-COPY ./api/package.json .
+COPY /api/package.json .
 RUN npm install --production
 
 WORKDIR /double-take/frontend
-COPY ./frontend/package.json .
+COPY /frontend/package.json .
 RUN npm install
 
 WORKDIR /double-take/api
-COPY ./api/server.js .
-COPY ./api/src ./src
+COPY /api/server.js .
+COPY /api/src ./src
 
 WORKDIR /double-take/frontend
-COPY ./frontend/src ./src
-COPY ./frontend/public ./public
-COPY ./frontend/.env.production ./frontend/vue.config.js ./
+COPY /frontend/src ./src
+COPY /frontend/public ./public
+COPY /frontend/.env.production ./frontend/vue.config.js ./
 
 RUN npm run build
 RUN mv dist /tmp/dist && rm -r * && mv /tmp/dist/* .
@@ -28,8 +28,9 @@ RUN mkdir /.storage
 RUN ln -s /.storage /double-take/.storage
 
 WORKDIR /double-take
-RUN echo "# Double Take\n\n\n" >> config.yml
 
 RUN npm install nodemon -g
 
-CMD nodemon --watch config.yml api/server.js
+CMD mkdir -p ./.storage/config && \
+  echo $'# Double Take' > ./.storage/config/config.yml && \
+  nodemon -e yml --watch ./.storage/config -q api/server.js
