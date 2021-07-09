@@ -33,4 +33,4 @@ RUN npm install nodemon -g
 
 CMD mkdir -p ./.storage/config && \
   echo $'# Double Take' > ./.storage/config/config.yml && \
-  nodemon -e yml --watch ./.storage/config -q api/server.js
+  nodemon -e yml --watch ./.storage/config --watch ./config.yml -q api/server.js
