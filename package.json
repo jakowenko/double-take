@@ -24,13 +24,13 @@
   "devDependencies": {
     "@commitlint/cli": "^12.1.4",
     "@commitlint/config-conventional": "^12.1.4",
-    "eslint": "^7.29.0",
+    "eslint": "^7.30.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-prettier": "^3.3.1",
     "husky": "^6.0.0",
-    "nodemon": "^2.0.9",
+    "nodemon": "^2.0.10",
     "prettier": "^2.3.2"
   }
 }
