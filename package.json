@@ -8,7 +8,7 @@
     "update": "npm update && cd ./api && npm update && cd ../frontend && npm update",
     "audit": "npm audit fix && cd ./api && npm audit fix && cd ../frontend && npm audit fix",
     "frontend": "cd ./frontend && npm run serve",
-    "api": "cd ./api && nodemon --watch ./ --watch ../config.yml -q server.js || true",
+    "api": "nodemon -e yml,js --watch ./.storage/config --watch ./api -q api/server.js || true",
     "bump": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version"
   },
   "repository": {
