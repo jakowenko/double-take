@@ -29,5 +29,5 @@ WORKDIR /double-take
 RUN npm install nodemon -g
 
 CMD mkdir -p ./.storage/config && \
-  echo $'# Double Take' > ./.storage/config/config.yml && \
+  [ -f ./.storage/config/config.yml ] || echo $'# Double Take' > ./.storage/config/config.yml && \
   npm run api
