@@ -19,13 +19,17 @@ module.exports.checks = async ({
       return `Frigate URL not configured`;
     }
 
-    if (FRIGATE.CAMERAS && !FRIGATE.CAMERAS.includes(camera)) {
+    const cameraMatch = FRIGATE.ZONES
+      ? FRIGATE.ZONES.filter(({ CAMERA }) => camera === CAMERA).length
+        ? FRIGATE.ZONES.filter(({ CAMERA }) => camera === CAMERA)[0]
+        : false
+      : false;
+
+    if (FRIGATE.CAMERAS && !FRIGATE.CAMERAS.includes(camera) && !cameraMatch) {
       return `${id} - ${camera} not on approved list`;
     }
 
     if (FRIGATE.ZONES) {
-      const [cameraMatch] = FRIGATE.ZONES.filter(({ CAMERA }) => camera === CAMERA);
-
       if (cameraMatch) {
         const [match] = FRIGATE.ZONES.filter(
           ({ CAMERA, ZONE }) => camera === CAMERA && zones.includes(ZONE)
