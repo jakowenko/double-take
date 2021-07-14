@@ -30,5 +30,6 @@ router.get('/train/add/:name', train.add);
 router.get('/train/remove/:name', train.delete);
 
 router.get('/storage/matches/:filename', validate(validators.storage().matches()), storage.matches);
+router.get('/storage/train/:name/:filename', storage.train);
 
 module.exports = router;

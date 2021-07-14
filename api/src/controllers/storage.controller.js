@@ -88,3 +88,20 @@ module.exports.matches = async (req, res) => {
     respond(error, res);
   }
 };
+module.exports.train = async (req, res) => {
+  try {
+    const { name, filename } = req.params;
+    const source = `${PATH}/train/${name}/${filename}`;
+
+    if (!fs.existsSync(source)) {
+      throw HTTPError(BAD_REQUEST, `${source} does not exist`);
+    }
+
+    const buffer = fs.readFileSync(source);
+    res.set('Content-Type', 'image/jpeg');
+    return res.end(buffer);
+  } catch (error) {
+    respond(error, res);
+  }
+};
+
