@@ -19,6 +19,7 @@ services:
 
   api:
     container_name: double-take-api
+    entrypoint: ./.develop/entrypoint.dev.sh
     depends_on:
       - mqtt
     build:
