@@ -28,7 +28,7 @@ export default {
     updateAvailable: false,
     items: [
       { label: 'Matches', icon: 'pi pi-fw fa fa-portrait', to: '/' },
-      { label: 'Files', icon: 'pi pi-fw fa fa-images', to: '/files' },
+      { label: 'Train', icon: 'pi pi-fw fa fa-images', to: '/train' },
       { label: 'Config', icon: 'pi pi-fw pi-cog', to: '/config' },
     ],
   }),
