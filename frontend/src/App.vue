@@ -66,6 +66,7 @@ body {
 }
 
 .p-dialog.p-confirm-dialog {
+  max-width: 500px;
   .p-confirm-dialog-message {
     text-align: center;
     margin-left: 0;
