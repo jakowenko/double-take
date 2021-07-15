@@ -170,19 +170,20 @@ module.exports.recognize = (data) => {
 
       if (MQTT.TOPICS.HOMEASSISTANT) {
         messages.push({
-          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/unknown/config`,
+          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/unknown/config`,
           message: JSON.stringify({
-            name: 'unknown',
+            name: 'double_take_unknown',
             icon: 'mdi:account',
             value_template: '{{ value_json.camera }}',
-            state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/unknown/state`,
-            json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/unknown/state`,
+            state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/unknown/state`,
+            json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/unknown/state`,
             availability_topic: 'double-take/available',
+            unique_id: `double_take_unknown`,
           }),
         });
 
         messages.push({
-          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/unknown/state`,
+          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/unknown/state`,
           message: JSON.stringify({
             ...configData,
             unknown,
@@ -202,19 +203,20 @@ module.exports.recognize = (data) => {
 
       if (MQTT.TOPICS.HOMEASSISTANT) {
         messages.push({
-          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/${match.name}/config`,
+          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${match.name}/config`,
           message: JSON.stringify({
-            name: match.name,
+            name: `double_take_${match.name}`,
             icon: 'mdi:account',
             value_template: '{{ value_json.camera }}',
-            state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/${match.name}/state`,
-            json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/${match.name}/state`,
+            state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${match.name}/state`,
+            json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${match.name}/state`,
             availability_topic: 'double-take/available',
+            unique_id: `double_take_${match.name}`,
           }),
         });
 
         messages.push({
-          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/${match.name}/state`,
+          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${match.name}/state`,
           message: JSON.stringify({
             ...configData,
             match,
@@ -235,19 +237,20 @@ module.exports.recognize = (data) => {
 
       if (MQTT.TOPICS.HOMEASSISTANT) {
         messages.push({
-          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/${camera}/config`,
+          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/config`,
           message: JSON.stringify({
-            name: camera,
+            name: `double_take_${camera}`,
             icon: 'mdi:camera',
             value_template: '{{ value_json.personCount }}',
-            state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/${camera}/state`,
-            json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/${camera}/state`,
+            state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
+            json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
             availability_topic: 'double-take/available',
+            unique_id: `double_take_${camera}`,
           }),
         });
 
         messages.push({
-          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/${camera}/state`,
+          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
           message: JSON.stringify({
             ...configData,
             matches,
@@ -265,7 +268,7 @@ module.exports.recognize = (data) => {
       this.publish({ topic: `${MQTT.TOPICS.CAMERAS}/${camera}/person`, message: '0' });
       if (MQTT.TOPICS.HOMEASSISTANT) {
         this.publish({
-          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/${camera}/state`,
+          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
           message: JSON.stringify({
             ...configData,
             matches,
