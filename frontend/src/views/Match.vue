@@ -60,7 +60,9 @@ export default {
       return JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
     },
     areAllSelected() {
-      return this.filtered.length > 0 && this.matches.selected.length === this.filtered.length;
+      return (
+        this.filtered.length > 0 && this.matches.selected.length + this.matches.disabled.length === this.filtered.length
+      );
     },
     filtered() {
       const files = JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
