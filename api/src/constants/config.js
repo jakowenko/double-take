@@ -52,3 +52,10 @@ module.exports = () => {
   CONFIG = _(CONFIG).toPairs().sortBy(0).fromPairs().value();
   return CONFIG;
 };
+
+module.exports.detectors = () => {
+  const detectors = [];
+  if (CONFIG.detectors)
+    for (const [detector] of Object.entries(CONFIG.detectors)) detectors.push(detector);
+  return detectors;
+};

@@ -121,6 +121,12 @@ module.exports.files = (status, data) => {
       files = db.prepare(`SELECT * FROM train`).all();
     }
 
+    if (status === 'trained-ids') {
+      files = db
+        .prepare(`SELECT name, fileId as id, filename FROM train WHERE name = ? GROUP BY fileId`)
+        .all(data);
+    }
+
     if (status === 'all') {
       files = db.prepare(`SELECT * FROM file WHERE isActive = 1`).all();
     }
@@ -167,9 +173,12 @@ module.exports.insert = (type, data = []) => {
       ON CONFLICT (fileId, detector) DO UPDATE SET meta = :meta;
     `);
     const transaction = db.transaction((items) => {
-      for (const item of items) {
+      for (const { ...item } of items) {
+        const temp = { ...item };
         item.id = null;
+        item.fileId = temp.id;
         item.createdAt = time.utc();
+        item.meta = temp.meta || null;
         insert.run(item);
       }
     });

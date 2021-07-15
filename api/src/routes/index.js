@@ -1,4 +1,5 @@
 const express = require('express');
+const multer = require('multer');
 const { validate } = require('../util/validate.util');
 const config = require('../controllers/config.controller');
 const recognize = require('../controllers/recognize.controller');
@@ -26,10 +27,14 @@ router.get('/filesystem/folders', filesystem.folders().list);
 router.post('/filesystem/folders/:name', filesystem.folders().create);
 
 router.get('/train', train.get);
+router.get('/train/status', train.status);
 router.get('/train/add/:name', train.add);
+router.post('/train/add/:name', multer().array('files[]'), train.upload);
 router.get('/train/remove/:name', train.delete);
+router.get('/train/retrain/:name', train.retrain);
 
 router.get('/storage/matches/:filename', validate(validators.storage().matches()), storage.matches);
+router.delete('/storage/train', storage.delete);
 router.get('/storage/train/:name/:filename', storage.train);
 
 module.exports = router;
