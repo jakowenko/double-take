@@ -28,7 +28,7 @@
     "image-size": "^1.0.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
-    "luxon": "^1.27.0",
+    "luxon": "^1.28.0",
     "mqtt": "^4.2.8",
     "multer": "^1.4.2",
     "node-schedule": "^2.0.0",
