@@ -1,6 +1,7 @@
 <template>
   <div class="wrapper">
     <Header
+      type="match"
       :loading="loading"
       :folders="['add new', ...folders]"
       :matches="matches"
@@ -26,8 +27,8 @@
 
 <script>
 import ApiService from '@/services/api.service';
-import Grid from '@/components/match/Grid.vue';
-import Header from '@/components/match/Header.vue';
+import Grid from '@/components/Grid.vue';
+import Header from '@/components/Header.vue';
 import Sleep from '@/util/sleep.util';
 
 export default {
@@ -118,26 +119,11 @@ export default {
     async init() {
       const promises = [];
       promises.push(this.get().matches());
-      promises.push(this.get().folders());
       await Promise.all(promises);
     },
     get() {
       const $this = this;
       return {
-        async folders() {
-          try {
-            $this.loading.folders = true;
-            const { data } = await ApiService.get('filesystem/folders');
-            $this.folders = data;
-            $this.loading.folders = false;
-          } catch (error) {
-            $this.$toast.add({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
-          }
-        },
         async matches() {
           try {
             $this.loading.files = true;
@@ -216,27 +202,6 @@ export default {
             });
           } catch (error) {
             $this.toast({ severity: 'error', detail: error.message });
-          }
-        },
-      };
-    },
-    create() {
-      const $this = this;
-      return {
-        async folder() {
-          try {
-            await ApiService.post(`filesystem/folders/${$this.trainingFolder}`);
-            $this.get().folders();
-            $this.$toast.add({
-              severity: 'success',
-              detail: 'Folder created',
-            });
-          } catch (error) {
-            $this.$toast.add({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
           }
         },
       };
