@@ -3,7 +3,7 @@
     <div class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3">
       <div class="service-wrapper p-d-flex p-ai-center">
         <div v-for="service in combined" :key="service.name" class="service p-d-flex p-mr-3">
-          <div class="name p-as-center p-mr-1" style="font-size: 0.9rem">{{ service.name }}</div>
+          <div class="name p-as-center p-mr-1">{{ service.name }}</div>
           <div class="status p-as-center">
             <div
               v-if="service.status"
@@ -285,6 +285,7 @@ export default {
   .name {
     text-align: center;
     white-space: nowrap;
+    font-size: 0.9rem;
   }
 
   @media only screen and (max-width: 576px) {
