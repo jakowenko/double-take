@@ -6,6 +6,7 @@
           <Asset
             :type="type"
             :asset="asset"
+            :folders="folders"
             :selected="matches.selected.filter((obj) => obj.id === asset.id).length === 1"
             :disabled="matches.disabled.includes(asset.id)"
             :loaded="matches.loaded.includes(asset.id)"
@@ -28,6 +29,7 @@ export default {
     matches: Object,
     files: Array,
     type: String,
+    folders: Array,
   },
 };
 </script>

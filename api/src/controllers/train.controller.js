@@ -102,6 +102,20 @@ module.exports.retrain = async (req, res) => {
   }
 };
 
+module.exports.patch = async (req, res) => {
+  try {
+    const { key, filename } = req.body.file;
+    const { folder } = req.body;
+    filesystem.move(`${STORAGE.PATH}/${key}`, `${STORAGE.PATH}/train/${folder}/${filename}`);
+    train.add(folder, { files: [filename] });
+
+    respond(HTTPSuccess(OK, { success: true }), res);
+  } catch (error) {
+    console.error(`train add error: ${error.message}`);
+    respond(error, res);
+  }
+};
+
 module.exports.upload = async (req, res) => {
   try {
     const { name } = req.params;

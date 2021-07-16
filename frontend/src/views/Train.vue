@@ -7,6 +7,7 @@
       :matches="matches"
       :areAllSelected="areAllSelected"
       @trainingFolder="trainingFolder = $event"
+      @folders="folders = $event"
     />
     <div class="p-d-flex p-jc-center p-p-3">
       <div v-if="loading.status && status.length" class="p-d-flex p-flex-column progress-holder">
@@ -20,10 +21,12 @@
       <Grid
         v-else
         type="train"
+        :folders="folders"
         :matches="{ filtered, ...matches }"
         @toggle="selected"
         @assetLoaded="assetLoaded"
         style="width: 100%"
+        @init="init"
       />
     </div>
   </div>
@@ -47,6 +50,7 @@ export default {
       files: false,
       status: false,
     },
+    folders: [],
     status: [],
     matches: {
       source: [],

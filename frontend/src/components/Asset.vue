@@ -81,7 +81,10 @@
             </template>
           </Column>
         </DataTable>
-        <div v-else-if="type === 'train'">untrained</div>
+        <div v-else-if="type === 'train'">
+          <div class="p-d-inline-block p-mr-2">untrained</div>
+          <Dropdown v-model="folder" :options="folders" placeholder="move and train" :showClear="true" />
+        </div>
       </template>
       <template v-slot:footer>
         <div class="p-d-flex p-jc-between p-ai-center">
@@ -101,11 +104,13 @@
 </template>
 
 <script>
+import ApiService from '@/services/api.service';
 import { DateTime } from 'luxon';
 import Badge from 'primevue/badge';
 import Card from 'primevue/card';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import Dropdown from 'primevue/dropdown';
 
 export default {
   props: {
@@ -114,17 +119,20 @@ export default {
     selected: Boolean,
     disabled: Boolean,
     type: String,
+    folders: Array,
   },
   components: {
     Badge,
     Card,
     DataTable,
     Column,
+    Dropdown,
   },
   data() {
     return {
       VUE_APP_API_URL: process.env.VUE_APP_API_URL,
       timestamp: Date.now(),
+      folder: null,
     };
   },
   created() {
@@ -185,6 +193,16 @@ export default {
         numeric: 'auto',
       });
       return { ago: relativeFormatter.format(Math.trunc(diff.as(unit)), unit), timestamp: this.timestamp };
+    },
+  },
+  watch: {
+    folder(value) {
+      if (value) {
+        const file = JSON.parse(JSON.stringify(this.asset.file));
+        delete file.base64;
+        ApiService.patch('train', { folder: value, file });
+        this.$parent.$emit('init', true);
+      }
     },
   },
 };
