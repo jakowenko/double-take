@@ -49,7 +49,10 @@ module.exports.get = async (req, res) => {
         };
 
         if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
-          const base64 = await sharp(`${STORAGE.PATH}/${key}`).resize(500).toBuffer();
+          const base64 = await sharp(`${STORAGE.PATH}/${key}`)
+            .resize(500)
+            .withMetadata()
+            .toBuffer();
           output.file.base64 = base64.toString('base64');
         }
 

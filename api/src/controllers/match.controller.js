@@ -52,7 +52,10 @@ module.exports.get = async (req, res) => {
         if (matchProp) {
           output.file = matchProp.file;
         } else if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
-          const base64 = await sharp(`${STORAGE.PATH}/${key}`).resize(500).toBuffer();
+          const base64 = await sharp(`${STORAGE.PATH}/${key}`)
+            .resize(500)
+            .withMetadata()
+            .toBuffer();
           const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
           output.file.base64 = base64.toString('base64');
           output.file.width = width;
