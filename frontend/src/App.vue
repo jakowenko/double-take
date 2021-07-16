@@ -36,6 +36,9 @@ export default {
 @import '@/assets/scss/_variables.scss';
 html {
   font-size: 15px;
+  @media only screen and (max-width: 576px) {
+    font-size: 14px;
+  }
 }
 body {
   margin: 0;
@@ -67,8 +70,10 @@ body {
 
 .p-dialog.p-confirm-dialog {
   max-width: 500px;
-  .p-confirm-dialog-message {
+  .p-dialog-content {
     text-align: center;
+  }
+  .p-confirm-dialog-message {
     margin-left: 0;
   }
 }
