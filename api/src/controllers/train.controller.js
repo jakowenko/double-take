@@ -15,7 +15,7 @@ module.exports.get = async (req, res) => {
     const db = database.connect();
     let files = db
       .prepare(
-        'SELECT id, name, filename, createdAt FROM file WHERE isActive = 1 ORDER BY name ASC'
+        'SELECT id, name, filename, createdAt FROM file WHERE isActive = 1 ORDER BY name ASC, id DESC'
       )
       .all();
 
@@ -23,9 +23,11 @@ module.exports.get = async (req, res) => {
       file.results = [];
       const trainings = db.prepare('SELECT * FROM train WHERE fileId = ?').all(file.id);
       trainings.forEach(({ detector, meta, createdAt }) => {
+        meta = JSON.parse(meta);
+        delete meta.detector;
         file.results.push({
           detector,
-          result: tryParseJSON(meta) || null,
+          result: tryParseJSON(JSON.stringify(meta)) || null,
           createdAt,
         });
       });
@@ -82,6 +84,7 @@ module.exports.delete = async (req, res) => {
 module.exports.add = async (req, res) => {
   try {
     const { name } = req.params;
+    const files = req.query.files || [];
     respond(HTTPSuccess(OK, { message: `training queued for ${name}` }), res);
     await train.add(name, { files });
   } catch (error) {
