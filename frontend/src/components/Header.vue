@@ -27,13 +27,14 @@
           <div v-if="folder">
             <div v-if="type === 'match'">
               <Button
+                class="responsive-button p-button-success p-button-sm"
                 icon="pi pi-check"
-                class="p-button-success p-button-sm"
+                label="Train"
                 :disabled="matches.selected.length === 0 || !folder"
                 @click="$parent.train"
               />
             </div>
-            <div class="train-buttons" v-if="type === 'train'">
+            <div v-if="type === 'train'">
               <FileUpload
                 mode="basic"
                 name="files[]"
@@ -47,13 +48,13 @@
               />
               <Button
                 icon="fa fa-recycle push-top"
-                class="p-button-success p-button-sm p-ml-1"
+                class="responsive-button p-button-success p-button-sm p-ml-1"
                 @click="$parent.sync"
                 label="Sync"
                 :disabled="!matches.source.filter((obj) => obj.name === folder).length"
               />
               <Button
-                class="p-button-danger p-button-sm p-ml-1"
+                class="responsive-button p-button-danger p-button-sm p-ml-1"
                 icon="pi pi-trash"
                 label="Untrain"
                 @click="$parent.untrain"
@@ -375,14 +376,13 @@ export default {
       }
     }
   }
-  .train-buttons {
-    @media only screen and (max-width: 576px) {
-      ::v-deep(.p-button-icon) {
-        margin-right: 0;
-      }
-      ::v-deep(.p-button-label) {
-        font-size: 0;
-      }
+
+  @media only screen and (max-width: 576px) {
+    .responsive-button ::v-deep(.p-button-icon) {
+      margin-right: 0;
+    }
+    .responsive-button ::v-deep(.p-button-label) {
+      font-size: 0;
     }
   }
 
