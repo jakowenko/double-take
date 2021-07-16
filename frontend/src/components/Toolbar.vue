@@ -3,14 +3,20 @@
     <div class="p-as-end" style="padding-bottom: 1px"><TabMenu :model="items" /></div>
     <div v-if="version" class="version">
       <a
-        href="https://hub.docker.com/repository/docker/jakowenko/double-take/tags?page=1&ordering=last_updated"
+        :href="
+          'https://hub.docker.com/repository/docker/jakowenko/double-take/tags?page=1&ordering=last_updated' +
+          '&name=' +
+          buildTag
+        "
         target="_blank"
         class="update"
         :class="{ visible: updateAvailable }"
       >
-        <div v-tooltip.left="'Update Available'" class="icon p-d-inline-block p-mr-1"></div>
+        <div v-tooltip.left="`Update Available`" class="icon p-d-inline-block p-mr-1"></div>
       </a>
-      <a href="https://github.com/jakowenko/double-take" target="_blank">v{{ version }}</a>
+      <a href="https://github.com/jakowenko/double-take" target="_blank"
+        >v{{ version }}{{ buildTag ? `:${buildTag}` : '' }}</a
+      >
     </div>
   </div>
 </template>
@@ -26,6 +32,7 @@ export default {
   data: () => ({
     version: null,
     updateAvailable: false,
+    buildTag: null,
     items: [
       { label: 'Matches', icon: 'pi pi-fw fa fa-portrait', to: '/' },
       { label: 'Train', icon: 'pi pi-fw fa fa-images', to: '/train' },
@@ -50,11 +57,13 @@ export default {
           );
           const [currentBuild] = actions.workflow_runs.filter((run) => run.head_sha.includes(sha7));
           if (currentBuild) {
-            const [lastBuild] = actions.workflow_runs.filter(
-              (run) =>
-                run.head_branch === currentBuild.head_branch &&
-                run.status === 'completed' &&
-                run.conclusion === 'success',
+            this.buildTag = currentBuild.head_branch === 'beta' ? 'beta' : 'latest';
+            const [lastBuild] = actions.workflow_runs.filter((run) =>
+              this.buildTag === 'latest'
+                ? run.event === 'release' && run.status === 'completed' && run.conclusion === 'success'
+                : run.head_branch === currentBuild.head_branch &&
+                  run.status === 'completed' &&
+                  run.conclusion === 'success',
             );
             if (currentBuild.id < lastBuild.id) this.updateAvailable = true;
           }
