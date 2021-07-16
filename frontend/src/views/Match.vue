@@ -152,7 +152,7 @@ export default {
                 delete $this.matches.source[deleteDisabled[i]];
               }
             }
-            $this.matches.disabled = [];
+            if (data.matches.length) $this.matches.disabled = [];
             $this.loading.files = false;
           } catch (error) {
             $this.$toast.add({
