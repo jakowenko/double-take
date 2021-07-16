@@ -226,7 +226,7 @@ export default {
               folder: this.trainingFolder,
               matches,
             });
-            await ApiService.get(`/train/add/${this.trainingFolder}`);
+            await ApiService.get(`/train/add/${this.trainingFolder}`, { files: matches.map((obj) => obj.filename) });
 
             $this.matches.disabled = $this.matches.disabled.concat(ids);
             $this.matches.selected = [];

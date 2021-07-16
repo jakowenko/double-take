@@ -74,7 +74,10 @@ module.exports.process = async ({ name, key, detector }) => {
 module.exports.add = async (name, opts = {}) => {
   const files = await filesystem.files().train();
   database.insert('init', files);
-  const images = opts.images || database.files('untrained', name);
+  let images = opts.images || database.files('untrained', name);
+  if (opts.files) {
+    images = images.filter((obj) => opts.files.includes(obj.filename));
+  }
   await this.queue(images);
 };
 

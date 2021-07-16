@@ -83,7 +83,7 @@ module.exports.add = async (req, res) => {
   try {
     const { name } = req.params;
     respond(HTTPSuccess(OK, { message: `training queued for ${name}` }), res);
-    await train.add(name);
+    await train.add(name, { files });
   } catch (error) {
     console.error(`train add error: ${error.message}`);
     respond(error, res);
@@ -119,18 +119,19 @@ module.exports.patch = async (req, res) => {
 module.exports.upload = async (req, res) => {
   try {
     const { name } = req.params;
-    const { files } = req;
+    const files = [];
 
     await Promise.all(
-      files.map(async (obj) => {
+      req.files.map(async (obj) => {
         const { originalname, buffer } = obj;
         const ext = `.${originalname.split('.').pop()}`;
         const filename = `${originalname.replace(ext, '')}-${time.unix()}${ext}`;
         await filesystem.writer(`${STORAGE.PATH}/train/${name}/${filename}`, buffer);
+        files.push(filename);
       })
     );
 
-    train.add(name);
+    train.add(name, { files });
 
     respond(HTTPSuccess(OK, { success: true }), res);
   } catch (error) {
