@@ -183,7 +183,7 @@ export default {
       this.$confirm.require({
         header: 'Confirmation',
         message: `Do you want to untrain all images for ${this.trainingFolder}?`,
-        acceptClass: 'p-button-success',
+        acceptClass: 'p-button-danger',
         position: 'top',
         accept: async () => {
           try {
