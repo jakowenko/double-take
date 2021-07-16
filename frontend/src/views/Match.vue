@@ -62,7 +62,9 @@ export default {
     },
     areAllSelected() {
       return (
-        this.filtered.length > 0 && this.matches.selected.length + this.matches.disabled.length === this.filtered.length
+        this.filtered.length > 0 &&
+        this.matches.selected.length > 0 &&
+        this.matches.selected.length + this.matches.disabled.length === this.filtered.length
       );
     },
     filtered() {
@@ -150,7 +152,7 @@ export default {
                 delete $this.matches.source[deleteDisabled[i]];
               }
             }
-
+            $this.matches.disabled = [];
             $this.loading.files = false;
           } catch (error) {
             $this.$toast.add({
