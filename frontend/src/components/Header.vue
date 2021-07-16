@@ -21,7 +21,7 @@
       </div>
       <div v-else class="p-d-flex p-jc-between">
         <div class="p-d-inline-flex p-ai-center">
-          <div class="p-mr-1">
+          <div class="p-mr-2">
             <Dropdown v-model="folder" :options="folders" :disabled="createFolder.loading" :showClear="true" />
           </div>
           <div v-if="folder">
@@ -42,18 +42,20 @@
                 :maxFileSize="10000000"
                 @upload="$parent.init()"
                 :auto="true"
-                chooseLabel=""
+                chooseLabel="Upload"
                 class="p-d-inline"
               />
               <Button
-                icon="fa fa-recycle"
+                icon="fa fa-recycle push-top"
                 class="p-button-success p-button-sm p-ml-1"
                 @click="$parent.sync"
+                label="Sync"
                 :disabled="!matches.source.filter((obj) => obj.name === folder).length"
               />
               <Button
                 class="p-button-danger p-button-sm p-ml-1"
                 icon="pi pi-trash"
+                label="Untrain"
                 @click="$parent.untrain"
                 :disabled="!matches.source.filter((obj) => obj.name === folder && obj.results.length).length"
               />
@@ -81,12 +83,13 @@
               icon="pi pi-refresh"
               :class="[{ loading: loading.files }, 'p-button p-button-sm p-mr-1 reload-btn']"
               @click="refresh"
-              :disabled="liveReload || loading.files"
+              :disabled="liveReload || loading.files || loading.status"
             />
             <Button
               :icon="areAllSelected ? 'fa fa-check-square' : 'far fa-check-square'"
               class="p-button p-button-sm p-mr-1"
               @click="$parent.toggleAll(!areAllSelected)"
+              :disabled="(loading.files && !liveReload) || loading.status"
             />
             <Button
               v-if="type === 'match'"
@@ -236,6 +239,7 @@ export default {
           try {
             $this.createFolder.loading = true;
             const { data } = await ApiService.get('filesystem/folders');
+            $this.$emit('folders', data);
             $this.folders = ['add new', ...data];
             $this.createFolder.loading = false;
           } catch (error) {
@@ -358,14 +362,27 @@ export default {
 
   .p-fileupload {
     ::v-deep(.p-button) {
-      padding: 0.48rem 0.65625rem;
+      padding: 0.4375rem 0.65625rem;
+      font-size: 0.875rem;
     }
-    ::v-deep(.p-button-icon) {
-      margin-right: 0;
-      font-size: 1rem;
+    @media only screen and (max-width: 576px) {
+      ::v-deep(.p-button-icon) {
+        margin-right: 0;
+        font-size: 1rem;
+      }
+      ::v-deep(.p-button-label) {
+        font-size: 0;
+      }
     }
-    ::v-deep(.p-button-label) {
-      font-size: 0;
+  }
+  .train-buttons {
+    @media only screen and (max-width: 576px) {
+      ::v-deep(.p-button-icon) {
+        margin-right: 0;
+      }
+      ::v-deep(.p-button-label) {
+        font-size: 0;
+      }
     }
   }
 
@@ -374,6 +391,10 @@ export default {
   .p-button ::v-deep(.far.p-button-icon),
   .p-button ::v-deep(.pi) {
     font-size: 1rem;
+  }
+  .p-button ::v-deep(.push-top) {
+    position: relative;
+    top: 1px;
   }
 
   .p-dropdown {
