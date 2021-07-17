@@ -8,7 +8,11 @@ const cameras = require('../controllers/cameras.controller');
 const train = require('../controllers/train.controller');
 const match = require('../controllers/match.controller');
 const filesystem = require('../controllers/fs.controller');
+const proxy = require('../controllers/proxy.controller');
 const validators = require('../util/validators.util');
+const { expressValidator } = require('../util/validate.util');
+
+const { query } = expressValidator;
 
 const router = express.Router();
 
@@ -37,5 +41,7 @@ router.get('/train/retrain/:name', train.retrain);
 router.get('/storage/matches/:filename', validate(validators.storage().matches()), storage.matches);
 router.delete('/storage/train', storage.delete);
 router.get('/storage/train/:name/:filename', storage.train);
+
+router.get('/proxy', validate([query('url').isLength({ min: 1 })]), proxy.url);
 
 module.exports = router;

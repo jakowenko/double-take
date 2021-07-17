@@ -158,7 +158,7 @@ export default {
     },
     async checkFrigate(url) {
       try {
-        await ApiService.get(`${url}/api/version`);
+        await ApiService.get(`proxy?url=${url}/api/version`);
         this.frigate.status = 200;
       } catch (error) {
         const status = error.response && error.response.status ? error.response.status : 500;
