@@ -70,6 +70,8 @@ export default {
           // eslint-disable-next-line no-empty
         } catch (error) {}
         if (!this.updateAvailable) setTimeout(this.checkVersion, 60000);
+      } else {
+        this.buildTag = 'dev';
       }
     },
   },
