@@ -2,7 +2,7 @@ const perf = require('execution-time')();
 const database = require('./db.util');
 const { train, remove } = require('./detectors/actions');
 const { STORAGE } = require('../constants');
-const { detectors } = require('../constants/config');
+const DETECTORS = require('../constants/config').detectors();
 
 module.exports.queue = async (files) => {
   try {
@@ -13,7 +13,7 @@ module.exports.queue = async (files) => {
 
     const records = [];
     files.forEach(({ id, name, filename }, i) =>
-      detectors().forEach((detector) => {
+      DETECTORS.forEach((detector) => {
         const record = {
           number: i + 1,
           id,
@@ -90,22 +90,22 @@ module.exports.remove = async (name, opts = {}) => {
   const db = database.connect();
 
   const promises = [];
-  detectors().forEach((detector) => promises.push(remove({ detector, name })));
+  DETECTORS.forEach((detector) => promises.push(remove({ detector, name })));
 
   const results = (await Promise.all(promises)).map((result, i) => ({
-    detector: detectors()[i],
+    detector: DETECTORS[i],
     results: result.data,
   }));
 
   if (ids && ids.length) {
     db.prepare(
       `DELETE FROM train WHERE name = ? AND detector IN (${database.params(
-        detectors()
+        DETECTORS
       )}) AND fileId IN (${database.params(ids)})`
-    ).run(name, detectors(), ids);
+    ).run(name, DETECTORS, ids);
     const addIds = database.get
       .trained(name)
-      .filter((obj) => detectors().includes(obj.detector))
+      .filter((obj) => DETECTORS.includes(obj.detector))
       .map((obj) => obj.fileId);
 
     if (addIds.length) await this.add(name, { ids: addIds });
@@ -113,8 +113,9 @@ module.exports.remove = async (name, opts = {}) => {
   }
 
   db.prepare(
-    `DELETE FROM train WHERE name = ? AND detector IN (${database.params(detectors())})`
-  ).run(name, detectors());
+    `DELETE FROM train WHERE name = ? AND detector IN (${database.params(DETECTORS)})`
+  ).run(name, DETECTORS);
+
 
   return results;
 };
