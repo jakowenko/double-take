@@ -25,7 +25,8 @@ router.post('/recognize', validate(validators.recognize({ post: true })), recogn
 router.get('/recognize', validate(validators.recognize({ get: true })), recognize.start);
 router.get('/recognize/test', recognize.test);
 
-router.get('/match', match.get).patch('/match', match.patch).delete('/match', match.delete);
+router.get('/match', match.get);
+router.delete('/match', match.delete);
 
 router.get('/filesystem/folders', filesystem.folders().list);
 router.post('/filesystem/folders/:name', filesystem.folders().create);

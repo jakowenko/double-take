@@ -224,9 +224,6 @@ export default {
               filename: obj.file.filename,
             }));
             const ids = $this.matches.selected.map((obj) => obj.id);
-            await ApiService.patch('match', {
-              folder: this.trainingFolder,
-              matches,
             });
             await ApiService.get(`/train/add/${this.trainingFolder}`, { files: matches.map((obj) => obj.filename) });
 

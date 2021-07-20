@@ -76,21 +76,6 @@ module.exports.get = async (req, res) => {
   }
 };
 
-module.exports.patch = async (req, res) => {
-  try {
-    const { folder, matches } = req.body;
-    matches.forEach((obj) => {
-      filesystem.move(
-        `${STORAGE.PATH}/${obj.key}`,
-        `${STORAGE.PATH}/train/${folder}/${obj.filename}`
-      );
-    });
-    respond(HTTPSuccess(OK, { sucess: true }), res);
-  } catch (error) {
-    respond(error, res);
-  }
-};
-
 module.exports.delete = async (req, res) => {
   try {
     const files = req.body;
