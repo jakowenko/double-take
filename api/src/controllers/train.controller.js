@@ -1,4 +1,3 @@
-const perf = require('execution-time')();
 const fs = require('fs');
 const sharp = require('sharp');
 const time = require('../util/time.util');
@@ -69,12 +68,10 @@ module.exports.get = async (req, res) => {
 
 module.exports.delete = async (req, res) => {
   try {
-    perf.start();
     const { name } = req.params;
     const { ids } = req.body;
-    const seconds = parseFloat((perf.stop().time / 1000).toFixed(2));
     const results = await train.remove(name, { ids });
-    console.log(`done untraining for ${name} in ${seconds} sec`);
+
     respond(HTTPSuccess(OK, results), res);
   } catch (error) {
     console.error(`train delete error: ${error.message}`);

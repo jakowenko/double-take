@@ -8,9 +8,6 @@ module.exports.queue = async (files) => {
   try {
     if (!files.length) return [];
 
-    perf.start();
-    console.log(`queuing ${files.length} file(s) for training`);
-
     const records = [];
     files.forEach(({ id, name, filename }, i) =>
       DETECTORS.forEach((detector) => {
@@ -28,8 +25,7 @@ module.exports.queue = async (files) => {
 
     const outputs = [];
     for (let i = 0; i < records.length; i++) {
-      const { name, filename, detector, number } = records[i];
-      console.log(`file ${number} - ${detector}: ${name} - ${filename}`);
+      const { name, filename, detector } = records[i];
       const result = await this.process({
         name,
         key: `${STORAGE.PATH}/train/${name}/${filename}`,
@@ -39,8 +35,6 @@ module.exports.queue = async (files) => {
       records[i].meta = JSON.stringify(result);
       database.create.train(records[i]);
     }
-
-    console.log(`training complete in ${parseFloat((perf.stop().time / 1000).toFixed(2))} sec`);
   } catch (error) {
     console.error(`queue error: ${error.message}`);
   }
@@ -75,6 +69,7 @@ module.exports.process = async ({ name, key, detector }) => {
 };
 
 module.exports.add = async (name, opts = {}) => {
+  perf.start();
   const { ids, files } = opts;
   await database.resync.files();
   const queue = files
@@ -82,10 +77,17 @@ module.exports.add = async (name, opts = {}) => {
     : ids
     ? database.get.filesById(ids)
     : database.get.untrained(name);
+
+  console.log(`${name}: queuing ${queue.length} file(s) for training`);
   await this.queue(queue);
+  console.log(
+    `${name}: training complete in ${parseFloat((perf.stop().time / 1000).toFixed(2))} sec`
+  );
 };
 
 module.exports.remove = async (name, opts = {}) => {
+  perf.start();
+
   const { ids } = opts;
   const db = database.connect();
 
@@ -116,6 +118,9 @@ module.exports.remove = async (name, opts = {}) => {
     `DELETE FROM train WHERE name = ? AND detector IN (${database.params(DETECTORS)})`
   ).run(name, DETECTORS);
 
+  console.log(
+    `${name}: untraining complete in ${parseFloat((perf.stop().time / 1000).toFixed(2))} sec`
+  );
 
   return results;
 };
