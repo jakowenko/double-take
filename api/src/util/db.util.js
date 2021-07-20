@@ -120,6 +120,10 @@ module.exports.get = {
       )
       .all(name);
   },
+  trained: (name) => {
+    const db = database.connect();
+    return db.prepare(`SELECT * FROM train WHERE name = ?`).all(name);
+  },
   filesById: (ids) => {
     const db = database.connect();
     return db.prepare(`SELECT * FROM file WHERE id IN (${database.params(ids)})`).all(ids);
