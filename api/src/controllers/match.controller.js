@@ -99,7 +99,7 @@ module.exports.delete = async (req, res) => {
       db.prepare('DELETE FROM match WHERE id = ?').run(file.id);
       filesystem.delete(`${STORAGE.PATH}/${file.key}`);
     });
-    respond(HTTPSuccess(OK, { sucess: true }), res);
+    respond(HTTPSuccess(OK, { success: true }), res);
   } catch (error) {
     respond(error, res);
   }
