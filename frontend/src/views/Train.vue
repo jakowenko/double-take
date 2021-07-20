@@ -13,7 +13,7 @@
       <div v-if="loading.status && status.length" class="p-d-flex p-flex-column progress-holder">
         <p class="p-mb-3 p-text-bold p-text-center">Training in progress...</p>
         <div v-for="name in status" :key="name" class="p-mb-3">
-          <div class="p-mb-1 p-text-bold">{{ name.name }}</div>
+          <div class="p-mb-1 p-text-bold">{{ name.name }} - {{ name.trained }}/{{ name.total }}</div>
           <ProgressBar :value="name.percent" />
         </div>
       </div>
@@ -158,7 +158,7 @@ export default {
               accept: async () => {
                 try {
                   names.forEach((name) => {
-                    ApiService.get(`train/retrain/${name}`, { ids });
+                    ApiService.delete(`train/remove/${name}`, { ids });
                   });
                   if (untrained.length) {
                     await ApiService.delete('storage/train', {
@@ -187,7 +187,7 @@ export default {
         position: 'top',
         accept: async () => {
           try {
-            ApiService.get(`/train/remove/${this.trainingFolder}`);
+            await ApiService.delete(`/train/remove/${this.trainingFolder}`);
             await $this.init();
           } catch (error) {
             this.toast({
@@ -209,7 +209,7 @@ export default {
         position: 'top',
         accept: async () => {
           try {
-            ApiService.get(`/train/retrain/${this.trainingFolder}`);
+            await ApiService.get(`/train/retrain/${this.trainingFolder}`);
             await $this.init();
           } catch (error) {
             this.toast({

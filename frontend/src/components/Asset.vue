@@ -97,7 +97,7 @@
           </div>
         </div>
         <small v-if="type === 'match'">{{ createdAt.ago }}</small>
-        <small v-else-if="type === 'train'">{{ asset.file.key }}</small>
+        <small v-else-if="type === 'train'">{{ asset.name }}</small>
       </template>
     </Card>
   </div>
@@ -198,9 +198,8 @@ export default {
   watch: {
     folder(value) {
       if (value) {
-        const file = JSON.parse(JSON.stringify(this.asset.file));
-        delete file.base64;
-        ApiService.patch('train', { folder: value, file });
+        const { id } = this.asset;
+        ApiService.patch(`train/${id}`, { name: value });
         this.$parent.$emit('init', true);
       }
     },

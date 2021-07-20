@@ -218,15 +218,11 @@ export default {
         position: 'top',
         accept: async () => {
           try {
-            const matches = $this.matches.selected.map((obj) => ({
-              id: obj.id,
-              key: obj.file.key,
-              filename: obj.file.filename,
-            }));
-            const ids = $this.matches.selected.map((obj) => obj.id);
+            await ApiService.post(`/train/add/${this.trainingFolder}`, {
+              urls: $this.matches.selected.map((obj) => `${process.env.VUE_APP_API_URL}/storage/${obj.file.key}`),
             });
-            await ApiService.get(`/train/add/${this.trainingFolder}`, { files: matches.map((obj) => obj.filename) });
 
+            const ids = $this.matches.selected.map((obj) => obj.id);
             $this.matches.disabled = $this.matches.disabled.concat(ids);
             $this.matches.selected = [];
 
