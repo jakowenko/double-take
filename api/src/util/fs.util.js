@@ -1,4 +1,6 @@
 const fs = require('fs');
+const axios = require('axios');
+const time = require('./time.util');
 const { STORAGE } = require('../constants');
 
 module.exports.folders = () => {
@@ -18,40 +20,39 @@ module.exports.folders = () => {
   };
 };
 
-module.exports.files = () => {
-  return {
-    traverse: async (path) => {
-      const output = [];
-      let folders = await fs.promises.readdir(`${STORAGE.PATH}/${path}`, { withFileTypes: true });
-      folders = folders.filter((file) => file.isDirectory()).map((file) => file.name);
+module.exports.files = {
+  traverse: async (path) => {
+    const output = [];
+    let folders = await fs.promises.readdir(`${STORAGE.PATH}/${path}`, { withFileTypes: true });
+    folders = folders.filter((file) => file.isDirectory()).map((file) => file.name);
 
-      for (const folder of folders) {
-        let images = await fs.promises.readdir(`${STORAGE.PATH}/${path}/${folder}`, {
-          withFileTypes: true,
-        });
-        images = images
-          .filter((file) => file.isFile())
-          .map((file) => file.name)
-          .filter(
-            (file) =>
-              file.toLowerCase().includes('.jpeg') ||
-              file.toLowerCase().includes('.jpg') ||
-              file.toLowerCase().includes('.png')
-          );
-        images.forEach((filename) => {
-          const { birthtime } = fs.statSync(`${STORAGE.PATH}/${path}/${folder}/${filename}`);
-          output.push({ name: folder, filename, key: `${path}/${folder}/${filename}`, birthtime });
-        });
-      }
-      return output.sort((a, b) => (a.birthtime < b.birthtime ? 1 : -1));
-    },
-    train: async () => {
-      return this.files().traverse('train');
-    },
-    matches: async () => {
-      return this.files().traverse('matches');
-    },
-  };
+    for (const folder of folders) {
+      let images = await fs.promises.readdir(`${STORAGE.PATH}/${path}/${folder}`, {
+        withFileTypes: true,
+      });
+      images = images
+        .filter((file) => file.isFile())
+        .map((file) => file.name)
+        .filter(
+          (file) =>
+            file.toLowerCase().includes('.jpeg') ||
+            file.toLowerCase().includes('.jpg') ||
+            file.toLowerCase().includes('.png')
+        );
+      images.forEach((filename) => {
+        const { birthtime } = fs.statSync(`${STORAGE.PATH}/${path}/${folder}/${filename}`);
+        output.push({ name: folder, filename, key: `${path}/${folder}/${filename}`, birthtime });
+      });
+    }
+    return output.sort((a, b) => (a.birthtime < b.birthtime ? 1 : -1));
+  },
+  train: async (name) => {
+    const files = await this.files.traverse('train');
+    return name ? files.filter((obj) => obj.name === name) : files;
+  },
+  matches: async () => {
+    return this.files.traverse('matches');
+  },
 };
 
 module.exports.writer = async (file, data) => {
@@ -113,4 +114,32 @@ module.exports.move = (source, destination) => {
   } catch (error) {
     console.error(`move error: ${error.message}`);
   }
+};
+
+module.exports.saveURLs = async (urls, path) => {
+  const files = [];
+  for (let i = 0; i < urls.length; i++) {
+    try {
+      const validOptions = ['image/jpg', 'image/jpeg', 'image/png'];
+      const url = urls[i];
+      const { headers, data: buffer } = await axios({
+        method: 'get',
+        url,
+        responseType: 'arraybuffer',
+      });
+
+      const isValid = validOptions.includes(headers['content-type']);
+
+      if (isValid) {
+        let filename = url.substring(url.lastIndexOf('/') + 1);
+        const ext = `.${filename.split('.').pop()}`;
+        filename = `${filename.replace(ext, '')}-${time.unix()}${ext}`;
+        fs.writeFileSync(`${STORAGE.PATH}/${path}/${filename}`, buffer);
+        files.push(filename);
+      }
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+  return files;
 };

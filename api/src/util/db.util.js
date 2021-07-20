@@ -1,8 +1,7 @@
 const Database = require('better-sqlite3');
 const time = require('./time.util');
 const filesystem = require('./fs.util');
-
-const { STORAGE, SAVE } = require('../constants');
+const { STORAGE } = require('../constants');
 
 const database = this;
 let connection = false;
@@ -53,8 +52,7 @@ module.exports.init = async () => {
     )`
     ).run();
 
-    const files = await filesystem.files().train();
-    database.insert('init', files);
+    await this.resync.files();
   } catch (error) {
     console.error(`db init error: ${error.message}`);
   }
@@ -104,139 +102,81 @@ module.exports.migrations = () => {
   }
 };
 
-module.exports.files = (status, data) => {
-  const db = database.connect();
-  try {
-    let files = [];
-
-    if (status === 'untrained') {
-      files = db
-        .prepare(
-          `SELECT * FROM file WHERE id NOT IN (SELECT fileId FROM train) AND name = ? AND isActive = 1`
-        )
-        .all(data);
-    }
-
-    if (status === 'trained') {
-      files = db.prepare(`SELECT * FROM train`).all();
-    }
-
-    if (status === 'trained-ids') {
-      files = db
-        .prepare(`SELECT name, fileId as id, filename FROM train WHERE name = ? GROUP BY fileId`)
-        .all(data);
-    }
-
-    if (status === 'all') {
-      files = db.prepare(`SELECT * FROM file WHERE isActive = 1`).all();
-    }
-
-    files.forEach((file) => {
-      const { name, filename } = file;
-      if (file.response) file.response = JSON.parse(file.response);
-      file.key = `${STORAGE.PATH}/train/${name}/${filename}`;
-    });
-
-    return files;
-  } catch (error) {
-    console.error(`files error: ${error.message}`);
-  }
+module.exports.resync = {
+  files: async () => {
+    const db = database.connect();
+    db.prepare(`UPDATE file SET isActive = 0`).run();
+    const files = await filesystem.files.train();
+    files.forEach((obj) => this.create.file(obj));
+  },
 };
 
-module.exports.insert = (type, data = []) => {
-  const db = database.connect();
-
-  if (type === 'init') {
-    const files = database.files('all');
-    let ids = [];
-
-    data.forEach((file) => {
-      const [dbRecord] = files.filter(
-        (obj) => obj.name === file.name && obj.filename === file.filename
-      );
-      if (dbRecord) ids.push(dbRecord.id);
-    });
-
-    if (ids.length) {
-      ids = ids.map((id) => `'${id}'`).join(',');
-      db.prepare(`UPDATE file SET isActive = 0 WHERE id NOT IN (${ids})`).run();
-    } else {
-      db.prepare(`UPDATE file SET isActive = 0`).run();
-    }
-    database.insert('file', data);
-  }
-
-  if (type === 'train') {
-    const insert = db.prepare(`
-      INSERT INTO train
-      VALUES (:id, :fileId, :name, :filename, :detector, :meta, :createdAt)
-      ON CONFLICT (fileId, detector) DO UPDATE SET meta = :meta;
-    `);
-    const transaction = db.transaction((items) => {
-      for (const { ...item } of items) {
-        const temp = { ...item };
-        item.id = null;
-        item.fileId = temp.id;
-        item.createdAt = time.utc();
-        item.meta = temp.meta || null;
-        insert.run(item);
-      }
-    });
-    transaction(data);
-  }
-
-  if (type === 'file') {
-    const insert = db.prepare(`
-      INSERT INTO file
-      VALUES (:id, :name, :filename, :meta, :isActive, :createdAt)
-      ON CONFLICT (name, filename) DO UPDATE SET isActive = 1;
-    `);
-    const transaction = db.transaction((items) => {
-      for (const item of items) {
-        item.id = null;
-        item.createdAt = time.utc();
-        item.meta = null;
-        item.isActive = 1;
-        insert.run(item);
-      }
-    });
-    transaction(data);
-  }
-
-  if (type === 'match') {
-    const { camera, results, zones } = data;
-    const records = [];
-    results.forEach((group) => {
-      group.results.forEach((attempt) => {
-        let combined = SAVE.UNKNOWN
-          ? [...attempt.matches, ...attempt.misses]
-          : [...attempt.matches];
-
-        combined = combined.map((obj) => {
-          obj.filename = attempt.filename;
-          obj.type = group.type;
-          obj.detector = attempt.detector;
-          obj.camera = camera;
-          obj.zones = zones;
-          return obj;
-        });
-        records.push(...combined);
-      });
-    });
-
-    const insert = db.prepare(`
-      INSERT INTO match
-      VALUES (:id, :meta, :createdAt);
-    `);
-    const transaction = db.transaction((items) => {
-      for (const item of items) {
-        insert.run({
-          id: null,
-          meta: JSON.stringify(item),
-          createdAt: time.utc(),
-        });
-      }
-    });
-    transaction(records);
-  }
+module.exports.get = {
+  untrained: (name) => {
+    const db = database.connect();
+    return db
+      .prepare(
+        `SELECT * FROM file WHERE id NOT IN (SELECT fileId FROM train WHERE meta IS NOT NULL) AND name = ? AND isActive = 1`
+      )
+      .all(name);
+  },
+  filesById: (ids) => {
+    const db = database.connect();
+    return db.prepare(`SELECT * FROM file WHERE id IN (${database.params(ids)})`).all(ids);
+  },
+  fileByFilename(name, filename) {
+    const db = database.connect();
+    const [file] = db
+      .prepare(`SELECT * FROM file WHERE name = ? AND filename = ?`)
+      .all(name, filename);
+    return file || false;
+  },
 };
+
+module.exports.create = {
+  file: ({ name, filename, meta }) => {
+    const db = database.connect();
+    db.prepare(
+      `INSERT INTO file
+        VALUES (:id, :name, :filename, :meta, :isActive, :createdAt)
+        ON CONFLICT (name, filename) DO UPDATE SET isActive = 1;`
+    ).run({
+      id: null,
+      name,
+      filename,
+      meta: meta || null,
+      createdAt: time.utc(),
+      isActive: 1,
+    });
+  },
+  train: ({ id, name, filename, detector, meta }) => {
+    const db = database.connect();
+    db.prepare(
+      `INSERT INTO train
+        VALUES (:id, :fileId, :name, :filename, :detector, :meta, :createdAt)
+        ON CONFLICT (fileId, detector) DO UPDATE SET meta = :meta;`
+    ).run({
+      id: null,
+      fileId: id,
+      name,
+      filename,
+      detector,
+      meta: meta || null,
+      createdAt: time.utc(),
+    });
+  },
+  match: ({ filename, event, response }) => {
+    const db = database.connect();
+    db.prepare(
+      `INSERT INTO match (id, filename, event, response, createdAt) VALUES (:id, :filename, :event, :response, :createdAt)`
+    ).run({
+      id: null,
+      filename,
+      event: event ? JSON.stringify(event) : null,
+      response: response ? JSON.stringify(response) : null,
+      createdAt: time.utc(),
+    });
+  },
+};
+
+module.exports.params = (array) => '?,'.repeat(array.length).slice(0, -1);

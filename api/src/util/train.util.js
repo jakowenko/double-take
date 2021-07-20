@@ -1,8 +1,7 @@
 const perf = require('execution-time')();
 const database = require('./db.util');
-const filesystem = require('./fs.util');
 const { train, remove } = require('./detectors/actions');
-
+const { STORAGE } = require('../constants');
 const { detectors } = require('../constants/config');
 
 module.exports.queue = async (files) => {
@@ -12,32 +11,36 @@ module.exports.queue = async (files) => {
     perf.start();
     console.log(`queuing ${files.length} file(s) for training`);
 
-    const inserts = [];
-    files.forEach((file, i) => {
-      for (const detector of detectors()) {
-        inserts.push({
-          ...file,
+    const records = [];
+    files.forEach(({ id, name, filename }, i) =>
+      detectors().forEach((detector) => {
+        const record = {
           number: i + 1,
+          id,
+          name,
+          filename,
           detector,
-        });
-      }
-    });
-
-    database.insert('train', inserts);
+        };
+        database.create.train(record);
+        records.push(record);
+      })
+    );
 
     const outputs = [];
-    for (let i = 0; i < inserts.length; i++) {
-      const { name, filename, key, detector, number } = inserts[i];
+    for (let i = 0; i < records.length; i++) {
+      const { name, filename, detector, number } = records[i];
       console.log(`file ${number} - ${detector}: ${name} - ${filename}`);
-      const result = await this.process({ name, key, detector });
-      outputs.push({ ...result, key });
-      inserts[i].meta = JSON.stringify(result);
-      database.insert('train', [inserts[i]]);
+      const result = await this.process({
+        name,
+        key: `${STORAGE.PATH}/train/${name}/${filename}`,
+        detector,
+      });
+      outputs.push({ ...result });
+      records[i].meta = JSON.stringify(result);
+      database.create.train(records[i]);
     }
 
-    database.insert('train', inserts);
     console.log(`training complete in ${parseFloat((perf.stop().time / 1000).toFixed(2))} sec`);
-    return outputs;
   } catch (error) {
     console.error(`queue error: ${error.message}`);
   }
@@ -72,46 +75,48 @@ module.exports.process = async ({ name, key, detector }) => {
 };
 
 module.exports.add = async (name, opts = {}) => {
-  const files = await filesystem.files().train();
-  database.insert('init', files);
-  let images = opts.images || database.files('untrained', name);
-  if (opts.files) {
-    images = images.filter((obj) => opts.files.includes(obj.filename));
-  }
-  await this.queue(images);
+  const { ids, files } = opts;
+  await database.resync.files();
+  const queue = files
+    ? files.map((obj) => database.get.fileByFilename(obj.name, obj.filename))
+    : ids
+    ? database.get.filesById(ids)
+    : database.get.untrained(name);
+  await this.queue(queue);
 };
 
-module.exports.remove = async (name) => {
+module.exports.remove = async (name, opts = {}) => {
+  const { ids } = opts;
+  const db = database.connect();
+
   const promises = [];
-  for (const detector of detectors()) {
-    promises.push(remove({ detector, name }));
-  }
+  detectors().forEach((detector) => promises.push(remove({ detector, name })));
+
   const results = (await Promise.all(promises)).map((result, i) => ({
     detector: detectors()[i],
     results: result.data,
   }));
 
-  const db = database.connect();
+  if (ids && ids.length) {
+    db.prepare(
+      `DELETE FROM train WHERE name = ? AND detector IN (${database.params(
+        detectors()
+      )}) AND fileId IN (${database.params(ids)})`
+    ).run(name, detectors(), ids);
+    const addIds = database.get
+      .trained(name)
+      .filter((obj) => detectors().includes(obj.detector))
+      .map((obj) => obj.fileId);
+
+    if (addIds.length) await this.add(name, { ids: addIds });
+    return { success: true };
+  }
+
   db.prepare(
-    `DELETE FROM train WHERE detector IN (${detectors()
-      .map((value) => `'${value}'`)
-      .join(',')}) AND name = ?`
-  ).run(name);
+    `DELETE FROM train WHERE name = ? AND detector IN (${database.params(detectors())})`
+  ).run(name, detectors());
 
   return results;
-};
-
-module.exports.retrain = async (name, opts = {}) => {
-  const { ids } = opts;
-  if (ids.length) {
-    const db = database.connect();
-    db.prepare(
-      `DELETE FROM train WHERE name = ? AND fileID IN (${ids.map((id) => `'${id}'`).join(',')})`
-    ).run(name);
-  }
-  const images = ids.length ? database.files('trained-ids', name) : null;
-  await this.remove(name);
-  await this.add(name, { images });
 };
 
 module.exports.status = () => {

@@ -5,8 +5,6 @@ const { v4: uuidv4 } = require('uuid');
 const sleep = require('./sleep.util');
 const filesystem = require('./fs.util');
 const database = require('./db.util');
-const time = require('./time.util');
-// const frigate = require('./frigate.util');
 const { recognize, normalize } = require('./detectors/actions');
 const { DETECTORS, STORAGE, SAVE } = require('../constants');
 
@@ -80,16 +78,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
 
 module.exports.save = async (event, results, filename, tmp) => {
   try {
-    const db = database.connect();
-    db.prepare(
-      `INSERT INTO match (id, filename, event, response, createdAt) VALUES (:id, :filename, :event, :response, :createdAt)`
-    ).run({
-      id: null,
-      filename,
-      event: JSON.stringify(event),
-      response: JSON.stringify(results),
-      createdAt: time.utc(),
-    });
+    database.create.match({ filename, event, response: results });
     await filesystem.writerStream(fs.createReadStream(tmp), `${STORAGE.PATH}/matches/${filename}`);
   } catch (error) {
     console.error(`save results error: ${error.message}`);
