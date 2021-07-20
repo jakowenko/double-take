@@ -116,9 +116,11 @@ module.exports.get = {
     const db = database.connect();
     return db
       .prepare(
-        `SELECT * FROM file WHERE id NOT IN (SELECT fileId FROM train WHERE meta IS NOT NULL) AND name = ? AND isActive = 1`
+        `SELECT * FROM file WHERE id NOT IN (SELECT fileId FROM train WHERE meta IS NOT NULL AND detector IN (${database.params(
+          DETECTORS
+        )})) AND name = ? AND isActive = 1`
       )
-      .all(name);
+      .all(DETECTORS, name);
   },
   trained: (name) => {
     const db = database.connect();
