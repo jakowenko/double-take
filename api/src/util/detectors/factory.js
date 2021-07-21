@@ -1,5 +1,3 @@
-const logger = require('../logger.util');
-
 const detectors = require('.');
 
 /**
@@ -9,6 +7,6 @@ module.exports.get = (detector) => {
   try {
     return detectors[detector];
   } catch (error) {
-    logger.log(`${detector} factory error: ${error.message}`);
+    console.error(`${detector} factory error: ${error.message}`);
   }
 };

@@ -1,11 +1,10 @@
-const logger = require('./logger.util');
 const { BAD_REQUEST } = require('../constants/http-status');
 
 module.exports.respond = (err, res) => {
   try {
     const status = err && err.status ? err.status : BAD_REQUEST;
     const firstChar = parseInt(status.toString().charAt(0), 10);
-    let message = { sucess: true };
+    let message = { success: true };
 
     if (firstChar === 4 || firstChar === 5) {
       message = { error: err.message };
@@ -17,7 +16,7 @@ module.exports.respond = (err, res) => {
 
     return res.status(status).json(message);
   } catch (error) {
-    logger.log(err);
+    console.error(err.toString());
   }
 };
 

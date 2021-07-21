@@ -1,6 +1,5 @@
 .DS_Store
 node_modules
-docker-compose.yml
 
 # frontend
 frontend/dist

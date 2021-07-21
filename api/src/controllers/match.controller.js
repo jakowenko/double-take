@@ -52,7 +52,11 @@ module.exports.get = async (req, res) => {
         if (matchProp) {
           output.file = matchProp.file;
         } else if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
-          const base64 = await sharp(`${STORAGE.PATH}/${key}`).resize(500).toBuffer();
+          const base64 = await sharp(`${STORAGE.PATH}/${key}`)
+            .jpeg({ quality: 70 })
+            .resize(500)
+            .withMetadata()
+            .toBuffer();
           const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
           output.file.base64 = base64.toString('base64');
           output.file.width = width;
@@ -73,21 +77,6 @@ module.exports.get = async (req, res) => {
   }
 };
 
-module.exports.patch = async (req, res) => {
-  try {
-    const { folder, matches } = req.body;
-    matches.forEach((obj) => {
-      filesystem.move(
-        `${STORAGE.PATH}/${obj.key}`,
-        `${STORAGE.PATH}/train/${folder}/${obj.filename}`
-      );
-    });
-    respond(HTTPSuccess(OK, { sucess: true }), res);
-  } catch (error) {
-    respond(error, res);
-  }
-};
-
 module.exports.delete = async (req, res) => {
   try {
     const files = req.body;
@@ -96,7 +85,7 @@ module.exports.delete = async (req, res) => {
       db.prepare('DELETE FROM match WHERE id = ?').run(file.id);
       filesystem.delete(`${STORAGE.PATH}/${file.key}`);
     });
-    respond(HTTPSuccess(OK, { sucess: true }), res);
+    respond(HTTPSuccess(OK, { success: true }), res);
   } catch (error) {
     respond(error, res);
   }

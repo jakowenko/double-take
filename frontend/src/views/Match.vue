@@ -1,6 +1,7 @@
 <template>
   <div class="wrapper">
     <Header
+      type="match"
       :loading="loading"
       :folders="['add new', ...folders]"
       :matches="matches"
@@ -26,8 +27,8 @@
 
 <script>
 import ApiService from '@/services/api.service';
-import Grid from '@/components/match/Grid.vue';
-import Header from '@/components/match/Header.vue';
+import Grid from '@/components/Grid.vue';
+import Header from '@/components/Header.vue';
 import Sleep from '@/util/sleep.util';
 
 export default {
@@ -60,7 +61,11 @@ export default {
       return JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
     },
     areAllSelected() {
-      return this.filtered.length > 0 && this.matches.selected.length === this.filtered.length;
+      return (
+        this.filtered.length > 0 &&
+        this.matches.selected.length > 0 &&
+        this.matches.selected.length + this.matches.disabled.length === this.filtered.length
+      );
     },
     filtered() {
       const files = JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
@@ -116,26 +121,11 @@ export default {
     async init() {
       const promises = [];
       promises.push(this.get().matches());
-      promises.push(this.get().folders());
       await Promise.all(promises);
     },
     get() {
       const $this = this;
       return {
-        async folders() {
-          try {
-            $this.loading.folders = true;
-            const { data } = await ApiService.get('filesystem/folders');
-            $this.folders = data;
-            $this.loading.folders = false;
-          } catch (error) {
-            $this.$toast.add({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
-          }
-        },
         async matches() {
           try {
             $this.loading.files = true;
@@ -162,7 +152,7 @@ export default {
                 delete $this.matches.source[deleteDisabled[i]];
               }
             }
-
+            if (data.matches.length) $this.matches.disabled = [];
             $this.loading.files = false;
           } catch (error) {
             $this.$toast.add({
@@ -218,27 +208,6 @@ export default {
         },
       };
     },
-    create() {
-      const $this = this;
-      return {
-        async folder() {
-          try {
-            await ApiService.post(`filesystem/folders/${$this.trainingFolder}`);
-            $this.get().folders();
-            $this.$toast.add({
-              severity: 'success',
-              detail: 'Folder created',
-            });
-          } catch (error) {
-            $this.$toast.add({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
-          }
-        },
-      };
-    },
     train() {
       const $this = this;
       const description = `${this.matches.selected.length} ${this.matches.selected.length > 1 ? 'files' : 'file'}`;
@@ -249,18 +218,11 @@ export default {
         position: 'top',
         accept: async () => {
           try {
-            const matches = $this.matches.selected.map((obj) => ({
-              id: obj.id,
-              key: obj.file.key,
-              filename: obj.file.filename,
-            }));
-            const ids = $this.matches.selected.map((obj) => obj.id);
-            await ApiService.patch('match', {
-              folder: this.trainingFolder,
-              matches,
+            await ApiService.post(`/train/add/${this.trainingFolder}`, {
+              urls: $this.matches.selected.map((obj) => `${process.env.VUE_APP_API_URL}/storage/${obj.file.key}`),
             });
-            await ApiService.get(`/train/add/${this.trainingFolder}`);
 
+            const ids = $this.matches.selected.map((obj) => obj.id);
             $this.matches.disabled = $this.matches.disabled.concat(ids);
             $this.matches.selected = [];
 

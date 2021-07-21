@@ -1,5 +1,4 @@
 const axios = require('axios');
-const logger = require('./logger.util');
 const { expressValidator } = require('./validate.util');
 
 const { query, param /* , body */ } = expressValidator;
@@ -12,7 +11,7 @@ module.exports.recognize = ({ get }) => {
   ];
   if (get) {
     validations = validations.concat([
-      query('camera').default('double-take'),
+      query('camera').default('manual'),
       query('url').isLength({ min: 1 }),
       query('attempts').default(1).isInt().withMessage('not a valid number'),
     ]);
@@ -90,7 +89,7 @@ module.exports.doesUrlResolve = async (url) => {
     });
     return data;
   } catch (error) {
-    logger.log(`url resolve error: ${error.message}`);
+    console.error(`url resolve error: ${error.message}`);
     return false;
   }
 };

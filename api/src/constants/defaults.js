@@ -25,6 +25,7 @@ module.exports = {
       frigate: 'frigate/events',
       matches: 'double-take/matches',
       cameras: 'double-take/cameras',
+      homeassistant: 'homeassistant',
     },
   },
   notify: {

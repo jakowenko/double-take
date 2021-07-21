@@ -2,10 +2,11 @@ const fs = require('fs');
 const { promisify } = require('util');
 const sizeOf = promisify(require('image-size'));
 const { createCanvas, loadImage, registerFont } = require('canvas');
+const filesystem = require('../util/fs.util');
 const database = require('../util/db.util');
 const { tryParseJSON } = require('../util/validators.util');
-const { respond, HTTPError } = require('../util/respond.util');
-const { BAD_REQUEST } = require('../constants/http-status');
+const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
+const { OK, BAD_REQUEST } = require('../constants/http-status');
 
 const { PATH } = require('../constants').STORAGE;
 
@@ -84,6 +85,41 @@ module.exports.matches = async (req, res) => {
     const buffer = fs.readFileSync(source);
     res.set('Content-Type', 'image/jpeg');
     return res.end(buffer);
+  } catch (error) {
+    respond(error, res);
+  }
+};
+
+module.exports.train = async (req, res) => {
+  try {
+    const { name, filename } = req.params;
+    const source = `${PATH}/train/${name}/${filename}`;
+
+    if (!fs.existsSync(source)) {
+      throw HTTPError(BAD_REQUEST, `${source} does not exist`);
+    }
+
+    const buffer = fs.readFileSync(source);
+    res.set('Content-Type', 'image/jpeg');
+    return res.end(buffer);
+  } catch (error) {
+    respond(error, res);
+  }
+};
+
+module.exports.delete = async (req, res) => {
+  try {
+    const { files } = req.body;
+    if (files && files.length) {
+      const db = database.connect();
+      db.prepare(
+        `DELETE FROM file WHERE id IN (${files.map((obj) => `'${obj.id}'`).join(',')})`
+      ).run();
+      files.forEach((obj) => {
+        filesystem.delete(`${PATH}/${obj.key}`);
+      });
+    }
+    respond(HTTPSuccess(OK, { success: true }), res);
   } catch (error) {
     respond(error, res);
   }

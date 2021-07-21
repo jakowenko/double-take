@@ -1,49 +1,42 @@
 const perf = require('execution-time')();
-const time = require('./time.util');
-const logger = require('./logger.util');
 const database = require('./db.util');
 const { train, remove } = require('./detectors/actions');
-
-const { DETECTORS } = require('../constants');
+const { STORAGE } = require('../constants');
+const DETECTORS = require('../constants/config').detectors();
 
 module.exports.queue = async (files) => {
   try {
-    perf.start();
-    logger.log(`${time.current()}\nqueuing ${files.length} file(s) for training`);
+    if (!files.length) return [];
 
-    const inserts = [];
-    const outputs = [];
-    for (let i = 0; i < files.length; i++) {
-      const output = [];
-      const promises = [];
-      const { id, name, filename, key } = files[i];
-      logger.log(`file ${i + 1}: ${name} - ${filename}`);
-
-      const detectors = Object.fromEntries(
-        Object.entries(DETECTORS).map(([k, v]) => [k.toLowerCase(), v])
-      );
-      for (const [detector] of Object.entries(detectors)) {
-        promises.push(this.process({ name, key, detector }));
-      }
-      const results = await Promise.all(promises);
-
-      results.forEach((result, j) => {
-        output.push({ ...result, key });
-        inserts.push({
-          fileId: id,
+    const records = [];
+    files.forEach(({ id, name, filename }, i) =>
+      DETECTORS.forEach((detector) => {
+        const record = {
+          number: i + 1,
+          id,
           name,
           filename,
-          meta: JSON.stringify(result),
-          detector: Object.entries(detectors)[j][0],
-        });
+          detector,
+        };
+        database.create.train(record);
+        records.push(record);
+      })
+    );
+
+    const outputs = [];
+    for (let i = 0; i < records.length; i++) {
+      const { name, filename, detector } = records[i];
+      const result = await this.process({
+        name,
+        key: `${STORAGE.PATH}/train/${name}/${filename}`,
+        detector,
       });
-      outputs.push(output);
+      outputs.push({ ...result });
+      records[i].meta = JSON.stringify(result);
+      database.create.train(records[i]);
     }
-    database.insert('train', inserts);
-    logger.log(`training complete in ${parseFloat((perf.stop().time / 1000).toFixed(2))} sec`);
-    return outputs;
   } catch (error) {
-    logger.log(`queue error: ${error.message}`);
+    console.error(`queue error: ${error.message}`);
   }
 };
 
@@ -60,11 +53,11 @@ module.exports.process = async ({ name, key, detector }) => {
     const message = typeof data === 'string' ? { data } : { ...data };
 
     if (data.message) {
-      logger.log(`${detector} training error: ${data.message}`);
+      console.error(`${detector} training error: ${data.message}`);
     } else if (data.error) {
-      logger.log(`${detector} training error: ${data.error}`);
+      console.error(`${detector} training error: ${data.error}`);
     } else {
-      logger.log(`${detector} training error: ${error.message}`);
+      console.error(`${detector} training error: ${error.message}`);
     }
 
     return {
@@ -75,7 +68,81 @@ module.exports.process = async ({ name, key, detector }) => {
   }
 };
 
-module.exports.remove = async ({ detector, name }) => {
-  const { data } = await remove({ detector, name });
-  return { detector, results: data };
+module.exports.add = async (name, opts = {}) => {
+  perf.start();
+  const { ids, files } = opts;
+  await database.resync.files();
+  const queue = files
+    ? files.map((obj) => database.get.fileByFilename(obj.name, obj.filename))
+    : ids
+    ? database.get.filesById(ids)
+    : database.get.untrained(name);
+
+  console.log(`${name}: queuing ${queue.length} file(s) for training`);
+  await this.queue(queue);
+  console.log(
+    `${name}: training complete in ${parseFloat((perf.stop().time / 1000).toFixed(2))} sec`
+  );
+};
+
+module.exports.remove = async (name, opts = {}) => {
+  perf.start();
+
+  const { ids } = opts;
+  const db = database.connect();
+
+  const promises = [];
+  DETECTORS.forEach((detector) => promises.push(remove({ detector, name })));
+
+  const results = (await Promise.all(promises)).map((result, i) => ({
+    detector: DETECTORS[i],
+    results: result.data,
+  }));
+
+  if (ids && ids.length) {
+    db.prepare(
+      `DELETE FROM train WHERE name = ? AND detector IN (${database.params(
+        DETECTORS
+      )}) AND fileId IN (${database.params(ids)})`
+    ).run(name, DETECTORS, ids);
+    const addIds = database.get
+      .trained(name)
+      .filter((obj) => DETECTORS.includes(obj.detector))
+      .map((obj) => obj.fileId);
+
+    if (addIds.length) await this.add(name, { ids: addIds });
+    return { success: true };
+  }
+
+  db.prepare(
+    `DELETE FROM train WHERE name = ? AND detector IN (${database.params(DETECTORS)})`
+  ).run(name, DETECTORS);
+
+  console.log(
+    `${name}: untraining complete in ${parseFloat((perf.stop().time / 1000).toFixed(2))} sec`
+  );
+
+  return results;
+};
+
+module.exports.status = () => {
+  const db = database.connect();
+  const status = db
+    .prepare(
+      `SELECT train.name, IFNULL(t1.count, 0) trained,  COUNT(*) total
+        FROM train
+        LEFT JOIN (
+        SELECT name, COUNT(*) count
+        FROM train
+        WHERE meta IS NOT NULL
+        GROUP BY name
+        ) t1 ON train.name = t1.name
+        GROUP BY train.name
+        ORDER BY train.name`
+    )
+    .all();
+  return status.map((obj) => ({
+    ...obj,
+    percent: parseFloat(((obj.trained / obj.total) * 100).toFixed(0)),
+  }));
 };

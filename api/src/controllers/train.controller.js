@@ -1,14 +1,12 @@
-const perf = require('execution-time')();
 const fs = require('fs');
 const sharp = require('sharp');
+const time = require('../util/time.util');
 const database = require('../util/db.util');
 const train = require('../util/train.util');
-const logger = require('../util/logger.util');
-const time = require('../util/time.util');
 const filesystem = require('../util/fs.util');
-const { respond, HTTPSuccess } = require('../util/respond.util');
-const { OK } = require('../constants/http-status');
-const { STORAGE, DETECTORS } = require('../constants');
+const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
+const { OK, BAD_REQUEST } = require('../constants/http-status');
+const { STORAGE } = require('../constants');
 const { tryParseJSON } = require('../util/validators.util');
 
 module.exports.get = async (req, res) => {
@@ -16,7 +14,7 @@ module.exports.get = async (req, res) => {
     const db = database.connect();
     let files = db
       .prepare(
-        'SELECT id, name, filename, createdAt FROM file WHERE isActive = 1 ORDER BY createdAt DESC'
+        'SELECT id, name, filename, createdAt FROM file WHERE isActive = 1 ORDER BY name ASC, id DESC'
       )
       .all();
 
@@ -24,9 +22,11 @@ module.exports.get = async (req, res) => {
       file.results = [];
       const trainings = db.prepare('SELECT * FROM train WHERE fileId = ?').all(file.id);
       trainings.forEach(({ detector, meta, createdAt }) => {
+        meta = JSON.parse(meta);
+        delete meta.detector;
         file.results.push({
           detector,
-          result: tryParseJSON(meta) || null,
+          result: tryParseJSON(JSON.stringify(meta)) || null,
           createdAt,
         });
       });
@@ -50,7 +50,11 @@ module.exports.get = async (req, res) => {
         };
 
         if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
-          const base64 = await sharp(`${STORAGE.PATH}/${key}`).resize(500).toBuffer();
+          const base64 = await sharp(`${STORAGE.PATH}/${key}`)
+            .jpeg({ quality: 70 })
+            .resize(500)
+            .withMetadata()
+            .toBuffer();
           output.file.base64 = base64.toString('base64');
         }
 
@@ -66,29 +70,12 @@ module.exports.get = async (req, res) => {
 module.exports.delete = async (req, res) => {
   try {
     const { name } = req.params;
-
-    perf.start();
-    const promises = [];
-
-    const detectors = Object.fromEntries(
-      Object.entries(DETECTORS).map(([k, v]) => [k.toLowerCase(), v])
-    );
-    for (const [detector] of Object.entries(detectors)) {
-      promises.push(train.remove({ detector, name }));
-      const db = database.connect();
-      db.prepare('DELETE FROM train WHERE detector = ? AND name = ?').run(detector, name);
-    }
-    const results = [...(await Promise.all(promises))];
-
-    logger.log(
-      `${time.current()}\ndone untraining for ${name} in ${parseFloat(
-        (perf.stop().time / 1000).toFixed(2)
-      )} sec`
-    );
+    const { ids } = req.body;
+    const results = await train.remove(name, { ids });
 
     respond(HTTPSuccess(OK, results), res);
   } catch (error) {
-    logger.log(`train delete error: ${error.message}`);
+    console.error(`train delete error: ${error.message}`);
     respond(error, res);
   }
 };
@@ -96,20 +83,101 @@ module.exports.delete = async (req, res) => {
 module.exports.add = async (req, res) => {
   try {
     const { name } = req.params;
-    const files = await filesystem.files().train();
-    database.insert('init', files);
-    const images = database.files('untrained', name);
+    const { urls } = req.body;
 
-    respond(
-      HTTPSuccess(OK, {
-        message: `training queued for ${name} using ${images.length} image(s): check logs for details`,
-      }),
-      res
+    let files = [];
+
+    if (req.files) {
+      await Promise.all(
+        req.files.map(async (obj) => {
+          const { originalname, buffer } = obj;
+          const ext = `.${originalname.split('.').pop()}`;
+          const filename = `${originalname.replace(ext, '')}-${time.unix()}${ext}`;
+          await filesystem.writer(`${STORAGE.PATH}/train/${name}/${filename}`, buffer);
+          files.push({ name, filename });
+        })
+      );
+    } else {
+      files = (urls ? await filesystem.saveURLs(urls, `train/${name}`) : []).map((filename) => ({
+        filename,
+        name,
+      }));
+    }
+
+    train.add(name, { files });
+    respond(HTTPSuccess(OK, { message: `training queued for ${name}` }), res);
+  } catch (error) {
+    console.error(`train add error: ${error.message}`);
+    respond(error, res);
+  }
+};
+
+module.exports.retrain = async (req, res) => {
+  try {
+    const { name } = req.params;
+    await train.remove(name);
+    train.add(name);
+    respond(HTTPSuccess(OK, { success: true }), res);
+  } catch (error) {
+    console.error(`retrain error: ${error.message}`);
+    respond(error, res);
+  }
+};
+
+module.exports.patch = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    const [currentFile] = database.get.filesById([id]);
+
+    if (!currentFile) {
+      throw HTTPError(BAD_REQUEST, 'no file found');
+    }
+
+    filesystem.move(
+      `${STORAGE.PATH}/train/${currentFile.name}/${currentFile.filename}`,
+      `${STORAGE.PATH}/train/${name}/${currentFile.filename}`
     );
 
-    await train.queue(images);
+    train.add(name, { files: [{ name, filename: currentFile.filename }] });
+
+    respond(HTTPSuccess(OK, { success: true }), res);
   } catch (error) {
-    logger.log(`train init error: ${error.message}`);
+    console.error(`train add error: ${error.message}`);
+    respond(error, res);
+  }
+};
+
+module.exports.upload = async (req, res) => {
+  try {
+    const { name } = req.params;
+    const files = [];
+
+    await Promise.all(
+      req.files.map(async (obj) => {
+        const { originalname, buffer } = obj;
+        const ext = `.${originalname.split('.').pop()}`;
+        const filename = `${originalname.replace(ext, '')}-${time.unix()}${ext}`;
+        await filesystem.writer(`${STORAGE.PATH}/train/${name}/${filename}`, buffer);
+        files.push({ name, filename });
+      })
+    );
+
+    train.add(name, { files });
+
+    respond(HTTPSuccess(OK, { success: true }), res);
+  } catch (error) {
+    console.error(`train add error: ${error.message}`);
+    respond(error, res);
+  }
+};
+
+module.exports.status = async (req, res) => {
+  try {
+    respond(HTTPSuccess(OK, train.status()), res);
+  } catch (error) {
+    console.error(`train status error: ${error.message}`);
     respond(error, res);
   }
 };

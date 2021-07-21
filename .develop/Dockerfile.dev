@@ -20,9 +20,6 @@ COPY /frontend/src ./src
 COPY /frontend/public ./public
 COPY /frontend/.env.production ./frontend/vue.config.js ./
 
-RUN npm run build
-RUN mv dist /tmp/dist && rm -r * && mv /tmp/dist/* .
-
 WORKDIR /
 RUN mkdir /.storage
 RUN ln -s /.storage /double-take/.storage
@@ -30,7 +27,3 @@ RUN ln -s /.storage /double-take/.storage
 WORKDIR /double-take
 
 RUN npm install nodemon -g
-
-COPY /entrypoint.sh .
-
-ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]

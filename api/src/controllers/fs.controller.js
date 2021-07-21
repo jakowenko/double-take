@@ -20,7 +20,7 @@ module.exports.folders = () => {
         if (!fs.existsSync(`${STORAGE.PATH}/train/${name}`)) {
           fs.mkdirSync(`${STORAGE.PATH}/train/${name}`);
         }
-        respond(HTTPSuccess(OK, { sucess: true }), res);
+        respond(HTTPSuccess(OK, { success: true }), res);
       } catch (error) {
         respond(error, res);
       }

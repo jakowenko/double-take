@@ -1,6 +1,5 @@
 const factory = require('../factory');
 const { lowercaseKeys } = require('../../helpers.util');
-const logger = require('../../logger.util');
 const { NOTIFY } = require('../../../constants');
 
 module.exports.send = (service, output) => factory.get(service).send(output);
@@ -14,10 +13,10 @@ module.exports.publish = (output, camera, zones) => {
     const check = this.checks(service, { camera, zones });
     if (check === true) {
       this.send(service, output).catch((error) => {
-        logger.log(`${service} send error: ${error.message}`);
+        console.error(`${service} send error: ${error.message}`);
       });
     } else {
-      logger.log(`${service}: ${check}`);
+      console.error(`${service}: ${check}`);
     }
   }
 };

@@ -3,7 +3,6 @@ const { v4: uuidv4 } = require('uuid');
 const process = require('../util/process.util');
 const actions = require('../util/detectors/actions');
 const notify = require('../util/notify/actions');
-const logger = require('../util/logger.util');
 const time = require('../util/time.util');
 const recognize = require('../util/recognize.util');
 const frigate = require('../util/frigate.util');
@@ -85,7 +84,7 @@ module.exports.start = async (req, res) => {
       }
     }
 
-    logger.log(`${time.current()}\nprocessing ${camera}: ${id}`, { dashes: true });
+    console.log(`processing ${camera}: ${id}`);
     perf.start('request');
     PROCESSING = true;
 
@@ -153,17 +152,14 @@ module.exports.start = async (req, res) => {
 
     if (resultsOutput === 'all') output.results = results;
 
-    logger.log('response:');
-    logger.log(output);
-    logger.log(`${time.current()}\ndone processing ${camera}: ${id} in ${duration} sec`, {
-      dashes: true,
-    });
+    console.log(`done processing ${camera}: ${id} in ${duration} sec`);
+    console.log(output);
 
     PROCESSING = false;
 
     respond(HTTPSuccess(OK, output), res);
 
-    mqtt.publish(output);
+    mqtt.recognize(output);
 
     notify.publish(output, camera, results);
 
@@ -171,7 +167,7 @@ module.exports.start = async (req, res) => {
       IDS.push(id);
     }
   } catch (error) {
-    logger.log(error.message);
+    console.error(error.message);
     PROCESSING = false;
     respond(error, res);
   }

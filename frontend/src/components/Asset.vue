@@ -7,7 +7,7 @@
             <div class="open-link">
               <i
                 class="pi pi-external-link"
-                @click="openLink(`${VUE_APP_API_URL}/storage/${match.file.key}?id=${match.id}&box=true`)"
+                @click="openLink(`${VUE_APP_API_URL}/storage/${asset.file.key}?box=true`)"
               ></i>
             </div>
             <div class="selected-overlay" :class="{ selected: selected }"></div>
@@ -19,10 +19,10 @@
               ></div>
             </div>
             <img
-              @click="$parent.$emit('toggle', match)"
+              @click="$parent.$emit('toggle', asset)"
               :class="loaded ? 'thumbnail' : 'thumbnail lazy'"
-              :src="'data:image/jpg;base64,' + match.file.base64"
-              :data-key="match.file.key"
+              :src="'data:image/jpg;base64,' + asset.file.base64"
+              :data-key="asset.file.key"
               :onload="assetLoaded"
             />
           </div>
@@ -32,7 +32,7 @@
         </div>
       </template>
       <template v-slot:content>
-        <DataTable :value="results" class="p-datatable-sm" responsiveLayout="scroll">
+        <DataTable v-if="type === 'match'" :value="results" class="p-datatable-sm" responsiveLayout="scroll">
           <Column header="Detector">
             <template v-slot:body="slotProps">
               <Badge
@@ -55,47 +55,84 @@
             </template>
           </Column>
         </DataTable>
+        <DataTable
+          v-if="type === 'train' && asset.results.length"
+          :value="asset.results"
+          class="p-datatable-sm"
+          responsiveLayout="scroll"
+        >
+          <Column header="Detector">
+            <template v-slot:body="slotProps">
+              <Badge
+                :value="slotProps.data.detector"
+                :severity="
+                  slotProps.data.result
+                    ? slotProps.data.result.status.toString().charAt(0) === '2'
+                      ? 'success'
+                      : 'danger'
+                    : ''
+                "
+              />
+            </template>
+          </Column>
+          <Column header="Result">
+            <template v-slot:body="slotProps">
+              <pre>{{ slotProps.data.result || 'queued' }}</pre>
+            </template>
+          </Column>
+        </DataTable>
+        <div v-else-if="type === 'train'">
+          <div class="p-d-inline-block p-mr-2">untrained</div>
+          <Dropdown v-model="folder" :options="folders" placeholder="move and train" :showClear="true" />
+        </div>
       </template>
       <template v-slot:footer>
         <div class="p-d-flex p-jc-between p-ai-center">
-          <div class="p-mb-3">
-            <Badge v-if="match.camera" :value="match.camera" />
-            <Badge v-if="match.type" :value="match.type" />
-            <Badge v-if="match.zones.length" :value="[...match.zones].join(', ')" />
+          <div v-if="type === 'match'" class="p-mb-3">
+            <Badge v-if="asset.camera" :value="asset.camera" />
+            <Badge v-if="asset.type && asset.type !== 'manual'" :value="asset.type" />
+            <Badge v-if="asset.zones.length" :value="[...asset.zones].join(', ')" />
             <Badge v-if="gender" :value="gender" />
             <Badge v-if="age" :value="age.join('-')" />
           </div>
         </div>
-        <small>{{ createdAt.ago }}</small>
+        <small v-if="type === 'match'">{{ createdAt.ago }}</small>
+        <small v-else-if="type === 'train'">{{ asset.name }}</small>
       </template>
     </Card>
   </div>
 </template>
 
 <script>
+import ApiService from '@/services/api.service';
 import { DateTime } from 'luxon';
 import Badge from 'primevue/badge';
 import Card from 'primevue/card';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import Dropdown from 'primevue/dropdown';
 
 export default {
   props: {
-    match: Object,
+    asset: Object,
     loaded: Boolean,
     selected: Boolean,
     disabled: Boolean,
+    type: String,
+    folders: Array,
   },
   components: {
     Badge,
     Card,
     DataTable,
     Column,
+    Dropdown,
   },
   data() {
     return {
       VUE_APP_API_URL: process.env.VUE_APP_API_URL,
       timestamp: Date.now(),
+      folder: null,
     };
   },
   created() {
@@ -105,13 +142,13 @@ export default {
   },
   methods: {
     assetLoaded() {
-      this.$parent.$emit('assetLoaded', this.match.id);
+      this.$parent.$emit('assetLoaded', this.asset.id);
     },
     openLink(url) {
       window.open(url);
     },
     box(obj) {
-      const { width, height } = this.match.file;
+      const { width, height } = this.asset.file;
       const values = {
         top: obj.width ? `${(obj.top / height) * 100}%` : 0,
         width: obj.width ? `${(obj.width / width) * 100}%` : 0,
@@ -125,8 +162,8 @@ export default {
   computed: {
     results() {
       let data = [];
-      if (Array.isArray(this.match.response)) {
-        this.match.response.forEach((result) => {
+      if (Array.isArray(this.asset.response)) {
+        this.asset.response.forEach((result) => {
           const results = result.results.map((obj) => ({
             detector: result.detector,
             duration: result.duration,
@@ -148,7 +185,7 @@ export default {
     createdAt() {
       const units = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
 
-      const dateTime = DateTime.fromISO(this.match.createdAt);
+      const dateTime = DateTime.fromISO(this.asset.createdAt);
       const diff = dateTime.diffNow().shiftTo(...units);
       const unit = units.find((u) => diff.get(u) !== 0) || 'second';
 
@@ -156,6 +193,15 @@ export default {
         numeric: 'auto',
       });
       return { ago: relativeFormatter.format(Math.trunc(diff.as(unit)), unit), timestamp: this.timestamp };
+    },
+  },
+  watch: {
+    folder(value) {
+      if (value) {
+        const { id } = this.asset;
+        ApiService.patch(`train/${id}`, { name: value });
+        this.$parent.$emit('init', true);
+      }
     },
   },
 };

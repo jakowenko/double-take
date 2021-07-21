@@ -8,7 +8,7 @@ module.exports.event = async (req, res) => {
     const { camera } = req.params;
     const { attempts, break: breakMatch } = req.query;
 
-    const { SNAPSHOT } = Object.keys(CAMERAS)
+    const { SNAPSHOT } = Object.keys(CAMERAS || {})
       .filter((key) => key.toLowerCase() === camera)
       .reduce((obj, key) => {
         obj = CAMERAS[key];

@@ -1,28 +1,23 @@
-/* eslint-disable no-irregular-whitespace */
+require('./src/util/logger.util').init();
 const http = require('http');
+const { SERVER } = require('./src/constants');
 const { version } = require('./package.json');
 const mqtt = require('./src/util/mqtt.util');
-const { app /* , routes */ } = require('./src/app');
-const logger = require('./src/util/logger.util');
+const { app } = require('./src/app');
 const storage = require('./src/util/storage.util');
 const database = require('./src/util/db.util');
 const config = require('./src/constants/config');
 const shutdown = require('./src/util/shutdown.util');
-const { SERVER } = require('./src/constants');
 
 module.exports.start = async () => {
   storage.setup();
-  logger.log(`Double Take v${version}`);
+  console.log(`Double Take v${version}`);
 
-  logger.log(config());
+  console.log(config());
 
   await database.init();
 
-  http.Server(app).listen(SERVER.PORT, () => {
-    // logger.log(`listening on 0.0.0.0:${PORT}`);
-    // logger.log('registered routes:');
-    // logger.log(routes);
-  });
+  http.Server(app).listen(SERVER.PORT);
 
   mqtt.connect();
   storage.purge();

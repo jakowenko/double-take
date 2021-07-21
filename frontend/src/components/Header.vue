@@ -10,13 +10,7 @@
             <Button
               icon="pi pi-check"
               class="p-button-success p-button-sm"
-              @click="
-                createFolder.show = false;
-                folder = createFolder.name.toLowerCase();
-                $nextTick(() => {
-                  $parent.create().folder();
-                });
-              "
+              @click="create().folder()"
               :disabled="!createFolder.name"
             />
           </div>
@@ -28,49 +22,87 @@
       <div v-else class="p-d-flex p-jc-between">
         <div class="p-d-inline-flex p-ai-center">
           <div class="p-mr-2">
-            <Dropdown
-              v-model="folder"
-              :options="folders"
-              :placeholder="loading.folders ? '...' : 'Train'"
-              :disabled="loading.folders"
-              :showClear="true"
-            />
+            <Dropdown v-model="folder" :options="folders" :disabled="createFolder.loading" :showClear="true" />
           </div>
-          <div>
-            <Button
-              v-if="folder"
-              icon="pi pi-check"
-              class="p-button-success p-button-sm"
-              :disabled="matches.selected.length === 0 || !folder"
-              @click="$parent.train"
-            />
+          <div v-if="folder">
+            <div v-if="type === 'match'">
+              <Button
+                class="responsive-button p-button-success p-button-sm"
+                icon="pi pi-check"
+                label="Train"
+                :disabled="matches.selected.length === 0 || !folder"
+                @click="$parent.train"
+              />
+            </div>
+            <div v-if="type === 'train'">
+              <FileUpload
+                mode="basic"
+                name="files[]"
+                :url="uploadUrl"
+                accept="image/*"
+                :maxFileSize="10000000"
+                @upload="$parent.init()"
+                :auto="true"
+                chooseLabel="Upload"
+                class="p-d-inline"
+              />
+              <Button
+                icon="fa fa-recycle push-top"
+                class="responsive-button p-button-success p-button-sm p-ml-1"
+                @click="$parent.sync"
+                label="Sync"
+                :disabled="!matches.source.filter((obj) => obj.name === folder).length"
+              />
+              <Button
+                class="responsive-button p-button-danger p-button-sm p-ml-1"
+                icon="pi pi-trash"
+                label="Untrain"
+                @click="$parent.untrain"
+                :disabled="!matches.source.filter((obj) => obj.name === folder && obj.results.length).length"
+              />
+            </div>
           </div>
         </div>
         <div class="p-d-inline-flex p-ai-center">
           <div>
             <Button
+              v-if="type === 'match'"
               icon="pi pi-trash"
               class="p-button-danger p-button-sm p-mr-1"
               @click="$parent.remove().files($event)"
               :disabled="matches.selected.length === 0"
             />
             <Button
+              v-else-if="type === 'train'"
+              icon="pi pi-trash"
+              class="p-button-danger p-button-sm p-mr-1"
+              @click="$parent.remove().files($event)"
+              :disabled="matches.selected.length === 0"
+            />
+
+            <Button
               icon="pi pi-refresh"
               :class="[{ loading: loading.files }, 'p-button p-button-sm p-mr-1 reload-btn']"
-              @click="$parent.get().matches()"
-              :disabled="liveReload || loading.files"
+              @click="refresh"
+              :disabled="liveReload || loading.files || loading.status"
             />
             <Button
               :icon="areAllSelected ? 'fa fa-check-square' : 'far fa-check-square'"
               class="p-button p-button-sm p-mr-1"
               @click="$parent.toggleAll(!areAllSelected)"
+              :disabled="(loading.files && !liveReload) || loading.status"
             />
-            <Button icon="pi pi-cog" class="p-button p-button-sm" @click="showFilter = !showFilter" />
+            <Button
+              v-if="type === 'match'"
+              icon="pi pi-cog"
+              class="p-button p-button-sm"
+              @click="showFilter = !showFilter"
+            />
           </div>
         </div>
       </div>
     </div>
-    <div class="fixed fixed-sub p-shadow-5 p-pl-3 p-pr-3" :class="{ show: showFilter }">
+    <div v-if="type === 'match'" class="fixed fixed-sub p-shadow-5 p-pl-3 p-pr-3" :class="{ show: showFilter }">
       <div class="p-grid p-ai-center">
         <div class="p-col-6 p-pb-0 stats-text">{{ stats.filtered }} of {{ stats.source }}</div>
         <div class="p-col-6 p-d-flex p-jc-end p-pb-0">
@@ -147,6 +179,8 @@
 </template>
 
 <script>
+import ApiService from '@/services/api.service';
+import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
@@ -161,14 +195,17 @@ export default {
     InputText,
     MultiSelect,
     Checkbox,
+    FileUpload,
   },
   data() {
     return {
-      folder: null,
       createFolder: {
         name: null,
         show: false,
+        loading: false,
       },
+      folder: null,
+      folders: [],
       liveReload: null,
       showFilter: false,
       filter: {
@@ -184,17 +221,68 @@ export default {
   props: {
     areAllSelected: Boolean,
     matches: Object,
-    folders: Array,
     loading: Object,
     stats: Object,
+    type: String,
   },
   mounted() {
     this.$emit('filter', this.filter);
+    this.get().folders();
   },
   beforeUnmount() {
     this.liveReload = false;
   },
   methods: {
+    get() {
+      const $this = this;
+      return {
+        async folders() {
+          try {
+            $this.createFolder.loading = true;
+            const { data } = await ApiService.get('filesystem/folders');
+            $this.$emit('folders', data);
+            $this.folders = ['add new', ...data];
+            $this.createFolder.loading = false;
+          } catch (error) {
+            $this.$toast.add({
+              severity: 'error',
+              detail: error.message,
+              life: 3000,
+            });
+          }
+        },
+      };
+    },
+    create() {
+      const $this = this;
+      return {
+        async folder() {
+          try {
+            $this.createFolder.show = false;
+            $this.folder = $this.createFolder.name.toLowerCase();
+            $this.$nextTick(() => {
+              ApiService.post(`filesystem/folders/${$this.folder}`);
+              $this.get().folders();
+              $this.$toast.add({
+                severity: 'success',
+                detail: 'Folder created',
+                life: 3000,
+              });
+            });
+          } catch (error) {
+            $this.$toast.add({
+              severity: 'error',
+              detail: error.message,
+              life: 3000,
+            });
+          }
+        },
+      };
+    },
+    refresh() {
+      if (this.type === 'match') this.$parent.get().matches();
+      if (this.type === 'train') this.$parent.init();
+    },
     async getMatchesInterval() {
       if (!this.liveReload) return;
       await this.$parent.get().matches();
@@ -220,7 +308,6 @@ export default {
         this.folder = null;
         this.createFolder.name = null;
         this.createFolder.show = true;
-        return;
       }
       this.$emit('trainingFolder', value);
     },
@@ -229,9 +316,11 @@ export default {
     names() {
       const names = [];
       this.matches.source.forEach((obj) => {
-        obj.response.forEach((detector) => {
-          names.push(...detector.results.map((item) => item.name));
-        });
+        if (obj.response) {
+          obj.response.forEach((detector) => {
+            names.push(...detector.results.map((item) => item.name));
+          });
+        }
       });
 
       return names.filter((item, i, ar) => ar.indexOf(item) === i);
@@ -239,12 +328,17 @@ export default {
     detectors() {
       const detectors = [];
       this.matches.source.forEach((obj) => {
-        obj.response.forEach(({ detector }) => {
-          detectors.push(detector);
-        });
+        if (obj.response) {
+          obj.response.forEach(({ detector }) => {
+            detectors.push(detector);
+          });
+        }
       });
 
       return detectors.filter((item, i, ar) => ar.indexOf(item) === i);
+    },
+    uploadUrl() {
+      return `${process.env.VUE_APP_API_URL}/train/add/${this.folder}`;
     },
   },
 };
@@ -267,11 +361,40 @@ export default {
   max-width: $max-width;
   z-index: 4;
 
+  .p-fileupload {
+    ::v-deep(.p-button) {
+      padding: 0.4375rem 0.65625rem;
+      font-size: 0.875rem;
+    }
+    @media only screen and (max-width: 576px) {
+      ::v-deep(.p-button-icon) {
+        margin-right: 0;
+        font-size: 1rem;
+      }
+      ::v-deep(.p-button-label) {
+        font-size: 0;
+      }
+    }
+  }
+
+  @media only screen and (max-width: 576px) {
+    .responsive-button ::v-deep(.p-button-icon) {
+      margin-right: 0;
+    }
+    .responsive-button ::v-deep(.p-button-label) {
+      font-size: 0;
+    }
+  }
+
   .p-button ::v-deep(.fa.p-button-icon),
   .p-button ::v-deep(.fas.p-button-icon),
   .p-button ::v-deep(.far.p-button-icon),
   .p-button ::v-deep(.pi) {
     font-size: 1rem;
+  }
+  .p-button ::v-deep(.push-top) {
+    position: relative;
+    top: 1px;
   }
 
   .p-dropdown {

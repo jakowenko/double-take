@@ -2,12 +2,9 @@ const axios = require('axios');
 const fs = require('fs');
 const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
-const logger = require('./logger.util');
 const sleep = require('./sleep.util');
 const filesystem = require('./fs.util');
 const database = require('./db.util');
-const time = require('./time.util');
-// const frigate = require('./frigate.util');
 const { recognize, normalize } = require('./detectors/actions');
 const { DETECTORS, STORAGE, SAVE } = require('../constants');
 
@@ -81,19 +78,10 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
 
 module.exports.save = async (event, results, filename, tmp) => {
   try {
-    const db = database.connect();
-    db.prepare(
-      `INSERT INTO match (id, filename, event, response, createdAt) VALUES (:id, :filename, :event, :response, :createdAt)`
-    ).run({
-      id: null,
-      filename,
-      event: JSON.stringify(event),
-      response: JSON.stringify(results),
-      createdAt: time.utc(),
-    });
+    database.create.match({ filename, event, response: results });
     await filesystem.writerStream(fs.createReadStream(tmp), `${STORAGE.PATH}/matches/${filename}`);
   } catch (error) {
-    logger.log(`save results error: ${error.message}`);
+    console.error(`save results error: ${error.message}`);
   }
 };
 
@@ -106,9 +94,9 @@ module.exports.process = async ({ detector, tmp }) => {
     return { duration, results: normalize({ detector, data }) };
   } catch (error) {
     if (error.response && error.response.data.error) {
-      logger.log(`${detector} process error: ${error.response.data.error}`);
+      console.error(`${detector} process error: ${error.response.data.error}`);
     } else {
-      logger.log(`${detector} process error: ${error.message}`);
+      console.error(`${detector} process error: ${error.message}`);
     }
   }
 };
@@ -123,12 +111,11 @@ module.exports.isValidURL = async ({ type, url }) => {
     const { headers } = request;
     const isValid = validOptions.includes(headers['content-type']);
     if (!isValid) {
-      logger.log(`url validation failed for ${type}: ${url}`);
-      logger.log(`content type: ${headers['content-type']}`);
+      console.error(`url validation failed for ${type}: ${url}`);
     }
     return isValid;
   } catch (error) {
-    logger.log(`url validation error: ${error.message}`);
+    console.error(`url validation error: ${error.message}`);
     return false;
   }
 };
@@ -142,7 +129,7 @@ module.exports.stream = async (url) => {
     });
     return request.data;
   } catch (error) {
-    logger.log(`stream error: ${error.message}`);
+    console.error(`stream error: ${error.message}`);
   }
 };
 
