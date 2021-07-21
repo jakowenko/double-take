@@ -53,6 +53,7 @@ module.exports.get = async (req, res) => {
           output.file = matchProp.file;
         } else if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
           const base64 = await sharp(`${STORAGE.PATH}/${key}`)
+            .jpeg({ quality: 70 })
             .resize(500)
             .withMetadata()
             .toBuffer();
