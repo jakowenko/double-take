@@ -219,7 +219,7 @@ export default {
         accept: async () => {
           try {
             await ApiService.post(`/train/add/${this.trainingFolder}`, {
-              urls: $this.matches.selected.map((obj) => `${process.env.VUE_APP_API_URL}/storage/${obj.file.key}`),
+              urls: $this.matches.selected.map((obj) => `${window.location.origin}/api/storage/${obj.file.key}`),
             });
 
             const ids = $this.matches.selected.map((obj) => obj.id);
