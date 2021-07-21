@@ -316,3 +316,7 @@ time:
 | notify.gotify.zones                |                       | Only notify from specific zones                                                                                                                   |
 | time.format                        |                       | Defaults to ISO 8601 format with support for [token-based formatting](https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens) |
 | time.timezone                      | `UTC`                 | Time zone used in logs                                                                                                                            |
+
+## Donations
+
+If you would like to make a donation to support development, please use [Github Sponsors](https://github.com/sponsors/jakowenko).
