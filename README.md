@@ -5,7 +5,7 @@
 Unified UI and API for processing and training images for facial recognition.
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/1081811/124193519-f4ae2300-da94-11eb-9720-15f2e7579355.jpg" width="100%">
+  <img src="https://user-images.githubusercontent.com/1081811/126434926-cf2275f7-f3a8-43eb-adc2-903c0071f7d1.jpg" width="100%">
 </p>
 
 ## Why?
@@ -22,7 +22,7 @@ There's a lot of great open source software to perform facial recognition, but e
 
 - [Frigate](https://github.com/blakeblackshear/frigate) v0.8.0-0.9.0
 
-## Use Cases
+## Integrations
 
 ### [Frigate](https://github.com/blakeblackshear/frigate)
 
@@ -56,283 +56,40 @@ If a match is found the image is saved to `/.storage/matches/${filename}`.
 
 Trigger automations / notifications when images are processed.
 
-If the MQTT integration is configured within Home Assistant, then sensors can be created from the topics that Double Take publishes to.
+If the MQTT integration is configured within Home Assistant, then sensors will automatically be created.
+
+#### Notification Automation
 
 ```yaml
-sensor:
-  - platform: mqtt
-    name: David
-    icon: mdi:account
-    state_topic: 'double-take/matches/david'
-    json_attributes_topic: 'double-take/matches/david'
-    value_template: '{{ value_json.camera }}'
-    availability_topic: 'double-take/available'
+alias: Notify
+trigger:
+  - platform: state
+    entity_id: sensor.double_take_david
+  - platform: state
+    entity_id: sensor.double_take_unknown
+condition:
+  - condition: template
+    value_template: '{{ trigger.to_state.state != trigger.from_state.state }}'
+action:
+  - service: notify.mobile_app
+    data:
+      message: >-
+        {{trigger.to_state.attributes.friendly_name}} is near the
+        {{trigger.to_state.state}} @
+        {{trigger.to_state.attributes.match.confidence}}% by
+        {{trigger.to_state.attributes.match.detector}}:{{trigger.to_state.attributes.match.type}}
+        taking {{trigger.to_state.attributes.attempts}} attempt(s) @
+        {{trigger.to_state.attributes.duration}} sec
+      data:
+        attachment:
+          url: http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true
+        actions:
+          - action: URI
+            title: View Image
+            uri: http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true
 ```
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/1081811/116505698-904ec780-a889-11eb-825e-b641203d9e95.jpg" width="70%">
-</p>
-
-## Notify Services
-
-### [Gotify](https://gotify.net)
-
-```yaml
-notify:
-  gotify:
-    url: http://192.168.1.1:8080
-    token: XXXXXXX
-```
-
-## UI
-
-The UI is accessible from `http://localhost:3000/#/`.
-
-### `/#/config`
-
-Make changes to the configuration and restart the API.
-
-### `/#/files`
-
-View files and training results from detectors.
-
-## API
-
-### `GET - /api/config`
-
-Output configuration.
-
-```shell
-curl -X GET "http://localhost:3000/api/config" \
--H "Content-type: application/json"
-```
-
-```json
-{
-  "confidence": { "match": 60, "unknown": 40 },
-  "detectors": {
-    "compreface": {
-      "url": "http://192.168.1.1:8000",
-      "key": "xxx-xxx-xxx-xxx-xxx"
-    },
-    "deepstack": { "url": "http://192.168.1.1:8001" },
-    "facebox": { "url": "http://192.168.1.1:8002" }
-  },
-  "frigate": {
-    "attempts": { "latest": 10, "snapshot": 0 },
-    "image": { "height": 500 },
-    "url": "http://192.168.1.1:5000",
-    "cameras": [],
-    "zones": []
-  },
-  "mqtt": {
-    "topics": {
-      "frigate": "frigate/events",
-      "matches": "double-take/matches",
-      "cameras": "double-take/cameras"
-    },
-    "host": "192.168.1.1"
-  },
-  "objects": { "face": { "min_area_match": 10000 } },
-  "purge": { "matches": 168, "unknown": 8 },
-  "save": { "matches": true, "unknown": true },
-  "server": { "port": 3000 },
-  "storage": { "path": "./.storage" },
-  "time": { "timezone": "UTC", "format": "F" }
-}
-```
-
-### `GET - /api/recognize`
-
-Process image for recognition.
-
-| Query Params | Default       | Description                                          |
-| ------------ | ------------- | ---------------------------------------------------- |
-| url          |               | URL of image to pass to facial recognition detectors |
-| attempts     | `1`           | Number of attempts before stopping without a match   |
-| results      | `best`        | Options: `best`, `all`                               |
-| break        | `true`        | Break attempt loop if a match is found               |
-| camera       | `double-take` | Camera name used in output results                   |
-
-```shell
-curl -X GET "http://localhost:3000/api/recognize?url=https://jakowenko.com/img/david.92f395c6.jpg" \
--H "Content-type: application/json"
-```
-
-```json
-{
-  "id": "fd0d91ee-1ecc-4b93-aee4-4e6523090f9a",
-  "duration": 4.04,
-  "timestamp": "2021-04-28T13:12:06.624-04:00",
-  "attempts": 1,
-  "camera": "double-take",
-  "zones": [],
-  "matches": [
-    {
-      "name": "david",
-      "confidence": 100,
-      "match": true,
-      "box": { "top": 286, "left": 744, "width": 319, "height": 397 },
-      "type": "manual",
-      "detector": "compreface",
-      "duration": 0.92,
-      "filename": "e4f181f2-21bd-4aa3-a2a8-9b7730d9d9dd.jpg"
-    }
-  ]
-}
-```
-
-### `GET - /api/recognize/test`
-
-Process test image for recognition and output the configured detectors raw response.
-
-```shell
-curl -X GET "http://localhost:3000/api/recognize/test" \
--H "Content-type: application/json"
-```
-
-```json
-[
-  {
-    "detector": "deepstack",
-    "response": {
-      "success": true,
-      "predictions": [
-        {
-          "confidence": 0.0260843,
-          "userid": "david",
-          "y_min": 194,
-          "x_min": 215,
-          "y_max": 392,
-          "x_max": 358
-        }
-      ],
-      "duration": 0
-    }
-  },
-  {
-    "detector": "compreface",
-    "response": {
-      "result": [
-        {
-          "box": {
-            "probability": 0.93259,
-            "x_max": 369,
-            "y_max": 412,
-            "x_min": 190,
-            "y_min": 165
-          },
-          "subjects": [{ "subject": "david", "similarity": 0.03813 }]
-        }
-      ]
-    }
-  },
-  {
-    "detector": "facebox",
-    "response": {
-      "success": true,
-      "facesCount": 1,
-      "faces": [
-        {
-          "rect": { "top": 219, "left": 218, "width": 155, "height": 155 },
-          "matched": false,
-          "confidence": 0
-        }
-      ]
-    }
-  }
-]
-```
-
-### `GET - /api/cameras/:camera`
-
-Process images via HTTP or MQTT for configured cameras.
-
-| Query Params | Default | Description                                        |
-| ------------ | ------- | -------------------------------------------------- |
-| attempts     | `1`     | Number of attempts before stopping without a match |
-| break        | `true`  | Break attempt loop if a match is found             |
-
-```yaml
-cameras:
-  driveway:
-    snapshot:
-      topic: driveway/snapshot
-      url: http://192.168.1.1/latest.jpg
-```
-
-```shell
-curl -X GET "http://localhost:3000/api/cameras/driveway" \
--H "Content-type: application/json"
-```
-
-```json
-{
-  "id": "01da75f4-47c5-4558-bc48-d6a90ddc9f05",
-  "duration": 1.41,
-  "timestamp": "2021-06-28T04:10:21.485Z",
-  "attempts": 1,
-  "camera": "driveway",
-  "zones": [],
-  "matches": [
-    {
-      "name": "david",
-      "confidence": 100,
-      "match": true,
-      "box": { "top": 91, "left": 145, "width": 101, "height": 135 },
-      "type": "camera-event",
-      "duration": 0.83,
-      "detector": "deepstack",
-      "filename": "bd7b3ed5-4a9a-46e9-a162-d73e4ca58f1f.jpg"
-    }
-  ]
-}
-```
-
-### `GET - /api/train/add/:name`
-
-Train detectors with images from `./storage/train/${name}`. Once an image is trained, it will not be reprocessed unless it is removed via the API.
-
-```shell
-curl -X GET "http://localhost:3000/api/train/add/david" \
--H "Content-type: application/json"
-```
-
-```json
-{
-  "message": "training queued for david using 2 image(s): check logs for details"
-}
-```
-
-### `GET - /api/train/remove/:name`
-
-Remove all images for the specific name from detectors. This does not delete the files from the training folder.
-
-```shell
-curl -X GET "http://localhost:3000/api/train/remove/david" \
--H "Content-type: application/json"
-```
-
-```json
-[
-  {
-    "detector": "compreface",
-    "results": [{ "image_id": "46f0db76-38ec-4b50-b8c7-de7d4080517d", "subject": "david" }]
-  },
-  { "detector": "deepstack", "results": { "success": true, "duration": 0 } },
-  { "detector": "facebox", "results": { "success": true } }
-]
-```
-
-### `GET - /api/storage/matches/:filename`
-
-Render match image.
-
-| Query Params | Default | Description                                             |
-| ------------ | ------- | ------------------------------------------------------- |
-| box          | `false` | Draw bounding box around face with name and confidence. |
-
-## MQTT
+### MQTT
 
 Publish results to `double-take/matches/${name}` and `double-take/cameras/${camera}`. The number of results will also be published to `double-take/cameras/${camera}/person` and will reset back to `0` after 30 seconds.
 
@@ -341,7 +98,7 @@ mqtt:
   host: 192.168.1.1
 ```
 
-**double-take/matches/david**
+#### double-take/matches/david
 
 ```json
 {
@@ -364,7 +121,7 @@ mqtt:
 }
 ```
 
-**double-take/cameras/back-door**
+#### double-take/cameras/back-door
 
 ```json
 {
@@ -389,6 +146,43 @@ mqtt:
 }
 ```
 
+## Notify Services
+
+### [Gotify](https://gotify.net)
+
+```yaml
+notify:
+  gotify:
+    url: http://192.168.1.1:8080
+    token: XXXXXXX
+```
+
+## UI
+
+The UI is accessible from `http://localhost:3000/#/`.
+
+### Matches
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/1081811/126433882-4a6c5af7-d38d-43c9-8e21-890fa57d7fd4.jpg" width="100%">
+</p>
+
+### Train
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/1081811/126433880-193b16b8-f1c6-4eec-b9c6-51684d87ee2a.jpg" width="100%">
+</p>
+
+### Config
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/1081811/126439727-ea361bd4-4e88-4dda-98c8-8be3a735c2fb.jpg" width="100%">
+</p>
+
+## API
+
+Documentation can be viewed on [Postman](https://documenter.getpostman.com/view/1013188/TzsWuAa8).
+
 ## Usage
 
 ### Docker Run
@@ -398,7 +192,6 @@ docker run -d \
   --name=double-take \
   --restart=unless-stopped \
   -p 3000:3000 \
-  -v ${PWD}/config.yml:/double-take/config.yml \
   -v ${PWD}/.storage:/.storage \
   jakowenko/double-take
 ```
@@ -414,7 +207,6 @@ services:
     image: jakowenko/double-take
     restart: unless-stopped
     volumes:
-      - ${PWD}/config.yml:/double-take/config.yml
       - ${PWD}/.storage:/.storage
     ports:
       - 3000:3000
@@ -493,6 +285,7 @@ time:
 | mqtt.username                      |                       | MQTT username                                                                                                                                     |
 | mqtt.password                      |                       | MQTT password                                                                                                                                     |
 | mqtt.topics.frigate                | `frigate/events`      | MQTT topic for Frigate message subscription                                                                                                       |
+| mqtt.topics.homeassistant          | `homeassistant`       | MQTT topic for Home Assistant Discovery subscription                                                                                              |
 | mqtt.topics.matches                | `double-take/matches` | MQTT topic where matches are published                                                                                                            |
 | mqtt.topics.cameras                | `double-take/cameras` | MQTT topic where matches are published by camera name                                                                                             |
 | confidence.match                   | `60`                  | Minimum confidence needed to consider a result a match                                                                                            |
@@ -523,7 +316,3 @@ time:
 | notify.gotify.zones                |                       | Only notify from specific zones                                                                                                                   |
 | time.format                        |                       | Defaults to ISO 8601 format with support for [token-based formatting](https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens) |
 | time.timezone                      | `UTC`                 | Time zone used in logs                                                                                                                            |
-
-## Known Issues
-
-In rare scenarios, requesting images from Frigate's API causes Frigate to crash. There is an [open issue](https://github.com/blakeblackshear/frigate/discussions/853) with more information, but it appears sometimes the database connection isn't being closed in time causing Frigate's API to crash. This appears to be related to processing the `snapshot.jpg`. Setting `frigate.attempts.snapshot` to `0` will disable the processing of that image.
