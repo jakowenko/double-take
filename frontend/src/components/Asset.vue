@@ -7,7 +7,7 @@
             <div class="open-link">
               <i
                 class="pi pi-external-link"
-                @click="openLink(`${VUE_APP_API_URL}/storage/${asset.file.key}?box=true`)"
+                @click="openLink(`${constants().api}/storage/${asset.file.key}?box=true`)"
               ></i>
             </div>
             <div class="selected-overlay" :class="{ selected: selected }"></div>
@@ -105,6 +105,7 @@
 
 <script>
 import ApiService from '@/services/api.service';
+import Constants from '@/util/constants.util';
 import { DateTime } from 'luxon';
 import Badge from 'primevue/badge';
 import Card from 'primevue/card';
@@ -128,19 +129,20 @@ export default {
     Column,
     Dropdown,
   },
-  data() {
-    return {
-      VUE_APP_API_URL: process.env.VUE_APP_API_URL,
-      timestamp: Date.now(),
-      folder: null,
-    };
-  },
+  data: () => ({
+    timestamp: Date.now(),
+    folder: null,
+    loadedCount: 0,
+  }),
   created() {
     setInterval(() => {
       this.timestamp = Date.now();
     }, 1000);
   },
   methods: {
+    constants: () => ({
+      ...Constants(),
+    }),
     assetLoaded() {
       this.$parent.$emit('assetLoaded', this.asset.id);
     },

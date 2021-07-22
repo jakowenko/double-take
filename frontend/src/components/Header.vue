@@ -180,6 +180,7 @@
 
 <script>
 import ApiService from '@/services/api.service';
+import Constants from '@/util/constants.util';
 import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
@@ -338,7 +339,7 @@ export default {
       return detectors.filter((item, i, ar) => ar.indexOf(item) === i);
     },
     uploadUrl() {
-      return `${process.env.VUE_APP_API_URL}/train/add/${this.folder}`;
+      return `${Constants().api}/train/add/${this.folder}`;
     },
   },
 };

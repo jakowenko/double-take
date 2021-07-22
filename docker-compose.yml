@@ -9,8 +9,6 @@ services:
     build:
       context: .
       dockerfile: ./.develop/Dockerfile.dev
-    environment:
-      VUE_APP_API_URL: http://localhost:3000/api
     ports:
       - 8080:8080
     volumes:
