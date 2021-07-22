@@ -73,7 +73,7 @@ export default {
     code: '',
     ready: false,
     loading: false,
-    height: `${window.innerHeight}px`,
+    height: `${window.innerHeight - 28 - 40 - 10}px`,
   }),
   async mounted() {
     try {
