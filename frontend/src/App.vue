@@ -24,11 +24,6 @@ export default {
     ConfirmDialog,
     Toolbar,
   },
-  data() {
-    return {
-      info: null,
-    };
-  },
 };
 </script>
 

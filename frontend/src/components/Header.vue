@@ -198,27 +198,25 @@ export default {
     Checkbox,
     FileUpload,
   },
-  data() {
-    return {
-      createFolder: {
-        name: null,
-        show: false,
-        loading: false,
-      },
-      folder: null,
-      folders: [],
-      liveReload: null,
-      showFilter: false,
-      filter: {
-        name: null,
-        match: ['match', 'miss'],
-        detector: null,
-        confidence: 0,
-        width: 0,
-        height: 0,
-      },
-    };
-  },
+  data: () => ({
+    createFolder: {
+      name: null,
+      show: false,
+      loading: false,
+    },
+    folder: null,
+    folders: [],
+    liveReload: null,
+    showFilter: false,
+    filter: {
+      name: null,
+      match: ['match', 'miss'],
+      detector: null,
+      confidence: 0,
+      width: 0,
+      height: 0,
+    },
+  }),
   props: {
     areAllSelected: Boolean,
     matches: Object,

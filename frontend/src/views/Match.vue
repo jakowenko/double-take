@@ -36,26 +36,24 @@ export default {
     Header,
     Grid,
   },
-  data() {
-    return {
-      info: null,
-      folders: [],
-      loading: {
-        folders: false,
-        files: false,
-        createFolder: false,
-      },
-      matches: {
-        source: [],
-        selected: [],
-        disabled: [],
-        loaded: [],
-      },
-      filter: {},
-      trainingFolder: null,
-      liveReload: false,
-    };
-  },
+  data: () => ({
+    info: null,
+    folders: [],
+    loading: {
+      folders: false,
+      files: false,
+      createFolder: false,
+    },
+    matches: {
+      source: [],
+      selected: [],
+      disabled: [],
+      loaded: [],
+    },
+    filter: {},
+    trainingFolder: null,
+    liveReload: false,
+  }),
   computed: {
     source() {
       return JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
