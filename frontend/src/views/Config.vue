@@ -39,6 +39,8 @@
 import Button from 'primevue/button';
 import Sleep from '@/util/sleep.util';
 
+import 'ace-builds';
+import 'ace-builds/webpack-resolver';
 import ApiService from '@/services/api.service';
 
 import { VAceEditor } from 'vue3-ace-editor';
