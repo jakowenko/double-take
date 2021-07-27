@@ -82,6 +82,7 @@ module.exports.connect = () => {
 
   CLIENT.on('connect', () => {
     console.log('MQTT: connected');
+    this.publish({ topic: 'double-take/errors' });
     this.available('online');
     this.subscribe();
   })
@@ -133,7 +134,7 @@ module.exports.recognize = (data) => {
   try {
     if (!MQTT || !MQTT.HOST) return;
     const { matches, unknown, camera } = data;
-    const hasUnkown = unknown && Object.keys(unknown).length;
+    const hasUnknown = unknown && Object.keys(unknown).length;
 
     const configData = JSON.parse(JSON.stringify(data));
     delete configData.matches;
@@ -142,10 +143,10 @@ module.exports.recognize = (data) => {
 
     const messages = [];
 
-    let personCount = matches.length ? matches.length : hasUnkown ? 1 : 0;
+    let personCount = matches.length ? matches.length : hasUnknown ? 1 : 0;
     // check to see if unknown bounding box is contained within or contains any of the match bounding boxes
     // if false, then add 1 to the person count
-    if (matches.length && hasUnkown) {
+    if (matches.length && hasUnknown) {
       let unknownContained = false;
       matches.forEach((match) => {
         if (contains(match.box, unknown.box) || contains(unknown.box, match.box))
@@ -159,7 +160,7 @@ module.exports.recognize = (data) => {
       message: personCount.toString(),
     });
 
-    if (hasUnkown) {
+    if (hasUnknown) {
       messages.push({
         topic: `${MQTT.TOPICS.MATCHES}/unknown`,
         message: JSON.stringify({
@@ -225,7 +226,7 @@ module.exports.recognize = (data) => {
       }
     });
 
-    if (matches.length || hasUnkown) {
+    if (matches.length || hasUnknown) {
       messages.push({
         topic: `${MQTT.TOPICS.CAMERAS}/${camera}`,
         message: JSON.stringify({
