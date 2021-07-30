@@ -1,6 +1,5 @@
 const express = require('express');
-const { jwt } = require('../middlewares');
-const { validate, expressValidator } = require('../middlewares/validate.middleware');
+const { jwt, validate, expressValidator } = require('../middlewares');
 const controller = require('../controllers/storage.controller');
 
 const { query } = expressValidator;
