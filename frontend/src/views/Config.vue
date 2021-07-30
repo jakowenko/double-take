@@ -73,7 +73,7 @@ export default {
     code: '',
     ready: false,
     loading: false,
-    height: `${window.innerHeight - 28 - 40 - 10}px`,
+    height: `${window.innerHeight - 31 - 35 - 10}px`,
   }),
   async mounted() {
     try {
@@ -197,7 +197,7 @@ export default {
       this.editor = editor;
     },
     updateHeight() {
-      this.height = `${window.innerHeight - 28 - 40 - 10}px`;
+      this.height = `${window.innerHeight - 31 - 35 - 10}px`;
     },
     highlighter(code) {
       return highlight(code, languages.js);
