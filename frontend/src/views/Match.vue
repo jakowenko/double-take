@@ -153,11 +153,7 @@ export default {
             if (data.matches.length) $this.matches.disabled = [];
             $this.loading.files = false;
           } catch (error) {
-            $this.$toast.add({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
+            $this.emitter.emit('error', error);
           }
         },
       };
@@ -187,21 +183,18 @@ export default {
                   const { areAllSelected } = $this;
                   $this.matches.disabled = $this.matches.disabled.concat(ids);
                   $this.matches.selected = [];
+                  $this.emitter.emit('toast', { message: `${description} deleted` });
 
-                  $this.toast({
-                    severity: 'success',
-                    detail: `${description} deleted`,
-                  });
                   if (areAllSelected && !$this.liveReload) {
                     await $this.get().matches();
                   }
                 } catch (error) {
-                  $this.toast({ severity: 'error', detail: error.message });
+                  $this.emitter.emit('error', error);
                 }
               },
             });
           } catch (error) {
-            $this.toast({ severity: 'error', detail: error.message });
+            $this.emitter.emit('error', error);
           }
         },
       };
@@ -224,25 +217,11 @@ export default {
             $this.matches.disabled = $this.matches.disabled.concat(ids);
             $this.matches.selected = [];
 
-            this.toast({
-              severity: 'success',
-              detail: `${description} trained for ${this.trainingFolder}`,
-            });
+            $this.emitter.emit('toast', { message: `${description} trained for ${this.trainingFolder}` });
           } catch (error) {
-            this.toast({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
+            $this.emitter.emit('error', error);
           }
         },
-      });
-    },
-    toast({ severity, detail }) {
-      this.$toast.add({
-        severity,
-        detail,
-        life: 3000,
       });
     },
     selected(match) {

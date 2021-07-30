@@ -93,11 +93,7 @@ export default {
             $this.matches.source = data;
             $this.loading.files = false;
           } catch (error) {
-            $this.$toast.add({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
+            $this.emitter.emit('error', error);
           }
         },
         async status() {
@@ -118,11 +114,7 @@ export default {
               $this.get().status();
             }
           } catch (error) {
-            $this.$toast.add({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
+            $this.emitter.emit('error', error);
           }
         },
       };
@@ -167,12 +159,12 @@ export default {
                   }
                   await $this.init();
                 } catch (error) {
-                  $this.toast({ severity: 'error', detail: error.message });
+                  $this.emitter.emit('error', error);
                 }
               },
             });
           } catch (error) {
-            $this.toast({ severity: 'error', detail: error.message });
+            $this.emitter.emit('error', error);
           }
         },
       };
@@ -190,11 +182,7 @@ export default {
             await ApiService.delete(`/train/remove/${this.trainingFolder}`);
             await $this.init();
           } catch (error) {
-            this.toast({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
+            $this.emitter.emit('error', error);
           }
         },
       });
@@ -212,11 +200,7 @@ export default {
             await ApiService.get(`/train/retrain/${this.trainingFolder}`);
             await $this.init();
           } catch (error) {
-            this.toast({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
+            $this.emitter.emit('error', error);
           }
         },
       });
@@ -234,13 +218,6 @@ export default {
     toggleAll(state) {
       const available = this.filtered.filter((obj) => !this.matches.disabled.includes(obj.id)).map((obj) => obj);
       this.matches.selected = state ? available : [];
-    },
-    toast({ severity, detail }) {
-      this.$toast.add({
-        severity,
-        detail,
-        life: 3000,
-      });
     },
   },
 };

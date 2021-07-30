@@ -243,11 +243,7 @@ export default {
             $this.folders = ['add new', ...data];
             $this.createFolder.loading = false;
           } catch (error) {
-            $this.$toast.add({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
+            $this.emitter.emit('error', error);
           }
         },
       };
@@ -269,11 +265,7 @@ export default {
               });
             });
           } catch (error) {
-            $this.$toast.add({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
+            $this.emitter.emit('error', error);
           }
         },
       };

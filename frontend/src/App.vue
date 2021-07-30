@@ -24,6 +24,8 @@ export default {
     ConfirmDialog,
     Toolbar,
   },
+    this.emitter.on('error', (error) => this.error(error));
+    this.emitter.on('toast', (...args) => this.toast(...args));
 };
 </script>
 

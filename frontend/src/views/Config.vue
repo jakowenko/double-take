@@ -92,11 +92,7 @@ export default {
       window.addEventListener('resize', this.updateHeight);
     } catch (error) {
       this.doubleTake.status = error.response && error.response.status ? error.response.status : 500;
-      this.$toast.add({
-        severity: 'error',
-        detail: error.message,
-        life: 3000,
-      });
+      this.emitter.emit('error', error);
     }
   },
   beforeUnmount() {
@@ -134,11 +130,7 @@ export default {
         this.doubleTake.status = 200;
         this.loading = false;
         this.checkDetectors();
-        this.$toast.add({
-          severity: 'success',
-          detail: 'Restart complete',
-          life: 3000,
-        });
+        this.emitter.emit('toast', { message: 'Restart complete' });
       } catch (error) {
         if (this.restartCount < 1) {
           this.restartCount += 1;
@@ -151,11 +143,9 @@ export default {
         this.services.forEach((service) => {
           service.status = status;
         });
-        this.$toast.add({
-          severity: 'error',
-          detail: 'Restart Error: check container logs',
-          life: 10000,
-        });
+
+        error.message = 'Restart Error: check container logs';
+        this.emitter.emit('error', error);
       }
     },
     async checkFrigate(url) {
@@ -217,11 +207,7 @@ export default {
         if (this.loading) return;
         this.loading = true;
         await ApiService.patch('config', { code: this.code });
-        this.$toast.add({
-          severity: 'success',
-          detail: 'Restarting to load changes',
-          life: 3000,
-        });
+        this.emitter.emit('toast', { message: 'Restarting to load changes' });
         this.services.forEach((detector) => {
           delete detector.status;
         });
@@ -229,11 +215,7 @@ export default {
         delete this.frigate.status;
         this.waitForRestart();
       } catch (error) {
-        this.$toast.add({
-          severity: 'error',
-          detail: error.message,
-          life: 3000,
-        });
+        this.emitter.emit('error', error);
       }
     },
   },

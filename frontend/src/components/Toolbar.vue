@@ -67,8 +67,9 @@ export default {
             );
             if (currentBuild.id < lastBuild.id) this.updateAvailable = true;
           }
-          // eslint-disable-next-line no-empty
-        } catch (error) {}
+        } catch (error) {
+          this.emitter.emit('error', error);
+        }
         if (!this.updateAvailable) setTimeout(this.checkVersion, 60000);
       } else {
         this.buildTag = 'dev';
