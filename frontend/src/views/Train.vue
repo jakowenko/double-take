@@ -6,8 +6,6 @@
       :stats="{ filtered: filtered.length, source: source.length }"
       :matches="matches"
       :areAllSelected="areAllSelected"
-      @trainingFolder="trainingFolder = $event"
-      @folders="folders = $event"
     />
     <div class="p-d-flex p-jc-center p-p-3">
       <div v-if="loading.status && status.length" class="p-d-flex p-flex-column progress-holder">
@@ -18,16 +16,7 @@
         </div>
       </div>
       <i v-else-if="loading.files || loading.status" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
-      <Grid
-        v-else
-        type="train"
-        :folders="folders"
-        :matches="{ filtered, ...matches }"
-        @toggle="selected"
-        @assetLoaded="assetLoaded"
-        style="width: 100%"
-        @init="init"
-      />
+      <Grid v-else type="train" :folders="folders" :matches="{ filtered, ...matches }" style="width: 100%" />
     </div>
   </div>
 </template>
@@ -70,6 +59,19 @@ export default {
     filtered() {
       return JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
     },
+  },
+  created() {
+    this.emitter.on('trainingFolder', (value) => {
+      this.trainingFolder = value;
+    });
+
+    this.emitter.on('folders', (value) => {
+      this.folders = value;
+    });
+
+    this.emitter.on('init', (...args) => this.init(...args));
+    this.emitter.on('toggleAsset', (...args) => this.selected(...args));
+    this.emitter.on('assetLoaded', (...args) => this.assetLoaded(...args));
   },
   async mounted() {
     await this.init();

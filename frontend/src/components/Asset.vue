@@ -19,7 +19,7 @@
               ></div>
             </div>
             <img
-              @click="$parent.$emit('toggle', asset)"
+              @click="emitter.emit('toggleAsset', asset)"
               :class="loaded ? 'thumbnail' : 'thumbnail lazy'"
               :src="'data:image/jpg;base64,' + asset.file.base64"
               :data-key="asset.file.key"
@@ -144,7 +144,7 @@ export default {
       ...Constants(),
     }),
     assetLoaded() {
-      this.$parent.$emit('assetLoaded', this.asset.id);
+      this.emitter.emit('assetLoaded', this.asset.id);
     },
     openLink(url) {
       window.open(url);
@@ -202,7 +202,7 @@ export default {
       if (value) {
         const { id } = this.asset;
         ApiService.patch(`train/${id}`, { name: value });
-        this.$parent.$emit('init', true);
+        this.emitter.emit('init', true);
       }
     },
   },

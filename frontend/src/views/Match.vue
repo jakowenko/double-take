@@ -7,20 +7,10 @@
       :matches="matches"
       :areAllSelected="areAllSelected"
       :stats="{ filtered: filtered.length, source: source.length }"
-      @trainingFolder="trainingFolder = $event"
-      @filter="filter = $event"
-      @liveReload="liveReload = $event"
     />
     <div class="p-d-flex p-jc-center p-p-3">
       <i v-if="loading.files && !source.length" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
-      <Grid
-        v-else
-        type="match"
-        :matches="{ filtered, ...matches }"
-        @toggle="selected"
-        @assetLoaded="assetLoaded"
-        style="width: 100%"
-      />
+      <Grid v-else type="match" :matches="{ filtered, ...matches }" style="width: 100%" />
     </div>
   </div>
 </template>
@@ -110,6 +100,19 @@ export default {
       });
       return filtered.flat().slice(0, 250);
     },
+  },
+  created() {
+    this.emitter.on('liveReload', (value) => {
+      this.liveReload = value;
+    });
+    this.emitter.on('filter', (value) => {
+      this.filter = value;
+    });
+    this.emitter.on('trainingFolder', (value) => {
+      this.trainingFolder = value;
+    });
+    this.emitter.on('assetLoaded', (...args) => this.assetLoaded(...args));
+    this.emitter.on('toggleAsset', (...args) => this.selected(...args));
   },
   async mounted() {
     await this.init();

@@ -225,7 +225,7 @@ export default {
     type: String,
   },
   mounted() {
-    this.$emit('filter', this.filter);
+    this.emitter.emit('filter', this.filter);
     this.get().folders();
   },
   beforeUnmount() {
@@ -239,7 +239,7 @@ export default {
           try {
             $this.createFolder.loading = true;
             const { data } = await ApiService.get('filesystem/folders');
-            $this.$emit('folders', data);
+            $this.emitter.emit('folders', data);
             $this.folders = ['add new', ...data];
             $this.createFolder.loading = false;
           } catch (error) {
@@ -283,7 +283,7 @@ export default {
   },
   watch: {
     async liveReload(value) {
-      this.$emit('liveReload', value);
+      this.emitter.emit('liveReload', value);
       if (value) {
         this.getMatchesInterval();
       }
@@ -300,7 +300,7 @@ export default {
         this.createFolder.name = null;
         this.createFolder.show = true;
       }
-      this.$emit('trainingFolder', value);
+      this.emitter.emit('trainingFolder', value);
     },
   },
   computed: {
