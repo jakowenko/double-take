@@ -421,7 +421,7 @@ export default {
   }
 
   &.fixed-sub {
-    background: var(--surface-50);
+    background: var(--surface-a);
     top: -100px;
     z-index: 3;
     padding-top: 0.75rem;
