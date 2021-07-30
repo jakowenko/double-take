@@ -1,5 +1,4 @@
 module.exports = {
-  server: { port: 3000 },
   confidence: {
     match: 60,
     unknown: 40,
