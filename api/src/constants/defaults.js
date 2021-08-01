@@ -1,5 +1,5 @@
 module.exports = {
-  auth: true,
+  auth: false,
   confidence: {
     match: 60,
     unknown: 40,
