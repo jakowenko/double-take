@@ -2,12 +2,12 @@ const { v4: uuidv4 } = require('uuid');
 const { auth, jwt } = require('../util/auth.util');
 const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
 const { AUTH } = require('../constants');
-const { OK, UNAUTHORIZED } = require('../constants/http-status');
+const { OK, BAD_REQUEST, UNAUTHORIZED } = require('../constants/http-status');
 
 module.exports.status = (req, res) => {
-  const { password } = auth.get();
   const response = { auth: AUTH };
-  if (AUTH && password) response.configured = true;
+  if (AUTH && auth.get().password) response.configured = true;
+  if (AUTH) response.jwtValid = jwt.verify(req.headers.authorization);
   respond(HTTPSuccess(OK, response), res);
 };
 
