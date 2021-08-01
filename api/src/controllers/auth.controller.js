@@ -50,3 +50,18 @@ module.exports.password = (req, res) => {
     respond(error, res);
   }
 };
+
+module.exports.updatePassword = (req, res) => {
+  try {
+    const { password: currentPassword, newPassword } = req.body;
+    const { password } = auth.get();
+
+    if (currentPassword !== password) {
+      throw HTTPError(BAD_REQUEST, 'Password Incorrect');
+    }
+    auth.set({ secret: uuidv4(), password: newPassword });
+    respond(HTTPSuccess(OK), res);
+  } catch (error) {
+    respond(error, res);
+  }
+};
