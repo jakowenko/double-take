@@ -43,7 +43,10 @@ const routes = [
   },
   {
     path: '/logout',
-    redirect: '/login',
+    beforeEnter: (to, from, next) => {
+      localStorage.removeItem('token');
+      next('/login');
+    },
   },
   {
     path: '/:catchAll(.*)',
@@ -61,9 +64,6 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  if (to.redirectedFrom && to.redirectedFrom.path === '/logout') {
-    localStorage.removeItem('token');
-  }
   document.title = to.meta.title ? `${to.meta.title} | Double Take` : 'Double Take';
   next();
 });
