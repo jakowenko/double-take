@@ -6,12 +6,13 @@ const notify = require('../util/notify/actions');
 const time = require('../util/time.util');
 const recognize = require('../util/recognize.util');
 const frigate = require('../util/frigate.util');
+const { jwt } = require('../util/auth.util');
 const mqtt = require('../util/mqtt.util');
 const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
 const { lowercaseKeys } = require('../util/helpers.util');
 const { OK, BAD_REQUEST } = require('../constants/http-status');
 
-const { FRIGATE, DETECTORS } = require('../constants');
+const { AUTH, FRIGATE, DETECTORS } = require('../constants');
 
 const { IDS, MATCH_IDS } = {
   IDS: [],
@@ -149,6 +150,7 @@ module.exports.start = async (req, res) => {
       matches: best,
     };
     if (unknown && Object.keys(unknown).length) output.unknown = unknown;
+    if (AUTH) output.token = jwt.sign({ route: 'storage' });
 
     if (resultsOutput === 'all') output.results = results;
 

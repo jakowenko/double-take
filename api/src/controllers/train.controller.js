@@ -4,13 +4,15 @@ const time = require('../util/time.util');
 const database = require('../util/db.util');
 const train = require('../util/train.util');
 const filesystem = require('../util/fs.util');
+const { jwt } = require('../util/auth.util');
 const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
 const { OK, BAD_REQUEST } = require('../constants/http-status');
-const { STORAGE } = require('../constants');
+const { AUTH, STORAGE } = require('../constants');
 const { tryParseJSON } = require('../util/validators.util');
 
 module.exports.get = async (req, res) => {
   try {
+    const token = AUTH ? jwt.sign({ route: 'storage' }) : null;
     const db = database.connect();
     let files = db
       .prepare(
@@ -47,6 +49,7 @@ module.exports.get = async (req, res) => {
           },
           results,
           createdAt,
+          token,
         };
 
         if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {

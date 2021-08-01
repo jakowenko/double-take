@@ -7,7 +7,13 @@
             <div class="open-link">
               <i
                 class="pi pi-external-link"
-                @click="openLink(`${constants().api}/storage/${asset.file.key}?box=true`)"
+                @click="
+                  openLink(
+                    `${constants().api}/storage/${asset.file.key}?box=true${
+                      asset.token ? `&token=${asset.token}` : ''
+                    }`,
+                  )
+                "
               ></i>
             </div>
             <div class="selected-overlay" :class="{ selected: selected }"></div>
