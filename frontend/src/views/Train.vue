@@ -152,11 +152,13 @@ export default {
               accept: async () => {
                 try {
                   names.forEach((name) => {
-                    ApiService.delete(`train/remove/${name}`, { ids });
+                    ApiService.delete(`train/remove/${name}`, { data: ids });
                   });
                   if (untrained.length) {
                     await ApiService.delete('storage/train', {
-                      files: untrained.map((obj) => ({ id: obj.id, key: obj.file.key })),
+                      data: {
+                        files: untrained.map((obj) => ({ id: obj.id, key: obj.file.key })),
+                      },
                     });
                   }
                   await $this.init();

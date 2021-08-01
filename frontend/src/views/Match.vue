@@ -17,6 +17,7 @@
 
 <script>
 import ApiService from '@/services/api.service';
+import Constants from '@/util/constants.util';
 import Grid from '@/components/Grid.vue';
 import Header from '@/components/Header.vue';
 import Sleep from '@/util/sleep.util';
@@ -135,7 +136,7 @@ export default {
               $this.liveReload && $this.matches.source.length && $this.matches.source[0]
                 ? { ...$this.matches.source[0] }.id
                 : 0;
-            const { data } = await ApiService.get('match', { sinceId });
+            const { data } = await ApiService.get('match', { params: { sinceId } });
 
             if (sinceId === 0) {
               $this.matches.source = data.matches;
@@ -182,7 +183,7 @@ export default {
                     filename: obj.file.filename,
                   }));
                   const ids = $this.matches.selected.map((obj) => obj.id);
-                  await ApiService.delete('match', matches);
+                  await ApiService.delete('match', { data: matches });
                   const { areAllSelected } = $this;
                   $this.matches.disabled = $this.matches.disabled.concat(ids);
                   $this.matches.selected = [];
@@ -213,7 +214,7 @@ export default {
         accept: async () => {
           try {
             await ApiService.post(`/train/add/${this.trainingFolder}`, {
-              urls: $this.matches.selected.map((obj) => `${window.location.origin}/api/storage/${obj.file.key}`),
+              urls: $this.matches.selected.map((obj) => `${Constants().api}/storage/${obj.file.key}`),
             });
 
             const ids = $this.matches.selected.map((obj) => obj.id);
