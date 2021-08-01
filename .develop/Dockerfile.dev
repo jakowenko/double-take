@@ -26,4 +26,6 @@ RUN ln -s /.storage /double-take/.storage
 
 WORKDIR /double-take
 
+ENV NODE_ENV=development
+
 RUN npm install nodemon -g

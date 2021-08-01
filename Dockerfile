@@ -33,4 +33,6 @@ RUN npm install nodemon -g
 
 COPY /entrypoint.sh .
 
+ENV NODE_ENV=production
+
 ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
