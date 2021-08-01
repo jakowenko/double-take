@@ -73,7 +73,7 @@ module.exports.get = async (req, res) => {
 module.exports.delete = async (req, res) => {
   try {
     const { name } = req.params;
-    const { ids } = req.body;
+    const ids = req.body;
     const results = await train.remove(name, { ids });
 
     respond(HTTPSuccess(OK, results), res);
