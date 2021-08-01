@@ -19,6 +19,7 @@ api.interceptors.request.use((request) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error?.response?.data?.error) error.message = error?.response?.data?.error;
     if (error?.response?.status === 401) emitter.emit('login');
     return Promise.reject(error);
   },
