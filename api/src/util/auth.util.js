@@ -33,7 +33,15 @@ module.exports.auth = {
 module.exports.jwt = {
   sign: (obj = {}) =>
     jwt.sign(obj, this.auth.get().secret, {
-      expiresIn: '168h',
+      expiresIn: obj.route ? '1h' : '168h',
     }),
-  verify: (token) => jwt.verify(token, this.auth.get().secret),
+  decode: (token) => jwt.verify(token, this.auth.get().secret),
+  verify: (token) => {
+    try {
+      jwt.verify(token, this.auth.get().secret);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  },
 };

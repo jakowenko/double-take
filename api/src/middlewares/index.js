@@ -12,9 +12,11 @@ module.exports.jwt = async (req, res, next) => {
       return next();
     }
     const token = req.query.token || req.headers.authorization;
-    const tokens = auth.get().tokens ? auth.get().tokens.map((obj) => obj.token) : [];
+    const tokens = ((req.query.token && auth.get().tokens) || []).map((obj) => obj.token);
     if (tokens.includes(token)) return next();
-    jwt.verify(token);
+    const { route } = jwt.decode(token);
+
+    if (route && !req.baseUrl.includes(route)) throw Error('Unauthorized');
     next();
   } catch (error) {
     respond(HTTPError(UNAUTHORIZED, 'Unauthorized'), res);
