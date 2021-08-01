@@ -1,7 +1,7 @@
 <template>
-  <div class="wrapper p-pr-3 p-d-flex p-jc-between p-ai-center" ref="toolbar">
-    <div class="p-as-end" style="padding-bottom: 1px"><TabMenu :model="items" /></div>
-    <div v-if="version" class="version">
+  <div class="wrapper p-pr-3 p-d-flex p-jc-between p-ai-center">
+    <div class="p-as-end"><TabMenu :model="navigation" v-if="$route.path !== '/login'" /></div>
+    <div v-if="version" class="version p-ml-auto p-mr-1">
       <a
         :href="
           'https://hub.docker.com/repository/docker/jakowenko/double-take/tags?page=1&ordering=last_updated' +
@@ -14,40 +14,99 @@
       >
         <div v-tooltip.left="`Update Available`" class="icon p-d-inline-block p-mr-1"></div>
       </a>
-      <a href="https://github.com/jakowenko/double-take" target="_blank"
-        >v{{ version }}{{ buildTag ? `:${buildTag}` : '' }}</a
+    </div>
+    <div class="double-take-menu-wrapper p-as-center p-d-inline-flex" @click="toggleMenu">
+      <i class="pi p-as-center p-mr-1 pi-angle-down"></i>
+      Double Take
+      <Menu
+        v-if="$route.path === '/login'"
+        ref="menu"
+        class="double-take-menu"
+        :model="unauthorizedMenu"
+        :popup="true"
+      />
+      <Menu v-else ref="menu" class="double-take-menu" :model="menu" :popup="true" />
       >
     </div>
   </div>
 </template>
 
 <script>
+import Menu from 'primevue/menu';
 import TabMenu from 'primevue/tabmenu';
 import ApiService from '@/services/api.service';
+import { version } from '../../package.json';
 
 export default {
   components: {
     TabMenu,
+    Menu,
   },
   data: () => ({
-    version: null,
+    version,
     updateAvailable: false,
     buildTag: null,
-    items: [
+    hasAuth: null,
+    navigation: [
       { label: 'Matches', icon: 'pi pi-fw fa fa-portrait', to: '/' },
       { label: 'Train', icon: 'pi pi-fw fa fa-images', to: '/train' },
       { label: 'Config', icon: 'pi pi-fw pi-cog', to: '/config' },
     ],
+    menu: [],
+    unauthorizedMenu: [
+      {
+        items: [],
+      },
+    ],
+    authorizedMenu: [
+      {
+        items: [
+          { label: 'Access Tokens', icon: 'pi pi-fw pi-key', to: '/tokens' },
+          {
+            label: 'Change Password',
+            icon: 'pi pi-fw pi-lock',
+            to: '?password',
+          },
+          {
+            label: 'Sign Out',
+            icon: 'pi pi-fw pi-power-off',
+            to: '/logout',
+            auth: true,
+          },
+        ],
+      },
+    ],
   }),
+  created() {
+    this.emitter.on('hasAuth', (data) => {
+      this.hasAuth = data;
+    });
+  },
   async mounted() {
     try {
-      const { data } = await ApiService.get('config');
-      this.version = data.version;
-      this.checkVersion();
-      // eslint-disable-next-line no-empty
-    } catch (error) {}
+      const obj = {
+        label: `v${this.version}`,
+        command: () => {
+          window.open('https://github.com/jakowenko/double-take');
+        },
+      };
+
+      this.authorizedMenu[0].items.unshift(obj);
+      this.unauthorizedMenu[0].items.unshift(obj);
+      await this.checkVersion();
+      if (this.buildTag) {
+        this.authorizedMenu[0].items[0].label = `v${this.version}:${this.buildTag}`;
+        this.unauthorizedMenu[0].items[0].label = `v${this.version}:${this.buildTag}`;
+      }
+    } catch (error) {
+      this.emitter.emit('error', error);
+    }
+  },
   },
   methods: {
+    toggleMenu(event) {
+      this.$refs.menu.toggle(event);
+    },
     async checkVersion() {
       if (this.version.includes('-')) {
         try {
@@ -76,6 +135,15 @@ export default {
       }
     },
   },
+  watch: {
+    hasAuth(value) {
+      if (value === true) {
+        this.menu = this.authorizedMenu;
+        return;
+      }
+      this.menu = this.unauthorizedMenu;
+    },
+  },
 };
 </script>
 
@@ -83,7 +151,6 @@ export default {
 @import '@/assets/scss/_variables.scss';
 .wrapper {
   height: $tool-bar-height;
-  font-size: 11px;
   z-index: 5;
   position: fixed;
   top: 0;
@@ -118,6 +185,17 @@ a.update.visible {
   &:hover {
     text-decoration: underline;
   }
+}
+
+.double-take-menu-wrapper {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.p-tabmenu {
+  overflow: hidden;
 }
 
 ::v-deep(.p-tabmenu) .p-tabmenu-nav {
