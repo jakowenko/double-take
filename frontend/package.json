@@ -40,8 +40,8 @@
     "@vue/eslint-config-airbnb": "^5.3.0",
     "@vue/eslint-config-prettier": "^6.0.0",
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.31.0",
-    "eslint-plugin-vue": "^7.14.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-vue": "^7.15.0",
     "node-sass": "^6.0.1",
     "sass-loader": "^10.2.0"
   },
