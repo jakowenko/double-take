@@ -6,9 +6,9 @@ module.exports.tryParseJSON = (json) => {
     if (o && typeof o === 'object') {
       return o;
     }
-    // eslint-disable-next-line no-empty
-  } catch (e) {}
-
+  } catch (e) {
+    return false;
+  }
   return false;
 };
 
