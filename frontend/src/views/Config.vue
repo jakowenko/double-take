@@ -130,6 +130,9 @@ export default {
         this.doubleTake.status = 200;
         this.loading = false;
         this.checkDetectors();
+        ApiService.get('auth/status').then(({ data }) => {
+          this.emitter.emit('hasAuth', data.auth);
+        });
         this.emitter.emit('toast', { message: 'Restart complete' });
       } catch (error) {
         if (this.restartCount < 1) {
