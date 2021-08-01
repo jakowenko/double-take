@@ -26,7 +26,28 @@
         :popup="true"
       />
       <Menu v-else ref="menu" class="double-take-menu" :model="menu" :popup="true" />
+      <Dialog
+        position="top"
+        :modal="true"
+        :closable="false"
+        v-model:visible="password.show"
+        class="change-password-dialog"
+        style="min-width: 300px"
       >
+        <template v-slot:header>
+          <strong>Update Password</strong>
+        </template>
+        <label for="currentPassword" class="p-d-block p-mb-1">Current Password</label>
+        <InputText id="currentPassword" type="password" v-model="password.current" class="p-d-block p-mb-2" />
+        <label for="newPassword" class="p-d-block p-mb-1">New Password</label>
+        <InputText id="newPassword" type="password" v-model="password.new" class="p-d-block p-mb-2" />
+        <label for="verifyPassword" class="p-d-block p-mb-1">Verify Password</label>
+        <InputText id="verifyPassword" type="password" v-model="password.verify" class="p-d-block" />
+        <template v-slot:footer>
+          <Button label="Cancel" class="p-button-text" @click="$router.push($route.path)" />
+          <Button label="Yes" :disabled="isDisabled" @click="updatePassword" />
+        </template>
+      </Dialog>
     </div>
   </div>
 </template>
@@ -34,6 +55,9 @@
 <script>
 import Menu from 'primevue/menu';
 import TabMenu from 'primevue/tabmenu';
+import Dialog from 'primevue/dialog';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
 import ApiService from '@/services/api.service';
 import { version } from '../../package.json';
 
@@ -41,12 +65,21 @@ export default {
   components: {
     TabMenu,
     Menu,
+    Dialog,
+    Button,
+    InputText,
   },
   data: () => ({
     version,
     updateAvailable: false,
     buildTag: null,
     hasAuth: null,
+    password: {
+      show: false,
+      current: null,
+      new: null,
+      verify: null,
+    },
     navigation: [
       { label: 'Matches', icon: 'pi pi-fw fa fa-portrait', to: '/' },
       { label: 'Train', icon: 'pi pi-fw fa fa-images', to: '/train' },
@@ -102,8 +135,29 @@ export default {
       this.emitter.emit('error', error);
     }
   },
+  computed: {
+    isDisabled() {
+      return (
+        !this.password.current ||
+        !this.password.new ||
+        !this.password.verify ||
+        this.password.new !== this.password.verify
+      );
+    },
   },
   methods: {
+    async updatePassword() {
+      try {
+        await ApiService.patch('auth/password', { password: this.password.current, newPassword: this.password.new });
+        this.$router.push('/logout');
+        this.emitter.emit('toast', { message: 'Password Updated' });
+        this.password.current = null;
+        this.password.new = null;
+        this.password.verify = null;
+      } catch (error) {
+        this.emitter.emit('error', error);
+      }
+    },
     toggleMenu(event) {
       this.$refs.menu.toggle(event);
     },
@@ -143,6 +197,13 @@ export default {
       }
       this.menu = this.unauthorizedMenu;
     },
+    $route(to) {
+      if (to.query.password || to.query.password === null) {
+        this.password.show = true;
+        return;
+      }
+      this.password.show = false;
+    },
   },
 };
 </script>
@@ -160,6 +221,19 @@ export default {
   max-width: $max-width;
   background: var(--surface-b);
   border-bottom: 1px solid var(--bluegray-700);
+}
+
+.change-password-dialog {
+  label {
+    font-size: 0.9rem;
+    font-weight: bold;
+  }
+  input {
+    width: 100%;
+    @media only screen and (max-width: 576px) {
+      font-size: 16px;
+    }
+  }
 }
 
 .icon {
