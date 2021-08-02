@@ -1,7 +1,7 @@
 <template>
   <div class="wrapper p-pr-3 p-d-flex p-jc-between p-ai-center">
     <div><TabMenu :model="navigation" v-if="$route.path !== '/login'" /></div>
-    <div v-if="version" class="version p-ml-auto p-mr-2">
+    <div v-if="updateAvailable" class="version p-ml-auto p-mr-2">
       <div v-tooltip.left="`Update Available`" class="icon" @click="dockerHub"></div>
     </div>
     <div class="double-take-menu-wrapper p-d-flex" @click="toggleMenu">
