@@ -4,7 +4,12 @@
       <div v-if="createFolder.show" class="p-d-flex p-jc-between">
         <div class="p-d-inline-flex p-ai-center">
           <div class="p-mr-2">
-            <InputText type="text" v-model="createFolder.name" placeholder="folder name" />
+            <InputText
+              type="text"
+              v-model="createFolder.name"
+              @keyup.enter="create().folder()"
+              placeholder="folder name"
+            />
           </div>
           <div>
             <Button
@@ -260,6 +265,7 @@ export default {
       return {
         async folder() {
           try {
+            if (!$this.createFolder.name) return;
             $this.createFolder.show = false;
             $this.folder = $this.createFolder.name.toLowerCase();
             $this.$nextTick(() => {
