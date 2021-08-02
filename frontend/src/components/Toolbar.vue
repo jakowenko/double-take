@@ -1,22 +1,11 @@
 <template>
   <div class="wrapper p-pr-3 p-d-flex p-jc-between p-ai-center">
-    <div class="p-as-end"><TabMenu :model="navigation" v-if="$route.path !== '/login'" /></div>
-    <div v-if="version" class="version p-ml-auto p-mr-1">
-      <a
-        :href="
-          'https://hub.docker.com/repository/docker/jakowenko/double-take/tags?page=1&ordering=last_updated' +
-          '&name=' +
-          buildTag
-        "
-        target="_blank"
-        class="update"
-        :class="{ visible: updateAvailable }"
-      >
-        <div v-tooltip.left="`Update Available`" class="icon p-d-inline-block p-mr-1"></div>
-      </a>
+    <div><TabMenu :model="navigation" v-if="$route.path !== '/login'" /></div>
+    <div v-if="version" class="version p-ml-auto p-mr-2">
+      <div v-tooltip.left="`Update Available`" class="icon" @click="dockerHub"></div>
     </div>
-    <div class="double-take-menu-wrapper p-as-center p-d-inline-flex" @click="toggleMenu">
-      <i class="pi p-as-center p-mr-1 pi-angle-down"></i>
+    <div class="double-take-menu-wrapper p-d-flex" @click="toggleMenu">
+      <i class="pi p-mr-1 pi-angle-down p-as-center" style="height: 14px; overflow: hidden"></i>
       Double Take
       <Menu
         v-if="$route.path === '/login'"
@@ -188,6 +177,13 @@ export default {
         this.buildTag = 'dev';
       }
     },
+    dockerHub() {
+      window.open(
+        `${'https://hub.docker.com/repository/docker/jakowenko/double-take/tags?page=1&ordering=last_updated&name='}${
+          this.buildTag
+        }`,
+      );
+    },
   },
   watch: {
     hasAuth(value) {
@@ -241,6 +237,7 @@ export default {
   width: 9px;
   height: 9px;
   border-radius: 100%;
+  cursor: pointer;
 }
 a.update {
   opacity: 0;
