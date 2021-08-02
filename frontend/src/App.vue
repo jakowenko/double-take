@@ -87,6 +87,10 @@ body {
     'Segoe UI Emoji', 'Segoe UI Symbol';
 }
 
+.p-toast {
+  z-index: 10000 !important;
+}
+
 .p-toast .p-toast-message-content {
   align-items: center;
 }
