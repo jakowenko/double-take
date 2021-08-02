@@ -196,8 +196,11 @@ module.exports.recognize = (data) => {
     }
 
     matches.forEach((match) => {
+      const topic = match.name.replace(/\s+/g, '-');
+      const name = match.name.replace(/\s+/g, '_');
+
       messages.push({
-        topic: `${MQTT.TOPICS.MATCHES}/${match.name}`,
+        topic: `${MQTT.TOPICS.MATCHES}/${topic}`,
         message: JSON.stringify({
           ...configData,
           match,
@@ -206,20 +209,20 @@ module.exports.recognize = (data) => {
 
       if (MQTT.TOPICS.HOMEASSISTANT) {
         messages.push({
-          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${match.name}/config`,
+          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/config`,
           message: JSON.stringify({
-            name: `double_take_${match.name}`,
+            name: `double_take_${name}`,
             icon: 'mdi:account',
             value_template: '{{ value_json.camera }}',
-            state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${match.name}/state`,
-            json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${match.name}/state`,
+            state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/state`,
+            json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/state`,
             availability_topic: 'double-take/available',
-            unique_id: `double_take_${match.name}`,
+            unique_id: `double_take_${name}`,
           }),
         });
 
         messages.push({
-          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${match.name}/state`,
+          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/state`,
           message: JSON.stringify({
             ...configData,
             match,
