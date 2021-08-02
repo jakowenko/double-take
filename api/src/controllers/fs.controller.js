@@ -1,6 +1,7 @@
 const fs = require('fs');
 const filesystem = require('../util/fs.util');
 const { respond, HTTPSuccess } = require('../util/respond.util');
+const { resync } = require('../util/db.util');
 const { OK } = require('../constants/http-status');
 const { STORAGE } = require('../constants');
 
@@ -18,6 +19,18 @@ module.exports.folders = {
       const { name } = req.params;
       if (!fs.existsSync(`${STORAGE.PATH}/train/${name}`)) {
         fs.mkdirSync(`${STORAGE.PATH}/train/${name}`);
+      }
+      respond(HTTPSuccess(OK, { success: true }), res);
+    } catch (error) {
+      respond(error, res);
+    }
+  },
+  delete: async (req, res) => {
+    try {
+      const { name } = req.params;
+      if (fs.existsSync(`${STORAGE.PATH}/train/${name}`)) {
+        fs.rmdirSync(`${STORAGE.PATH}/train/${name}`, { recursive: true });
+        await resync.files();
       }
       respond(HTTPSuccess(OK, { success: true }), res);
     } catch (error) {

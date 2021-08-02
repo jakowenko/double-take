@@ -70,6 +70,7 @@ export default {
     });
 
     this.emitter.on('init', (...args) => this.init(...args));
+    this.emitter.on('realoadTrain', (...args) => this.init(...args));
     this.emitter.on('toggleAsset', (...args) => this.selected(...args));
     this.emitter.on('assetLoaded', (...args) => this.assetLoaded(...args));
   },

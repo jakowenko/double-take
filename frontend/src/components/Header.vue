@@ -56,9 +56,16 @@
               <Button
                 class="responsive-button p-button-danger p-button-sm p-ml-1"
                 icon="pi pi-trash"
-                label="Untrain"
-                @click="$parent.untrain"
-                :disabled="!matches.source.filter((obj) => obj.name === folder && obj.results.length).length"
+                :label="
+                  matches.source.filter((obj) => obj.name === folder && obj.results.length).length
+                    ? 'Untrain'
+                    : 'Remove'
+                "
+                @click="
+                  matches.source.filter((obj) => obj.name === folder && obj.results.length).length
+                    ? $parent.untrain()
+                    : remove().folder()
+                "
               />
             </div>
           </div>
@@ -267,6 +274,30 @@ export default {
           } catch (error) {
             $this.emitter.emit('error', error);
           }
+        },
+      };
+    },
+    remove() {
+      this.emitter.emit('clearSelected');
+      const $this = this;
+      return {
+        async folder() {
+          $this.$confirm.require({
+            header: 'Confirmation',
+            message: `Do you want to remove the training folder and images for ${$this.folder}?`,
+            acceptClass: 'p-button-danger',
+            position: 'top',
+            accept: async () => {
+              try {
+                await ApiService.delete(`filesystem/folders/${$this.folder}`);
+                await $this.get().folders();
+                $this.emitter.emit('realoadTrain');
+                $this.folder = null;
+              } catch (error) {
+                $this.emitter.emit('error', error);
+              }
+            },
+          });
         },
       };
     },

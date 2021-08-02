@@ -6,6 +6,7 @@ const router = express.Router();
 
 router
   .get('/folders', jwt, controller.folders.list)
-  .post('/folders/:name', jwt, controller.folders.create);
+  .post('/folders/:name', jwt, controller.folders.create)
+  .delete('/folders/:name', jwt, controller.folders.delete);
 
 module.exports = router;
