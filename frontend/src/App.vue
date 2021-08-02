@@ -140,7 +140,7 @@ body {
 }
 
 .p-dialog.p-confirm-dialog {
-  max-width: 500px;
+  max-width: 350px;
   .p-dialog-content {
     text-align: center;
   }
