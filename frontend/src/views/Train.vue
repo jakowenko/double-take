@@ -94,7 +94,7 @@ export default {
         async files() {
           try {
             $this.loading.files = true;
-            const { data } = await ApiService.get('/train');
+            const { data } = await ApiService.get('train');
             $this.matches.source = data;
             $this.loading.files = false;
           } catch (error) {
@@ -105,7 +105,7 @@ export default {
           try {
             $this.loading.status = true;
             await Sleep(1000);
-            const { data } = await ApiService.get('/train/status');
+            const { data } = await ApiService.get('train/status');
             $this.status = data.filter((obj) => obj.percent < 100);
 
             let isComplete = true;
@@ -186,7 +186,7 @@ export default {
         position: 'top',
         accept: async () => {
           try {
-            await ApiService.delete(`/train/remove/${this.trainingFolder}`);
+            await ApiService.delete(`train/remove/${this.trainingFolder}`);
             await $this.init();
           } catch (error) {
             $this.emitter.emit('error', error);
@@ -204,7 +204,7 @@ export default {
         position: 'top',
         accept: async () => {
           try {
-            await ApiService.get(`/train/retrain/${this.trainingFolder}`);
+            await ApiService.get(`train/retrain/${this.trainingFolder}`);
             await $this.init();
           } catch (error) {
             $this.emitter.emit('error', error);

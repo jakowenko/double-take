@@ -213,7 +213,7 @@ export default {
         position: 'top',
         accept: async () => {
           try {
-            await ApiService.post(`/train/add/${this.trainingFolder}`, {
+            await ApiService.post(`train/add/${this.trainingFolder}`, {
               urls: $this.matches.selected.map((obj) => `${Constants().api}/storage/${obj.file.key}`),
             });
 
