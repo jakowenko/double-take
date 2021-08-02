@@ -135,7 +135,7 @@ export default {
         });
         this.emitter.emit('toast', { message: 'Restart complete' });
       } catch (error) {
-        if (this.restartCount < 1) {
+        if (this.restartCount < 5) {
           this.restartCount += 1;
           this.waitForRestart();
           return;
