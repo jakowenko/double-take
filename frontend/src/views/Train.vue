@@ -69,7 +69,9 @@ export default {
       this.folders = value;
     });
 
-    this.emitter.on('init', (...args) => this.init(...args));
+    this.emitter.on('clearSelected', () => {
+      this.matches.selected = [];
+    });
     this.emitter.on('realoadTrain', (...args) => this.init(...args));
     this.emitter.on('toggleAsset', (...args) => this.selected(...args));
     this.emitter.on('assetLoaded', (...args) => this.assetLoaded(...args));
@@ -175,8 +177,8 @@ export default {
       };
     },
     untrain() {
+      this.emitter.emit('clearSelected');
       const $this = this;
-      this.matches.selected = [];
       this.$confirm.require({
         header: 'Confirmation',
         message: `Do you want to untrain all images for ${this.trainingFolder}?`,
@@ -193,8 +195,8 @@ export default {
       });
     },
     sync() {
+      this.emitter.emit('clearSelected');
       const $this = this;
-      this.matches.selected = [];
       this.$confirm.require({
         header: 'Confirmation',
         message: `Do you want to sync all images for ${this.trainingFolder}? This will untrain and retrain all images for the configured detectors.`,

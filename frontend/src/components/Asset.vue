@@ -208,7 +208,7 @@ export default {
       if (value) {
         const { id } = this.asset;
         ApiService.patch(`train/${id}`, { name: value });
-        this.emitter.emit('init', true);
+        this.emitter.emit('realoadTrain');
       }
     },
   },
