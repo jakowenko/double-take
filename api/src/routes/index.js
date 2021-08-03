@@ -14,6 +14,7 @@ router.use('/train', require('./train.routes'));
 router.use('/storage', require('./storage.routes'));
 router.use('/proxy', require('./proxy.routes'));
 
+router.use('/tmp', express.static(`/tmp`));
 router.all('*', (req, res) => respond(HTTPError(NOT_FOUND, `${req.originalUrl} not found`), res));
 
 module.exports = router;

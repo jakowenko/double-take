@@ -10,7 +10,6 @@ app.use(
   express.static(process.env.NODE_ENV === 'development' ? './frontend/dist/' : './frontend/')
 );
 app.use('/api', router);
-app.use('/api/tmp', express.static(`/tmp`));
 app.use('/', (req, res) => {
   res.sendFile(
     process.env.NODE_ENV === 'development'
