@@ -168,7 +168,7 @@ export default {
         this.checkFrigate(data.frigate.url);
       }
 
-      this.services = data
+      this.services = data?.detectors
         ? Object.keys(data.detectors).map((item) => ({ name: this.formatName(item), status: null }))
         : [];
 
