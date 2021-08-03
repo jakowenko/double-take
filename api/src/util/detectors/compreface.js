@@ -7,7 +7,7 @@ const { DETECTORS, CONFIDENCE, OBJECTS } = require('../../constants');
 const { COMPREFACE } = DETECTORS || {};
 
 module.exports.recognize = async ({ test, key }) => {
-  const { URL, KEY, FACE_PLUGINS } = COMPREFACE;
+  const { URL, KEY, DET_PROB_THRESHOLD, FACE_PLUGINS } = COMPREFACE;
   if (test && !(await doesUrlResolve(URL))) {
     return { status: 404 };
   }
@@ -24,7 +24,7 @@ module.exports.recognize = async ({ test, key }) => {
       return true;
     },
     params: {
-      det_prob_threshold: 0.8,
+      det_prob_threshold: DET_PROB_THRESHOLD,
     },
     data: formData,
   });

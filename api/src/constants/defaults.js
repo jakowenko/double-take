@@ -28,6 +28,11 @@ module.exports = {
       homeassistant: 'homeassistant',
     },
   },
+  detectors: {
+    compreface: {
+      det_prob_threshold: 0.8,
+    },
+  },
   notify: {
     gotify: {
       priority: 5,
