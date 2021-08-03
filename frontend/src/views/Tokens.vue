@@ -1,7 +1,7 @@
 <template>
   <div class="wrapper p-p-3">
     <div class="p-d-flex p-ai-center">
-      <h1 class="p-m-0">Tokens</h1>
+      <h1 class="p-m-0">Access Tokens</h1>
       <InputText
         type="text"
         v-model="name"
@@ -11,6 +11,11 @@
       />
       <Button type="button" label="Create" class="p-button-sm p-button-success" :disabled="!name" @click="create" />
     </div>
+    <p>
+      Create access tokens to allow other applications to interact with your Double Take API. Tokens should be passed as
+      a query string parameter in the format of <span class="code">?token=TOKEN</span>.
+    </p>
+
     <ul v-if="tokens.length">
       <li v-for="token in tokens" :key="token" class="p-mt-3">
         {{ token.name }}
@@ -91,6 +96,16 @@ ul {
 
   input {
     width: calc(100% - 70px);
+  }
+}
+
+.code {
+  font-family: monospace;
+}
+
+@media only screen and (max-width: 576px) {
+  h1 {
+    font-size: 1.35rem;
   }
 }
 
