@@ -5,5 +5,4 @@ module.exports = {
       title: 'Double Take',
     },
   },
-  publicPath: './',
 };

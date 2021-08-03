@@ -1,27 +1,27 @@
 import axios from 'axios';
-import VueAxios from 'vue-axios';
-import { createApp } from 'vue';
-import App from '@/App.vue';
+import Constants from '@/util/constants.util';
+import emitter from '@/services/emitter.service';
 
-const app = createApp(App);
+const api = axios.create({
+  baseURL: Constants().api,
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  },
+});
 
-app.use(VueAxios, axios);
-app.axios.defaults.baseURL = process.env.VUE_APP_API_URL;
-app.axios.defaults.headers.common['Content-Type'] = 'application/json';
+api.interceptors.request.use((request) => {
+  const token = localStorage.getItem('token');
+  if (token) request.headers.common.authorization = token;
+  return request;
+});
 
-const ApiService = {
-  get(resource, params) {
-    return app.axios.get(resource, { params });
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.data?.error) error.message = error?.response?.data?.error;
+    if (error?.response?.status === 401) emitter.emit('login');
+    return Promise.reject(error);
   },
-  post(resource, params, queryParams) {
-    return app.axios.post(resource, params, queryParams);
-  },
-  patch(resource, params, queryParams) {
-    return app.axios.patch(resource, params, queryParams);
-  },
-  delete(resource, params, queryParams) {
-    return app.axios.delete(resource, { data: params }, queryParams);
-  },
-};
-
-export default ApiService;
+);
+export default api;

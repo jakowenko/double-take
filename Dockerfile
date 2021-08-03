@@ -18,7 +18,7 @@ COPY /api/src ./src
 WORKDIR /double-take/frontend
 COPY /frontend/src ./src
 COPY /frontend/public ./public
-COPY /frontend/.env.production ./frontend/vue.config.js ./
+COPY /frontend/.env.production /frontend/vue.config.js /frontend/babel.config.js ./
 
 RUN npm run build
 RUN mv dist /tmp/dist && rm -r * && mv /tmp/dist/* .
@@ -32,5 +32,7 @@ WORKDIR /double-take
 RUN npm install nodemon -g
 
 COPY /entrypoint.sh .
+
+ENV NODE_ENV=production
 
 ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]

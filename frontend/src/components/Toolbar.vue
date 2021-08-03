@@ -1,53 +1,155 @@
 <template>
-  <div class="wrapper p-pr-3 p-d-flex p-jc-between p-ai-center" ref="toolbar">
-    <div class="p-as-end" style="padding-bottom: 1px"><TabMenu :model="items" /></div>
-    <div v-if="version" class="version">
-      <a
-        :href="
-          'https://hub.docker.com/repository/docker/jakowenko/double-take/tags?page=1&ordering=last_updated' +
-          '&name=' +
-          buildTag
-        "
-        target="_blank"
-        class="update"
-        :class="{ visible: updateAvailable }"
+  <div class="wrapper p-pr-3 p-d-flex p-jc-between p-ai-center">
+    <div><TabMenu :model="navigation" v-if="$route.path !== '/login'" /></div>
+    <div v-if="updateAvailable" class="version p-ml-auto p-mr-2">
+      <div v-tooltip.left="`Update Available`" class="icon" @click="dockerHub"></div>
+    </div>
+    <div class="double-take-menu-wrapper p-d-flex" @click="toggleMenu">
+      <i class="pi p-mr-1 pi-angle-down p-as-center" style="height: 14px; overflow: hidden"></i>
+      Double Take
+      <Menu
+        v-if="$route.path === '/login'"
+        ref="menu"
+        class="double-take-menu"
+        :model="unauthorizedMenu"
+        :popup="true"
+      />
+      <Menu v-else ref="menu" class="double-take-menu" :model="menu" :popup="true" />
+      <Dialog
+        position="top"
+        :modal="true"
+        :closable="false"
+        v-model:visible="password.show"
+        class="change-password-dialog"
+        style="min-width: 300px"
       >
-        <div v-tooltip.left="`Update Available`" class="icon p-d-inline-block p-mr-1"></div>
-      </a>
-      <a href="https://github.com/jakowenko/double-take" target="_blank"
-        >v{{ version }}{{ buildTag ? `:${buildTag}` : '' }}</a
-      >
+        <template v-slot:header>
+          <strong>Update Password</strong>
+        </template>
+        <label for="currentPassword" class="p-d-block p-mb-1">Current Password</label>
+        <InputText id="currentPassword" type="password" v-model="password.current" class="p-d-block p-mb-2" />
+        <label for="newPassword" class="p-d-block p-mb-1">New Password</label>
+        <InputText id="newPassword" type="password" v-model="password.new" class="p-d-block p-mb-2" />
+        <label for="verifyPassword" class="p-d-block p-mb-1">Verify Password</label>
+        <InputText id="verifyPassword" type="password" v-model="password.verify" class="p-d-block" />
+        <template v-slot:footer>
+          <Button label="Cancel" class="p-button-text" @click="$router.push($route.path)" />
+          <Button label="Yes" :disabled="isDisabled" @click="updatePassword" />
+        </template>
+      </Dialog>
     </div>
   </div>
 </template>
 
 <script>
+import Menu from 'primevue/menu';
 import TabMenu from 'primevue/tabmenu';
+import Dialog from 'primevue/dialog';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
 import ApiService from '@/services/api.service';
+import { version } from '../../package.json';
 
 export default {
   components: {
     TabMenu,
+    Menu,
+    Dialog,
+    Button,
+    InputText,
   },
   data: () => ({
-    version: null,
+    version,
     updateAvailable: false,
     buildTag: null,
-    items: [
+    hasAuth: null,
+    password: {
+      show: false,
+      current: null,
+      new: null,
+      verify: null,
+    },
+    navigation: [
       { label: 'Matches', icon: 'pi pi-fw fa fa-portrait', to: '/' },
       { label: 'Train', icon: 'pi pi-fw fa fa-images', to: '/train' },
       { label: 'Config', icon: 'pi pi-fw pi-cog', to: '/config' },
     ],
+    menu: [],
+    unauthorizedMenu: [
+      {
+        items: [],
+      },
+    ],
+    authorizedMenu: [
+      {
+        items: [
+          { label: 'Access Tokens', icon: 'pi pi-fw pi-key', to: '/tokens' },
+          {
+            label: 'Change Password',
+            icon: 'pi pi-fw pi-lock',
+            to: '?password',
+          },
+          {
+            label: 'Sign Out',
+            icon: 'pi pi-fw pi-power-off',
+            to: '/logout',
+            auth: true,
+          },
+        ],
+      },
+    ],
   }),
+  created() {
+    this.emitter.on('hasAuth', (data) => {
+      this.hasAuth = data;
+    });
+  },
   async mounted() {
     try {
-      const { data } = await ApiService.get('config');
-      this.version = data.version;
-      this.checkVersion();
-      // eslint-disable-next-line no-empty
-    } catch (error) {}
+      const obj = {
+        label: `v${this.version}`,
+        command: () => {
+          window.open('https://github.com/jakowenko/double-take');
+        },
+      };
+
+      this.authorizedMenu[0].items.unshift(obj);
+      this.unauthorizedMenu[0].items.unshift(obj);
+      await this.checkVersion();
+      if (this.buildTag) {
+        this.authorizedMenu[0].items[0].label = `v${this.version}:${this.buildTag}`;
+        this.unauthorizedMenu[0].items[0].label = `v${this.version}:${this.buildTag}`;
+      }
+    } catch (error) {
+      this.emitter.emit('error', error);
+    }
+  },
+  computed: {
+    isDisabled() {
+      return (
+        !this.password.current ||
+        !this.password.new ||
+        !this.password.verify ||
+        this.password.new !== this.password.verify
+      );
+    },
   },
   methods: {
+    async updatePassword() {
+      try {
+        await ApiService.patch('auth/password', { password: this.password.current, newPassword: this.password.new });
+        this.$router.push('/logout');
+        this.emitter.emit('toast', { message: 'Password Updated' });
+        this.password.current = null;
+        this.password.new = null;
+        this.password.verify = null;
+      } catch (error) {
+        this.emitter.emit('error', error);
+      }
+    },
+    toggleMenu(event) {
+      this.$refs.menu.toggle(event);
+    },
     async checkVersion() {
       if (this.version.includes('-')) {
         try {
@@ -67,12 +169,39 @@ export default {
             );
             if (currentBuild.id < lastBuild.id) this.updateAvailable = true;
           }
-          // eslint-disable-next-line no-empty
-        } catch (error) {}
+        } catch (error) {
+          this.emitter.emit('error', error);
+        }
         if (!this.updateAvailable) setTimeout(this.checkVersion, 60000);
       } else {
         this.buildTag = 'dev';
       }
+    },
+    dockerHub() {
+      window.open(
+        `${'https://hub.docker.com/repository/docker/jakowenko/double-take/tags?page=1&ordering=last_updated&name='}${
+          this.buildTag
+        }`,
+      );
+    },
+  },
+  watch: {
+    hasAuth(value) {
+      if (value === true) {
+        this.menu = this.authorizedMenu;
+        if (this.$route.query.password || this.$route.query.password === null) {
+          this.password.show = true;
+        }
+        return;
+      }
+      this.menu = this.unauthorizedMenu;
+    },
+    $route(to) {
+      if (this.hasAuth && (to.query.password || to.query.password === null)) {
+        this.password.show = true;
+        return;
+      }
+      this.password.show = false;
     },
   },
 };
@@ -82,7 +211,6 @@ export default {
 @import '@/assets/scss/_variables.scss';
 .wrapper {
   height: $tool-bar-height;
-  font-size: 11px;
   z-index: 5;
   position: fixed;
   top: 0;
@@ -94,11 +222,25 @@ export default {
   border-bottom: 1px solid var(--bluegray-700);
 }
 
+.change-password-dialog {
+  label {
+    font-size: 0.9rem;
+    font-weight: bold;
+  }
+  input {
+    width: 100%;
+    @media only screen and (max-width: 576px) {
+      font-size: 16px;
+    }
+  }
+}
+
 .icon {
   background: #dbab09;
   width: 9px;
   height: 9px;
   border-radius: 100%;
+  cursor: pointer;
 }
 a.update {
   opacity: 0;
@@ -117,6 +259,17 @@ a.update.visible {
   &:hover {
     text-decoration: underline;
   }
+}
+
+.double-take-menu-wrapper {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.p-tabmenu {
+  overflow: hidden;
 }
 
 ::v-deep(.p-tabmenu) .p-tabmenu-nav {

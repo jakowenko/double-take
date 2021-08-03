@@ -4,9 +4,10 @@ const sharp = require('sharp');
 const sizeOf = promisify(require('image-size'));
 const database = require('../util/db.util');
 const filesystem = require('../util/fs.util');
+const { jwt } = require('../util/auth.util');
 const { respond, HTTPSuccess /* , HTTPError */ } = require('../util/respond.util');
 const { OK } = require('../constants/http-status');
-const { STORAGE } = require('../constants');
+const { AUTH, STORAGE } = require('../constants');
 
 let matchProps = [];
 
@@ -27,6 +28,8 @@ module.exports.get = async (req, res) => {
       .bind(sinceId || 0)
       .all();
 
+    const token = AUTH && matches.length ? jwt.sign({ route: 'storage' }) : null;
+
     matches = await Promise.all(
       matches.map(async (obj) => {
         const { id, filename, event, response } = obj;
@@ -45,6 +48,7 @@ module.exports.get = async (req, res) => {
           },
           response: JSON.parse(response),
           createdAt: obj.createdAt,
+          token,
         };
 
         const [matchProp] = matchProps.filter((prop) => prop.key === key);

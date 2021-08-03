@@ -7,26 +7,17 @@
       :matches="matches"
       :areAllSelected="areAllSelected"
       :stats="{ filtered: filtered.length, source: source.length }"
-      @trainingFolder="trainingFolder = $event"
-      @filter="filter = $event"
-      @liveReload="liveReload = $event"
     />
     <div class="p-d-flex p-jc-center p-p-3">
       <i v-if="loading.files && !source.length" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
-      <Grid
-        v-else
-        type="match"
-        :matches="{ filtered, ...matches }"
-        @toggle="selected"
-        @assetLoaded="assetLoaded"
-        style="width: 100%"
-      />
+      <Grid v-else type="match" :matches="{ filtered, ...matches }" style="width: 100%" />
     </div>
   </div>
 </template>
 
 <script>
 import ApiService from '@/services/api.service';
+import Constants from '@/util/constants.util';
 import Grid from '@/components/Grid.vue';
 import Header from '@/components/Header.vue';
 import Sleep from '@/util/sleep.util';
@@ -36,26 +27,24 @@ export default {
     Header,
     Grid,
   },
-  data() {
-    return {
-      info: null,
-      folders: [],
-      loading: {
-        folders: false,
-        files: false,
-        createFolder: false,
-      },
-      matches: {
-        source: [],
-        selected: [],
-        disabled: [],
-        loaded: [],
-      },
-      filter: {},
-      trainingFolder: null,
-      liveReload: false,
-    };
-  },
+  data: () => ({
+    info: null,
+    folders: [],
+    loading: {
+      folders: false,
+      files: false,
+      createFolder: false,
+    },
+    matches: {
+      source: [],
+      selected: [],
+      disabled: [],
+      loaded: [],
+    },
+    filter: {},
+    trainingFolder: null,
+    liveReload: false,
+  }),
   computed: {
     source() {
       return JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
@@ -113,6 +102,19 @@ export default {
       return filtered.flat().slice(0, 250);
     },
   },
+  created() {
+    this.emitter.on('liveReload', (value) => {
+      this.liveReload = value;
+    });
+    this.emitter.on('filter', (value) => {
+      this.filter = value;
+    });
+    this.emitter.on('trainingFolder', (value) => {
+      this.trainingFolder = value;
+    });
+    this.emitter.on('assetLoaded', (...args) => this.assetLoaded(...args));
+    this.emitter.on('toggleAsset', (...args) => this.selected(...args));
+  },
   async mounted() {
     await this.init();
   },
@@ -134,7 +136,7 @@ export default {
               $this.liveReload && $this.matches.source.length && $this.matches.source[0]
                 ? { ...$this.matches.source[0] }.id
                 : 0;
-            const { data } = await ApiService.get('match', { sinceId });
+            const { data } = await ApiService.get('match', { params: { sinceId } });
 
             if (sinceId === 0) {
               $this.matches.source = data.matches;
@@ -155,11 +157,7 @@ export default {
             if (data.matches.length) $this.matches.disabled = [];
             $this.loading.files = false;
           } catch (error) {
-            $this.$toast.add({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
+            $this.emitter.emit('error', error);
           }
         },
       };
@@ -185,25 +183,22 @@ export default {
                     filename: obj.file.filename,
                   }));
                   const ids = $this.matches.selected.map((obj) => obj.id);
-                  await ApiService.delete('match', matches);
+                  await ApiService.delete('match', { data: matches });
                   const { areAllSelected } = $this;
                   $this.matches.disabled = $this.matches.disabled.concat(ids);
                   $this.matches.selected = [];
+                  $this.emitter.emit('toast', { message: `${description} deleted` });
 
-                  $this.toast({
-                    severity: 'success',
-                    detail: `${description} deleted`,
-                  });
                   if (areAllSelected && !$this.liveReload) {
                     await $this.get().matches();
                   }
                 } catch (error) {
-                  $this.toast({ severity: 'error', detail: error.message });
+                  $this.emitter.emit('error', error);
                 }
               },
             });
           } catch (error) {
-            $this.toast({ severity: 'error', detail: error.message });
+            $this.emitter.emit('error', error);
           }
         },
       };
@@ -218,33 +213,19 @@ export default {
         position: 'top',
         accept: async () => {
           try {
-            await ApiService.post(`/train/add/${this.trainingFolder}`, {
-              urls: $this.matches.selected.map((obj) => `${window.location.origin}/api/storage/${obj.file.key}`),
+            await ApiService.post(`train/add/${this.trainingFolder}`, {
+              urls: $this.matches.selected.map((obj) => `${Constants().api}/storage/${obj.file.key}`),
             });
 
             const ids = $this.matches.selected.map((obj) => obj.id);
             $this.matches.disabled = $this.matches.disabled.concat(ids);
             $this.matches.selected = [];
 
-            this.toast({
-              severity: 'success',
-              detail: `${description} trained for ${this.trainingFolder}`,
-            });
+            $this.emitter.emit('toast', { message: `${description} trained for ${this.trainingFolder}` });
           } catch (error) {
-            this.toast({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
+            $this.emitter.emit('error', error);
           }
         },
-      });
-    },
-    toast({ severity, detail }) {
-      this.$toast.add({
-        severity,
-        detail,
-        life: 3000,
       });
     },
     selected(match) {

@@ -9,11 +9,9 @@ export default {
   components: {
     TabMenu,
   },
-  data() {
-    return {
-      items: [{ label: 'Matches', icon: 'pi pi-fw pi-home', to: '/matches' }],
-    };
-  },
+  data: () => ({
+    items: [{ label: 'Matches', icon: 'pi pi-fw pi-home', to: '/matches' }],
+  }),
 };
 </script>
 

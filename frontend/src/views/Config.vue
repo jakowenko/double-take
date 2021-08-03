@@ -39,6 +39,8 @@
 import Button from 'primevue/button';
 import Sleep from '@/util/sleep.util';
 
+import 'ace-builds';
+import 'ace-builds/webpack-resolver';
 import ApiService from '@/services/api.service';
 
 import { VAceEditor } from 'vue3-ace-editor';
@@ -71,7 +73,7 @@ export default {
     code: '',
     ready: false,
     loading: false,
-    height: `${window.innerHeight}px`,
+    height: `${window.innerHeight - 30 - 31 - 10}px`,
   }),
   async mounted() {
     try {
@@ -90,11 +92,7 @@ export default {
       window.addEventListener('resize', this.updateHeight);
     } catch (error) {
       this.doubleTake.status = error.response && error.response.status ? error.response.status : 500;
-      this.$toast.add({
-        severity: 'error',
-        detail: error.message,
-        life: 3000,
-      });
+      this.emitter.emit('error', error);
     }
   },
   beforeUnmount() {
@@ -132,13 +130,12 @@ export default {
         this.doubleTake.status = 200;
         this.loading = false;
         this.checkDetectors();
-        this.$toast.add({
-          severity: 'success',
-          detail: 'Restart complete',
-          life: 3000,
+        ApiService.get('auth/status').then(({ data }) => {
+          this.emitter.emit('hasAuth', data.auth);
         });
+        this.emitter.emit('toast', { message: 'Restart complete' });
       } catch (error) {
-        if (this.restartCount < 1) {
+        if (this.restartCount < 5) {
           this.restartCount += 1;
           this.waitForRestart();
           return;
@@ -149,11 +146,9 @@ export default {
         this.services.forEach((service) => {
           service.status = status;
         });
-        this.$toast.add({
-          severity: 'error',
-          detail: 'Restart Error: check container logs',
-          life: 10000,
-        });
+
+        error.message = 'Restart Error: check container logs';
+        this.emitter.emit('error', error);
       }
     },
     async checkFrigate(url) {
@@ -173,7 +168,7 @@ export default {
         this.checkFrigate(data.frigate.url);
       }
 
-      this.services = data
+      this.services = data?.detectors
         ? Object.keys(data.detectors).map((item) => ({ name: this.formatName(item), status: null }))
         : [];
 
@@ -205,7 +200,7 @@ export default {
       this.editor = editor;
     },
     updateHeight() {
-      this.height = `${window.innerHeight - 28 - 40 - 10}px`;
+      this.height = `${window.innerHeight - 30 - 31 - 10}px`;
     },
     highlighter(code) {
       return highlight(code, languages.js);
@@ -215,11 +210,7 @@ export default {
         if (this.loading) return;
         this.loading = true;
         await ApiService.patch('config', { code: this.code });
-        this.$toast.add({
-          severity: 'success',
-          detail: 'Restarting to load changes',
-          life: 3000,
-        });
+        this.emitter.emit('toast', { message: 'Restarting to load changes' });
         this.services.forEach((detector) => {
           delete detector.status;
         });
@@ -227,11 +218,7 @@ export default {
         delete this.frigate.status;
         this.waitForRestart();
       } catch (error) {
-        this.$toast.add({
-          severity: 'error',
-          detail: error.message,
-          life: 3000,
-        });
+        this.emitter.emit('error', error);
       }
     },
   },

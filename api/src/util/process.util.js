@@ -6,7 +6,8 @@ const sleep = require('./sleep.util');
 const filesystem = require('./fs.util');
 const database = require('./db.util');
 const { recognize, normalize } = require('./detectors/actions');
-const { DETECTORS, STORAGE, SAVE } = require('../constants');
+const { STORAGE, SAVE } = require('../constants');
+const DETECTORS = require('../constants/config').detectors();
 
 module.exports.polling = async (event, { retries, id, type, url, breakMatch, MATCH_IDS }) => {
   event.type = type;
@@ -30,10 +31,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
         const promises = [];
         filesystem.writer(tmp, stream);
 
-        const detectors = Object.fromEntries(
-          Object.entries(DETECTORS).map(([k, v]) => [k.toLowerCase(), v])
-        );
-        for (const [detector] of Object.entries(detectors)) {
+        for (const detector of DETECTORS) {
           promises.push(this.process({ attempt: attempts, detector, tmp }));
         }
         let results = await Promise.all(promises);
@@ -41,7 +39,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
         // eslint-disable-next-line no-loop-func
         results = results.map((array, j) => {
           return {
-            detector: Object.entries(detectors)[j][0],
+            detector: DETECTORS[j],
             duration: array ? array.duration : 0,
             attempt: attempts,
             results: array ? array.results : [],

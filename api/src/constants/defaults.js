@@ -1,5 +1,5 @@
 module.exports = {
-  server: { port: 3000 },
+  auth: false,
   confidence: {
     match: 60,
     unknown: 40,
@@ -26,6 +26,11 @@ module.exports = {
       matches: 'double-take/matches',
       cameras: 'double-take/cameras',
       homeassistant: 'homeassistant',
+    },
+  },
+  detectors: {
+    compreface: {
+      det_prob_threshold: 0.8,
     },
   },
   notify: {

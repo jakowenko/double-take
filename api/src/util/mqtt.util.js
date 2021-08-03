@@ -3,7 +3,8 @@ const axios = require('axios');
 const mqtt = require('mqtt');
 const fs = require('fs');
 const { contains } = require('./helpers.util');
-const { SERVER, MQTT, FRIGATE, CAMERAS } = require('../constants');
+const { jwt } = require('./auth.util');
+const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS } = require('../constants');
 
 let PREVIOUS_MQTT_LENGTHS = [];
 let JUST_SUBSCRIBED = false;
@@ -41,6 +42,7 @@ const processMessage = ({ topic, message }) => {
     await axios({
       method: 'get',
       url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
+      headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       params: {
         url: `http://0.0.0.0:${SERVER.PORT}/api/tmp/${filename}`,
         type: 'mqtt',
@@ -58,6 +60,7 @@ const processMessage = ({ topic, message }) => {
     await axios({
       method: 'post',
       url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
+      headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       data: {
         ...JSON.parse(message.toString()),
       },
@@ -82,6 +85,7 @@ module.exports.connect = () => {
 
   CLIENT.on('connect', () => {
     console.log('MQTT: connected');
+    this.publish({ topic: 'double-take/errors' });
     this.available('online');
     this.subscribe();
   })
@@ -133,7 +137,7 @@ module.exports.recognize = (data) => {
   try {
     if (!MQTT || !MQTT.HOST) return;
     const { matches, unknown, camera } = data;
-    const hasUnkown = unknown && Object.keys(unknown).length;
+    const hasUnknown = unknown && Object.keys(unknown).length;
 
     const configData = JSON.parse(JSON.stringify(data));
     delete configData.matches;
@@ -142,10 +146,10 @@ module.exports.recognize = (data) => {
 
     const messages = [];
 
-    let personCount = matches.length ? matches.length : hasUnkown ? 1 : 0;
+    let personCount = matches.length ? matches.length : hasUnknown ? 1 : 0;
     // check to see if unknown bounding box is contained within or contains any of the match bounding boxes
     // if false, then add 1 to the person count
-    if (matches.length && hasUnkown) {
+    if (matches.length && hasUnknown) {
       let unknownContained = false;
       matches.forEach((match) => {
         if (contains(match.box, unknown.box) || contains(unknown.box, match.box))
@@ -159,7 +163,7 @@ module.exports.recognize = (data) => {
       message: personCount.toString(),
     });
 
-    if (hasUnkown) {
+    if (hasUnknown) {
       messages.push({
         topic: `${MQTT.TOPICS.MATCHES}/unknown`,
         message: JSON.stringify({
@@ -193,8 +197,11 @@ module.exports.recognize = (data) => {
     }
 
     matches.forEach((match) => {
+      const topic = match.name.replace(/\s+/g, '-');
+      const name = match.name.replace(/\s+/g, '_');
+
       messages.push({
-        topic: `${MQTT.TOPICS.MATCHES}/${match.name}`,
+        topic: `${MQTT.TOPICS.MATCHES}/${topic}`,
         message: JSON.stringify({
           ...configData,
           match,
@@ -203,20 +210,20 @@ module.exports.recognize = (data) => {
 
       if (MQTT.TOPICS.HOMEASSISTANT) {
         messages.push({
-          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${match.name}/config`,
+          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/config`,
           message: JSON.stringify({
-            name: `double_take_${match.name}`,
+            name: `double_take_${name}`,
             icon: 'mdi:account',
             value_template: '{{ value_json.camera }}',
-            state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${match.name}/state`,
-            json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${match.name}/state`,
+            state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/state`,
+            json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/state`,
             availability_topic: 'double-take/available',
-            unique_id: `double_take_${match.name}`,
+            unique_id: `double_take_${name}`,
           }),
         });
 
         messages.push({
-          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${match.name}/state`,
+          topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/state`,
           message: JSON.stringify({
             ...configData,
             match,
@@ -225,7 +232,7 @@ module.exports.recognize = (data) => {
       }
     });
 
-    if (matches.length || hasUnkown) {
+    if (matches.length || hasUnknown) {
       messages.push({
         topic: `${MQTT.TOPICS.CAMERAS}/${camera}`,
         message: JSON.stringify({

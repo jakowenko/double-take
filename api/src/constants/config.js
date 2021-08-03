@@ -1,7 +1,7 @@
 const yaml = require('js-yaml');
 const fs = require('fs');
 const _ = require('lodash');
-const DEFAULTS = require('./defaults');
+const { detectors: DETECTORS, notify: NOTIFY, ...DEFAULTS } = require('./defaults');
 const { core: SYSTEM_CORE } = require('./system');
 const { version } = require('../../package.json');
 
@@ -44,18 +44,29 @@ module.exports = () => {
   if (configData && configData.code === 'ENOENT') setup('config.yml', '# Double Take');
   else CONFIG = { ...configData };
 
-  if (!CONFIG.notify || !CONFIG.notify.gotify) delete DEFAULTS.notify.gotify;
-
   CONFIG = _.isEmpty(CONFIG) ? DEFAULTS : _.mergeWith(DEFAULTS, CONFIG, customizer);
+  if (CONFIG?.notify?.gotify)
+    CONFIG.notify.gotify = _.mergeWith(NOTIFY.gotify, CONFIG.notify.gotify, customizer);
+  if (CONFIG?.detectors?.compreface)
+    CONFIG.detectors.compreface = _.mergeWith(
+      DETECTORS.compreface,
+      CONFIG.detectors.compreface,
+      customizer
+    );
   CONFIG = _.mergeWith(CONFIG, SYSTEM_CORE);
   CONFIG.version = version;
-  CONFIG = _(CONFIG).toPairs().sortBy(0).fromPairs().value();
   return CONFIG;
 };
 
 module.exports.detectors = () => {
-  const detectors = [];
+  const results = [];
   if (CONFIG.detectors)
-    for (const [detector] of Object.entries(CONFIG.detectors)) detectors.push(detector);
-  return detectors;
+    for (const [detector] of Object.entries(CONFIG.detectors)) results.push(detector);
+  return results;
+};
+
+module.exports.notify = () => {
+  const results = [];
+  if (CONFIG.notify) for (const [notify] of Object.entries(CONFIG.notify)) results.push(notify);
+  return results;
 };

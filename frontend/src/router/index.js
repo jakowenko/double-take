@@ -1,7 +1,9 @@
-import { /* createWebHistory, */ createWebHashHistory, createRouter } from 'vue-router';
+import { createWebHistory, createRouter } from 'vue-router';
 import Match from '@/views/Match.vue';
 import Config from '@/views/Config.vue';
 import Train from '@/views/Train.vue';
+import Login from '@/views/Login.vue';
+import Tokens from '@/views/Tokens.vue';
 
 const routes = [
   {
@@ -26,13 +28,34 @@ const routes = [
     component: Train,
   },
   {
+    path: '/login',
+    meta: {
+      title: 'Login',
+    },
+    component: Login,
+  },
+  {
+    path: '/tokens',
+    meta: {
+      title: 'Tokens',
+    },
+    component: Tokens,
+  },
+  {
+    path: '/logout',
+    beforeEnter: (to, from, next) => {
+      localStorage.removeItem('token');
+      next('/login');
+    },
+  },
+  {
     path: '/:catchAll(.*)',
-    redirect: '/',
+    redirect: '/login',
   },
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes,
   scrollBehavior() {
     // Scroll to the top of the page on route navigation

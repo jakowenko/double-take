@@ -4,7 +4,12 @@
       <div v-if="createFolder.show" class="p-d-flex p-jc-between">
         <div class="p-d-inline-flex p-ai-center">
           <div class="p-mr-2">
-            <InputText type="text" v-model="createFolder.name" placeholder="folder name" />
+            <InputText
+              type="text"
+              v-model="createFolder.name"
+              @keyup.enter="create().folder()"
+              placeholder="folder name"
+            />
           </div>
           <div>
             <Button
@@ -56,9 +61,16 @@
               <Button
                 class="responsive-button p-button-danger p-button-sm p-ml-1"
                 icon="pi pi-trash"
-                label="Untrain"
-                @click="$parent.untrain"
-                :disabled="!matches.source.filter((obj) => obj.name === folder && obj.results.length).length"
+                :label="
+                  matches.source.filter((obj) => obj.name === folder && obj.results.length).length
+                    ? 'Untrain'
+                    : 'Remove'
+                "
+                @click="
+                  matches.source.filter((obj) => obj.name === folder && obj.results.length).length
+                    ? $parent.untrain()
+                    : remove().folder()
+                "
               />
             </div>
           </div>
@@ -180,6 +192,7 @@
 
 <script>
 import ApiService from '@/services/api.service';
+import Constants from '@/util/constants.util';
 import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
@@ -197,27 +210,25 @@ export default {
     Checkbox,
     FileUpload,
   },
-  data() {
-    return {
-      createFolder: {
-        name: null,
-        show: false,
-        loading: false,
-      },
-      folder: null,
-      folders: [],
-      liveReload: null,
-      showFilter: false,
-      filter: {
-        name: null,
-        match: ['match', 'miss'],
-        detector: null,
-        confidence: 0,
-        width: 0,
-        height: 0,
-      },
-    };
-  },
+  data: () => ({
+    createFolder: {
+      name: null,
+      show: false,
+      loading: false,
+    },
+    folder: null,
+    folders: [],
+    liveReload: null,
+    showFilter: false,
+    filter: {
+      name: null,
+      match: ['match', 'miss'],
+      detector: null,
+      confidence: 0,
+      width: 0,
+      height: 0,
+    },
+  }),
   props: {
     areAllSelected: Boolean,
     matches: Object,
@@ -226,7 +237,7 @@ export default {
     type: String,
   },
   mounted() {
-    this.$emit('filter', this.filter);
+    this.emitter.emit('filter', this.filter);
     this.get().folders();
   },
   beforeUnmount() {
@@ -240,15 +251,11 @@ export default {
           try {
             $this.createFolder.loading = true;
             const { data } = await ApiService.get('filesystem/folders');
-            $this.$emit('folders', data);
+            $this.emitter.emit('folders', data);
             $this.folders = ['add new', ...data];
             $this.createFolder.loading = false;
           } catch (error) {
-            $this.$toast.add({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
+            $this.emitter.emit('error', error);
           }
         },
       };
@@ -258,6 +265,7 @@ export default {
       return {
         async folder() {
           try {
+            if (!$this.createFolder.name) return;
             $this.createFolder.show = false;
             $this.folder = $this.createFolder.name.toLowerCase();
             $this.$nextTick(() => {
@@ -270,12 +278,32 @@ export default {
               });
             });
           } catch (error) {
-            $this.$toast.add({
-              severity: 'error',
-              detail: error.message,
-              life: 3000,
-            });
+            $this.emitter.emit('error', error);
           }
+        },
+      };
+    },
+    remove() {
+      this.emitter.emit('clearSelected');
+      const $this = this;
+      return {
+        async folder() {
+          $this.$confirm.require({
+            header: 'Confirmation',
+            message: `Do you want to remove the training folder and images for ${$this.folder}?`,
+            acceptClass: 'p-button-danger',
+            position: 'top',
+            accept: async () => {
+              try {
+                await ApiService.delete(`filesystem/folders/${$this.folder}`);
+                await $this.get().folders();
+                $this.emitter.emit('realoadTrain');
+                $this.folder = null;
+              } catch (error) {
+                $this.emitter.emit('error', error);
+              }
+            },
+          });
         },
       };
     },
@@ -292,7 +320,7 @@ export default {
   },
   watch: {
     async liveReload(value) {
-      this.$emit('liveReload', value);
+      this.emitter.emit('liveReload', value);
       if (value) {
         this.getMatchesInterval();
       }
@@ -309,7 +337,7 @@ export default {
         this.createFolder.name = null;
         this.createFolder.show = true;
       }
-      this.$emit('trainingFolder', value);
+      this.emitter.emit('trainingFolder', value);
     },
   },
   computed: {
@@ -338,7 +366,7 @@ export default {
       return detectors.filter((item, i, ar) => ar.indexOf(item) === i);
     },
     uploadUrl() {
-      return `${process.env.VUE_APP_API_URL}/train/add/${this.folder}`;
+      return `${Constants().api}/train/add/${this.folder}`;
     },
   },
 };
@@ -430,7 +458,7 @@ export default {
   }
 
   &.fixed-sub {
-    background: var(--surface-50);
+    background: var(--surface-a);
     top: -100px;
     z-index: 3;
     padding-top: 0.75rem;

@@ -9,7 +9,6 @@ module.exports.url = async (req, res) => {
       method: 'get',
       url,
     });
-    console.log(url);
     respond(HTTPSuccess(OK, data), res);
   } catch (error) {
     respond(error, res);

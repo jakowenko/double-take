@@ -7,7 +7,13 @@
             <div class="open-link">
               <i
                 class="pi pi-external-link"
-                @click="openLink(`${VUE_APP_API_URL}/storage/${asset.file.key}?box=true`)"
+                @click="
+                  openLink(
+                    `${constants().api}/storage/${asset.file.key}?box=true${
+                      asset.token ? `&token=${asset.token}` : ''
+                    }`,
+                  )
+                "
               ></i>
             </div>
             <div class="selected-overlay" :class="{ selected: selected }"></div>
@@ -19,7 +25,7 @@
               ></div>
             </div>
             <img
-              @click="$parent.$emit('toggle', asset)"
+              @click="emitter.emit('toggleAsset', asset)"
               :class="loaded ? 'thumbnail' : 'thumbnail lazy'"
               :src="'data:image/jpg;base64,' + asset.file.base64"
               :data-key="asset.file.key"
@@ -105,6 +111,7 @@
 
 <script>
 import ApiService from '@/services/api.service';
+import Constants from '@/util/constants.util';
 import { DateTime } from 'luxon';
 import Badge from 'primevue/badge';
 import Card from 'primevue/card';
@@ -128,21 +135,22 @@ export default {
     Column,
     Dropdown,
   },
-  data() {
-    return {
-      VUE_APP_API_URL: process.env.VUE_APP_API_URL,
-      timestamp: Date.now(),
-      folder: null,
-    };
-  },
+  data: () => ({
+    timestamp: Date.now(),
+    folder: null,
+    loadedCount: 0,
+  }),
   created() {
     setInterval(() => {
       this.timestamp = Date.now();
     }, 1000);
   },
   methods: {
+    constants: () => ({
+      ...Constants(),
+    }),
     assetLoaded() {
-      this.$parent.$emit('assetLoaded', this.asset.id);
+      this.emitter.emit('assetLoaded', this.asset.id);
     },
     openLink(url) {
       window.open(url);
@@ -200,7 +208,7 @@ export default {
       if (value) {
         const { id } = this.asset;
         ApiService.patch(`train/${id}`, { name: value });
-        this.$parent.$emit('init', true);
+        this.emitter.emit('realoadTrain');
       }
     },
   },
