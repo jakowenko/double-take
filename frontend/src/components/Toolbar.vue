@@ -189,12 +189,15 @@ export default {
     hasAuth(value) {
       if (value === true) {
         this.menu = this.authorizedMenu;
+        if (this.$route.query.password || this.$route.query.password === null) {
+          this.password.show = true;
+        }
         return;
       }
       this.menu = this.unauthorizedMenu;
     },
     $route(to) {
-      if (to.query.password || to.query.password === null) {
+      if (this.hasAuth && (to.query.password || to.query.password === null)) {
         this.password.show = true;
         return;
       }
