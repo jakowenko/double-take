@@ -9,10 +9,9 @@ const frigate = require('../util/frigate.util');
 const { jwt } = require('../util/auth.util');
 const mqtt = require('../util/mqtt.util');
 const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
-const { lowercaseKeys } = require('../util/helpers.util');
 const { OK, BAD_REQUEST } = require('../constants/http-status');
-
-const { AUTH, FRIGATE, DETECTORS } = require('../constants');
+const DETECTORS = require('../constants/config').detectors();
+const { AUTH, FRIGATE } = require('../constants');
 
 const { IDS, MATCH_IDS } = {
   IDS: [],
@@ -24,14 +23,14 @@ let PROCESSING = false;
 module.exports.test = async (req, res) => {
   try {
     const promises = [];
-    for (const [detector] of Object.entries(lowercaseKeys(DETECTORS))) {
+    for (const detector of DETECTORS) {
       promises.push(
         actions.recognize({ detector, test: true, key: `${__dirname}/../static/img/lenna.jpg` })
       );
     }
     const results = await Promise.all(promises);
     const output = results.map((result, i) => ({
-      detector: Object.entries(lowercaseKeys(DETECTORS))[i][0],
+      detector: DETECTORS[i],
       status: result.status,
       response: result.data,
     }));

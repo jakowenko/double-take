@@ -7,12 +7,6 @@ module.exports.contains = (a, b) => {
   );
 };
 
-module.exports.lowercaseKeys = (obj) =>
-  Object.keys(obj).reduce((acc, key) => {
-    acc[key.toLowerCase()] = obj[key];
-    return acc;
-  }, {});
-
 module.exports.oxfordComma = (array) =>
   array.length > 2
     ? array

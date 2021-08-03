@@ -1,6 +1,6 @@
 const factory = require('../factory');
-const { lowercaseKeys } = require('../../helpers.util');
 const { NOTIFY } = require('../../../constants');
+const SERVICES = require('../../../constants/config').notify();
 
 module.exports.send = (service, output) => factory.get(service).send(output);
 
@@ -9,7 +9,7 @@ module.exports.publish = (output, camera, zones) => {
     return;
   }
 
-  for (const [service] of Object.entries(lowercaseKeys(NOTIFY))) {
+  for (const service of SERVICES) {
     const check = this.checks(service, { camera, zones });
     if (check === true) {
       this.send(service, output).catch((error) => {
