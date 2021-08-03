@@ -26,13 +26,11 @@ export default {
     Toolbar,
   },
   created() {
+    this.checkLoginState();
     window.addEventListener('focus', this.checkLoginState);
     this.emitter.on('login', this.login);
     this.emitter.on('error', (error) => this.error(error));
     this.emitter.on('toast', (...args) => this.toast(...args));
-  },
-  mounted() {
-    this.checkLoginState();
   },
   methods: {
     login() {
