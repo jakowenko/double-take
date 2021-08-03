@@ -12,6 +12,16 @@ Unified UI and API for processing and training images for facial recognition.
 
 There's a lot of great open source software to perform facial recognition, but each of them behave differently. Double Take was created to abstract the complexities of the detection services and combine them into an easy to use UI and API.
 
+## Features
+
+- UI and API bundled into single Docker image
+- Ability to password protect UI and API
+- Support for multiple detectors
+- Train and untrain images for subjects
+- Process images from NVRs
+- Publish results to MQTT topics
+- REST API can be invoked by other applications
+
 ### Supported Detectors
 
 - [DeepStack](https://deepstack.cc) v2021.02.1-2021.06.01
@@ -82,11 +92,11 @@ action:
         {{trigger.to_state.attributes.duration}} sec
       data:
         attachment:
-          url: http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true
+          url: http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true&token={{trigger.to_state.attributes.token}}
         actions:
           - action: URI
             title: View Image
-            uri: http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true
+            uri: http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true&token={{trigger.to_state.attributes.token}}
 ```
 
 ### MQTT
@@ -159,25 +169,20 @@ notify:
 
 ## UI
 
-The UI is accessible from `http://localhost:3000/#/`.
+The UI is accessible from `http://localhost:3000`.
 
-### Matches
+- Matches: `/`
+- Train: `/train`
+- Config: `/config`
+- Access Tokens: `/tokens` (_if authentication is enabled_)
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/1081811/126433882-4a6c5af7-d38d-43c9-8e21-890fa57d7fd4.jpg" width="100%">
-</p>
+## Authentication
 
-### Train
+Enable authentication to password protect the UI. This is recommended if running Double Take behind a reverse proxy which is exposed to the internet.
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/1081811/126433880-193b16b8-f1c6-4eec-b9c6-51684d87ee2a.jpg" width="100%">
-</p>
-
-### Config
-
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/1081811/126439727-ea361bd4-4e88-4dda-98c8-8be3a735c2fb.jpg" width="100%">
-</p>
+```yaml
+auth: true
+```
 
 ## API
 
@@ -219,46 +224,9 @@ Configurable options that can be passed by mounting a file at `/double-take/conf
 ```yaml
 mqtt:
   host: 192.168.1.1
-  topics:
-    frigate: frigate/events
-    matches: double-take/matches
-    cameras: double-take/cameras
-
-confidence:
-  match: 60
-  unknown: 40
-
-objects:
-  face:
-    min_area_match: 10000
-
-save:
-  matches: true
-  unknown: true
-
-purge:
-  matches: 168
-  unknown: 8
 
 frigate:
   url: http://192.168.1.1:5000
-  image:
-    height: 500
-  attempts:
-    latest: 10
-    snapshot: 0
-  cameras:
-    - frontdoor
-    - backyard
-  zones:
-    - camera: driveway
-      zone: zone-1
-
-cameras:
-  driveway:
-    snapshot:
-      topic: driveway/snapshot
-      url: http://192.168.1.1/latest.jpg
 
 detectors:
   compreface:
@@ -269,10 +237,6 @@ detectors:
     key: xxx-xxx-xxx-xxx-xxx # optional api key
   facebox:
     url: http://192.168.1.1:8002
-
-time:
-  format: F
-  timezone: America/Detroit
 ```
 
 | Option                                  | Default               | Description                                                                                                                                       |
