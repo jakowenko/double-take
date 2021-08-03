@@ -4,12 +4,10 @@ const fs = require('fs');
 const { doesUrlResolve } = require('../validators.util');
 const { DETECTORS, CONFIDENCE, OBJECTS } = require('../../constants');
 
-module.exports.config = () => {
-  return DETECTORS.FACEBOX;
-};
+const { FACEBOX } = DETECTORS || {};
 
 module.exports.recognize = async ({ test, key }) => {
-  const { URL } = this.config();
+  const { URL } = FACEBOX;
   if (test && !(await doesUrlResolve(URL))) {
     return { status: 404 };
   }
@@ -29,7 +27,7 @@ module.exports.recognize = async ({ test, key }) => {
 };
 
 module.exports.train = ({ name, key }) => {
-  const { URL } = this.config();
+  const { URL } = FACEBOX;
   const formData = new FormData();
   formData.append('file', fs.createReadStream(key));
   return axios({
@@ -47,7 +45,7 @@ module.exports.train = ({ name, key }) => {
 };
 
 module.exports.remove = ({ name }) => {
-  const { URL } = this.config();
+  const { URL } = FACEBOX;
   return axios({
     method: 'delete',
     url: `${URL}/facebox/teach/${name}`,

@@ -2,14 +2,12 @@ const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 const { doesUrlResolve } = require('../validators.util');
-const { CONFIDENCE, DETECTORS, OBJECTS } = require('../../constants');
+const { DETECTORS, CONFIDENCE, OBJECTS } = require('../../constants');
 
-module.exports.config = () => {
-  return DETECTORS.COMPREFACE;
-};
+const { COMPREFACE } = DETECTORS || {};
 
 module.exports.recognize = async ({ test, key }) => {
-  const { URL, KEY, FACE_PLUGINS } = this.config();
+  const { URL, KEY, FACE_PLUGINS } = COMPREFACE;
   if (test && !(await doesUrlResolve(URL))) {
     return { status: 404 };
   }
@@ -33,7 +31,7 @@ module.exports.recognize = async ({ test, key }) => {
 };
 
 module.exports.train = ({ name, key }) => {
-  const { URL, KEY } = this.config();
+  const { URL, KEY } = COMPREFACE;
   const formData = new FormData();
   formData.append('file', fs.createReadStream(key));
   return axios({
@@ -51,7 +49,7 @@ module.exports.train = ({ name, key }) => {
 };
 
 module.exports.remove = ({ name }) => {
-  const { URL, KEY } = this.config();
+  const { URL, KEY } = COMPREFACE;
   return axios({
     method: 'delete',
     headers: {

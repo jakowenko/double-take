@@ -2,14 +2,12 @@ const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 const { doesUrlResolve } = require('../validators.util');
-const { CONFIDENCE, DETECTORS, OBJECTS } = require('../../constants');
+const { DETECTORS, CONFIDENCE, OBJECTS } = require('../../constants');
 
-module.exports.config = () => {
-  return DETECTORS.DEEPSTACK;
-};
+const { DEEPSTACK } = DETECTORS || {};
 
 module.exports.recognize = async ({ test, key }) => {
-  const { URL, KEY } = this.config();
+  const { URL, KEY } = DEEPSTACK;
   if (test && !(await doesUrlResolve(URL))) {
     return { status: 404 };
   }
@@ -30,7 +28,7 @@ module.exports.recognize = async ({ test, key }) => {
 };
 
 module.exports.train = ({ name, key }) => {
-  const { URL, KEY } = this.config();
+  const { URL, KEY } = DEEPSTACK;
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
   formData.append('userid', name);
@@ -46,7 +44,7 @@ module.exports.train = ({ name, key }) => {
 };
 
 module.exports.remove = ({ name }) => {
-  const { URL, KEY } = this.config();
+  const { URL, KEY } = DEEPSTACK;
   const formData = new FormData();
   formData.append('userid', name);
   if (KEY) formData.append('api_key', KEY);
