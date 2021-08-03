@@ -60,6 +60,7 @@ const processMessage = ({ topic, message }) => {
     await axios({
       method: 'post',
       url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
+      headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       data: {
         ...JSON.parse(message.toString()),
       },
