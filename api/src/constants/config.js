@@ -59,8 +59,14 @@ module.exports = () => {
 };
 
 module.exports.detectors = () => {
-  const detectors = [];
+  const results = [];
   if (CONFIG.detectors)
-    for (const [detector] of Object.entries(CONFIG.detectors)) detectors.push(detector);
-  return detectors;
+    for (const [detector] of Object.entries(CONFIG.detectors)) results.push(detector);
+  return results;
+};
+
+module.exports.notify = () => {
+  const results = [];
+  if (CONFIG.notify) for (const [notify] of Object.entries(CONFIG.notify)) results.push(notify);
+  return results;
 };
