@@ -61,6 +61,9 @@ export default {
       if (data.auth && !data.jwtValid) {
         this.$router.push('login');
       }
+      if (!data.auth && this.$route.path === '/tokens') {
+        this.$router.push('/');
+      }
     },
   },
 };
