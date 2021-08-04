@@ -103,6 +103,8 @@ action:
 
 Publish results to `double-take/matches/${name}` and `double-take/cameras/${camera}`. The number of results will also be published to `double-take/cameras/${camera}/person` and will reset back to `0` after 30 seconds.
 
+Errors from the API will be published to `double-take/errors`.
+
 ```yaml
 mqtt:
   host: 192.168.1.1
