@@ -1,6 +1,7 @@
 const { createLogger, format, transports } = require('winston');
 const util = require('util');
 const { core: SYSTEM_CORE } = require('../constants/system');
+const mqtt = require('./mqtt.util');
 
 const combineMessageAndSplat = () => {
   return {
@@ -37,5 +38,20 @@ module.exports.init = () => {
   console.log = (...args) => logger.info(...args);
   console.info = (...args) => logger.info(...args);
   console.warn = (...args) => logger.warn(...args);
-  console.error = (...args) => logger.error(...args);
+  console.error = (...args) => {
+    const isError = args[0] instanceof Error;
+    const message = isError
+      ? args[0].stack || args[0].toString()
+      : args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : arg)).join(' ');
+
+    if (isError) logger.error(message);
+    else logger.error(...args);
+
+    mqtt.publish({
+      topic: 'double-take/errors',
+      message: isError
+        ? JSON.stringify(args[0], Object.getOwnPropertyNames(args[0]))
+        : JSON.stringify({ message }),
+    });
+  };
 };
