@@ -17,7 +17,11 @@ module.exports.init = () => {
   const logger = createLogger({
     transports: [
       new transports.Console({
-        format: format.combine(format.colorize(), logFormat),
+        format: format.combine(
+          format.colorize(),
+          logFormat,
+          format.printf((info) => `${info.level}: ${info.message}`)
+        ),
       }),
       new transports.File({
         filename: `${SYSTEM_CORE.storage.path}/messages.log`,
