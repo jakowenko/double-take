@@ -168,7 +168,6 @@ module.exports.start = async (req, res) => {
       IDS.push(id);
     }
   } catch (error) {
-    console.error(error.message);
     PROCESSING = false;
     respond(error, res);
   }

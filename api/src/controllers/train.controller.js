@@ -78,7 +78,6 @@ module.exports.delete = async (req, res) => {
 
     respond(HTTPSuccess(OK, results), res);
   } catch (error) {
-    console.error(`train delete error: ${error.message}`);
     respond(error, res);
   }
 };
@@ -110,7 +109,6 @@ module.exports.add = async (req, res) => {
     train.add(name, { files });
     respond(HTTPSuccess(OK, { message: `training queued for ${name}` }), res);
   } catch (error) {
-    console.error(`train add error: ${error.message}`);
     respond(error, res);
   }
 };
@@ -122,7 +120,6 @@ module.exports.retrain = async (req, res) => {
     train.add(name);
     respond(HTTPSuccess(OK, { success: true }), res);
   } catch (error) {
-    console.error(`retrain error: ${error.message}`);
     respond(error, res);
   }
 };
@@ -147,7 +144,6 @@ module.exports.patch = async (req, res) => {
 
     respond(HTTPSuccess(OK, { success: true }), res);
   } catch (error) {
-    console.error(`train add error: ${error.message}`);
     respond(error, res);
   }
 };
@@ -171,7 +167,6 @@ module.exports.upload = async (req, res) => {
 
     respond(HTTPSuccess(OK, { success: true }), res);
   } catch (error) {
-    console.error(`train add error: ${error.message}`);
     respond(error, res);
   }
 };
@@ -180,7 +175,6 @@ module.exports.status = async (req, res) => {
   try {
     respond(HTTPSuccess(OK, train.status()), res);
   } catch (error) {
-    console.error(`train status error: ${error.message}`);
     respond(error, res);
   }
 };
