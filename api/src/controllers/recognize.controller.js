@@ -52,10 +52,10 @@ module.exports.start = async (req, res) => {
     };
 
     if (event.type === 'frigate') {
-      const { type: frigateEventType } = req.body;
+      const { type: frigateEventType, topic } = req.body;
       const attributes = req.body.after ? req.body.after : req.body.before;
       const { id, label, camera, current_zones: zones } = attributes;
-      event = { id, label, camera, zones, frigateEventType, ...event };
+      event = { id, label, camera, zones, frigateEventType, topic, ...event };
     } else {
       const { url, camera } = req.query;
 
@@ -105,7 +105,9 @@ module.exports.start = async (req, res) => {
               ...config,
               retries: FRIGATE.ATTEMPTS.LATEST,
               type: 'latest',
-              url: `${FRIGATE.URL}/api/${camera}/latest.jpg?h=${FRIGATE.IMAGE.HEIGHT}`,
+              url: `${frigate.topicURL(event.topic)}/api/${camera}/latest.jpg?h=${
+                FRIGATE.IMAGE.HEIGHT
+              }`,
             }
           )
         );
@@ -117,7 +119,9 @@ module.exports.start = async (req, res) => {
               ...config,
               retries: FRIGATE.ATTEMPTS.SNAPSHOT,
               type: 'snapshot',
-              url: `${FRIGATE.URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE.IMAGE.HEIGHT}`,
+              url: `${frigate.topicURL(event.topic)}/api/events/${id}/snapshot.jpg?crop=1&h=${
+                FRIGATE.IMAGE.HEIGHT
+              }`,
             }
           )
         );

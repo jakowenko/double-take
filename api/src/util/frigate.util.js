@@ -1,13 +1,14 @@
 const axios = require('axios');
 const sleep = require('./sleep.util');
 
-const { FRIGATE } = require('../constants');
+const { FRIGATE, MQTT } = require('../constants');
 
 const frigate = this;
 
 module.exports.checks = async ({
   id,
   frigateEventType: type,
+  topic,
   label,
   camera,
   zones,
@@ -57,7 +58,7 @@ module.exports.checks = async ({
       return `already processed ${id}`;
     }
 
-    await frigate.status();
+    await frigate.status(topic);
 
     return true;
   } catch (error) {
@@ -65,15 +66,25 @@ module.exports.checks = async ({
   }
 };
 
-module.exports.status = async () => {
+module.exports.status = async (topic) => {
   try {
     const request = await axios({
       method: 'get',
-      url: `${FRIGATE.URL}/api/version`,
+      url: `${this.topicURL(topic)}/api/version`,
     });
     return request.data;
   } catch (error) {
     throw new Error(`frigate status error: ${error.message}`);
+  }
+};
+
+module.exports.topicURL = (topic) => {
+  try {
+    if (typeof FRIGATE.URL === 'string') return FRIGATE.URL;
+    return FRIGATE.URL[MQTT.TOPICS.FRIGATE.indexOf(topic)];
+  } catch (error) {
+    error.message = `frigate topic url error: ${error.message}`;
+    throw error;
   }
 };
 

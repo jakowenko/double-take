@@ -65,6 +65,7 @@ const processMessage = ({ topic, message }) => {
         headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
         data: {
           ...JSON.parse(message.toString()),
+          topic,
         },
       });
     } catch (error) {
