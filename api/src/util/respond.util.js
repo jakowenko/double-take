@@ -14,6 +14,8 @@ module.exports.respond = (err, res) => {
       message = err.message ? err.message : message;
     }
 
+    if (message.error) console.error(message.error);
+
     return res.status(status).json(message);
   } catch (error) {
     console.error(err || error);
