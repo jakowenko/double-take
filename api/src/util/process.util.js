@@ -79,7 +79,8 @@ module.exports.save = async (event, results, filename, tmp) => {
     database.create.match({ filename, event, response: results });
     await filesystem.writerStream(fs.createReadStream(tmp), `${STORAGE.PATH}/matches/${filename}`);
   } catch (error) {
-    console.error(`save results error: ${error.message}`);
+    error.message = `save results error: ${error.message}`;
+    console.error(error);
   }
 };
 
@@ -91,11 +92,8 @@ module.exports.process = async ({ detector, tmp }) => {
 
     return { duration, results: normalize({ detector, data }) };
   } catch (error) {
-    if (error.response && error.response.data.error) {
-      console.error(`${detector} process error: ${error.response.data.error}`);
-    } else {
-      console.error(`${detector} process error: ${error.message}`);
-    }
+    error.message = `${detector} process error: ${error.message}`;
+    console.error(error);
   }
 };
 
@@ -113,7 +111,8 @@ module.exports.isValidURL = async ({ type, url }) => {
     }
     return isValid;
   } catch (error) {
-    console.error(`url validation error: ${error.message}`);
+    error.message = `url validation error: ${error.message}`;
+    console.error(error);
     return false;
   }
 };
@@ -127,7 +126,8 @@ module.exports.stream = async (url) => {
     });
     return request.data;
   } catch (error) {
-    console.error(`stream error: ${error.message}`);
+    error.message = `stream error: ${error.message}`;
+    console.error(error);
   }
 };
 

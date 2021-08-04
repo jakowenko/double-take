@@ -55,7 +55,8 @@ module.exports.init = async () => {
 
     await this.resync.files();
   } catch (error) {
-    console.error(`db init error: ${error.message}`);
+    error.message = `db init error: ${error.message}`;
+    console.error(error);
   }
 };
 
@@ -99,7 +100,8 @@ module.exports.migrations = () => {
       );
     }
   } catch (error) {
-    console.error(`db migrations error: ${error.message}`);
+    error.message = `db migrations error: ${error.message}`;
+    console.error(error);
   }
 };
 

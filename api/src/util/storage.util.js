@@ -42,7 +42,8 @@ module.exports.purge = async () => {
 
       if (files.length > 0) console.log(`purged ${files.length} file(s)`);
     } catch (error) {
-      console.error(`purge error: ${error.message}`);
+      error.message = `purge error: ${error.message}`;
+      console.error(error);
     }
   });
 };

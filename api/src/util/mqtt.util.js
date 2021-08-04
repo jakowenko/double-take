@@ -286,7 +286,8 @@ module.exports.recognize = (data) => {
       }
     }, 30000);
   } catch (error) {
-    console.error(`MQTT: recognize error: ${error.message}`);
+    error.message = `MQTT: recognize error: ${error.message}`;
+    console.error(error);
   }
 };
 

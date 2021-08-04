@@ -36,7 +36,8 @@ module.exports.queue = async (files) => {
       database.create.train(records[i]);
     }
   } catch (error) {
-    console.error(`queue error: ${error.message}`);
+    error.message = `queue error: ${error.message}`;
+    console.error(error);
   }
 };
 
@@ -52,13 +53,8 @@ module.exports.process = async ({ name, key, detector }) => {
     const { status, data } = error.response;
     const message = typeof data === 'string' ? { data } : { ...data };
 
-    if (data.message) {
-      console.error(`${detector} training error: ${data.message}`);
-    } else if (data.error) {
-      console.error(`${detector} training error: ${data.error}`);
-    } else {
-      console.error(`${detector} training error: ${error.message}`);
-    }
+    error.message = `${detector} training error: ${error.message}`;
+    console.error(error);
 
     return {
       ...message,
