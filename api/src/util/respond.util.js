@@ -14,7 +14,12 @@ module.exports.respond = (err, res) => {
       message = err.message ? err.message : message;
     }
 
-    if (message.error) console.error(message.error);
+    if (message.error) {
+      if (message.error.includes('warn:')) {
+        message.error = message.error.replace('warn:', '').trim();
+        console.warn(message.error);
+      } else console.error(message.error);
+    }
 
     return res.status(status).json(message);
   } catch (error) {
