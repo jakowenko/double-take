@@ -29,48 +29,45 @@ const processMessage = ({ topic, message }) => {
   };
 
   const snapshot = async () => {
-    try {
-      const camera = topic.split('/')[1];
-      const filename = `${uuidv4()}.jpg`;
-      const buffer = Buffer.from(message);
+    const camera = topic.split('/')[1];
+    const filename = `${uuidv4()}.jpg`;
+    const buffer = Buffer.from(message);
 
-      if (PREVIOUS_MQTT_LENGTHS.includes(buffer.length)) {
-        return;
-      }
-      PREVIOUS_MQTT_LENGTHS.unshift(buffer.length);
-
-      fs.writeFileSync(`/tmp/${filename}`, buffer);
-      await axios({
-        method: 'get',
-        url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
-        headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
-        params: {
-          url: `http://0.0.0.0:${SERVER.PORT}/api/tmp/${filename}`,
-          type: 'mqtt',
-          camera,
-        },
-      });
-      // only store last 10 mqtt lengths
-      PREVIOUS_MQTT_LENGTHS = PREVIOUS_MQTT_LENGTHS.slice(0, 10);
-    } catch (error) {
-      console.error(error);
+    if (PREVIOUS_MQTT_LENGTHS.includes(buffer.length)) {
+      return;
     }
+    PREVIOUS_MQTT_LENGTHS.unshift(buffer.length);
+
+    fs.writeFileSync(`/tmp/${filename}`, buffer);
+    await axios({
+      method: 'get',
+      url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
+      headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
+      params: {
+        url: `http://0.0.0.0:${SERVER.PORT}/api/tmp/${filename}`,
+        type: 'mqtt',
+        camera,
+      },
+      validateStatus: () => true,
+    });
+    // only store last 10 mqtt lengths
+    PREVIOUS_MQTT_LENGTHS = PREVIOUS_MQTT_LENGTHS.slice(0, 10);
   };
 
   const frigate = async () => {
-    try {
-      await axios({
-        method: 'post',
-        url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
-        headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
-        data: {
-          ...JSON.parse(message.toString()),
-          topic,
-        },
-      });
-    } catch (error) {
-      console.error(error);
-    }
+    const payload = JSON.parse(message.toString());
+    if (payload.type === 'end') return;
+
+    await axios({
+      method: 'post',
+      url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
+      headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
+      data: {
+        ...payload,
+        topic,
+      },
+      validateStatus: () => true,
+    });
   };
 
   return { init, snapshot, frigate };
