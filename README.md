@@ -70,6 +70,8 @@ If the MQTT integration is configured within Home Assistant, then sensors will a
 
 #### Notification Automation
 
+This notification will work for both matches and unknown results. The message can be customized with any of the attributes from the entity.
+
 ```yaml
 alias: Notify
 trigger:
@@ -83,20 +85,31 @@ condition:
 action:
   - service: notify.mobile_app
     data:
-      message: >-
-        {{trigger.to_state.attributes.friendly_name}} is near the
-        {{trigger.to_state.state}} @
-        {{trigger.to_state.attributes.match.confidence}}% by
-        {{trigger.to_state.attributes.match.detector}}:{{trigger.to_state.attributes.match.type}}
-        taking {{trigger.to_state.attributes.attempts}} attempt(s) @
-        {{trigger.to_state.attributes.duration}} sec
+      message: |-
+        {% if trigger.to_state.attributes.match is defined %}
+          {{trigger.to_state.attributes.friendly_name}} is near the {{trigger.to_state.state}} @ {{trigger.to_state.attributes.match.confidence}}% by {{trigger.to_state.attributes.match.detector}}:{{trigger.to_state.attributes.match.type}} taking {{trigger.to_state.attributes.attempts}} attempt(s) @ {{trigger.to_state.attributes.duration}} sec
+        {% elif trigger.to_state.attributes.unknown is defined %}
+          unknown is near the {{trigger.to_state.state}} @ {{trigger.to_state.attributes.unknown.confidence}}% by {{trigger.to_state.attributes.unknown.detector}}:{{trigger.to_state.attributes.unknown.type}} taking {{trigger.to_state.attributes.attempts}} attempt(s) @ {{trigger.to_state.attributes.duration}} sec
+        {% endif %}
       data:
         attachment:
-          url: http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true&token={{trigger.to_state.attributes.token}}
+          url: |-
+            {% if trigger.to_state.attributes.match is defined %}
+              http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true&token={{trigger.to_state.attributes.token}}
+            {% elif trigger.to_state.attributes.unknown is defined %}
+               http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.unknown.filename}}?box=true&token={{trigger.to_state.attributes.token}}
+            {% endif %}
         actions:
           - action: URI
             title: View Image
-            uri: http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true&token={{trigger.to_state.attributes.token}}
+            uri: |-
+              {% if trigger.to_state.attributes.match is defined %}
+                http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true&token={{trigger.to_state.attributes.token}}
+              {% elif trigger.to_state.attributes.unknown is defined %}
+                 http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.unknown.filename}}?box=true&token={{trigger.to_state.attributes.token}}
+              {% endif %}
+mode: parallel
+max: 10
 ```
 
 ### MQTT
