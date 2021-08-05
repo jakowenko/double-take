@@ -34,7 +34,7 @@ module.exports.test = async (req, res) => {
       status: result.status,
       response: result.data,
     }));
-    respond(HTTPError(OK, output), res);
+    respond(HTTPSuccess(OK, output), res);
   } catch (error) {
     respond(error, res);
   }
