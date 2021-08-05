@@ -139,8 +139,9 @@ module.exports.start = async (req, res) => {
       );
     }
 
-    // return res.json(await Promise.all(promises));
-    const { best, unknown, results, attempts } = recognize.normalize(await Promise.all(promises));
+    const { best, misses, unknown, results, attempts } = recognize.normalize(
+      await Promise.all(promises)
+    );
 
     const duration = parseFloat((perf.stop('request').time / 1000).toFixed(2));
     const output = {
@@ -151,6 +152,7 @@ module.exports.start = async (req, res) => {
       camera,
       zones,
       matches: best,
+      misses,
     };
     if (unknown && Object.keys(unknown).length) output.unknown = unknown;
     if (AUTH) output.token = jwt.sign({ route: 'storage' });
