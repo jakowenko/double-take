@@ -15,6 +15,7 @@ module.exports.recognize = async ({ test, key }) => {
   formData.append('file', fs.createReadStream(key));
   return axios({
     method: 'post',
+    timeout: 15 * 1000,
     headers: {
       ...formData.getHeaders(),
     },
@@ -32,6 +33,7 @@ module.exports.train = ({ name, key }) => {
   formData.append('file', fs.createReadStream(key));
   return axios({
     method: 'post',
+    timeout: 15 * 1000,
     headers: {
       ...formData.getHeaders(),
     },
@@ -48,6 +50,7 @@ module.exports.remove = ({ name }) => {
   const { URL } = FACEBOX;
   return axios({
     method: 'delete',
+    timeout: 15 * 1000,
     url: `${URL}/facebox/teach/${name}`,
     validateStatus() {
       return true;

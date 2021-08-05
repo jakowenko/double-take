@@ -16,6 +16,7 @@ module.exports.recognize = async ({ test, key }) => {
   if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
+    timeout: 15 * 1000,
     headers: {
       ...formData.getHeaders(),
     },
@@ -35,6 +36,7 @@ module.exports.train = ({ name, key }) => {
   if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
+    timeout: 15 * 1000,
     headers: {
       ...formData.getHeaders(),
     },
@@ -50,6 +52,7 @@ module.exports.remove = ({ name }) => {
   if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
+    timeout: 15 * 1000,
     url: `${URL}/v1/vision/face/delete`,
     headers: {
       ...formData.getHeaders(),
