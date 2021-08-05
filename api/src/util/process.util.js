@@ -2,7 +2,6 @@ const axios = require('axios');
 const fs = require('fs');
 const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
-const sleep = require('./sleep.util');
 const filesystem = require('./fs.util');
 const database = require('./db.util');
 const { recognize, normalize } = require('./detectors/actions');
@@ -129,10 +128,4 @@ module.exports.stream = async (url) => {
     error.message = `stream error: ${error.message}`;
     console.error(error);
   }
-};
-
-module.exports.addJitter = async (seconds) => {
-  const jitter =
-    Math.floor(Math.random() * (seconds * 1000 - 0 * 100) + 0 * 1000) / (seconds * 1000);
-  await sleep(jitter);
 };
