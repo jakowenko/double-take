@@ -41,7 +41,11 @@ module.exports.init = () => {
   console.error = (...args) => {
     const isError = args[0] instanceof Error;
     const message = isError
-      ? args[0].stack || args[0].toString()
+      ? args[0].stack
+        ? args[0].stack.includes(args[0].message)
+          ? args[0].stack
+          : `${args[0].message}\n${args[0].stack}`
+        : args[0].toString()
       : args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : arg)).join(' ');
 
     if (isError) logger.error(message);
