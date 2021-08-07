@@ -2,11 +2,12 @@ const { createLogger, format, transports } = require('winston');
 const util = require('util');
 const { core: SYSTEM_CORE } = require('../constants/system');
 const mqtt = require('./mqtt.util');
+const redact = require('./redact-secrets.util');
 
 const combineMessageAndSplat = () => {
   return {
     transform: (info /* , opts */) => {
-      info.message = util.format(info.message, ...(info[Symbol.for('splat')] || []));
+      info.message = util.format(redact(info.message), ...redact(info[Symbol.for('splat')] || []));
       return info;
     },
   };
