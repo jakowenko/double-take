@@ -1,7 +1,8 @@
 const fs = require('fs');
 const axios = require('axios');
 const time = require('./time.util');
-const { STORAGE } = require('../constants');
+const { jwt } = require('./auth.util');
+const { AUTH, STORAGE } = require('../constants');
 
 module.exports.folders = () => {
   return {
@@ -121,6 +122,7 @@ module.exports.move = (source, destination) => {
 };
 
 module.exports.saveURLs = async (urls, path) => {
+  const token = AUTH ? jwt.sign({ route: 'storage' }) : null;
   const files = [];
   for (let i = 0; i < urls.length; i++) {
     try {
@@ -128,7 +130,7 @@ module.exports.saveURLs = async (urls, path) => {
       const url = urls[i];
       const { headers, data: buffer } = await axios({
         method: 'get',
-        url,
+        url: `${url}?token=${token}`,
         responseType: 'arraybuffer',
       });
 
