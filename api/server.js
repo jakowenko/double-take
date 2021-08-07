@@ -12,16 +12,16 @@ const shutdown = require('./src/util/shutdown.util');
 module.exports.start = async () => {
   storage.setup();
   console.log(`Double Take v${version}`);
-
   console.log(config());
-
   await database.init();
-
   http.Server(app).listen(SERVER.PORT);
-
   mqtt.connect();
   storage.purge();
 };
 
-shutdown.listen();
-this.start();
+try {
+  this.start().catch((error) => console.error(error));
+  shutdown.listen();
+} catch (error) {
+  console.error(error);
+}
