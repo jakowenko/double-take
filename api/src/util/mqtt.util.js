@@ -292,6 +292,7 @@ module.exports.recognize = (data) => {
 };
 
 module.exports.publish = (data) => {
+  if (!CLIENT) return;
   const multiple = Array.isArray(data);
   const single = data && !multiple && typeof data === 'object';
 
