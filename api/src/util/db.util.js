@@ -53,6 +53,8 @@ module.exports.init = async () => {
     )`
     ).run();
 
+    db.prepare(`DELETE FROM train WHERE meta IS NULL`).run();
+
     await this.resync.files();
   } catch (error) {
     error.message = `db init error: ${error.message}`;
