@@ -30,7 +30,7 @@ module.exports.queue = async (files) => {
         name,
         key: `${STORAGE.PATH}/train/${name}/${filename}`,
         detector,
-      });
+      }).catch((error) => ({ error: error.message }));
       outputs.push({ ...result });
       records[i].meta = JSON.stringify(result);
       database.create.train(records[i]);
@@ -49,9 +49,15 @@ module.exports.process = async ({ name, key, detector }) => {
       detector,
     };
   } catch (error) {
+    if (!error.response) {
+      return {
+        message: error.message,
+        status: 500,
+        detector,
+      };
+    }
     const { status, data } = error.response;
     const message = typeof data === 'string' ? { data } : { ...data };
-
     if (data.message) {
       console.error(`${detector} training error: ${data.message}`);
     } else if (data.error) {
@@ -59,7 +65,6 @@ module.exports.process = async ({ name, key, detector }) => {
     } else {
       console.error(`${detector} training error: ${error.message}`);
     }
-
     return {
       ...message,
       status,

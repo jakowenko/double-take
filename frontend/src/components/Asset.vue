@@ -73,7 +73,7 @@
                 :value="slotProps.data.detector"
                 :severity="
                   slotProps.data.result
-                    ? slotProps.data.result.status.toString().charAt(0) === '2'
+                    ? slotProps?.data?.result?.status?.toString().charAt(0) === '2'
                       ? 'success'
                       : 'danger'
                     : ''
