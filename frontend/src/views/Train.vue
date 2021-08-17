@@ -130,8 +130,12 @@ export default {
         async files() {
           try {
             const ids = $this.matches.selected.map((obj) => obj.id);
-            const trained = $this.matches.selected.filter((obj) => obj.results.length);
-            const untrained = $this.matches.selected.filter((obj) => !obj.results.length);
+            const trained = $this.matches.selected.filter(
+              (obj) => obj.results.filter((res) => res.result.status === 200).length,
+            );
+            const untrained = $this.matches.selected.filter(
+              (obj) => !obj.results.length || obj.results.filter((res) => res.result.status !== 200).length,
+            );
             const names = [...new Set(trained.map((obj) => obj.name))];
             let message = '';
             if (trained.length) {
