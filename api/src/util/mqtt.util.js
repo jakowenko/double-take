@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const mqtt = require('mqtt');
-const fs = require('fs');
+const fs = require('./fs.util');
 const { contains } = require('./helpers.util');
 const { jwt } = require('./auth.util');
 const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE } = require('../constants');
@@ -38,7 +38,7 @@ const processMessage = ({ topic, message }) => {
     }
     PREVIOUS_MQTT_LENGTHS.unshift(buffer.length);
 
-    fs.writeFileSync(`${STORAGE.TMP.PATH}/${filename}`, buffer);
+    fs.writer(`${STORAGE.TMP.PATH}/${filename}`, buffer);
     await axios({
       method: 'get',
       url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
@@ -50,6 +50,7 @@ const processMessage = ({ topic, message }) => {
       },
       validateStatus: () => true,
     });
+    fs.delete(`${STORAGE.TMP.PATH}/${filename}`, buffer);
     // only store last 10 mqtt lengths
     PREVIOUS_MQTT_LENGTHS = PREVIOUS_MQTT_LENGTHS.slice(0, 10);
   };
