@@ -20,7 +20,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
     for (let i = 0; i < retries; i++) {
       if (breakMatch === true && MATCH_IDS.includes(id)) break;
 
-      const tmp = `/tmp/${id}-${type}-${uuidv4()}.jpg`;
+      const tmp = `${STORAGE.TMP.PATH}/${id}-${type}-${uuidv4()}.jpg`;
       const filename = `${uuidv4()}.jpg`;
 
       const stream = await this.stream(url);
@@ -54,6 +54,8 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
           await this.save(event, results, filename, tmp);
 
         allResults.push(...results);
+
+        filesystem.delete(tmp);
 
         if (foundMatch) {
           MATCH_IDS.push(id);

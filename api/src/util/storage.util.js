@@ -49,6 +49,11 @@ module.exports.purge = async () => {
 };
 
 module.exports.setup = () => {
+  if (fs.existsSync(STORAGE.TMP.PATH)) {
+    fs.rmdirSync(STORAGE.TMP.PATH, { recursive: true });
+  }
+  fs.mkdirSync(STORAGE.TMP.PATH, { recursive: true });
+
   if (!fs.existsSync(`${STORAGE.PATH}/matches`)) {
     fs.mkdirSync(`${STORAGE.PATH}/matches`, { recursive: true });
   }

@@ -4,7 +4,7 @@ const mqtt = require('mqtt');
 const fs = require('fs');
 const { contains } = require('./helpers.util');
 const { jwt } = require('./auth.util');
-const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS } = require('../constants');
+const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE } = require('../constants');
 
 let PREVIOUS_MQTT_LENGTHS = [];
 let JUST_SUBSCRIBED = false;
@@ -38,13 +38,13 @@ const processMessage = ({ topic, message }) => {
     }
     PREVIOUS_MQTT_LENGTHS.unshift(buffer.length);
 
-    fs.writeFileSync(`/tmp/${filename}`, buffer);
+    fs.writeFileSync(`${STORAGE.TMP.PATH}/${filename}`, buffer);
     await axios({
       method: 'get',
       url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
       headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       params: {
-        url: `http://0.0.0.0:${SERVER.PORT}/api/tmp/${filename}`,
+        url: `http://0.0.0.0:${SERVER.PORT}/api/${STORAGE.TMP.PATH}/${filename}`,
         type: 'mqtt',
         camera,
       },

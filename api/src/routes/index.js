@@ -1,5 +1,6 @@
 const express = require('express');
 const { respond, HTTPError } = require('../util/respond.util');
+const { STORAGE } = require('../constants');
 const { NOT_FOUND } = require('../constants/http-status');
 
 const router = express.Router();
@@ -14,7 +15,7 @@ router.use('/train', require('./train.routes'));
 router.use('/storage', require('./storage.routes'));
 router.use('/proxy', require('./proxy.routes'));
 
-router.use('/tmp', express.static(`/tmp`));
+router.use(STORAGE.TMP.PATH, express.static(STORAGE.TMP.PATH));
 router.all('*', (req, res) => respond(HTTPError(NOT_FOUND, `${req.originalUrl} not found`), res));
 
 module.exports = router;
