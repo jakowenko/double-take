@@ -4,6 +4,7 @@ const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
 const filesystem = require('./fs.util');
 const database = require('./db.util');
+const mask = require('./mask.image.util');
 const { recognize, normalize } = require('./detectors/actions');
 const { STORAGE, SAVE } = require('../constants');
 const DETECTORS = require('../constants/config').detectors();
@@ -29,6 +30,9 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
         previousContentLength = stream.length;
         const promises = [];
         filesystem.writer(tmp, stream);
+
+        const maskBuffer = await mask(event, tmp);
+        if (maskBuffer) filesystem.writer(tmp, maskBuffer);
 
         for (const detector of DETECTORS) {
           promises.push(this.process({ attempt: attempts, detector, tmp }));
