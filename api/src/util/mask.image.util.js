@@ -2,21 +2,31 @@ const { promisify } = require('util');
 const { createCanvas, loadImage } = require('canvas');
 const sizeOf = promisify(require('image-size'));
 
-const { MASKS } = require('../constants');
+const MASKS = require('../constants/config').masks();
 
 module.exports = async (event, tmp) => {
-  const masks = MASKS
-    ? MASKS.filter(({ CAMERA }) => CAMERA === event.camera).map(({ MASK }) => MASK)
-    : [];
+  const MASK = MASKS
+    ? MASKS.filter(({ camera }) => camera === event.camera).map(({ mask, visible, size }) => ({
+        mask,
+        visible,
+        size,
+      }))[0]
+    : null;
+
+  if (!MASK) return false;
+
   const coordinates = [];
-  masks.forEach((mask) => {
+
+  const items = Array.isArray(MASK.mask) ? MASK.mask : [MASK.mask];
+  items.forEach((item) => {
     coordinates.push([]);
-    mask.split(',').forEach((value, i) => {
+    item.split(',').forEach((value, i) => {
       if (i % 2 === 0) {
         coordinates[coordinates.length - 1].push({ x: value });
       } else {
         const objectLength = coordinates[coordinates.length - 1].length - 1;
         coordinates[coordinates.length - 1][objectLength].y = value;
+        coordinates[coordinates.length - 1][objectLength].size = MASK.size;
       }
     });
   });
@@ -31,13 +41,15 @@ module.exports = async (event, tmp) => {
   ctx.drawImage(image, 0, 0);
   coordinates.forEach((coordinate) => {
     ctx.beginPath();
-    coordinate.forEach(({ x, y }, i) => {
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+    coordinate.forEach(({ x, y, size }) => {
+      const [maskWidth] = size ? size.replace(/\s+/g, '').toLowerCase().split('x') : [null];
+      const ratio = maskWidth ? width / maskWidth : 1;
+
+      ctx.lineTo(x * ratio, y * ratio);
     });
     ctx.closePath();
     ctx.fill();
   });
 
-  return canvas.toBuffer('image/jpeg');
+  return { visible: MASK.visible, buffer: canvas.toBuffer('image/jpeg') };
 };

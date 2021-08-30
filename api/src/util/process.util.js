@@ -21,21 +21,29 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
     for (let i = 0; i < retries; i++) {
       if (breakMatch === true && MATCH_IDS.includes(id)) break;
 
-      const tmp = `${STORAGE.TMP.PATH}/${id}-${type}-${uuidv4()}.jpg`;
-      const filename = `${uuidv4()}.jpg`;
-
       const stream = await this.stream(url);
       if (stream && previousContentLength !== stream.length) {
+        const tmp = {
+          source: `${STORAGE.TMP.PATH}/${id}-${type}-${uuidv4()}.jpg`,
+          mask: false,
+        };
+        const filename = `${uuidv4()}.jpg`;
+        const promises = [];
+
         attempts = i + 1;
         previousContentLength = stream.length;
-        const promises = [];
-        filesystem.writer(tmp, stream);
+        filesystem.writer(tmp.source, stream);
 
-        const maskBuffer = await mask(event, tmp);
-        if (maskBuffer) filesystem.writer(tmp, maskBuffer);
+        const maskBuffer = await mask(event, tmp.source);
+        if (maskBuffer) {
+          const { visible, buffer } = maskBuffer;
+          tmp.mask =
+            visible === true ? tmp.source : `${STORAGE.TMP.PATH}/${id}-${type}-${uuidv4()}.jpg`;
+          filesystem.writer(tmp.mask, buffer);
+        }
 
         for (const detector of DETECTORS) {
-          promises.push(this.process({ attempt: attempts, detector, tmp }));
+          promises.push(this.process({ attempt: attempts, detector, tmp: tmp.mask || tmp.source }));
         }
         let results = await Promise.all(promises);
 
@@ -55,7 +63,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
         const totalFaces = results.flatMap((obj) => obj.results.filter((item) => item)).length;
 
         if (foundMatch || (SAVE.UNKNOWN && totalFaces > 0))
-          await this.save(event, results, filename, tmp);
+          await this.save(event, results, filename, maskBuffer?.visible ? tmp.mask : tmp.source);
 
         allResults.push(...results);
 

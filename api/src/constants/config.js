@@ -65,6 +65,14 @@ module.exports.detectors = () => {
   return results;
 };
 
+module.exports.masks = () => {
+  const results = [];
+  if (CONFIG.masks)
+    for (const [mask] of Object.entries(CONFIG.masks))
+      results.push({ camera: mask, ...CONFIG.masks[mask] });
+  return results;
+};
+
 module.exports.notify = () => {
   const results = [];
   if (CONFIG.notify) for (const [notify] of Object.entries(CONFIG.notify)) results.push(notify);
