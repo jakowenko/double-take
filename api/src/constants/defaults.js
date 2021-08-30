@@ -1,5 +1,8 @@
 module.exports = {
   auth: false,
+  token: {
+    image: '24h',
+  },
   confidence: {
     match: 60,
     unknown: 40,

@@ -44,6 +44,7 @@ module.exports = () => {
   if (configData && configData.code === 'ENOENT') setup('config.yml', '# Double Take');
   else CONFIG = { ...configData };
 
+  if (!CONFIG.auth) delete DEFAULTS.token;
   CONFIG = _.isEmpty(CONFIG) ? DEFAULTS : _.mergeWith(DEFAULTS, CONFIG, customizer);
   if (CONFIG?.notify?.gotify)
     CONFIG.notify.gotify = _.mergeWith(NOTIFY.gotify, CONFIG.notify.gotify, customizer);

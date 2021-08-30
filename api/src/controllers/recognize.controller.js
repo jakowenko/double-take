@@ -11,7 +11,7 @@ const mqtt = require('../util/mqtt.util');
 const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
 const { OK, BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
-const { AUTH, FRIGATE } = require('../constants');
+const { AUTH, FRIGATE, TOKEN } = require('../constants');
 
 const { IDS, MATCH_IDS } = {
   IDS: [],
@@ -155,7 +155,7 @@ module.exports.start = async (req, res) => {
       misses,
     };
     if (unknown && Object.keys(unknown).length) output.unknown = unknown;
-    if (AUTH) output.token = jwt.sign({ route: 'storage' });
+    if (AUTH) output.token = jwt.sign({ route: 'storage', expiresIn: TOKEN.IMAGE });
 
     if (resultsOutput === 'all') output.results = results;
 
