@@ -21,7 +21,7 @@ const key = (str) =>
 
 module.exports = (obj, value = '********') => {
   // eslint-disable-next-line array-callback-return
-  return traverse(obj).map(function redact(/* val */) {
-    if (key(this.key)) this.update(value);
+  return traverse(obj).map(function redact(val) {
+    if (key(this.key) && typeof val === 'string') this.update(value);
   });
 };
