@@ -40,18 +40,19 @@
               />
             </div>
             <div v-if="type === 'train'">
-              <FileUpload
-                mode="basic"
-                name="files[]"
-                :url="uploadUrl"
-                accept="image/*"
-                :maxFileSize="10000000"
-                @upload="$parent.init()"
-                :auto="true"
-                :multiple="true"
-                chooseLabel="Upload"
-                class="p-d-inline"
-              />
+              <div class="p-d-inline-block">
+                <FileUpload
+                  mode="basic"
+                  name="files[]"
+                  :url="uploadUrl"
+                  accept="image/*"
+                  :maxFileSize="10000000"
+                  @upload="$parent.init()"
+                  :auto="true"
+                  :multiple="true"
+                  chooseLabel="Upload"
+                />
+              </div>
               <Button
                 icon="fa fa-recycle push-top"
                 class="responsive-button p-button-success p-button-sm p-ml-1"
