@@ -48,6 +48,7 @@
                 :maxFileSize="10000000"
                 @upload="$parent.init()"
                 :auto="true"
+                :multiple="true"
                 chooseLabel="Upload"
                 class="p-d-inline"
               />
