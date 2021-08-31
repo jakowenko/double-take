@@ -18,6 +18,10 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
   perf.start(type);
 
   if (await this.isValidURL({ type, url })) {
+    if (event.type === 'snapshot' && !mask.hasMask(event)) {
+      url = `${url}&crop=1`;
+    }
+
     for (let i = 0; i < retries; i++) {
       if (breakMatch === true && MATCH_IDS.includes(id)) break;
 
@@ -34,7 +38,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
         previousContentLength = stream.length;
         filesystem.writer(tmp.source, stream);
 
-        const maskBuffer = await mask(event, tmp.source);
+        const maskBuffer = await mask.buffer(event, tmp.source);
         if (maskBuffer) {
           const { visible, buffer } = maskBuffer;
           tmp.mask =

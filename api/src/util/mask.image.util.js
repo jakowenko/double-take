@@ -4,14 +4,21 @@ const sizeOf = promisify(require('image-size'));
 
 const MASKS = require('../constants/config').masks();
 
-module.exports = async (event, tmp) => {
-  const MASK = MASKS
+const getMask = (event) =>
+  MASKS
     ? MASKS.filter(({ camera }) => camera === event.camera).map(({ mask, visible, size }) => ({
         mask,
         visible,
         size,
       }))[0]
     : null;
+
+module.exports.hasMask = (event) => {
+  return !!getMask(event);
+};
+
+module.exports.buffer = async (event, tmp) => {
+  const MASK = getMask(event);
 
   if (!MASK) return false;
 

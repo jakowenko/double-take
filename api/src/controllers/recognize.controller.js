@@ -119,7 +119,7 @@ module.exports.start = async (req, res) => {
               ...config,
               retries: FRIGATE.ATTEMPTS.SNAPSHOT,
               type: 'snapshot',
-              url: `${frigate.topicURL(event.topic)}/api/events/${id}/snapshot.jpg?crop=1&h=${
+              url: `${frigate.topicURL(event.topic)}/api/events/${id}/snapshot.jpg?h=${
                 FRIGATE.IMAGE.HEIGHT
               }`,
             }
