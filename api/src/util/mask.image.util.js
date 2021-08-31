@@ -41,6 +41,9 @@ module.exports.buffer = async (event, tmp) => {
   if (!coordinates.length) return false;
 
   const { width, height } = await sizeOf(tmp);
+
+  if (event.type === 'mqtt' && width === height) return false;
+
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
   const image = await loadImage(tmp);
