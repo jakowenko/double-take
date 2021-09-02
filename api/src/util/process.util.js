@@ -5,13 +5,15 @@ const { v4: uuidv4 } = require('uuid');
 const filesystem = require('./fs.util');
 const database = require('./db.util');
 const mask = require('./mask.image.util');
+const sleep = require('./sleep.util');
 const { recognize, normalize } = require('./detectors/actions');
-const { STORAGE, SAVE } = require('../constants');
+const { FRIGATE, STORAGE, SAVE } = require('../constants');
 const DETECTORS = require('../constants/config').detectors();
 
 module.exports.polling = async (event, { retries, id, type, url, breakMatch, MATCH_IDS }) => {
   event.type = type;
   breakMatch = !!(breakMatch === 'true' || breakMatch === true);
+  const { frigateEventType } = event;
   const allResults = [];
   let attempts = 0;
   let previousContentLength;
@@ -78,6 +80,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
           if (breakMatch === true) break;
         }
       }
+      if (frigateEventType && FRIGATE.ATTEMPTS.DELAY > 0) await sleep(FRIGATE.ATTEMPTS.DELAY);
     }
   }
 

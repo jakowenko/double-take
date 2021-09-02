@@ -16,7 +16,7 @@ module.exports = {
   },
   time: { timezone: 'UTC' },
   frigate: {
-    attempts: { latest: 10, snapshot: 0, mqtt: true },
+    attempts: { latest: 10, snapshot: 0, mqtt: true, delay: 0 },
     image: { height: 500 },
   },
   purge: {
