@@ -274,6 +274,7 @@ detectors:
 | frigate.url                             |                       | Base URL for Frigate                                                                                                                              |
 | frigate.attempts.latest                 | `10`                  | Amount of times API will request a Frigate `latest.jpg` for facial recognition                                                                    |
 | frigate.attempts.snapshot               | `0`                   | Amount of times API will request a Frigate `snapshot.jpg` for facial recognition                                                                  |
+| frigate.attempts.mqtt                   | `true`                | Process Frigate images from `frigate/+/person/snapshot` topics                                                                                    |
 | frigate.image.height                    | `500`                 | Height of Frigate image passed for facial recognition                                                                                             |
 | frigate.cameras                         |                       | Only process images from specific cameras                                                                                                         |
 | frigate.zones                           |                       | Only process images from specific zones                                                                                                           |

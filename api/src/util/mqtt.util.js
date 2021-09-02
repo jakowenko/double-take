@@ -113,11 +113,12 @@ module.exports.subscribe = () => {
     topics.push(...frigateTopics);
     frigateTopics.forEach((topic) => {
       const [prefix] = topic.split('/');
-      topics.push(
-        ...(FRIGATE.CAMERAS
-          ? FRIGATE.CAMERAS.map((camera) => `${prefix}/${camera}/person/snapshot`)
-          : [`${prefix}/+/person/snapshot`])
-      );
+      if (FRIGATE.ATTEMPTS.MQTT === true)
+        topics.push(
+          ...(FRIGATE.CAMERAS
+            ? FRIGATE.CAMERAS.map((camera) => `${prefix}/${camera}/person/snapshot`)
+            : [`${prefix}/+/person/snapshot`])
+        );
     });
   }
 
