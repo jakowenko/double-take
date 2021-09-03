@@ -34,7 +34,6 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
           mask: false,
         };
         const filename = `${uuidv4()}.jpg`;
-        const promises = [];
 
         attempts = i + 1;
         previousContentLength = stream.length;
@@ -48,21 +47,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
           filesystem.writer(tmp.mask, buffer);
         }
 
-        for (const detector of DETECTORS) {
-          promises.push(this.process({ attempt: attempts, detector, tmp: tmp.mask || tmp.source }));
-        }
-        let results = await Promise.all(promises);
-
-        // eslint-disable-next-line no-loop-func
-        results = results.map((array, j) => {
-          return {
-            detector: DETECTORS[j],
-            duration: array ? array.duration : 0,
-            attempt: attempts,
-            results: array ? array.results : [],
-            filename,
-          };
-        });
+        const results = await this.start(tmp.mask || tmp.source, attempts);
 
         const foundMatch = !!results.flatMap((obj) => obj.results.filter((item) => item.match))
           .length;
@@ -102,6 +87,27 @@ module.exports.save = async (event, results, filename, tmp) => {
     error.message = `save results error: ${error.message}`;
     console.error(error);
   }
+};
+
+module.exports.start = async (filename, attempts = 1) => {
+  const promises = [];
+  for (const detector of DETECTORS) {
+    promises.push(this.process({ detector, tmp: filename }));
+  }
+  let results = await Promise.all(promises);
+
+  // eslint-disable-next-line no-loop-func
+  results = results.map((array, j) => {
+    return {
+      detector: DETECTORS[j],
+      duration: array ? array.duration : 0,
+      attempt: attempts,
+      results: array ? array.results : [],
+      filename,
+    };
+  });
+
+  return results;
 };
 
 module.exports.process = async ({ detector, tmp }) => {
