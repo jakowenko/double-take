@@ -114,6 +114,9 @@ export default {
     });
     this.emitter.on('assetLoaded', (...args) => this.assetLoaded(...args));
     this.emitter.on('toggleAsset', (...args) => this.selected(...args));
+    this.emitter.on('reprocess', (data) => {
+      this.matches.source = this.matches.source.map((obj) => (obj.id === data.id ? data : obj));
+    });
   },
   async mounted() {
     await this.init();

@@ -93,23 +93,32 @@
         </div>
       </template>
       <template v-slot:footer>
-        <div class="p-d-flex p-jc-between p-ai-center">
-          <div v-if="type === 'match'" class="p-mb-3">
-            <Badge v-if="asset.camera" :value="asset.camera" />
-            <Badge v-if="asset.type && asset.type !== 'manual'" :value="asset.type" />
-            <Badge v-if="asset.zones.length" :value="[...asset.zones].join(', ')" />
-            <Badge v-if="gender" :value="gender" />
-            <Badge v-if="age" :value="age.join('-')" />
+        <div style="position: relative">
+          <div class="p-d-flex p-jc-between p-ai-center">
+            <div v-if="type === 'match'" class="p-mb-3">
+              <Badge v-if="asset.camera" :value="asset.camera" />
+              <Badge v-if="asset.type && asset.type !== 'manual'" :value="asset.type" />
+              <Badge v-if="asset.zones.length" :value="[...asset.zones].join(', ')" />
+              <Badge v-if="gender" :value="gender" />
+              <Badge v-if="age" :value="age.join('-')" />
+            </div>
           </div>
+          <small v-if="type === 'match'">{{ createdAt.ago }}{{ updatedAt ? ` (updated ${updatedAt.ago})` : '' }}</small>
+          <small v-else-if="type === 'train'">{{ asset.name }}</small>
+          <Button
+            v-if="type === 'match'"
+            :icon="reprocessing ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'"
+            class="reprocess-btn"
+            @click="reprocess"
+          />
         </div>
-        <small v-if="type === 'match'">{{ createdAt.ago }}</small>
-        <small v-else-if="type === 'train'">{{ asset.name }}</small>
       </template>
     </Card>
   </div>
 </template>
 
 <script>
+import Button from 'primevue/button';
 import ApiService from '@/services/api.service';
 import Constants from '@/util/constants.util';
 import { DateTime } from 'luxon';
@@ -134,11 +143,13 @@ export default {
     DataTable,
     Column,
     Dropdown,
+    Button,
   },
   data: () => ({
     timestamp: Date.now(),
     folder: null,
     loadedCount: 0,
+    reprocessing: false,
   }),
   created() {
     setInterval(() => {
@@ -165,6 +176,24 @@ export default {
       };
 
       return `width: ${values.width}; height: ${values.height}; top: ${values.top}; left: ${values.left}`;
+    },
+    reprocess() {
+      this.$confirm.require({
+        header: 'Confirmation',
+        message: 'Do you want to reprocess this image with the configured detectors and update the results?',
+        acceptClass: 'p-button-success',
+        position: 'top',
+        accept: async () => {
+          try {
+            this.reprocessing = true;
+            const { data } = await ApiService.patch(`match/reprocess/${this.asset.id}`);
+            this.emitter.emit('reprocess', data);
+            this.reprocessing = false;
+          } catch (error) {
+            this.emitter.emit('error', error);
+          }
+        },
+      });
     },
   },
   computed: {
@@ -197,9 +226,18 @@ export default {
       const diff = dateTime.diffNow().shiftTo(...units);
       const unit = units.find((u) => diff.get(u) !== 0) || 'second';
 
-      const relativeFormatter = new Intl.RelativeTimeFormat('en', {
-        numeric: 'auto',
-      });
+      const relativeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+      return { ago: relativeFormatter.format(Math.trunc(diff.as(unit)), unit), timestamp: this.timestamp };
+    },
+    updatedAt() {
+      if (!this.asset.updatedAt) return null;
+      const units = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
+
+      const dateTime = DateTime.fromISO(this.asset.updatedAt);
+      const diff = dateTime.diffNow().shiftTo(...units);
+      const unit = units.find((u) => diff.get(u) !== 0) || 'second';
+
+      const relativeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
       return { ago: relativeFormatter.format(Math.trunc(diff.as(unit)), unit), timestamp: this.timestamp };
     },
   },
@@ -221,6 +259,15 @@ export default {
 
   .p-datatable-thead > tr > th {
     border-top: 0;
+  }
+
+  .p-datatable-thead > tr > th:first-child,
+  .p-datatable-tbody > tr > td:first-child {
+    padding-left: 0;
+  }
+  .p-datatable-thead > tr > th:last-child,
+  .p-datatable-tbody > tr > td:last-child {
+    padding-right: 0;
   }
 
   td {
@@ -341,5 +388,11 @@ img.thumbnail {
       padding: 0.75rem;
     }
   }
+}
+
+.reprocess-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
 }
 </style>

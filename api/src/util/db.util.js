@@ -190,4 +190,16 @@ module.exports.create = {
   },
 };
 
+module.exports.update = {
+  match: ({ id, event, response }) => {
+    event.updatedAt = time.utc();
+    const db = database.connect();
+    db.prepare(`UPDATE match SET event = :event, response = :response WHERE id = :id`).run({
+      event: event ? JSON.stringify(event) : null,
+      response: response ? JSON.stringify(response) : null,
+      id,
+    });
+  },
+};
+
 module.exports.params = (array) => '?,'.repeat(array.length).slice(0, -1);

@@ -5,8 +5,9 @@ const sizeOf = promisify(require('image-size'));
 const database = require('../util/db.util');
 const filesystem = require('../util/fs.util');
 const { jwt } = require('../util/auth.util');
-const { respond, HTTPSuccess /* , HTTPError */ } = require('../util/respond.util');
-const { OK } = require('../constants/http-status');
+const process = require('../util/process.util');
+const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
+const { OK, BAD_REQUEST } = require('../constants/http-status');
 const { AUTH, STORAGE } = require('../constants');
 
 let matchProps = [];
@@ -94,6 +95,31 @@ module.exports.delete = async (req, res) => {
       filesystem.delete(`${STORAGE.PATH}/${file.key}`);
     });
     respond(HTTPSuccess(OK, { success: true }), res);
+  } catch (error) {
+    respond(error, res);
+  }
+};
+
+module.exports.reprocess = async (req, res) => {
+  try {
+    const { matchId } = req.params;
+    const db = database.connect();
+    let [match] = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
+
+    if (!match) {
+      throw HTTPError(BAD_REQUEST, 'No match found');
+    }
+
+    const results = await process.start(`${STORAGE.PATH}/matches/${match.filename}`);
+    database.update.match({
+      id: match.id,
+      event: JSON.parse(match.event),
+      response: results,
+    });
+    match = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
+    match = await format(match);
+
+    respond(HTTPSuccess(OK, match[0]), res);
   } catch (error) {
     respond(error, res);
   }
