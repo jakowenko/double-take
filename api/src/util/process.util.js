@@ -47,7 +47,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
           filesystem.writer(tmp.mask, buffer);
         }
 
-        const results = await this.start(tmp.mask || tmp.source, attempts);
+        const results = await this.start(filename, tmp.mask || tmp.source, attempts);
 
         const foundMatch = !!results.flatMap((obj) => obj.results.filter((item) => item.match))
           .length;
@@ -89,10 +89,10 @@ module.exports.save = async (event, results, filename, tmp) => {
   }
 };
 
-module.exports.start = async (filename, attempts = 1) => {
+module.exports.start = async (filename, tmp, attempts = 1) => {
   const promises = [];
   for (const detector of DETECTORS) {
-    promises.push(this.process({ detector, tmp: filename }));
+    promises.push(this.process({ detector, tmp }));
   }
   let results = await Promise.all(promises);
 

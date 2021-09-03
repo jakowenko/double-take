@@ -110,7 +110,10 @@ module.exports.reprocess = async (req, res) => {
       throw HTTPError(BAD_REQUEST, 'No match found');
     }
 
-    const results = await process.start(`${STORAGE.PATH}/matches/${match.filename}`);
+    const results = await process.start(
+      match.filename,
+      `${STORAGE.PATH}/matches/${match.filename}`
+    );
     database.update.match({
       id: match.id,
       event: JSON.parse(match.event),
