@@ -100,10 +100,13 @@
               <Badge v-if="asset.type && asset.type !== 'manual'" :value="asset.type" />
               <Badge v-if="asset.zones.length" :value="[...asset.zones].join(', ')" />
               <div v-for="gender in genders" :key="gender" class="badge-holder p-d-inline-block">
-                <Badge :value="gender.value + ' ' + gender.probability + '%'" />
+                <Badge :value="gender.value + ': ' + gender.probability + '%'" />
               </div>
               <div v-for="age in ages" :key="age" class="badge-holder p-d-inline-block">
                 <Badge :value="age.low + '-' + age.high + ': ' + age.probability + '%'" />
+              </div>
+              <div v-for="mask in masks" :key="mask" class="badge-holder p-d-inline-block">
+                <Badge :value="mask.value.replace(/_/g, ' ') + ': ' + mask.probability + '%'" />
               </div>
             </div>
           </div>
@@ -215,6 +218,12 @@ export default {
       }
       return data;
     },
+    masks() {
+      const masks = [];
+      this.results.forEach((obj) => {
+        if (obj.mask) masks.push({ ...obj.mask });
+      });
+      return masks;
     },
     genders() {
       const genders = [];

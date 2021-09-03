@@ -101,6 +101,11 @@ module.exports.normalize = ({ data }) => {
         ...obj.gender,
         probability: parseFloat((obj.gender.probability * 100).toFixed(2)),
       };
+    if (obj.mask)
+      output.mask = {
+        ...obj.mask,
+        probability: parseFloat((obj.mask.probability * 100).toFixed(2)),
+      };
     return output;
   });
   return normalized;
