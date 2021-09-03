@@ -91,8 +91,16 @@ module.exports.normalize = ({ data }) => {
         height: box.y_max - box.y_min,
       },
     };
-    if (obj.age) output.age = obj.age;
-    if (obj.gender) output.gender = obj.gender;
+    if (obj.age)
+      output.age = {
+        ...obj.age,
+        probability: parseFloat((obj.age.probability * 100).toFixed(2)),
+      };
+    if (obj.gender)
+      output.gender = {
+        ...obj.gender,
+        probability: parseFloat((obj.gender.probability * 100).toFixed(2)),
+      };
     return output;
   });
   return normalized;

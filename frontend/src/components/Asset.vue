@@ -99,8 +99,12 @@
               <Badge v-if="asset.camera" :value="asset.camera" />
               <Badge v-if="asset.type && asset.type !== 'manual'" :value="asset.type" />
               <Badge v-if="asset.zones.length" :value="[...asset.zones].join(', ')" />
-              <Badge v-if="gender" :value="gender" />
-              <Badge v-if="age" :value="age.join('-')" />
+              <div v-for="gender in genders" :key="gender" class="badge-holder p-d-inline-block">
+                <Badge :value="gender.value + ' ' + gender.probability + '%'" />
+              </div>
+              <div v-for="age in ages" :key="age" class="badge-holder p-d-inline-block">
+                <Badge :value="age.low + '-' + age.high + ': ' + age.probability + '%'" />
+              </div>
             </div>
           </div>
           <small v-if="type === 'match'">{{ createdAt.ago }}{{ updatedAt ? ` (updated ${updatedAt.ago})` : '' }}</small>
@@ -211,13 +215,20 @@ export default {
       }
       return data;
     },
-    gender() {
-      const [target] = this.results.filter((obj) => obj.detector === 'compreface');
-      return target && target.gender ? target.gender : null;
     },
-    age() {
-      const [target] = this.results.filter((obj) => obj.detector === 'compreface');
-      return target && target.age ? target.age : null;
+    genders() {
+      const genders = [];
+      this.results.forEach((obj) => {
+        if (obj.gender) genders.push({ ...obj.gender });
+      });
+      return genders;
+    },
+    ages() {
+      const ages = [];
+      this.results.forEach((obj) => {
+        if (obj.age) ages.push({ ...obj.age });
+      });
+      return ages;
     },
     createdAt() {
       const units = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
@@ -336,6 +347,13 @@ img.thumbnail {
   position: relative;
 }
 
+.badge-holder {
+  margin-right: 5px;
+  margin-bottom: 5px;
+  &:last-child {
+    margin-right: 0;
+  }
+}
 .p-badge {
   flex: 1 1 auto;
   margin-right: 5px;
