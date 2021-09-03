@@ -216,11 +216,7 @@ export default {
             await ApiService.post(`train/add/${this.trainingFolder}`, {
               urls: $this.matches.selected.map((obj) => `${Constants().api}/storage/${obj.file.key}`),
             });
-
-            const ids = $this.matches.selected.map((obj) => obj.id);
-            $this.matches.disabled = $this.matches.disabled.concat(ids);
             $this.matches.selected = [];
-
             $this.emitter.emit('toast', { message: `${description} trained for ${this.trainingFolder}` });
           } catch (error) {
             $this.emitter.emit('error', error);
