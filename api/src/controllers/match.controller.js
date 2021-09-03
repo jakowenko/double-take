@@ -11,12 +11,63 @@ const { AUTH, STORAGE } = require('../constants');
 
 let matchProps = [];
 
+const format = async (matches) => {
+  const token = AUTH && matches.length ? jwt.sign({ route: 'storage' }) : null;
+
+  matches = await Promise.all(
+    matches.map(async (obj) => {
+      const { id, filename, event, response } = obj;
+      const { camera, type, zones, updatedAt } = JSON.parse(event);
+
+      const key = `matches/${filename}`;
+
+      const output = {
+        id,
+        camera,
+        type,
+        zones,
+        file: {
+          key,
+          filename,
+        },
+        response: JSON.parse(response),
+        createdAt: obj.createdAt,
+        updatedAt: updatedAt || null,
+        token,
+      };
+
+      const [matchProp] = matchProps.filter((prop) => prop.key === key);
+
+      if (matchProp) {
+        output.file = matchProp.file;
+      } else if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
+        const base64 = await sharp(`${STORAGE.PATH}/${key}`)
+          .jpeg({ quality: 70 })
+          .resize(500)
+          .withMetadata()
+          .toBuffer();
+        const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
+        output.file.base64 = base64.toString('base64');
+        output.file.width = width;
+        output.file.height = height;
+        // push sharp and sizeOf results to an array to search against
+        matchProps.unshift({ key, file: output.file });
+      }
+
+      return output;
+    })
+  );
+  matches = matches.flat();
+  matchProps = matchProps.slice(0, 500);
+  return matches;
+};
+
 module.exports.get = async (req, res) => {
   try {
     const { sinceId } = req.query;
 
     const db = database.connect();
-    let matches = db
+    const matches = db
       .prepare(
         `
           SELECT * FROM match
@@ -28,54 +79,7 @@ module.exports.get = async (req, res) => {
       .bind(sinceId || 0)
       .all();
 
-    const token = AUTH && matches.length ? jwt.sign({ route: 'storage' }) : null;
-
-    matches = await Promise.all(
-      matches.map(async (obj) => {
-        const { id, filename, event, response } = obj;
-        const { camera, type, zones } = JSON.parse(event);
-
-        const key = `matches/${filename}`;
-
-        const output = {
-          id,
-          camera,
-          type,
-          zones,
-          file: {
-            key,
-            filename,
-          },
-          response: JSON.parse(response),
-          createdAt: obj.createdAt,
-          token,
-        };
-
-        const [matchProp] = matchProps.filter((prop) => prop.key === key);
-
-        if (matchProp) {
-          output.file = matchProp.file;
-        } else if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
-          const base64 = await sharp(`${STORAGE.PATH}/${key}`)
-            .jpeg({ quality: 70 })
-            .resize(500)
-            .withMetadata()
-            .toBuffer();
-          const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
-          output.file.base64 = base64.toString('base64');
-          output.file.width = width;
-          output.file.height = height;
-          // push sharp and sizeOf results to an array to search against
-          matchProps.unshift({ key, file: output.file });
-        }
-
-        return output;
-      })
-    );
-    matches = matches.flat();
-    matchProps = matchProps.slice(0, 500);
-
-    respond(HTTPSuccess(OK, { matches }), res);
+    respond(HTTPSuccess(OK, { matches: await format(matches) }), res);
   } catch (error) {
     respond(error, res);
   }
