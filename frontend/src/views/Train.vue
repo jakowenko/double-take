@@ -131,10 +131,12 @@ export default {
           try {
             const ids = $this.matches.selected.map((obj) => obj.id);
             const trained = $this.matches.selected.filter(
-              (obj) => obj.results.filter((res) => res.result.status === 200).length,
+              (obj) => obj.results.filter((res) => res.result.status.toString().charAt(0) === '2').length,
             );
             const untrained = $this.matches.selected.filter(
-              (obj) => !obj.results.length || obj.results.filter((res) => res.result.status !== 200).length,
+              (obj) =>
+                !obj.results.length ||
+                obj.results.filter((res) => res.result.status.toString().charAt(0) !== '2').length,
             );
             const names = [...new Set(trained.map((obj) => obj.name))];
             let message = '';
