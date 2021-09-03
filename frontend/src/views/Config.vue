@@ -9,7 +9,6 @@
               v-if="service.status"
               class="icon"
               :style="{ background: service.status === 200 ? '#78cc86' : '#c35f5f' }"
-              v-tooltip.right="service.tooltip"
             ></div>
             <div v-else class="icon pulse" style="background: #a9a9a9" v-tooltip.right="'Checking...'"></div>
           </div>
