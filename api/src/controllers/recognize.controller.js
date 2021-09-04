@@ -8,8 +8,7 @@ const recognize = require('../util/recognize.util');
 const frigate = require('../util/frigate.util');
 const { jwt } = require('../util/auth.util');
 const mqtt = require('../util/mqtt.util');
-const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
-const { OK, BAD_REQUEST } = require('../constants/http-status');
+const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
 const { AUTH, FRIGATE, TOKEN } = require('../constants');
 
@@ -21,23 +20,19 @@ const { IDS, MATCH_IDS } = {
 let PROCESSING = false;
 
 module.exports.test = async (req, res) => {
-  try {
-    const promises = [];
-    for (const detector of DETECTORS) {
-      promises.push(
-        actions.recognize({ detector, test: true, key: `${__dirname}/../static/img/lenna.jpg` })
-      );
-    }
-    const results = await Promise.all(promises);
-    const output = results.map((result, i) => ({
-      detector: DETECTORS[i],
-      status: result.status,
-      response: result.data,
-    }));
-    respond(HTTPSuccess(OK, output), res);
-  } catch (error) {
-    respond(error, res);
+  const promises = [];
+  for (const detector of DETECTORS) {
+    promises.push(
+      actions.recognize({ detector, test: true, key: `${__dirname}/../static/img/lenna.jpg` })
+    );
   }
+  const results = await Promise.all(promises);
+  const output = results.map((result, i) => ({
+    detector: DETECTORS[i],
+    status: result.status,
+    response: result.data,
+  }));
+  res.send(output);
 };
 
 module.exports.start = async (req, res) => {
@@ -47,7 +42,7 @@ module.exports.start = async (req, res) => {
       options: {
         break: req.query.break,
         results: req.query.results,
-        attempts: req.query.attempts,
+        attempts: req.query.attempts || null,
       },
     };
 
@@ -65,22 +60,17 @@ module.exports.start = async (req, res) => {
     const { id, camera, zones, url } = event;
     const { break: breakMatch, results: resultsOutput, attempts: manualAttempts } = event.options;
 
-    if (!DETECTORS) {
-      return respond(HTTPError(BAD_REQUEST, 'no detectors configured'), res);
-    }
+    if (!DETECTORS.length) return res.status(BAD_REQUEST).error('no detectors configured');
 
     if (event.type === 'frigate') {
-      try {
-        const check = await frigate.checks({
-          ...event,
-          PROCESSING,
-          IDS,
-        });
-        if (check !== true) {
-          return respond(HTTPError(BAD_REQUEST, `warn: ${check}`), res);
-        }
-      } catch (error) {
-        throw HTTPError(BAD_REQUEST, error.message);
+      const check = await frigate.checks({
+        ...event,
+        PROCESSING,
+        IDS,
+      });
+      if (check !== true) {
+        console.warn(check);
+        return res.status(BAD_REQUEST).error(check);
       }
     }
 
@@ -164,7 +154,7 @@ module.exports.start = async (req, res) => {
 
     PROCESSING = false;
 
-    respond(HTTPSuccess(OK, output), res);
+    res.send(output);
 
     mqtt.recognize(output);
 
@@ -175,6 +165,6 @@ module.exports.start = async (req, res) => {
     }
   } catch (error) {
     PROCESSING = false;
-    respond(error, res);
+    res.send(error);
   }
 };

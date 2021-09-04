@@ -6,9 +6,8 @@ const database = require('../util/db.util');
 const filesystem = require('../util/fs.util');
 const { jwt } = require('../util/auth.util');
 const process = require('../util/process.util');
-const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
-const { OK, BAD_REQUEST } = require('../constants/http-status');
 const { AUTH, STORAGE } = require('../constants');
+const { BAD_REQUEST } = require('../constants/http-status');
 
 let matchProps = [];
 
@@ -64,66 +63,52 @@ const format = async (matches) => {
 };
 
 module.exports.get = async (req, res) => {
-  try {
-    const { sinceId } = req.query;
+  const { sinceId } = req.query;
 
-    const db = database.connect();
-    const matches = db
-      .prepare(
-        `
+  const db = database.connect();
+  const matches = db
+    .prepare(
+      `
           SELECT * FROM match
           WHERE filename NOT IN (SELECT filename FROM train)
           AND id > ?
           ORDER BY createdAt DESC LIMIT 100
         `
-      )
-      .bind(sinceId || 0)
-      .all();
+    )
+    .bind(sinceId || 0)
+    .all();
 
-    respond(HTTPSuccess(OK, { matches: await format(matches) }), res);
-  } catch (error) {
-    respond(error, res);
-  }
+  res.send({ matches: await format(matches) });
 };
 
 module.exports.delete = async (req, res) => {
-  try {
-    const files = req.body;
-    files.forEach((file) => {
-      const db = database.connect();
-      db.prepare('DELETE FROM match WHERE id = ?').run(file.id);
-      filesystem.delete(`${STORAGE.PATH}/${file.key}`);
-    });
-    respond(HTTPSuccess(OK, { success: true }), res);
-  } catch (error) {
-    respond(error, res);
-  }
+  const files = req.body;
+  files.forEach((file) => {
+    const db = database.connect();
+    db.prepare('DELETE FROM match WHERE id = ?').run(file.id);
+    filesystem.delete(`${STORAGE.PATH}/${file.key}`);
+  });
+
+  res.send({ success: true });
 };
 
 module.exports.reprocess = async (req, res) => {
-  try {
-    const { matchId } = req.params;
-    const db = database.connect();
-    let [match] = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
+  const { matchId } = req.params;
+  const db = database.connect();
+  let [match] = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
 
-    if (!match) {
-      throw HTTPError(BAD_REQUEST, 'No match found');
-    }
-
-    const results = await process.start(
-      match.filename,
-      `${STORAGE.PATH}/matches/${match.filename}`
-    );
-    database.update.match({
-      id: match.id,
-      event: JSON.parse(match.event),
-      response: results,
-    });
-    match = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
-    match = await format(match);
-
-    respond(HTTPSuccess(OK, match[0]), res);
-  } catch (error) {
-    respond(error, res);
+  if (!match) {
+    return res.status(BAD_REQUEST).error('No match found');
   }
+
+  const results = await process.start(match.filename, `${STORAGE.PATH}/matches/${match.filename}`);
+  database.update.match({
+    id: match.id,
+    event: JSON.parse(match.event),
+    response: results,
+  });
+  match = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
+  match = await format(match);
+
+  res.send(match[0]);
 };
