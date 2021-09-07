@@ -7,12 +7,12 @@ const respond = Object.assign(
   },
   {
     success: (res, input) => {
-      const status = res.statusCode ? res.statusCode : !input ? NO_CONTENT : OK;
+      const status = res.customStatusCode ? res.customStatusCode : !input ? NO_CONTENT : OK;
       if (!input) return { status };
       return { status, body: input };
     },
     error: (res, input) => {
-      const status = res.statusCode || SERVER_ERROR;
+      const status = res.customStatusCode || SERVER_ERROR;
       const body = { error: input.message };
       return { status, body };
     },
@@ -20,9 +20,8 @@ const respond = Object.assign(
 );
 
 module.exports = (req, res, next) => {
-  res.statusCode = null;
   const _send = res.send;
-  const _end = res.end;
+  const _status = res.status;
 
   res.send = (input) => {
     if (input instanceof Error && res.statusCode === SERVER_ERROR) console.error(input);
@@ -39,17 +38,17 @@ module.exports = (req, res, next) => {
       return;
     }
 
-    _send.call(res, body);
+    return _send.call(res, body);
+  };
+
+  res.status = (input) => {
+    res.customStatusCode = input;
+    return _status.call(res, input);
   };
 
   res.error = (input) => {
     const error = input instanceof Error ? input : new Error(input);
-    res.send.call(res, error);
-  };
-
-  res.end = (input) => {
-    res.statusCode = OK;
-    _end.call(res, input);
+    return res.send.call(res, error);
   };
 
   next();
