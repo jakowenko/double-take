@@ -150,7 +150,13 @@ module.exports.start = async (req, res) => {
     if (resultsOutput === 'all') output.results = results;
 
     console.log(`done processing ${camera}: ${id} in ${duration} sec`);
-    console.log(output);
+
+    const loggedOutput = JSON.parse(JSON.stringify(output));
+    ['matches', 'misses'].forEach((type) =>
+      loggedOutput[type].forEach((result) => delete result.base64)
+    );
+    if (loggedOutput.unknown) delete loggedOutput.unknown.base64;
+    console.log(loggedOutput);
 
     PROCESSING = false;
 
