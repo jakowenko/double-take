@@ -10,6 +10,7 @@ module.exports = {
   save: {
     matches: true,
     unknown: true,
+    base64: false,
   },
   objects: {
     face: { min_area_match: 10000 },

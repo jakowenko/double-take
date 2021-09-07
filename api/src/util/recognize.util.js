@@ -19,6 +19,7 @@ module.exports.normalize = (results = []) => {
             duration: attempt.duration,
             detector: attempt.detector,
             filename: attempt.filename,
+            base64: attempt.base64,
           };
         }
       });
@@ -34,6 +35,7 @@ module.exports.normalize = (results = []) => {
             duration: attempt.duration,
             detector: attempt.detector,
             filename: attempt.filename,
+            base64: attempt.base64,
           };
         }
       });
@@ -49,6 +51,7 @@ module.exports.normalize = (results = []) => {
             duration: attempt.duration,
             detector: attempt.detector,
             filename: attempt.filename,
+            base64: attempt.base64,
           };
         }
       });

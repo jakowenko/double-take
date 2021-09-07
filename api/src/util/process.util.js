@@ -7,7 +7,7 @@ const database = require('./db.util');
 const mask = require('./mask.image.util');
 const sleep = require('./sleep.util');
 const { recognize, normalize } = require('./detectors/actions');
-const { FRIGATE, STORAGE, SAVE } = require('../constants');
+const { SERVER, FRIGATE, STORAGE, SAVE } = require('../constants');
 const DETECTORS = require('../constants/config').detectors();
 
 module.exports.polling = async (event, { retries, id, type, url, breakMatch, MATCH_IDS }) => {
@@ -53,8 +53,18 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
           .length;
         const totalFaces = results.flatMap((obj) => obj.results.filter((item) => item)).length;
 
-        if (foundMatch || (SAVE.UNKNOWN && totalFaces > 0))
+        if (foundMatch || (SAVE.UNKNOWN && totalFaces > 0)) {
           await this.save(event, results, filename, maskBuffer?.visible ? tmp.mask : tmp.source);
+          if (SAVE.BASE64 === true || SAVE.BASE64 === 'box') {
+            const base64 =
+              SAVE.BASE64 === true
+                ? stream
+                : await this.stream(
+                    `http://0.0.0.0:${SERVER.PORT}/api/storage/matches/${filename}?box=true`
+                  );
+            results.forEach((result) => (result.base64 = base64.toString('base64')));
+          }
+        }
 
         allResults.push(...results);
 

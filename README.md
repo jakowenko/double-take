@@ -269,6 +269,7 @@ detectors:
 | objects.face.min_area_match             | `10000`               | Minimum area in pixels to consider a result a match                                                                                               |
 | save.matches                            | `true`                | Save match images                                                                                                                                 |
 | save.unknown                            | `true`                | Save unknown images                                                                                                                               |
+| save.base64                             | `false`               | Include Base64 encoded string in API results and MQTT messages. Options include: `true`, `false`, or `box`.                                       |
 | purge.matches                           | `168`                 | Hours to keep match images until they are deleted                                                                                                 |
 | purge.unknown                           | `8`                   | Hours to keep unknown images until they are deleted                                                                                               |
 | frigate.url                             |                       | Base URL for Frigate                                                                                                                              |
