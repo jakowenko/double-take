@@ -62,7 +62,11 @@ export default {
   },
   created() {
     this.emitter.on('trainingFolder', (value) => {
+      let shouldRefresh = false;
+      if (value !== 'add new' && value !== null) shouldRefresh = true;
+      if (value === null && this.trainingFolder !== 'add new') shouldRefresh = true;
       this.trainingFolder = value;
+      if (shouldRefresh) this.get().status();
     });
 
     this.emitter.on('folders', (value) => {
@@ -94,7 +98,9 @@ export default {
         async files() {
           try {
             $this.loading.files = true;
-            const { data } = await ApiService.get('train');
+            const { data } = $this.trainingFolder
+              ? await ApiService.get(`train?name=${$this.trainingFolder}`)
+              : await ApiService.get('train');
             $this.matches.source = data;
             $this.loading.files = false;
           } catch (error) {

@@ -12,11 +12,17 @@ const { tryParseJSON } = require('../util/validators.util');
 module.exports.get = async (req, res) => {
   const token = AUTH ? jwt.sign({ route: 'storage' }) : null;
   const db = database.connect();
-  let files = db
-    .prepare(
-      'SELECT id, name, filename, createdAt FROM file WHERE isActive = 1 ORDER BY name ASC, id DESC'
-    )
-    .all();
+  let files = req.query.name
+    ? db
+        .prepare(
+          'SELECT id, name, filename, createdAt FROM file WHERE name = ? AND isActive = 1 ORDER BY name ASC, id DESC'
+        )
+        .all(req.query.name)
+    : db
+        .prepare(
+          'SELECT id, name, filename, createdAt FROM file WHERE isActive = 1 ORDER BY name ASC, id DESC'
+        )
+        .all();
 
   files.forEach((file) => {
     file.results = [];
