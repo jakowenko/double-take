@@ -1,6 +1,7 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
+const actions = require('./actions');
 const { doesUrlResolve } = require('../validators.util');
 const { DETECTORS, CONFIDENCE, OBJECTS } = require('../../constants');
 
@@ -63,7 +64,7 @@ module.exports.normalize = ({ data }) => {
   const normalized = data.faces.map((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
     const { rect: box } = obj;
-    return {
+    const output = {
       name: obj.matched && confidence >= CONFIDENCE.UNKNOWN ? obj.name.toLowerCase() : 'unknown',
       confidence,
       match:
@@ -75,6 +76,9 @@ module.exports.normalize = ({ data }) => {
         height: box.height,
       },
     };
+    const checks = actions.checks(output);
+    if (checks.length) output.checks = checks;
+    return output;
   });
   return normalized;
 };

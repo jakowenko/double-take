@@ -1,6 +1,7 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
+const actions = require('./actions');
 const { doesUrlResolve } = require('../validators.util');
 const { DETECTORS, CONFIDENCE, OBJECTS } = require('../../constants');
 
@@ -106,6 +107,8 @@ module.exports.normalize = ({ data }) => {
         ...obj.mask,
         probability: parseFloat((obj.mask.probability * 100).toFixed(2)),
       };
+    const checks = actions.checks(output);
+    if (checks.length) output.checks = checks;
     return output;
   });
   return normalized;

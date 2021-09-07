@@ -38,29 +38,45 @@
         </div>
       </template>
       <template v-slot:content>
-        <DataTable v-if="type === 'match'" :value="results" class="p-datatable-sm" responsiveLayout="scroll">
-          <Column header="Detector">
-            <template v-slot:body="slotProps">
-              <Badge
-                :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
-                :severity="slotProps.data.match ? 'success' : 'danger'"
-              />
-              <div :class="'icon ' + slotProps.data.detector"></div>
-            </template>
-          </Column>
-          <Column field="name" header="Name"></Column>
-          <Column field="confidence" header="%"></Column>
-          <Column header="Box">
-            <template v-slot:body="slotProps">
-              {{ slotProps.data.box.width }}x{{ slotProps.data.box.height }}
-            </template>
-          </Column>
-          <Column header="Time">
-            <template v-slot:body="slotProps">
-              {{ slotProps.data.duration || 'N/A' }}
-            </template>
-          </Column>
-        </DataTable>
+        <div v-if="type === 'match'">
+          <div v-for="(result, index) in results" :key="result">
+            <DataTable :value="[result]" :class="'p-datatable-sm' + ' group-' + index" responsiveLayout="scroll">
+              <Column header="Detector">
+                <template v-slot:body="slotProps">
+                  <div class="p-d-block" style="position: relative; cursor: pointer">
+                    <Badge
+                      :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
+                      :severity="slotProps.data.match ? 'success' : 'danger'"
+                      v-tooltip.right="slotProps.data.match ? 'Match' : 'Miss'"
+                    />
+                    <div :class="'icon ' + slotProps.data.detector"></div>
+                  </div>
+                </template>
+              </Column>
+              <Column field="name" header="Name"></Column>
+              <Column field="confidence" header="%"></Column>
+              <Column header="Box">
+                <template v-slot:body="slotProps">
+                  {{ slotProps.data.box.width }}x{{ slotProps.data.box.height }}
+                </template>
+              </Column>
+              <Column header="Time">
+                <template v-slot:body="slotProps">
+                  {{ slotProps.data.duration || 'N/A' }}
+                </template>
+              </Column>
+            </DataTable>
+            <div v-if="result.checks" class="p-d-block">
+              <DataTable :value="result.checks" class="p-datatable-sm" responsiveLayout="scroll">
+                <Column>
+                  <template v-slot:body="slotProps">
+                    <div class="p-d-block">{{ slotProps.data }}</div>
+                  </template>
+                </Column>
+              </DataTable>
+            </div>
+          </div>
+        </div>
         <DataTable
           v-if="type === 'train' && asset.results.length"
           :value="asset.results"
@@ -274,6 +290,12 @@ export default {
 </script>
 
 <style scoped lang="scss">
+::v-deep(.p-datatable:not(.group-0)) {
+  .p-datatable-thead > tr {
+    visibility: collapse;
+  }
+}
+
 ::v-deep(.p-datatable-table) {
   font-size: 0.9rem;
 
