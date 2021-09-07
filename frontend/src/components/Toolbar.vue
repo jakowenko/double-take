@@ -103,6 +103,9 @@ export default {
     this.emitter.on('hasAuth', (data) => {
       this.hasAuth = data;
     });
+    this.emitter.on('getBuildTag', () => {
+      this.emitter.emit('buildTag', this.buildTag);
+    });
   },
   async mounted() {
     try {

@@ -3,7 +3,16 @@
     <div class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3">
       <div class="service-wrapper p-d-flex p-ai-center">
         <div v-for="service in combined" :key="service.name" class="service p-d-flex p-mr-3">
-          <div class="name p-as-center p-mr-1">{{ service.name }}</div>
+          <div class="name p-as-center p-mr-1">
+            {{ service.name }}
+            <div
+              class="p-d-inline-block version"
+              v-if="service.version"
+              @click="copy(`v${service.version}:${service.buildTag}`)"
+            >
+              v{{ service.version }}{{ service.buildTag ? ':' + service.buildTag : '' }}
+            </div>
+          </div>
           <div class="status p-as-center">
             <div
               v-if="service.status"
@@ -35,6 +44,9 @@
 </template>
 
 <script>
+import { version } from '../../package.json';
+import copy from 'copy-to-clipboard';
+
 import Button from 'primevue/button';
 import Sleep from '@/util/sleep.util';
 
@@ -62,6 +74,8 @@ export default {
     doubleTake: {
       status: null,
       name: 'Double Take',
+      version,
+      buildTag: null,
     },
     frigate: {
       configured: false,
@@ -74,6 +88,11 @@ export default {
     loading: false,
     height: `${window.innerHeight - 30 - 31 - 10}px`,
   }),
+  created() {
+    this.emitter.on('buildTag', (data) => {
+      this.doubleTake.buildTag = data;
+    });
+  },
   async mounted() {
     try {
       this.loading = true;
@@ -87,6 +106,7 @@ export default {
       this.ready = true;
       this.checkDetectors();
       this.updateHeight();
+      this.emitter.emit('getBuildTag');
       window.addEventListener('keydown', this.saveListener);
       window.addEventListener('resize', this.updateHeight);
     } catch (error) {
@@ -220,6 +240,14 @@ export default {
         this.emitter.emit('error', error);
       }
     },
+    copy(value) {
+      try {
+        copy(value);
+        this.emitter.emit('toast', { message: 'Version copied' });
+      } catch (error) {
+        this.emitter.emit('error', error);
+      }
+    },
   },
 };
 </script>
@@ -272,6 +300,14 @@ export default {
     text-align: center;
     white-space: nowrap;
     font-size: 0.9rem;
+
+    .version {
+      cursor: pointer;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 
   @media only screen and (max-width: 576px) {
