@@ -1,4 +1,5 @@
 const fs = require('fs');
+const redact = require('../util/redact-secrets.util');
 const config = require('../constants/config');
 const { STORAGE } = require('../constants');
 
@@ -8,6 +9,8 @@ module.exports.get = async (req, res) => {
   const output =
     format === 'yaml'
       ? fs.readFileSync(isLegacyPath ? './config.yml' : `${STORAGE.CONFIG.PATH}/config.yml`, 'utf8')
+      : req.query.redact === ''
+      ? redact(config())
       : config();
   res.send(output);
 };
