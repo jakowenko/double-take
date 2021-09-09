@@ -82,7 +82,7 @@ export default {
     code: '',
     ready: false,
     loading: false,
-    height: `${window.innerHeight - 30 - 31 - 10}px`,
+    height: `${window.innerHeight - 40 - 30 - 10}px`,
   }),
   created() {
     this.emitter.on('buildTag', (data) => {
@@ -209,7 +209,7 @@ export default {
       this.editor = editor;
     },
     updateHeight() {
-      this.height = `${window.innerHeight - 30 - 31 - 10}px`;
+      this.height = `${window.innerHeight - 40 - 30 - 10}px`;
     },
     highlighter(code) {
       return highlight(code, languages.js);
@@ -330,7 +330,7 @@ export default {
 }
 
 .editor-wrapper {
-  padding-top: 10px;
+  padding-top: 20px;
   background: var(--surface-a);
 }
 
