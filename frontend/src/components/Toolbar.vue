@@ -1,8 +1,8 @@
 <template>
   <div class="wrapper p-pr-3 p-d-flex p-jc-between p-ai-center">
     <div><TabMenu :model="navigation" v-if="$route.path !== '/login'" /></div>
-    <div v-if="updateAvailable" class="version p-ml-auto p-mr-2">
-      <div v-tooltip.left="`Update Available`" class="icon" @click="dockerHub"></div>
+    <div v-if="updateAvailable" class="version p-ml-auto p-mr-2" v-tooltip.left="`Update Available`">
+      <div class="icon" @click="dockerHub"></div>
     </div>
     <div class="double-take-menu-wrapper p-d-flex" @click="toggleMenu">
       <i class="pi p-mr-1 pi-angle-down p-as-center" style="height: 14px; overflow: hidden"></i>
@@ -256,12 +256,8 @@ a.update.visible {
   pointer-events: auto;
 }
 
-.version a {
-  color: inherit;
-  text-decoration: none;
-  &:hover {
-    text-decoration: underline;
-  }
+.version {
+  padding-left: 5px;
 }
 
 .double-take-menu-wrapper {
