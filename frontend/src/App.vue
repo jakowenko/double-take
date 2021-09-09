@@ -153,6 +153,10 @@ body {
 .p-multiselect-panel .p-multiselect-items {
   font-size: 0.9rem;
 }
+
+.p-button-icon-only .p-button-label {
+  font-size: 0;
+}
 </style>
 
 <style scoped lang="scss">
