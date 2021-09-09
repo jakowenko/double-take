@@ -14,7 +14,8 @@
           <div>
             <Button
               icon="pi pi-check"
-              class="p-button-success p-button-sm"
+              class="responsive-button p-button-success p-button-sm"
+              label="Create"
               @click="create().folder()"
               :disabled="!createFolder.name"
             />
@@ -27,7 +28,13 @@
       <div v-else class="p-d-flex p-jc-between">
         <div class="p-d-inline-flex p-ai-center">
           <div class="p-mr-2">
-            <Dropdown v-model="folder" :options="folders" :disabled="createFolder.loading" :showClear="true" />
+            <Dropdown
+              v-model="folder"
+              :options="folders"
+              :disabled="createFolder.loading"
+              :showClear="true"
+              :class="{ train: type === 'train' }"
+            />
           </div>
           <div v-if="folder">
             <div v-if="type === 'match'">
@@ -408,11 +415,14 @@ export default {
   }
 
   @media only screen and (max-width: 576px) {
-    .responsive-button ::v-deep(.p-button-icon) {
-      margin-right: 0;
-    }
-    .responsive-button ::v-deep(.p-button-label) {
-      font-size: 0;
+    .responsive-button {
+      width: 2.357rem;
+      ::v-deep(.p-button-icon) {
+        margin-right: 0;
+      }
+      ::v-deep(.p-button-label) {
+        font-size: 0;
+      }
     }
   }
 
@@ -427,28 +437,35 @@ export default {
     top: 1px;
   }
 
-  .p-dropdown {
-    width: 120px;
-    &::v-deep(.p-dropdown-label) {
-      @media only screen and (max-width: 576px) {
-        font-size: 16px;
-      }
-    }
-  }
   .p-inputtext {
-    width: 120px;
+    width: 175px;
     font-size: 0.9rem;
     @media only screen and (max-width: 576px) {
       font-size: 16px;
     }
   }
 
-  ::v-deep(.p-dropdown .p-inputtext) {
-    font-size: 0.9rem;
+  .p-dropdown {
+    width: 175px;
+    @media only screen and (max-width: 768px) {
+      &.train {
+        width: 155px;
+      }
+    }
     @media only screen and (max-width: 576px) {
-      font-size: 16px;
+      &.train {
+        width: 135px;
+      }
+    }
+    ::v-deep(.p-inputtext) {
+      font-size: 0.9rem;
+      @media only screen and (max-width: 576px) {
+        font-size: 1rem;
+        padding: 0.58rem 0.75rem;
+      }
     }
   }
+
   ::v-deep(.p-inputnumber .p-inputtext) {
     font-size: 0.9rem;
     @media only screen and (max-width: 576px) {
