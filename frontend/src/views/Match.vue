@@ -17,7 +17,6 @@
 
 <script>
 import ApiService from '@/services/api.service';
-import Constants from '@/util/constants.util';
 import Grid from '@/components/Grid.vue';
 import Header from '@/components/Header.vue';
 import Sleep from '@/util/sleep.util';
@@ -217,7 +216,7 @@ export default {
         accept: async () => {
           try {
             await ApiService.post(`train/add/${this.trainingFolder}`, {
-              urls: $this.matches.selected.map((obj) => `${Constants().api}/storage/${obj.file.key}`),
+              files: $this.matches.selected.map((obj) => obj.file.filename),
             });
             $this.matches.selected = [];
             $this.emitter.emit('toast', { message: `${description} trained for ${this.trainingFolder}` });

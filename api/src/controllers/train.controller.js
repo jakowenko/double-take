@@ -81,7 +81,7 @@ module.exports.delete = async (req, res) => {
 
 module.exports.add = async (req, res) => {
   const { name } = req.params;
-  const { urls } = req.body;
+  const { urls, files: matchFiles } = req.body;
 
   let files = [];
 
@@ -95,6 +95,15 @@ module.exports.add = async (req, res) => {
         files.push({ name, filename });
       })
     );
+  } else if (matchFiles) {
+    for (let i = 0; i < matchFiles.length; i++) {
+      const filename = matchFiles[i];
+      filesystem.copy(
+        `${STORAGE.PATH}/matches/${filename}`,
+        `${STORAGE.PATH}/train/${name}/${filename}`
+      );
+      files.push({ name, filename });
+    }
   } else {
     files = (urls ? await filesystem.saveURLs(urls, `train/${name}`) : []).map((filename) => ({
       filename,
