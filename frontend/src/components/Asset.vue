@@ -118,6 +118,7 @@
         <div style="position: relative">
           <div class="p-d-flex p-jc-between p-ai-center">
             <div v-if="type === 'match'" class="p-mb-3">
+              <Badge v-if="asset.isTrained" value="trained" severity="success" />
               <Badge v-if="asset.camera" :value="asset.camera" />
               <Badge v-if="asset.type && asset.type !== 'manual'" :value="asset.type" />
               <Badge v-if="asset.zones.length" :value="[...asset.zones].join(', ')" />

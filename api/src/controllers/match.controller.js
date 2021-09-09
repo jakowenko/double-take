@@ -16,7 +16,7 @@ const format = async (matches) => {
 
   matches = await Promise.all(
     matches.map(async (obj) => {
-      const { id, filename, event, response } = obj;
+      const { id, filename, event, response, isTrained } = obj;
       const { camera, type, zones, updatedAt } = JSON.parse(event);
 
       const key = `matches/${filename}`;
@@ -30,6 +30,7 @@ const format = async (matches) => {
           key,
           filename,
         },
+        isTrained: !!isTrained,
         response: JSON.parse(response),
         createdAt: obj.createdAt,
         updatedAt: updatedAt || null,
@@ -69,10 +70,11 @@ module.exports.get = async (req, res) => {
   const matches = db
     .prepare(
       `
-          SELECT * FROM match
-          WHERE filename NOT IN (SELECT filename FROM train)
-          AND id > ?
-          ORDER BY createdAt DESC LIMIT 100
+        SELECT * FROM match
+        LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = match.filename
+        WHERE id > ?
+        GROUP BY match.id
+        ORDER BY createdAt DESC LIMIT 100
         `
     )
     .bind(sinceId || 0)
@@ -107,7 +109,14 @@ module.exports.reprocess = async (req, res) => {
     event: JSON.parse(match.event),
     response: results,
   });
-  match = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
+  match = db
+    .prepare(
+      `SELECT * FROM match
+      LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = match.filename
+      WHERE id = ?`
+    )
+    .bind(matchId)
+    .all();
   match = await format(match);
 
   res.send(match[0]);
