@@ -39,43 +39,49 @@
       </template>
       <template v-slot:content>
         <div v-if="type === 'match'">
-          <div v-for="(result, index) in results" :key="result">
-            <DataTable :value="[result]" :class="'p-datatable-sm' + ' group-' + index" responsiveLayout="scroll">
-              <Column header="Detector">
-                <template v-slot:body="slotProps">
-                  <div class="p-d-block" style="position: relative; cursor: pointer">
-                    <Badge
-                      :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
-                      :severity="slotProps.data.match ? 'success' : 'danger'"
-                      v-tooltip.right="slotProps.data.match ? 'Match' : 'Miss'"
-                    />
-                    <div :class="'icon ' + slotProps.data.detector"></div>
-                  </div>
-                </template>
-              </Column>
-              <Column field="name" header="Name"></Column>
-              <Column field="confidence" header="%"></Column>
-              <Column header="Box">
-                <template v-slot:body="slotProps">
+          <DataTable :value="results" class="p-datatable-sm" responsiveLayout="scroll">
+            <Column header="Detector">
+              <template v-slot:body="slotProps">
+                <div class="p-d-block" style="position: relative">
+                  <Badge
+                    :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
+                    :severity="slotProps.data.match ? 'success' : 'danger'"
+                  />
+                  <div :class="'icon ' + slotProps.data.detector"></div>
+                </div>
+              </template>
+            </Column>
+            <Column field="name" header="Name"></Column>
+            <Column header="%">
+              <template v-slot:body="slotProps">
+                <div
+                  v-if="getCheckValue('confidence', slotProps.data.checks)"
+                  class="check-miss p-d-inline-block p-pr-1"
+                  v-tooltip.right="getCheckValue('confidence', slotProps.data.checks)"
+                >
+                  {{ slotProps.data.confidence }}
+                </div>
+                <div v-else>{{ slotProps.data.confidence }}</div>
+              </template>
+            </Column>
+            <Column header="Box">
+              <template v-slot:body="slotProps">
+                <div
+                  v-if="getCheckValue('box area', slotProps.data.checks)"
+                  class="check-miss p-d-inline-block p-pr-1"
+                  v-tooltip.right="getCheckValue('box area', slotProps.data.checks)"
+                >
                   {{ slotProps.data.box.width }}x{{ slotProps.data.box.height }}
-                </template>
-              </Column>
-              <Column header="Time">
-                <template v-slot:body="slotProps">
-                  {{ slotProps.data.duration || 'N/A' }}
-                </template>
-              </Column>
-            </DataTable>
-            <div v-if="result.checks" class="p-d-block">
-              <DataTable :value="result.checks" class="p-datatable-sm" responsiveLayout="scroll">
-                <Column>
-                  <template v-slot:body="slotProps">
-                    <div class="p-d-block">{{ slotProps.data }}</div>
-                  </template>
-                </Column>
-              </DataTable>
-            </div>
-          </div>
+                </div>
+                <div v-else>{{ slotProps.data.box.width }}x{{ slotProps.data.box.height }}</div>
+              </template>
+            </Column>
+            <Column header="Time">
+              <template v-slot:body="slotProps">
+                {{ slotProps.data.duration || 'N/A' }}
+              </template>
+            </Column>
+          </DataTable>
         </div>
         <DataTable
           v-if="type === 'train' && asset.results.length"
@@ -200,6 +206,10 @@ export default {
 
       return `width: ${values.width}; height: ${values.height}; top: ${values.top}; left: ${values.left}`;
     },
+    getCheckValue(type, checks) {
+      if (!checks) return false;
+      return checks.find((check) => check.includes(type));
+    },
     reprocess() {
       this.$confirm.require({
         header: 'Confirmation',
@@ -290,17 +300,17 @@ export default {
 </script>
 
 <style scoped lang="scss">
-::v-deep(.p-datatable:not(.group-0)) {
-  .p-datatable-thead > tr {
-    visibility: collapse;
-  }
-}
-
 ::v-deep(.p-datatable-table) {
   font-size: 0.9rem;
 
   .p-datatable-thead > tr > th {
     border-top: 0;
+  }
+
+  .check-miss {
+    color: #b32721;
+    font-weight: bold;
+    cursor: pointer;
   }
 
   .p-datatable-thead > tr > th:first-child,
