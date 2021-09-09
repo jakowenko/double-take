@@ -102,15 +102,7 @@ body {
 
 .p-tooltip .p-tooltip-text {
   font-size: 0.75rem;
-}
-.p-tooltip-left {
-  .p-tooltip-arrow {
-    margin-right: 5px;
-  }
-  .p-tooltip-text {
-    margin-right: 5px;
-    padding: 0.25rem;
-  }
+  padding: 0.35rem;
 }
 
 .double-take-menu {
