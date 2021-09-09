@@ -1,19 +1,12 @@
 <template>
   <div class="wrapper">
-    <div class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3">
-      <div class="service-wrapper p-d-flex p-ai-center">
-        <div v-for="service in combined" :key="service.name" class="service p-d-flex p-mr-3">
-          <div class="name p-as-center p-mr-1">
+    <div class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3 p-d-flex p-jc-between">
+      <div class="service-wrapper p-d-flex">
+        <div v-for="service in combined" :key="service.name" class="service p-d-flex p-mr-2 p-ai-center">
+          <div class="name p-mr-1" @click="copyVersion(service)">
             {{ service.name }}
-            <div
-              class="p-d-inline-block version"
-              v-if="service.version"
-              @click="copy(`v${service.version}:${service.buildTag}`)"
-            >
-              v{{ service.version }}{{ service.buildTag ? ':' + service.buildTag : '' }}
-            </div>
           </div>
-          <div class="status p-as-center">
+          <div class="status">
             <div
               v-if="service.status"
               class="icon"
@@ -22,6 +15,9 @@
             <div v-else class="icon pulse" style="background: #a9a9a9" v-tooltip.right="'Checking...'"></div>
           </div>
         </div>
+      </div>
+      <div class="p-d-flex">
+        <Button icon="pi pi-copy" class="p-button-sm p-button-secondary" @click="copyConfig" />
       </div>
       <div class="p-mr-3 buttons">
         <Button icon="pi pi-refresh" class="p-button-sm p-button-success p-mb-2" @click="reload" :disabled="loading" />
@@ -196,15 +192,9 @@ export default {
           const { data: tests } = await ApiService.get('recognize/test');
           this.services = this.services.map((detector) => {
             const [result] = tests.filter((obj) => obj.detector.toLowerCase() === detector.name.toLowerCase());
-            let tooltip = null;
-            if (typeof result.response === 'string') tooltip = result.response;
-            else if (result.response && result.response.message) tooltip = result.response.message;
-            else if (result.response && result.response.error) tooltip = result.response.error;
-            else if (!tooltip && result.status === 404) tooltip = result.status;
             return {
               name: detector.name,
               status: result.status,
-              tooltip,
             };
           });
         } catch (error) {
@@ -240,10 +230,20 @@ export default {
         this.emitter.emit('error', error);
       }
     },
-    copy(value) {
+    copyVersion(service) {
+      if (!service.version) return;
       try {
-        copy(value);
+        copy(`v${service.version}:${service.buildTag}`);
         this.emitter.emit('toast', { message: 'Version copied' });
+      } catch (error) {
+        this.emitter.emit('error', error);
+      }
+    },
+    async copyConfig() {
+      try {
+        const { data } = await ApiService.get('config?redact');
+        copy(JSON.stringify(data, null, '\t'));
+        this.emitter.emit('toast', { message: 'Config copied' });
       } catch (error) {
         this.emitter.emit('error', error);
       }
@@ -269,16 +269,25 @@ export default {
 }
 
 .service {
+  &:first-child > .name {
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
   .status {
     width: 13px;
   }
-  .icon,
-  .loader {
+  .icon {
     width: 70%;
     padding-top: 70%;
     border-radius: 100%;
     position: relative;
     top: 1px;
+    @media only screen and (max-width: 576px) {
+      top: 0;
+    }
   }
 
   .icon.pulse {
@@ -300,20 +309,6 @@ export default {
     text-align: center;
     white-space: nowrap;
     font-size: 0.9rem;
-
-    .version {
-      cursor: pointer;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-  }
-
-  @media only screen and (max-width: 576px) {
-    .name {
-      font-size: 0.75rem !important;
-    }
   }
 }
 
@@ -329,7 +324,7 @@ export default {
 
   .buttons {
     position: absolute;
-    top: 28px + 10px + 5px;
+    top: 40px + 10px + 5px;
     right: 0;
   }
 }
