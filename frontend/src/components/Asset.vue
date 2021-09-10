@@ -24,6 +24,9 @@
                 :style="box(detector.box)"
               ></div>
             </div>
+            <div v-if="selectedDetector" class="train-result p-d-flex p-ai-center p-p-5">
+              <pre>{{ selectedDetector.result }}</pre>
+            </div>
             <img
               @click="emitter.emit('toggleAsset', asset)"
               :class="loaded ? 'thumbnail' : 'thumbnail lazy'"
@@ -83,32 +86,23 @@
             </Column>
           </DataTable>
         </div>
-        <DataTable
-          v-if="type === 'train' && asset.results.length"
-          :value="asset.results"
-          class="p-datatable-sm"
-          responsiveLayout="scroll"
-        >
-          <Column header="Detector">
-            <template v-slot:body="slotProps">
-              <Badge
-                :value="slotProps.data.detector"
-                :severity="
-                  slotProps.data.result
-                    ? slotProps?.data?.result?.status?.toString().charAt(0) === '2'
-                      ? 'success'
-                      : 'danger'
-                    : ''
-                "
-              />
-            </template>
-          </Column>
-          <Column header="Result">
-            <template v-slot:body="slotProps">
-              <pre>{{ slotProps.data.result || 'queued' }}</pre>
-            </template>
-          </Column>
-        </DataTable>
+        <div v-if="type === 'train' && asset.results.length">
+          <div v-for="(detection, index) in asset.results" :key="detection" class="p-d-inline-block badge-holder">
+            <Badge
+              :value="detection.detector"
+              :severity="
+                detection.result?.status
+                  ? detection.result.status.toString().charAt(0) === '2'
+                    ? 'success'
+                    : 'danger'
+                  : ''
+              "
+              class="clickable"
+              :class="{ selected: selectedDetector?.index === index }"
+              @click="selectedDetector = selectedDetector?.index === index ? null : { index, result: detection }"
+            />
+          </div>
+        </div>
         <div v-else-if="type === 'train'">
           <div class="p-d-inline-block p-mr-2">untrained</div>
           <Dropdown v-model="folder" :options="folders" placeholder="move and train" :showClear="true" />
@@ -180,6 +174,7 @@ export default {
     folder: null,
     loadedCount: 0,
     reprocessing: false,
+    selectedDetector: null,
   }),
   created() {
     setInterval(() => {
@@ -327,10 +322,6 @@ export default {
     position: relative;
   }
 
-  .p-badge {
-    font-size: 0.75rem;
-  }
-
   .icon {
     width: 10px;
     height: 10px;
@@ -350,6 +341,31 @@ export default {
   }
   .icon.facebox {
     background: var(--indigo-600);
+  }
+}
+
+.p-badge.clickable {
+  cursor: pointer;
+
+  &:hover,
+  &.selected {
+    opacity: 0.8;
+  }
+}
+
+.train-result {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(32, 38, 46, 0.85);
+
+  pre {
+    font-size: 0.9rem;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
