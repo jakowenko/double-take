@@ -227,6 +227,7 @@ export default {
         delete this.frigate.status;
         this.waitForRestart();
       } catch (error) {
+        this.loading = false;
         this.emitter.emit('error', error);
       }
     },

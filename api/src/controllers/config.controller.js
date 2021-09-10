@@ -1,6 +1,8 @@
 const fs = require('fs');
+const yaml = require('js-yaml');
 const redact = require('../util/redact-secrets.util');
 const config = require('../constants/config');
+const { BAD_REQUEST } = require('../constants/http-status');
 const { STORAGE } = require('../constants');
 
 module.exports.get = async (req, res) => {
@@ -16,8 +18,14 @@ module.exports.get = async (req, res) => {
 };
 
 module.exports.patch = async (req, res) => {
-  const isLegacyPath = fs.existsSync('./config.yml');
-  const { code } = req.body;
-  fs.writeFileSync(isLegacyPath ? './config.yml' : `${STORAGE.CONFIG.PATH}/config.yml`, code);
-  res.send(req.body);
+  try {
+    const isLegacyPath = fs.existsSync('./config.yml');
+    const { code } = req.body;
+    yaml.load(code);
+    fs.writeFileSync(isLegacyPath ? './config.yml' : `${STORAGE.CONFIG.PATH}/config.yml`, code);
+    res.send();
+  } catch (error) {
+    if (error.name === 'YAMLException') return res.status(BAD_REQUEST).send(error);
+    res.send(error);
+  }
 };
