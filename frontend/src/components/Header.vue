@@ -46,7 +46,7 @@
                 @click="$parent.train"
               />
             </div>
-            <div v-if="type === 'train'">
+            <div v-if="type === 'train' && !loading.files && !loading.status">
               <div class="p-d-inline-block">
                 <FileUpload
                   mode="basic"
@@ -58,6 +58,7 @@
                   :auto="true"
                   :multiple="true"
                   chooseLabel="Upload"
+                  :disabled="loading.files || loading.status"
                 />
               </div>
               <Button
