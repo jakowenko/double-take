@@ -69,7 +69,7 @@ module.exports.start = async (req, res) => {
         IDS,
       });
       if (check !== true) {
-        console.warn(check);
+        console.verbose(check);
         return res.status(BAD_REQUEST).error(check);
       }
     }
