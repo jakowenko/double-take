@@ -304,7 +304,7 @@ export default {
   }
 
   .check-miss {
-    color: #b32721;
+    color: #f19ea6;
     font-weight: bold;
     cursor: pointer;
   }
