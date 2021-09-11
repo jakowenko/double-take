@@ -24,13 +24,13 @@ module.exports = (req, res, next) => {
   const _status = res.status;
 
   res.send = (input) => {
-    if (input instanceof Error && res.statusCode === SERVER_ERROR) console.error(input);
-
     const { status, body } = res.parsed
       ? { status: res.statusCode, body: input }
       : respond(res, input);
 
     res.status(status);
+
+    if (input instanceof Error && res.statusCode === SERVER_ERROR) console.error(input);
 
     if (body && typeof body === 'object' && !res.parsed) {
       res.parsed = true;
