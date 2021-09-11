@@ -16,9 +16,7 @@ module.exports.checks = async ({
   IDS,
 }) => {
   try {
-    if (!FRIGATE.URL) {
-      return `Frigate URL not configured`;
-    }
+    if (!FRIGATE.URL) throw Error('Frigate URL not configured');
 
     const cameraMatch = FRIGATE.ZONES
       ? FRIGATE.ZONES.filter(({ CAMERA }) => camera === CAMERA).length
