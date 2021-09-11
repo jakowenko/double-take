@@ -201,14 +201,15 @@
 </template>
 
 <script>
-import ApiService from '@/services/api.service';
-import Constants from '@/util/constants.util';
 import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import MultiSelect from 'primevue/multiselect';
 import Checkbox from 'primevue/checkbox';
+
+import Constants from '@/util/constants.util';
+import ApiService from '@/services/api.service';
 import Sleep from '@/util/sleep.util';
 
 export default {

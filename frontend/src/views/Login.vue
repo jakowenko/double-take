@@ -42,10 +42,11 @@
 </template>
 
 <script>
-import ApiService from '@/services/api.service';
-import Sleep from '@/util/sleep.util';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+
+import ApiService from '@/services/api.service';
+import Sleep from '@/util/sleep.util';
 
 export default {
   components: {

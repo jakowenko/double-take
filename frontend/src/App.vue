@@ -8,15 +8,16 @@
 </template>
 
 <script>
-import ApiService from '@/services/api.service';
+import Toast from 'primevue/toast';
+import ConfirmDialog from 'primevue/confirmdialog';
 import 'primevue/resources/themes/bootstrap4-dark-blue/theme.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
-import '@/assets/font-awesome/css/all.min.css';
-import Toast from 'primevue/toast';
-import ConfirmDialog from 'primevue/confirmdialog';
+
+import ApiService from '@/services/api.service';
 import Toolbar from '@/components/Toolbar.vue';
+import '@/assets/font-awesome/css/all.min.css';
 
 export default {
   name: 'Double Take',

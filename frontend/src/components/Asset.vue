@@ -150,15 +150,17 @@
 </template>
 
 <script>
-import Button from 'primevue/button';
-import ApiService from '@/services/api.service';
-import Constants from '@/util/constants.util';
 import { DateTime } from 'luxon';
+
+import Button from 'primevue/button';
 import Badge from 'primevue/badge';
 import Card from 'primevue/card';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dropdown from 'primevue/dropdown';
+
+import Constants from '@/util/constants.util';
+import ApiService from '@/services/api.service';
 
 export default {
   props: {

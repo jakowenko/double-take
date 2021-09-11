@@ -47,24 +47,24 @@
 </template>
 
 <script>
-import { version } from '../../package.json';
 import copy from 'copy-to-clipboard';
-
-import Button from 'primevue/button';
-import Sleep from '@/util/sleep.util';
 
 import 'ace-builds';
 import 'ace-builds/webpack-resolver';
-import ApiService from '@/services/api.service';
 
 import { VAceEditor } from 'vue3-ace-editor';
 import 'ace-builds/src-noconflict/theme-nord_dark';
 import 'ace-builds/src-noconflict/mode-yaml';
 
+import Button from 'primevue/button';
 import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/themes/prism-tomorrow.css';
+
+import Sleep from '@/util/sleep.util';
+import ApiService from '@/services/api.service';
+import { version } from '../../package.json';
 
 export default {
   components: {
