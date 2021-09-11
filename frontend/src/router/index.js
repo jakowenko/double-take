@@ -1,9 +1,4 @@
 import { createWebHistory, createRouter } from 'vue-router';
-import Match from '@/views/Match.vue';
-import Config from '@/views/Config.vue';
-import Train from '@/views/Train.vue';
-import Login from '@/views/Login.vue';
-import Tokens from '@/views/Tokens.vue';
 
 const routes = [
   {
@@ -11,35 +6,35 @@ const routes = [
     meta: {
       title: 'Matches',
     },
-    component: Match,
+    component: () => import(/* webpackChunkName: "match" */ '@/views/Match.vue'),
   },
   {
     path: '/config',
     meta: {
       title: 'Config',
     },
-    component: Config,
+    component: () => import(/* webpackChunkName: "config" */ '@/views/Config.vue'),
   },
   {
     path: '/train',
     meta: {
       title: 'Train',
     },
-    component: Train,
+    component: () => import(/* webpackChunkName: "train" */ '@/views/Train.vue'),
   },
   {
     path: '/login',
     meta: {
       title: 'Login',
     },
-    component: Login,
+    component: () => import(/* webpackChunkName: "login" */ '@/views/Login.vue'),
   },
   {
     path: '/tokens',
     meta: {
       title: 'Tokens',
     },
-    component: Tokens,
+    component: () => import(/* webpackChunkName: "token" */ '@/views/Tokens.vue'),
   },
   {
     path: '/logout',
