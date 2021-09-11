@@ -23,6 +23,7 @@ module.exports = {
   frigate: {
     attempts: { latest: 10, snapshot: 0, mqtt: true, delay: 0 },
     image: { height: 500 },
+    labels: ['person'],
   },
   mqtt: {
     topics: {

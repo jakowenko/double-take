@@ -48,8 +48,8 @@ module.exports.checks = async ({
       return `${id} - skip processing on ${type} events`;
     }
 
-    if (label !== 'person') {
-      return `${id} - label not a person, ${label} found`;
+    if (!FRIGATE.LABELS.includes(label)) {
+      return `${id} - ${label} label not in (${FRIGATE.LABELS.join(', ')})`;
     }
 
     if (IDS.includes(id)) {
