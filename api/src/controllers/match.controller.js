@@ -8,6 +8,7 @@ const { jwt } = require('../util/auth.util');
 const process = require('../util/process.util');
 const { AUTH, STORAGE } = require('../constants');
 const { BAD_REQUEST } = require('../constants/http-status');
+const DETECTORS = require('../constants/config').detectors();
 
 let matchProps = [];
 
@@ -95,6 +96,8 @@ module.exports.delete = async (req, res) => {
 
 module.exports.reprocess = async (req, res) => {
   const { matchId } = req.params;
+  if (!DETECTORS.length) return res.status(BAD_REQUEST).error('no detectors configured');
+
   const db = database.connect();
   let [match] = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
 

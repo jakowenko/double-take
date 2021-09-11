@@ -227,6 +227,7 @@ export default {
             this.emitter.emit('reprocess', data);
             this.reprocessing = false;
           } catch (error) {
+            this.reprocessing = false;
             this.emitter.emit('error', error);
           }
         },
