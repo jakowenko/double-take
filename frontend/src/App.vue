@@ -102,7 +102,13 @@ body {
 }
 
 .p-tooltip {
-  max-width: 200px;
+  max-width: 250px;
+}
+.p-tooltip.p-tooltip-right {
+  margin-left: 3px;
+}
+.p-tooltip.p-tooltip-left {
+  margin-left: -3px;
 }
 
 .p-tooltip .p-tooltip-text {

@@ -67,7 +67,7 @@
               <template v-slot:body="slotProps">
                 <div
                   v-if="getCheckValue('confidence', slotProps.data.checks)"
-                  class="check-miss p-d-inline-block p-pr-1"
+                  class="check-miss p-d-inline-block"
                   v-tooltip.right="getCheckValue('confidence', slotProps.data.checks)"
                 >
                   {{ slotProps.data.confidence }}
@@ -79,7 +79,7 @@
               <template v-slot:body="slotProps">
                 <div
                   v-if="getCheckValue('box area', slotProps.data.checks)"
-                  class="check-miss p-d-inline-block p-pr-1"
+                  class="check-miss p-d-inline-block"
                   v-tooltip.right="getCheckValue('box area', slotProps.data.checks)"
                 >
                   {{ slotProps.data.box.width }}x{{ slotProps.data.box.height }}
