@@ -17,6 +17,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
   const { MATCH, UNKNOWN } = config.detect(event.camera);
   const { frigateEventType } = event;
   const allResults = [];
+  const errors = {};
   let attempts = 0;
   let previousContentLength;
   perf.start(type);
@@ -54,6 +55,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
           filename,
           tmp: tmp.mask || tmp.source,
           attempts,
+          errors,
         });
 
         const foundMatch = !!results.flatMap((obj) => obj.results.filter((item) => item.match))
@@ -106,10 +108,11 @@ module.exports.save = async (event, results, filename, tmp) => {
   }
 };
 
-module.exports.start = async ({ camera, filename, tmp, attempts = 1 }) => {
+module.exports.start = async ({ camera, filename, tmp, attempts = 1, errors }) => {
   const promises = [];
   for (const detector of DETECTORS) {
-    promises.push(this.process({ camera, detector, tmp }));
+    if (!errors[detector]) errors[detector] = 0;
+    promises.push(this.process({ camera, detector, tmp, errors }));
   }
   let results = await Promise.all(promises);
 
@@ -127,16 +130,23 @@ module.exports.start = async ({ camera, filename, tmp, attempts = 1 }) => {
   return results;
 };
 
-module.exports.process = async ({ camera, detector, tmp }) => {
+module.exports.process = async ({ camera, detector, tmp, errors }) => {
   try {
     perf.start(detector);
     const { data } = await recognize({ detector, key: tmp });
     const duration = parseFloat((perf.stop(detector).time / 1000).toFixed(2));
-
+    errors[detector] = 0;
     return { duration, results: normalize({ camera, detector, data }) };
   } catch (error) {
     error.message = `${detector} process error: ${error.message}`;
+    if (error.code === 'ECONNABORTED') delete error.stack;
     console.error(error);
+    if (error.code === 'ECONNABORTED') {
+      errors[detector] += 1;
+      const time = 0.5 * errors[detector];
+      console.warn(`sleeping for ${time} second(s)`);
+      await sleep(time);
+    }
   }
 };
 
