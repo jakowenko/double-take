@@ -2,11 +2,18 @@
   <div class="wrapper">
     <div class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3 p-d-flex p-jc-between">
       <div class="service-wrapper p-d-flex">
-        <div v-for="service in combined" :key="service.name" class="service p-d-flex p-mr-2 p-ai-center">
-          <div class="name p-mr-1" @click="copyVersion(service)">
+        <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-mr-2 p-ai-center">
+          <div
+            class="name p-mr-1"
+            v-if="index === 0"
+            @click="copyVersion(service)"
+            v-tooltip.right="'Copy Version'"
+            style="padding-right: 4px"
+          >
             {{ service.name }}
           </div>
-          <div class="status">
+          <div class="name p-mr-1" v-else>{{ service.name }}</div>
+          <div class="status" :style="{ marginLeft: index === 0 ? '-4px' : 0 }">
             <div
               v-if="service.status"
               class="icon"
