@@ -348,45 +348,45 @@ frigate:
 # camera settings (default: shown below)
 cameras:
   front-door:
-    snapshot:
-      # process any jpeg encoded mqtt topic for facial recognition
-      topic:
-      # process any http image for facial recognition
-      url:
+    # apply masks before processing image
+    # masks:
+    #   # list of x,y coordinates to define the polygon of the zone
+    #   coordinates:
+    #     - 1920,0,1920,328,1638,305,1646,0
+    #   # show the mask on the final saved image (helpful for debugging)
+    #   visible: false
+    #   # size of camera stream used in resizing masks
+    #   size: 1920x1080
 
-      # apply masks before processing image
-      # masks:
-      #   # list of x,y coordinates to define the polygon of the zone
-      #   coordinates:
-      #     - 1920,0,1920,328,1638,305,1646,0
-      #   # show the mask on the final saved image (helpful for debugging)
-      #   visible: false
-      #   # size of camera stream used in resizing masks
-      #   size: 1920x1080
+    # override global detect variables per camera
+    # detect:
+    #   match:
+    #     # save match images
+    #     save: true
+    #     # include base64 encoded string in api results and mqtt messages
+    #     # options: true, false, box
+    #     base64: false
+    #     # minimum confidence needed to consider a result a match
+    #     confidence: 60
+    #     # minimum area in pixels to consider a result a match
+    #     min_area: 10000
 
-      # override global detect variables per camera
-      # detect:
-      #   match:
-      #     # save match images
-      #     save: true
-      #     # include base64 encoded string in api results and mqtt messages
-      #     # options: true, false, box
-      #     base64: false
-      #     # minimum confidence needed to consider a result a match
-      #     confidence: 60
-      #     # minimum area in pixels to consider a result a match
-      #     min_area: 10000
+    #   unknown:
+    #     # save unknown images
+    #     save: true
+    #     # include base64 encoded string in api results and mqtt messages
+    #     # options: true, false, box
+    #     base64: false
+    #     # minimum confidence needed before classifying a match name as unknown
+    #     confidence: 40
+    #     # minimum area in pixels to keep an unknown result
+    #     min_area: 0
 
-      #   unknown:
-      #     # save unknown images
-      #     save: true
-      #     # include base64 encoded string in api results and mqtt messages
-      #     # options: true, false, box
-      #     base64: false
-      #     # minimum confidence needed before classifying a match name as unknown
-      #     confidence: 40
-      #     # minimum area in pixels to keep an unknown result
-      #     min_area: 0
+    # snapshot:
+    #   # process any jpeg encoded mqtt topic for facial recognition
+    #   topic:
+    #   # process any http image for facial recognition
+    #   url:
 ```
 
 ### `detectors`
