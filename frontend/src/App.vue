@@ -100,6 +100,10 @@ body {
   margin-top: 0 !important;
 }
 
+.p-tooltip {
+  max-width: 200px;
+}
+
 .p-tooltip .p-tooltip-text {
   font-size: 0.75rem;
   padding: 0.35rem;
