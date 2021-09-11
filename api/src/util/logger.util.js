@@ -1,6 +1,7 @@
 const { createLogger, format, transports } = require('winston');
 const util = require('util');
 const { core: SYSTEM_CORE } = require('../constants/system');
+const { LOGS } = require('../constants');
 const mqtt = require('./mqtt.util');
 const redact = require('./redact-secrets.util');
 
@@ -17,6 +18,8 @@ module.exports.init = () => {
   const logFormat = format.combine(combineMessageAndSplat(), format.simple());
 
   const logger = createLogger({
+    silent: LOGS.LEVEL === 'silent',
+    level: LOGS.LEVEL,
     transports: [
       new transports.Console({
         format: format.combine(
@@ -59,4 +62,8 @@ module.exports.init = () => {
         : JSON.stringify({ message }),
     });
   };
+  console.http = (...args) => logger.http(...args);
+  console.verbose = (...args) => logger.verbose(...args);
+  console.debug = (...args) => logger.debug(...args);
+  console.silly = (...args) => logger.silly(...args);
 };

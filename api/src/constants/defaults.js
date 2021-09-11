@@ -42,4 +42,7 @@ module.exports = {
       priority: 5,
     },
   },
+  logs: {
+    level: 'info',
+  },
 };
