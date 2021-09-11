@@ -14,7 +14,7 @@ const PERSON_RESET_TIMEOUT = {};
 const cameraTopics = () => {
   return CAMERAS
     ? Object.keys(CAMERAS)
-        .filter((key) => CAMERAS[key].SNAPSHOT && CAMERAS[key].SNAPSHOT.TOPIC)
+        .filter((key) => CAMERAS[key]?.SNAPSHOT && CAMERAS[key]?.SNAPSHOT?.TOPIC)
         .map((key) => {
           return CAMERAS[key].SNAPSHOT.TOPIC;
         })
