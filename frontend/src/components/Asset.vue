@@ -142,6 +142,7 @@
             :icon="reprocessing ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'"
             class="reprocess-btn"
             @click="reprocess"
+            v-tooltip.right="'Reprocess Image'"
           />
         </div>
       </template>
@@ -216,24 +217,16 @@ export default {
       if (!checks) return false;
       return checks.find((check) => check.includes(type));
     },
-    reprocess() {
-      this.$confirm.require({
-        header: 'Confirmation',
-        message: 'Do you want to reprocess this image with the configured detectors and update the results?',
-        acceptClass: 'p-button-success',
-        position: 'top',
-        accept: async () => {
-          try {
-            this.reprocessing = true;
-            const { data } = await ApiService.patch(`match/reprocess/${this.asset.id}`);
-            this.emitter.emit('reprocess', data);
-            this.reprocessing = false;
-          } catch (error) {
-            this.reprocessing = false;
-            this.emitter.emit('error', error);
-          }
-        },
-      });
+    async reprocess() {
+      try {
+        this.reprocessing = true;
+        const { data } = await ApiService.patch(`match/reprocess/${this.asset.id}`);
+        this.emitter.emit('reprocess', data);
+        this.reprocessing = false;
+      } catch (error) {
+        this.reprocessing = false;
+        this.emitter.emit('error', error);
+      }
     },
   },
   computed: {
