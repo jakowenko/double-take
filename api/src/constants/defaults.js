@@ -35,6 +35,13 @@ module.exports = {
   detectors: {
     compreface: {
       det_prob_threshold: 0.8,
+      timeout: 15,
+    },
+    deepstack: {
+      timeout: 15,
+    },
+    facebox: {
+      timeout: 15,
     },
   },
   notify: {
