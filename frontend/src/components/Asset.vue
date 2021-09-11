@@ -24,7 +24,7 @@
                 :style="box(detector.box)"
               ></div>
             </div>
-            <div v-if="selectedDetector" class="train-result p-d-flex p-ai-center p-p-5">
+            <div v-if="selectedDetector" class="asset-result p-p-2">
               <pre>{{ selectedDetector.result }}</pre>
             </div>
             <img
@@ -49,6 +49,14 @@
                   <Badge
                     :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
                     :severity="slotProps.data.match ? 'success' : 'danger'"
+                    class="clickable"
+                    :class="{ selected: selectedDetector?.index === slotProps.index }"
+                    @click="
+                      selectedDetector =
+                        selectedDetector?.index === slotProps.index
+                          ? null
+                          : { index: slotProps.index, result: slotProps.data }
+                    "
                   />
                   <div :class="'icon ' + slotProps.data.detector"></div>
                 </div>
@@ -353,16 +361,18 @@ export default {
   }
 }
 
-.train-result {
+.asset-result {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: rgba(32, 38, 46, 0.85);
+  z-index: 2;
+  overflow-y: auto;
 
   pre {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
