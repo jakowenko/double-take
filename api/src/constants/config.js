@@ -49,12 +49,12 @@ module.exports = () => {
   CONFIG = _.isEmpty(CONFIG) ? DEFAULTS : _.mergeWith(DEFAULTS, CONFIG, customizer);
   if (CONFIG?.notify?.gotify)
     CONFIG.notify.gotify = _.mergeWith(NOTIFY.gotify, CONFIG.notify.gotify, customizer);
-  if (CONFIG?.detectors?.compreface)
-    CONFIG.detectors.compreface = _.mergeWith(
-      DETECTORS.compreface,
-      CONFIG.detectors.compreface,
-      customizer
-    );
+
+  if (CONFIG.detectors)
+    for (const [key] of Object.entries(CONFIG.detectors)) {
+      CONFIG.detectors[key] = _.mergeWith(DETECTORS[key], CONFIG.detectors[key], customizer);
+    }
+
   CONFIG = _.mergeWith(CONFIG, SYSTEM_CORE);
   CONFIG.version = version;
   return CONFIG;
