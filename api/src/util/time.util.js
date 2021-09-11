@@ -2,7 +2,7 @@ const { DateTime } = require('luxon');
 const { TIMEZONE, FORMAT } = require('../constants').TIME;
 
 module.exports.current = () => {
-  return FORMAT !== undefined
+  return FORMAT
     ? DateTime.now().setZone(TIMEZONE.toUpperCase()).toFormat(FORMAT)
     : DateTime.now().setZone(TIMEZONE.toUpperCase()).toString();
 };
