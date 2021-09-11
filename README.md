@@ -313,6 +313,10 @@ detect:
 frigate:
   url:
 
+  # object labels that are allowed for facial recognition
+  labels:
+    - person
+
   attempts:
     # number of times double take will request a frigate latest.jpg for facial recognition
     latest: 10
@@ -393,6 +397,8 @@ detectors:
   compreface:
     url:
     key:
+    # number of seconds before the request times out and is aborted
+    timeout: 15
     # minimum required confidence that a recognized face is actually a face
     # value is between 0.0 and 1.0
     det_prob_threshold: 0.8
@@ -403,9 +409,13 @@ detectors:
   deepstack:
     url:
     key:
+    # number of seconds before the request times out and is aborted
+    timeout: 15
 
   facebox:
     url:
+    # number of seconds before the request times out and is aborted
+    timeout: 15
 ```
 
 ### `notify`
