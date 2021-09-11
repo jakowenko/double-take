@@ -4,15 +4,17 @@ const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
 const filesystem = require('./fs.util');
 const database = require('./db.util');
-const mask = require('./mask.image.util');
+const mask = require('./mask-image.util');
 const sleep = require('./sleep.util');
 const { recognize, normalize } = require('./detectors/actions');
-const { SERVER, FRIGATE, STORAGE, SAVE } = require('../constants');
+const { SERVER, FRIGATE, STORAGE } = require('../constants');
 const DETECTORS = require('../constants/config').detectors();
+const config = require('../constants/config');
 
 module.exports.polling = async (event, { retries, id, type, url, breakMatch, MATCH_IDS }) => {
   event.type = type;
   breakMatch = !!(breakMatch === 'true' || breakMatch === true);
+  const { MATCH, UNKNOWN } = config.detect(event.camera);
   const { frigateEventType } = event;
   const allResults = [];
   let attempts = 0;
@@ -47,21 +49,26 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
           filesystem.writer(tmp.mask, buffer);
         }
 
-        const results = await this.start(filename, tmp.mask || tmp.source, attempts);
+        const results = await this.start({
+          camera: event.camera,
+          filename,
+          tmp: tmp.mask || tmp.source,
+          attempts,
+        });
 
         const foundMatch = !!results.flatMap((obj) => obj.results.filter((item) => item.match))
           .length;
-        const totalFaces = results.flatMap((obj) => obj.results.filter((item) => item)).length;
+        const totalFaces = results.flatMap((obj) => obj.results.filter((item) => item)).length > 0;
 
-        if (foundMatch || (SAVE.UNKNOWN && totalFaces > 0)) {
+        if (foundMatch || (UNKNOWN.SAVE && totalFaces)) {
           await this.save(event, results, filename, maskBuffer?.visible ? tmp.mask : tmp.source);
-          if (SAVE.BASE64 === true || SAVE.BASE64 === 'box') {
+          if ((foundMatch && MATCH.BASE64) || (totalFaces && UNKNOWN.BASE64)) {
             const base64 =
-              SAVE.BASE64 === true
-                ? stream
-                : await this.stream(
+              (foundMatch && MATCH.BASE64 === 'box') || (totalFaces && UNKNOWN.BASE64 === 'box')
+                ? await this.stream(
                     `http://0.0.0.0:${SERVER.PORT}/api/storage/matches/${filename}?box=true`
-                  );
+                  )
+                : stream;
             results.forEach((result) => (result.base64 = base64.toString('base64')));
           }
         }
@@ -99,10 +106,10 @@ module.exports.save = async (event, results, filename, tmp) => {
   }
 };
 
-module.exports.start = async (filename, tmp, attempts = 1) => {
+module.exports.start = async ({ camera, filename, tmp, attempts = 1 }) => {
   const promises = [];
   for (const detector of DETECTORS) {
-    promises.push(this.process({ detector, tmp }));
+    promises.push(this.process({ camera, detector, tmp }));
   }
   let results = await Promise.all(promises);
 
@@ -120,13 +127,13 @@ module.exports.start = async (filename, tmp, attempts = 1) => {
   return results;
 };
 
-module.exports.process = async ({ detector, tmp }) => {
+module.exports.process = async ({ camera, detector, tmp }) => {
   try {
     perf.start(detector);
     const { data } = await recognize({ detector, key: tmp });
     const duration = parseFloat((perf.stop(detector).time / 1000).toFixed(2));
 
-    return { duration, results: normalize({ detector, data }) };
+    return { duration, results: normalize({ camera, detector, data }) };
   } catch (error) {
     error.message = `${detector} process error: ${error.message}`;
     console.error(error);

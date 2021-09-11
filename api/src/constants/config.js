@@ -1,6 +1,7 @@
 const yaml = require('js-yaml');
 const fs = require('fs');
 const _ = require('lodash');
+const { objectKeysToUpperCase } = require('../util/object.util');
 const { detectors: DETECTORS, notify: NOTIFY, ...DEFAULTS } = require('./defaults');
 const { core: SYSTEM_CORE } = require('./system');
 const { version } = require('../../package.json');
@@ -66,12 +67,19 @@ module.exports.detectors = () => {
   return results;
 };
 
-module.exports.masks = () => {
-  const results = [];
-  if (CONFIG.masks)
-    for (const [mask] of Object.entries(CONFIG.masks))
-      results.push({ camera: mask, ...CONFIG.masks[mask] });
-  return results;
+module.exports.detect = (camera) => {
+  const detect = JSON.parse(JSON.stringify(CONFIG.detect));
+  if (!camera) return objectKeysToUpperCase(detect);
+  delete detect.match.purge;
+  delete detect.unknown.purge;
+  _.mergeWith(detect, CONFIG.cameras?.[camera]?.detect || {}, customizer);
+  return objectKeysToUpperCase(detect);
+};
+
+module.exports.masks = (camera) => {
+  let masks = false;
+  if (CONFIG.cameras?.[camera]?.masks?.coordinates) masks = CONFIG.cameras[camera].masks;
+  return masks;
 };
 
 module.exports.notify = () => {

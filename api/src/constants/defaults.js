@@ -3,26 +3,26 @@ module.exports = {
   token: {
     image: '24h',
   },
-  confidence: {
-    match: 60,
-    unknown: 40,
-  },
-  save: {
-    matches: true,
-    unknown: true,
-    base64: false,
-  },
-  objects: {
-    face: { min_area_match: 10000 },
+  detect: {
+    match: {
+      save: true,
+      base64: false,
+      confidence: 60,
+      purge: 168,
+      min_area: 10000,
+    },
+    unknown: {
+      save: true,
+      base64: false,
+      confidence: 40,
+      purge: 8,
+      min_area: 0,
+    },
   },
   time: { timezone: 'UTC' },
   frigate: {
     attempts: { latest: 10, snapshot: 0, mqtt: true, delay: 0 },
     image: { height: 500 },
-  },
-  purge: {
-    matches: 168,
-    unknown: 8,
   },
   mqtt: {
     topics: {

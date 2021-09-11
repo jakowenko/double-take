@@ -58,7 +58,6 @@ const format = async (matches) => {
       return output;
     })
   );
-  matches = matches.flat();
   matchProps = matchProps.slice(0, 500);
   return matches;
 };
@@ -103,7 +102,10 @@ module.exports.reprocess = async (req, res) => {
     return res.status(BAD_REQUEST).error('No match found');
   }
 
-  const results = await process.start(match.filename, `${STORAGE.PATH}/matches/${match.filename}`);
+  const results = await process.start({
+    filename: match.filename,
+    tmp: `${STORAGE.PATH}/matches/${match.filename}`,
+  });
   database.update.match({
     id: match.id,
     event: JSON.parse(match.event),

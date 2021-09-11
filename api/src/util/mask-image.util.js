@@ -2,29 +2,16 @@ const { promisify } = require('util');
 const { createCanvas, loadImage } = require('canvas');
 const sizeOf = promisify(require('image-size'));
 
-const MASKS = require('../constants/config').masks();
-
-const getMask = (event) =>
-  MASKS
-    ? MASKS.filter(({ camera }) => camera === event.camera).map(({ mask, visible, size }) => ({
-        mask,
-        visible,
-        size,
-      }))[0]
-    : null;
-
-module.exports.hasMask = (event) => {
-  return !!getMask(event);
-};
+const config = require('../constants/config');
 
 module.exports.buffer = async (event, tmp) => {
-  const MASK = getMask(event);
+  const MASK = config.masks(event.camera);
 
   if (!MASK) return false;
 
   const coordinates = [];
 
-  const items = Array.isArray(MASK.mask) ? MASK.mask : [MASK.mask];
+  const items = Array.isArray(MASK.coordinates) ? MASK.coordinates : [MASK.coordinates];
   items.forEach((item) => {
     coordinates.push([]);
     item.split(',').forEach((value, i) => {
