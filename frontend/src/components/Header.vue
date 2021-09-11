@@ -109,14 +109,14 @@
             />
             <Button
               :icon="areAllSelected ? 'fa fa-check-square' : 'far fa-check-square'"
-              class="p-button p-button-sm p-mr-1"
+              class="p-button p-button-sm"
               @click="$parent.toggleAll(!areAllSelected)"
               :disabled="(loading.files && !liveReload) || loading.status"
             />
             <Button
               v-if="type === 'match'"
               icon="pi pi-cog"
-              class="p-button p-button-sm"
+              class="p-button p-button-sm p-ml-1"
               @click="showFilter = !showFilter"
             />
           </div>
