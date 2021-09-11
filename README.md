@@ -25,7 +25,7 @@ There's a lot of great open source software to perform facial recognition, but e
 ### Supported Detectors
 
 - [DeepStack](https://deepstack.cc) v2021.02.1-2021.06.01
-- [CompreFace](https://github.com/exadel-inc/CompreFace) v0.5.0-0.5.1
+- [CompreFace](https://github.com/exadel-inc/CompreFace) v0.5.0-0.6.0
 - [Facebox](https://machinebox.io)
 
 ### Supported NVRs
@@ -40,10 +40,10 @@ Subscribe to Frigate's MQTT topics and process images for analysis.
 
 ```yaml
 mqtt:
-  host: 192.168.1.1
+  host: localhost
 
 frigate:
-  url: http://192.168.1.1:5000
+  url: http://localhost:5000
 ```
 
 When the `frigate/events` topic is updated the API begins to process the [`snapshot.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apieventsidsnapshotjpg) and [`latest.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apicamera_namelatestjpgh300) images from Frigate's API. These images are passed from the API to the configured detector(s) until a match is found that meets the configured requirements. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found.
@@ -120,7 +120,7 @@ Errors from the API will be published to `double-take/errors`.
 
 ```yaml
 mqtt:
-  host: 192.168.1.1
+  host: localhost
 ```
 
 #### double-take/matches/david
@@ -178,8 +178,8 @@ mqtt:
 ```yaml
 notify:
   gotify:
-    url: http://192.168.1.1:8080
-    token: XXXXXXX
+    url: http://localhost:8080
+    token:
 ```
 
 ## UI
@@ -234,68 +234,221 @@ services:
 
 ## Configuration
 
-Configurable options that can be passed by mounting a file at `/double-take/config.yml` and is editable via the UI at `http://localhost:3000/#/config`. _Default values do not need to be specified in configuration unless they need to be overwritten._
+Configurable options that can be passed by mounting a file at `/double-take/config.yml` and is editable via the UI at `http://localhost:3000/config`. _Default values do not need to be specified in configuration unless they need to be overwritten._
+
+### `auth`
 
 ```yaml
-mqtt:
-  host: 192.168.1.1
-
-frigate:
-  url: http://192.168.1.1:5000
-
-detectors:
-  compreface:
-    url: http://192.168.1.1:8000
-    key: xxx-xxx-xxx-xxx-xxx # key from recognition service in created app
-  deepstack:
-    url: http://192.168.1.1:8001
-    key: xxx-xxx-xxx-xxx-xxx # optional api key
-  facebox:
-    url: http://192.168.1.1:8002
+# enable authentication for ui and api (default: shown below)
+auth: false
 ```
 
-| Option                                  | Default               | Description                                                                                                                                       |
-| --------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| auth                                    | `false`               | Add authentication to UI and API                                                                                                                  |
-| mqtt.host                               |                       | MQTT host                                                                                                                                         |
-| mqtt.username                           |                       | MQTT username                                                                                                                                     |
-| mqtt.password                           |                       | MQTT password                                                                                                                                     |
-| mqtt.topics.frigate                     | `frigate/events`      | MQTT topic for Frigate message subscription                                                                                                       |
-| mqtt.topics.homeassistant               | `homeassistant`       | MQTT topic for Home Assistant Discovery subscription                                                                                              |
-| mqtt.topics.matches                     | `double-take/matches` | MQTT topic where matches are published                                                                                                            |
-| mqtt.topics.cameras                     | `double-take/cameras` | MQTT topic where matches are published by camera name                                                                                             |
-| confidence.match                        | `60`                  | Minimum confidence needed to consider a result a match                                                                                            |
-| confidence.unknown                      | `40`                  | Minimum confidence needed before classifying a match name as unknown                                                                              |
-| objects.face.min_area_match             | `10000`               | Minimum area in pixels to consider a result a match                                                                                               |
-| save.matches                            | `true`                | Save match images                                                                                                                                 |
-| save.unknown                            | `true`                | Save unknown images                                                                                                                               |
-| save.base64                             | `false`               | Include Base64 encoded string in API results and MQTT messages. Options include: `true`, `false`, or `box`.                                       |
-| purge.matches                           | `168`                 | Hours to keep match images until they are deleted                                                                                                 |
-| purge.unknown                           | `8`                   | Hours to keep unknown images until they are deleted                                                                                               |
-| frigate.url                             |                       | Base URL for Frigate                                                                                                                              |
-| frigate.attempts.latest                 | `10`                  | Amount of times API will request a Frigate `latest.jpg` for facial recognition                                                                    |
-| frigate.attempts.snapshot               | `0`                   | Amount of times API will request a Frigate `snapshot.jpg` for facial recognition                                                                  |
-| frigate.attempts.mqtt                   | `true`                | Process Frigate images from `frigate/+/person/snapshot` topics                                                                                    |
-| frigate.attempts.delay                  | `0`                   | Add a delay expressed in seconds between each detection loop                                                                                      |
-| frigate.image.height                    | `500`                 | Height of Frigate image passed for facial recognition                                                                                             |
-| frigate.cameras                         |                       | Only process images from specific cameras                                                                                                         |
-| frigate.zones                           |                       | Only process images from specific zones                                                                                                           |
-| cameras.camera-name.snapshot.topic      |                       | Process jpeg encoded topic for facial recognition                                                                                                 |
-| cameras.camera-name.snapshot.url        |                       | Process HTTP image for facial recognition                                                                                                         |
-| detectors.compreface.url                |                       | Base URL for CompreFace API                                                                                                                       |
-| detectors.compreface.key                |                       | API Key for CompreFace collection                                                                                                                 |
-| detectors.compreface.det_prob_threshold | `0.8`                 | Minimum required confidence that a recognized face is actually a face. Value is between `0.0` and `1.0`                                           |
-| detectors.compreface.face_plugins       |                       | Comma-separated slugs of [face plugins](https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)                   |
-| detectors.deepstack.url                 |                       | Base URL for DeepStack API                                                                                                                        |
-| detectors.deepstack.key                 |                       | API Key for DeepStack                                                                                                                             |
-| detectors.facebox.url                   |                       | Base URL for Facebox API                                                                                                                          |
-| notify.gotify.url                       |                       | Base URL for Gotify                                                                                                                               |
-| notify.gotify.token                     |                       | Gotify application token Gotify                                                                                                                   |
-| notify.gotify.priority                  | `5`                   | Gotify message priority                                                                                                                           |
-| notify.gotify.cameras                   |                       | Only notify from specific cameras                                                                                                                 |
-| notify.gotify.zones                     |                       | Only notify from specific zones                                                                                                                   |
-| time.format                             |                       | Defaults to ISO 8601 format with support for [token-based formatting](https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens) |
-| time.timezone                           | `UTC`                 | Time zone used in logs                                                                                                                            |
+### `token`
+
+```yaml
+# if authentication is enabled
+# age of access token in api response and mqtt topics (default: shown below)
+# expressed in seconds or a string describing a time span zeit/ms
+# https://github.com/vercel/ms
+token:
+  image: 24h
+```
+
+### `mqtt`
+
+```yaml
+# enable mqtt subscribing and publishing (default: shown below)
+mqtt:
+  host:
+  username:
+  password:
+
+  topics:
+    # mqtt topic for frigate message subscription
+    frigate: frigate/events
+    #  mqtt topic for home assistant discovery subscription
+    homeassistant: homeassistant
+    # mqtt topic where matches are published by name
+    matches: double-take/matches
+    # mqtt topic where matches are published by camera name
+    cameras: double-take/cameras
+```
+
+### `detect`
+
+```yaml
+# global detect settings (default: shown below)
+detect:
+  match:
+    # save match images
+    save: true
+    # include base64 encoded string in api results and mqtt messages
+    # options: true, false, box
+    base64: false
+    # minimum confidence needed to consider a result a match
+    confidence: 60
+    # hours to keep match images until they are deleted
+    purge: 168
+    # minimum area in pixels to consider a result a match
+    min_area: 10000
+
+  unknown:
+    # save unknown images
+    save: true
+    # include base64 encoded string in api results and mqtt messages
+    # options: true, false, box
+    base64: false
+    # minimum confidence needed before classifying a name as unknown
+    confidence: 40
+    # hours to keep unknown images until they are deleted
+    purge: 8
+    # minimum area in pixels to keep an unknown result
+    min_area: 0
+```
+
+### `frigate`
+
+```yaml
+# frigate settings (default: shown below)
+frigate:
+  url:
+
+  attempts:
+    # number of times double take will request a frigate latest.jpg for facial recognition
+    latest: 10
+    # number of times double take will request a frigate snapshot.jpg for facial recognition
+    snapshot: 0
+    # process frigate images from frigate/+/person/snapshot topics
+    mqtt: true
+    # add a delay expressed in seconds between each detection loop
+    delay: 0
+
+    image:
+      # height of frigate image passed for facial recognition
+      height: 500
+
+    # only process images from specific cameras
+    # cameras:
+    #   - front-door
+    #   - garage
+
+    # only process images from specific zones
+    # zones:
+    #   - camera: garage
+    #     zone: driveway
+```
+
+### `cameras`
+
+```yaml
+# camera settings (default: shown below)
+cameras:
+  front-door:
+    snapshot:
+      # process any jpeg encoded mqtt topic for facial recognition
+      topic:
+      # process any http image for facial recognition
+      url:
+
+      # apply masks before processing image
+      # masks:
+      #   # list of x,y coordinates to define the polygon of the zone
+      #   coordinates:
+      #     - 1920,0,1920,328,1638,305,1646,0
+      #   # show the mask on the final saved image (helpful for debugging)
+      #   visible: false
+      #   # size of camera stream used in resizing masks
+      #   size: 1920x1080
+
+      # override global detect variables per camera
+      # detect:
+      #   match:
+      #     # save match images
+      #     save: true
+      #     # include base64 encoded string in api results and mqtt messages
+      #     # options: true, false, box
+      #     base64: false
+      #     # minimum confidence needed to consider a result a match
+      #     confidence: 60
+      #     # minimum area in pixels to consider a result a match
+      #     min_area: 10000
+
+      #   unknown:
+      #     # save unknown images
+      #     save: true
+      #     # include base64 encoded string in api results and mqtt messages
+      #     # options: true, false, box
+      #     base64: false
+      #     # minimum confidence needed before classifying a match name as unknown
+      #     confidence: 40
+      #     # minimum area in pixels to keep an unknown result
+      #     min_area: 0
+```
+
+### `detectors`
+
+```yaml
+# detector settings (default: shown below)
+detectors:
+  compreface:
+    url:
+    key:
+    # minimum required confidence that a recognized face is actually a face
+    # value is between 0.0 and 1.0
+    det_prob_threshold: 0.8
+    # comma-separated slugs of face plugins
+    # https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)
+    # face_plugins: mask,gender,age
+
+  deepstack:
+    url:
+    key:
+
+  facebox:
+    url:
+```
+
+### `notify`
+
+```yaml
+# notify settings (default: shown below)
+notify:
+  gotify:
+    url:
+    token:
+    priority: 5
+
+    # only notify from specific cameras
+    # cameras:
+    #   - front-door
+    #   - garage
+
+    # only notify from specific zones
+    # zones:
+    #   - camera: garage
+    #     zone: driveway
+```
+
+### `time`
+
+```yaml
+# time settings (default: shown below)
+time:
+  # defaults to iso 8601 format with support for token-based formatting
+  # https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens
+  format:
+  # time zone used in logs
+  timezone: UTC
+```
+
+### `logs`
+
+```yaml
+# log settings (default: shown below)
+# options: silent, error, warn, info, http, verbose, debug, silly
+logs:
+  level: info
+```
 
 ## Donations
 
