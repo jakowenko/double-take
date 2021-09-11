@@ -58,13 +58,15 @@ module.exports.matches = async (req, res) => {
         if (detector === 'facebox') fillStyle = '#5f39a4';
 
         ctx.fillStyle = fillStyle;
-        ctx.fillRect(box.left - lineWidth / 2, box.top - textHeight, textWidth, textHeight);
-        ctx.fillStyle = '#fff';
-        ctx.fillText(
-          text,
-          box.left + textPadding / 2 - lineWidth / 2,
-          box.top - textHeight + textPadding / 2
-        );
+        if (confidence > 0) {
+          ctx.fillRect(box.left - lineWidth / 2, box.top - textHeight, textWidth, textHeight);
+          ctx.fillStyle = '#fff';
+          ctx.fillText(
+            text,
+            box.left + textPadding / 2 - lineWidth / 2,
+            box.top - textHeight + textPadding / 2
+          );
+        }
 
         ctx.strokeStyle = fillStyle;
         ctx.lineWidth = lineWidth;
