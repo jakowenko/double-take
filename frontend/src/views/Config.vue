@@ -18,12 +18,29 @@
         </div>
       </div>
       <div class="p-d-flex">
-        <Button icon="pi pi-copy" class="p-button-sm p-button-secondary" @click="copyConfig" />
+        <Button
+          icon="pi pi-copy"
+          class="p-button-sm p-button-secondary"
+          @click="copyConfig"
+          v-tooltip.left="'Copy Config'"
+        />
       </div>
       <div class="p-mr-3 buttons">
-        <Button icon="pi pi-refresh" class="p-button-sm p-button-success p-mb-2" @click="reload" :disabled="loading" />
+        <Button
+          icon="pi pi-refresh"
+          class="p-button-sm p-button-success p-mb-2"
+          @click="reload"
+          :disabled="loading"
+          v-tooltip.left="'Refresh Page'"
+        />
         <br />
-        <Button icon="fa fa-save" class="p-button p-button-sm p-button-success" @click="save" :disabled="loading" />
+        <Button
+          icon="fa fa-save"
+          class="p-button p-button-sm p-button-success"
+          @click="save"
+          :disabled="loading"
+          v-tooltip.left="'Save Config and Restart'"
+        />
       </div>
     </div>
     <div class="editor-wrapper">
