@@ -108,7 +108,7 @@ module.exports.save = async (event, results, filename, tmp) => {
   }
 };
 
-module.exports.start = async ({ camera, filename, tmp, attempts = 1, errors }) => {
+module.exports.start = async ({ camera, filename, tmp, attempts = 1, errors = {} }) => {
   const promises = [];
   for (const detector of DETECTORS) {
     if (!errors[detector]) errors[detector] = 0;
