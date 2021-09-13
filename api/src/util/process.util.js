@@ -23,7 +23,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
   perf.start(type);
 
   if (await this.isValidURL({ type, url })) {
-    if (event.type === 'snapshot' && !mask.hasMask(event)) {
+    if (event.type === 'snapshot' && !config.masks(event.camera)) {
       url = `${url}&crop=1`;
     }
 
