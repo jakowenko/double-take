@@ -1,4 +1,5 @@
 const fs = require('fs');
+const sharp = require('sharp');
 const { promisify } = require('util');
 const sizeOf = promisify(require('image-size'));
 const { createCanvas, loadImage, registerFont } = require('canvas');
@@ -82,7 +83,10 @@ module.exports.matches = async (req, res) => {
     return res.end(buffer);
   }
 
-  const buffer = fs.readFileSync(source);
+  const buffer =
+    req.query.thumb === ''
+      ? await sharp(source).jpeg({ quality: 75 }).resize(400).withMetadata().toBuffer()
+      : fs.readFileSync(source);
   res.set('Content-Type', 'image/jpeg');
   return res.end(buffer);
 };
@@ -91,11 +95,14 @@ module.exports.train = async (req, res) => {
   const { name, filename } = req.params;
   const source = `${PATH}/train/${name}/${filename}`;
 
-  if (!fs.existsSync(source)) {
-    return res.status(BAD_REQUEST).error(`${source} does not exist`);
-  }
+  if (!fs.existsSync(source)) return res.status(BAD_REQUEST).error(`${source} does not exist`);
 
-  const buffer = fs.readFileSync(source);
+  const buffer =
+    req.query.thumb === ''
+      ? await sharp(source).jpeg({ quality: 75 }).resize(400).withMetadata().toBuffer()
+      : fs.readFileSync(source);
+  res.set('Content-Type', 'image/jpeg');
+
   res.set('Content-Type', 'image/jpeg');
   return res.end(buffer);
 };
