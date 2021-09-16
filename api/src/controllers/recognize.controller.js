@@ -23,7 +23,11 @@ module.exports.test = async (req, res) => {
   const promises = [];
   for (const detector of DETECTORS) {
     promises.push(
-      actions.recognize({ detector, test: true, key: `${__dirname}/../static/img/lenna.jpg` })
+      actions
+        .recognize({ detector, test: true, key: `${__dirname}/../static/img/lenna.jpg` })
+        .catch((error) => {
+          return { status: 500, data: error.message };
+        })
     );
   }
   const results = await Promise.all(promises);
