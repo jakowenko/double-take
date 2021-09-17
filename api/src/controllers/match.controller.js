@@ -40,7 +40,7 @@ const format = async (matches) => {
 };
 
 module.exports.get = async (req, res) => {
-  const limit = 2;
+  const limit = 100;
   const { sinceId, page } = req.query;
   const filters = tryParseJSON(req.query.filters);
 
