@@ -27,11 +27,16 @@
         </div>
       </div>
     </div>
-    <div v-else class="p-d-flex p-jc-center" :style="{ marginTop: headerHeight + 'px' }">
-      <Grid type="match" :matches="matches" style="width: 100%" />
+    <div v-else :style="{ marginTop: headerHeight + 'px' }">
+      <div v-if="matches.source.length && !liveReload" class="p-d-flex p-jc-center">
+        <Pagination :pagination="pagination" location="top" />
+      </div>
+      <div class="p-d-flex p-jc-center">
+        <Grid type="match" :matches="matches" style="width: 100%" />
+      </div>
     </div>
-    <div v-if="matches.source.length && !liveReload" class="p-d-flex p-jc-center p-pb-3">
-      <Pagination :pagination="pagination" />
+    <div v-if="matches.source.length && !liveReload" class="p-d-flex p-jc-center">
+      <Pagination :pagination="pagination" location="bottom" />
     </div>
   </div>
 </template>

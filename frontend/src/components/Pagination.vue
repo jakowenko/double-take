@@ -1,10 +1,11 @@
 <template>
-  <div class="pagination-wrapper">
+  <div class="pagination-wrapper" :class="location">
     <Pagination
       v-model="page"
       :records="pagination.total || 0"
       :per-page="pagination.limit"
       @paginate="paginate"
+      class="p-pt-3"
       :options="{
         chunk: 5,
         texts: { count: '' },
@@ -25,6 +26,7 @@ export default {
   }),
   props: {
     pagination: Object,
+    location: String,
   },
   created() {},
   mounted() {
@@ -44,6 +46,14 @@ export default {
 
 ::v-deep(.VuePagination__count) {
   display: none;
+}
+
+.pagination-wrapper.top ::v-deep(ul.VuePagination__pagination) {
+  padding-top: 1rem;
+}
+
+.pagination-wrapper.bottom ::v-deep(ul.VuePagination__pagination) {
+  padding-bottom: 1rem;
 }
 
 ::v-deep(ul.VuePagination__pagination) {
