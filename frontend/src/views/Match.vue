@@ -135,6 +135,7 @@ export default {
             if (!$this.liveReload) {
               $this.matches.source = [];
               $this.matches.loaded = [];
+              $this.matches.disabled = [];
             }
             await Sleep(1000);
             await $this.get().filters();
