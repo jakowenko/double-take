@@ -1,28 +1,23 @@
 const { promisify } = require('util');
-const fs = require('fs');
-const sharp = require('sharp');
 const sizeOf = promisify(require('image-size'));
 const database = require('../util/db.util');
 const filesystem = require('../util/fs.util');
+const { tryParseJSON } = require('../util/validators.util');
 const { jwt } = require('../util/auth.util');
 const process = require('../util/process.util');
 const { AUTH, STORAGE } = require('../constants');
 const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
 
-let matchProps = [];
-
 const format = async (matches) => {
   const token = AUTH && matches.length ? jwt.sign({ route: 'storage' }) : null;
-
   matches = await Promise.all(
     matches.map(async (obj) => {
       const { id, filename, event, response, isTrained } = obj;
       const { camera, type, zones, updatedAt } = JSON.parse(event);
-
       const key = `matches/${filename}`;
-
-      const output = {
+      const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
+      return {
         id,
         camera,
         type,
@@ -30,6 +25,8 @@ const format = async (matches) => {
         file: {
           key,
           filename,
+          width,
+          height,
         },
         isTrained: !!isTrained,
         response: JSON.parse(response),
@@ -37,59 +34,98 @@ const format = async (matches) => {
         updatedAt: updatedAt || null,
         token,
       };
-
-      const [matchProp] = matchProps.filter((prop) => prop.key === key);
-
-      if (matchProp) {
-        output.file = matchProp.file;
-      } else if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
-        const base64 = await sharp(`${STORAGE.PATH}/${key}`)
-          .jpeg({ quality: 70 })
-          .resize(500)
-          .withMetadata()
-          .toBuffer();
-        const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
-        output.file.base64 = base64.toString('base64');
-        output.file.width = width;
-        output.file.height = height;
-        // push sharp and sizeOf results to an array to search against
-        matchProps.unshift({ key, file: output.file });
-      }
-
-      return output;
     })
   );
-  matchProps = matchProps.slice(0, 500);
   return matches;
 };
 
 module.exports.get = async (req, res) => {
-  const { sinceId } = req.query;
+  const limit = 2;
+  const { sinceId, page } = req.query;
+  const filters = tryParseJSON(req.query.filters);
 
   const db = database.connect();
-  const matches = db
+
+  if (!filters || !Object.keys(filters).length) {
+    const [total] = db.prepare(`SELECT COUNT(*) count FROM match`).all();
+    const matches = db
+      .prepare(
+        `SELECT * FROM match
+          LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = match.filename
+          ORDER BY createdAt DESC
+          LIMIT ?,?`
+      )
+      .bind(limit * (page - 1), limit)
+      .all();
+
+    return res.send({ total: total.count, limit, matches: await format(matches) });
+  }
+
+  const filteredIds = db
     .prepare(
-      `
-        SELECT * FROM match
-        LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = match.filename
-        WHERE id > ?
-        GROUP BY match.id
-        ORDER BY createdAt DESC LIMIT 100
-        `
+      `SELECT t.id, detector, value FROM (
+          SELECT match.id,  json_extract(value, '$.detector') detector, json_extract(value, '$.results') results
+          FROM match, json_each( match.response)
+          ) t, json_each(t.results)
+        WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
+        AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
+        AND json_extract(value, '$.confidence') >= ?
+        AND json_extract(value, '$.box.width') >= ?
+        AND json_extract(value, '$.box.height') >= ?
+        AND detector IN (${database.params(filters.detectors)})
+        GROUP BY t.id`
     )
-    .bind(sinceId || 0)
+    .bind(
+      filters.names,
+      filters.matches.map((obj) => (obj === 'match' ? 1 : 0)),
+      filters.confidence,
+      filters.width,
+      filters.height,
+      filters.detectors
+    )
+    .all()
+    .map((obj) => obj.id);
+
+  const [total] = db
+    .prepare(
+      `SELECT COUNT(*) count FROM match
+      WHERE id IN (${database.params(filteredIds)})
+      AND id > ?
+      ORDER BY createdAt DESC`
+    )
+    .bind(filteredIds, sinceId || 0)
     .all();
 
-  res.send({ matches: await format(matches) });
+  const matches = db
+    .prepare(
+      `SELECT * FROM match
+        LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = match.filename
+        WHERE id IN (${database.params(filteredIds)})
+        AND id > ?
+        ORDER BY createdAt DESC
+        LIMIT ?,?`
+    )
+    .bind(filteredIds, sinceId || 0, limit * (page - 1), limit)
+    .all();
+
+  res.send({ total: total.count, limit, matches: await format(matches) });
 };
 
 module.exports.delete = async (req, res) => {
-  const files = req.body;
-  files.forEach((file) => {
+  const ids = req.body;
+  if (ids.length) {
     const db = database.connect();
-    db.prepare('DELETE FROM match WHERE id = ?').run(file.id);
-    filesystem.delete(`${STORAGE.PATH}/${file.key}`);
-  });
+    const files = db
+      .prepare(`SELECT filename FROM match WHERE id IN (${database.params(ids)})`)
+      .bind(ids)
+      .all();
+
+    db.prepare(`DELETE FROM match WHERE id IN (${database.params(ids)})`).run(ids);
+
+    files.forEach(({ filename }) => {
+      filesystem.delete(`${STORAGE.PATH}/matches/${filename}`);
+    });
+  }
 
   res.send({ success: true });
 };
@@ -101,9 +137,7 @@ module.exports.reprocess = async (req, res) => {
   const db = database.connect();
   let [match] = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
 
-  if (!match) {
-    return res.status(BAD_REQUEST).error('No match found');
-  }
+  if (!match) return res.status(BAD_REQUEST).error('No match found');
 
   const results = await process.start({
     filename: match.filename,
@@ -122,7 +156,49 @@ module.exports.reprocess = async (req, res) => {
     )
     .bind(matchId)
     .all();
-  match = await format(match);
+  [match] = await format(match);
 
-  res.send(match[0]);
+  res.send(match);
+};
+
+module.exports.filters = async (req, res) => {
+  const db = database.connect();
+
+  const [total] = db.prepare('SELECT COUNT(*) count FROM match').all();
+
+  const detectors = db
+    .prepare(
+      `SELECT json_extract(value, '$.detector') name
+        FROM match, json_each( match.response)
+        GROUP BY name
+        ORDER BY name ASC`
+    )
+    .all()
+    .map((obj) => obj.name);
+
+  const names = db
+    .prepare(
+      `SELECT json_extract(value, '$.name') name FROM (
+          SELECT json_extract(value, '$.results') results
+          FROM match, json_each( match.response)
+          ) t, json_each(t.results)
+        GROUP BY name
+        ORDER BY name ASC`
+    )
+    .all()
+    .map((obj) => obj.name);
+
+  const matches = db
+    .prepare(
+      `SELECT IIF(json_extract(value, '$.match') == 1, 'match', 'miss') name FROM (
+          SELECT json_extract(value, '$.results') results
+          FROM match, json_each( match.response)
+          ) t, json_each(t.results)
+        GROUP BY name
+        ORDER BY name ASC`
+    )
+    .all()
+    .map((obj) => obj.name);
+
+  res.send({ total: total.count, detectors, names, matches });
 };

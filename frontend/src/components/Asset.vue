@@ -3,40 +3,39 @@
     <Card>
       <template v-slot:header>
         <div style="position: relative">
-          <div class="match-wrapper">
-            <div class="open-link">
-              <i
-                class="pi pi-external-link"
-                @click="
-                  openLink(
-                    `${constants().api}/storage/${asset.file.key}?box=true${
-                      asset.token ? `&token=${asset.token}` : ''
-                    }`,
-                  )
-                "
-              ></i>
-            </div>
-            <div class="selected-overlay" :class="{ selected: selected }"></div>
-            <div v-for="detector in results" :key="detector">
-              <div
-                v-if="detector.box !== undefined && loaded"
-                :class="'box ' + detector.detector"
-                :style="box(detector.box)"
-              ></div>
-            </div>
-            <div v-if="selectedDetector" class="asset-result p-p-2">
-              <pre>{{ selectedDetector.result }}</pre>
+          <div class="open-link">
+            <i
+              class="pi pi-external-link"
+              @click="
+                openLink(
+                  `${constants().api}/storage/${asset.file.key}?box=true${asset.token ? `&token=${asset.token}` : ''}`,
+                )
+              "
+            ></i>
+          </div>
+          <div class="selected-overlay" :class="{ selected: selected }"></div>
+          <div v-for="detector in results" :key="detector">
+            <div
+              v-if="detector.box !== undefined && loaded"
+              :class="'box ' + detector.detector"
+              :style="box(detector.box)"
+            ></div>
+          </div>
+          <div v-if="selectedDetector" class="asset-result p-p-2">
+            <pre>{{ selectedDetector.result }}</pre>
+          </div>
+
+          <div class="ratio" :style="{ paddingTop: (asset.file.height / asset.file.width) * 100 + '%' }">
+            <div v-if="!loaded" style="position: absolute; top: 50%; left: 50%; margin-left: -0.75rem">
+              <i class="pi pi-spin pi-spinner" style="font-size: 1.5rem"></i>
             </div>
             <img
+              ref="thumbnail"
               @click="emitter.emit('toggleAsset', asset)"
               :class="loaded ? 'thumbnail' : 'thumbnail lazy'"
-              :src="'data:image/jpg;base64,' + asset.file.base64"
-              :data-key="asset.file.key"
+              :src="src"
               :onload="assetLoaded"
             />
-          </div>
-          <div v-if="!loaded" style="position: absolute; top: 50%; left: 50%; margin-top: -1rem; margin-left: -1rem">
-            <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
           </div>
         </div>
       </template>
@@ -87,11 +86,6 @@
                 <div v-else>{{ slotProps.data.box.width }}x{{ slotProps.data.box.height }}</div>
               </template>
             </Column>
-            <Column header="Time">
-              <template v-slot:body="slotProps">
-                {{ slotProps.data.duration || 'N/A' }}
-              </template>
-            </Column>
           </DataTable>
         </div>
         <div v-if="type === 'train' && asset.results.length">
@@ -112,7 +106,8 @@
           </div>
         </div>
         <div v-else-if="type === 'train'">
-          <div class="p-d-inline-block p-mr-2">untrained</div>
+          <Badge value="untrained" severity="danger" class="p-mb-3" />
+          <br />
           <Dropdown v-model="folder" :options="folders" placeholder="move and train" :showClear="true" />
         </div>
       </template>
@@ -135,7 +130,9 @@
               </div>
             </div>
           </div>
-          <small v-if="type === 'match'">{{ createdAt.ago }}{{ updatedAt ? ` (updated ${updatedAt.ago})` : '' }}</small>
+          <small v-if="type === 'match'" class="p-d-block" style="width: calc(100% - 45px)"
+            >{{ createdAt.ago }}{{ updatedAt ? ` (updated ${updatedAt.ago})` : '' }}</small
+          >
           <small v-else-if="type === 'train'">{{ asset.name }}</small>
           <Button
             v-if="type === 'match'"
@@ -171,6 +168,7 @@ export default {
     disabled: Boolean,
     type: String,
     folders: Array,
+    index: Number,
   },
   components: {
     Badge,
@@ -186,16 +184,27 @@ export default {
     loadedCount: 0,
     reprocessing: false,
     selectedDetector: null,
+    src: null,
   }),
   created() {
     setInterval(() => {
       this.timestamp = Date.now();
     }, 1000);
   },
+  mounted() {
+    setTimeout(() => {
+      this.src = this.imageURL();
+    }, this.index * (this.loaded ? 0 : 25));
+  },
   methods: {
     constants: () => ({
       ...Constants(),
     }),
+    imageURL() {
+      return `${this.constants().api}/storage/${this.asset.file.key}?thumb${
+        this.asset.token ? `&token=${this.asset.token}` : ''
+      }`;
+    },
     assetLoaded() {
       this.emitter.emit('assetLoaded', this.asset.id);
     },
@@ -396,19 +405,23 @@ export default {
   }
 }
 
+.ratio {
+  position: relative;
+}
+
 img.thumbnail {
   width: 100%;
   display: block;
   cursor: pointer;
   transition: opacity 0.5s;
+  opacity: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
 
   &.lazy {
     opacity: 0;
   }
-}
-
-.match-wrapper {
-  position: relative;
 }
 
 .badge-holder {

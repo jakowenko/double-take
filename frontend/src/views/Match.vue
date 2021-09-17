@@ -1,16 +1,37 @@
 <template>
-  <div class="wrapper">
+  <div class="match-wrapper">
     <Header
       type="match"
       :loading="loading"
-      :folders="['add new', ...folders]"
       :matches="matches"
+      :stats="{ current: pagination.total, total: dropdowns.total }"
       :areAllSelected="areAllSelected"
-      :stats="{ filtered: filtered.length, source: source.length }"
+      :dropdowns="dropdowns"
+      :toolbarHeight="toolbarHeight"
+      ref="header"
     />
-    <div class="p-d-flex p-jc-center p-p-3">
-      <i v-if="loading.files && !source.length" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
-      <Grid v-else type="match" :matches="{ filtered, ...matches }" style="width: 100%" />
+    <div
+      class="loading-wrapper p-d-flex p-jc-center"
+      v-if="showLoading()"
+      :style="{ top: headerHeight + toolbarHeight + 'px' }"
+    >
+      <i
+        v-if="(liveReload && !matches.source.length) || (!liveReload && loading.files)"
+        class="pi pi-spin pi-spinner p-as-center"
+        style="font-size: 2.5rem"
+      ></i>
+      <div v-else class="p-text-center p-as-center">
+        <p class="p-text-bold p-mb-3">No files found</p>
+        <div v-for="(filter, index) in filterHelpText()" :key="filter">
+          <p :class="index === 0 ? '' : 'p-mt-1'" v-html="filter"></p>
+        </div>
+      </div>
+    </div>
+    <div v-else class="p-d-flex p-jc-center" :style="{ marginTop: headerHeight + 'px' }">
+      <Grid type="match" :matches="matches" style="width: 100%" />
+    </div>
+    <div v-if="matches.source.length && !liveReload" class="p-d-flex p-jc-center p-pb-3">
+      <Pagination :pagination="pagination" />
     </div>
   </div>
 </template>
@@ -19,19 +40,31 @@
 import ApiService from '@/services/api.service';
 import Grid from '@/components/Grid.vue';
 import Header from '@/components/Header.vue';
+import Pagination from '@/components/Pagination.vue';
 import Sleep from '@/util/sleep.util';
 
 export default {
   components: {
     Header,
     Grid,
+    Pagination,
   },
   data: () => ({
+    height: {
+      header: 0,
+      subheader: 0,
+      pagination: 0,
+    },
+    pagination: {
+      total: 0,
+      page: 1,
+      limit: 0,
+    },
     info: null,
     folders: [],
     loading: {
-      folders: false,
-      files: false,
+      folders: true,
+      files: true,
       createFolder: false,
     },
     matches: {
@@ -40,73 +73,38 @@ export default {
       disabled: [],
       loaded: [],
     },
-    filter: {},
+    dropdowns: {},
+    filters: {},
     trainingFolder: null,
     liveReload: false,
+    headerHeight: 0,
   }),
+  props: {
+    toolbarHeight: Number,
+  },
   computed: {
-    source() {
-      return JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
-    },
     areAllSelected() {
       return (
-        this.filtered.length > 0 &&
         this.matches.selected.length > 0 &&
-        this.matches.selected.length + this.matches.disabled.length === this.filtered.length
+        this.matches.selected.length + this.matches.disabled.length === this.matches.source.length
       );
     },
-    filtered() {
-      const files = JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
-
-      const name = this.filter.name || [];
-      const match = this.filter.match || [];
-      const detector = this.filter.detector || [];
-      const confidence = this.filter.confidence || 0;
-      const width = this.filter.width || 0;
-      const height = this.filter.height || 0;
-
-      const filtered = files.map((file) => {
-        const largest = {
-          confidence: 0,
-          width: 0,
-          height: 0,
-        };
-        const names = [];
-        const matches = [];
-        const detectors = [];
-
-        file.response.forEach((obj) => {
-          names.push(...obj.results.map((item) => item.name));
-          matches.push(...obj.results.map((item) => (item.match ? 'match' : 'miss')));
-          detectors.push(obj.detector);
-          obj.results.forEach((item) => {
-            if (item.confidence > largest.confidence) largest.confidence = item.confidence;
-            if (item.box.width > largest.width) largest.width = item.box.width;
-            if (item.box.height > largest.height) largest.height = item.box.height;
-          });
-        });
-
-        if (
-          names.some((r) => name.includes(r)) &&
-          matches.some((r) => match.includes(r)) &&
-          detectors.some((r) => detector.includes(r)) &&
-          largest.confidence >= confidence &&
-          largest.width >= width &&
-          largest.height >= height
-        ) {
-          return file;
-        }
-        return [];
-      });
-      return filtered.flat().slice(0, 250);
-    },
+  },
+  async mounted() {
+    try {
+      this.headerHeight = this.$refs.header.getHeight();
+      await this.get().matches();
+    } catch (error) {
+      this.emitter.emit('error', error);
+    }
   },
   created() {
     this.emitter.on('liveReload', (value) => {
+      this.pagination.page = 1;
       this.liveReload = value;
     });
-    this.emitter.on('filter', (value) => {
-      this.filter = value;
+    this.emitter.on('update', () => {
+      this.get().matches(true);
     });
     this.emitter.on('trainingFolder', (value) => {
       this.trainingFolder = value;
@@ -114,50 +112,53 @@ export default {
     this.emitter.on('assetLoaded', (...args) => this.assetLoaded(...args));
     this.emitter.on('toggleAsset', (...args) => this.selected(...args));
     this.emitter.on('reprocess', (data) => {
-      this.matches.source = this.matches.source.map((obj) => (obj.id === data.id ? data : obj));
+      const index = this.matches.source.findIndex((obj) => obj.id === data.id);
+      if (index !== -1) this.matches.source[index] = data;
+    });
+    this.emitter.on('paginate', (value) => {
+      this.pagination.page = value;
+      this.get().matches(true);
     });
   },
-  async mounted() {
-    await this.init();
-  },
-  watch: {},
   methods: {
-    async init() {
-      const promises = [];
-      promises.push(this.get().matches());
-      await Promise.all(promises);
-    },
     get() {
       const $this = this;
       return {
         async matches() {
           try {
             $this.loading.files = true;
-            await Sleep(1000);
-            const sinceId =
-              $this.liveReload && $this.matches.source.length && $this.matches.source[0]
-                ? { ...$this.matches.source[0] }.id
-                : 0;
-            const { data } = await ApiService.get('match', { params: { sinceId } });
-
-            if (sinceId === 0) {
-              $this.matches.source = data.matches;
-            } else if (data.matches.length) $this.matches.source.unshift(...data.matches);
-
-            if (data.matches.length) {
-              $this.matches.selected = $this.matches.source.filter((selected) =>
-                $this.matches.selected.some((filter) => filter.id === selected.id),
-              );
-
-              const deleteDisabled = $this.matches.source.flatMap((obj, i) =>
-                $this.matches.disabled.includes(obj.id) ? i : [],
-              );
-              for (let i = 0; i < deleteDisabled.length; i += 1) {
-                delete $this.matches.source[deleteDisabled[i]];
-              }
+            if (!$this.liveReload) {
+              $this.matches.source = [];
+              $this.matches.loaded = [];
             }
-            if (data.matches.length) $this.matches.disabled = [];
+            await Sleep(1000);
+            await $this.get().filters();
+            $this.filters = $this.$refs.header.getFilters();
+            const sinceId = $this.matches.source.length && $this.liveReload ? $this.matches.source[0].id : 0;
+            const { data } = await ApiService.get('match', {
+              params: { page: $this.pagination.page, sinceId, filters: $this.filters },
+            });
+            $this.pagination.limit = data.limit;
+            $this.pagination.total = sinceId === 0 ? data.total : $this.pagination.total + data.matches.length;
+
+            if ($this.liveReload && data.matches.length) {
+              $this.matches.source.unshift(...data.matches);
+              $this.matches.source = $this.matches.source.slice(0, data.limit);
+            }
+
+            if (!$this.liveReload) {
+              $this.matches.source = data.matches;
+            }
+
             $this.loading.files = false;
+          } catch (error) {
+            $this.emitter.emit('error', error);
+          }
+        },
+        async filters() {
+          try {
+            const { data } = await ApiService.get('match/filters');
+            $this.dropdowns = data;
           } catch (error) {
             $this.emitter.emit('error', error);
           }
@@ -179,15 +180,9 @@ export default {
               position: 'top',
               accept: async () => {
                 try {
-                  const matches = $this.matches.selected.map((obj) => ({
-                    id: obj.id,
-                    key: obj.file.key,
-                    filename: obj.file.filename,
-                  }));
-                  const ids = $this.matches.selected.map((obj) => obj.id);
-                  await ApiService.delete('match', { data: matches });
+                  await ApiService.delete('match', { data: $this.matches.selected });
                   const { areAllSelected } = $this;
-                  $this.matches.disabled = $this.matches.disabled.concat(ids);
+                  $this.matches.disabled = $this.matches.disabled.concat($this.matches.selected);
                   $this.matches.selected = [];
                   $this.emitter.emit('toast', { message: `${description} deleted` });
 
@@ -216,7 +211,11 @@ export default {
         accept: async () => {
           try {
             await ApiService.post(`train/add/${this.trainingFolder}`, {
-              files: $this.matches.selected.map((obj) => obj.file.filename),
+              ids: $this.matches.selected,
+            });
+            $this.matches.selected.forEach((id) => {
+              const index = $this.matches.source.findIndex((obj) => obj.id === id);
+              if (index !== -1) $this.matches.source[index].isTrained = true;
             });
             $this.matches.selected = [];
             $this.emitter.emit('toast', { message: `${description} trained for ${this.trainingFolder}` });
@@ -229,19 +228,63 @@ export default {
     selected(match) {
       const { id } = match;
       if (this.matches.disabled.includes(id)) return;
-      const index = this.matches.selected.findIndex((obj) => match.id === obj.id);
+      const index = this.matches.selected.indexOf(id);
       if (index !== -1) this.matches.selected.splice(index, 1);
-      else this.matches.selected.unshift(match);
+      else this.matches.selected.unshift(id);
     },
     assetLoaded(id) {
       this.matches.loaded.push(id);
     },
     toggleAll(state) {
-      const available = this.filtered.filter((obj) => !this.matches.disabled.includes(obj.id)).map((obj) => obj);
+      const available = this.matches.source
+        .filter((obj) => !this.matches.disabled.includes(obj.id))
+        .map((obj) => obj.id);
       this.matches.selected = state ? available : [];
+    },
+    showLoading() {
+      if (this.liveReload) {
+        if (!this.matches.source.length) return true;
+      } else {
+        if (this.loading.files) return true;
+        if (!this.matches.source.length) return true;
+      }
+      return false;
+    },
+    filterHelpText() {
+      const filters = [];
+      // eslint-disable-next-line no-restricted-syntax
+      for (const [filter] of Object.entries(this.filters)) {
+        filters.push(
+          `<strong>${filter}</strong>: ${
+            // eslint-disable-next-line no-nested-ternary
+            Array.isArray(this.filters[filter])
+              ? this.filters[filter].length
+                ? this.filters[filter].join(', ')
+                : 'none selected'
+              : this.filters[filter]
+          }`,
+        );
+      }
+
+      return filters;
     },
   },
 };
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+@import '@/assets/scss/_variables.scss';
+
+.loading-wrapper {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background: transparent;
+  // display: none;
+
+  p {
+    margin: 0;
+  }
+}
+</style>

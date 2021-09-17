@@ -1,20 +1,22 @@
 <template>
-  <div class="p-grid p-nogutter">
-    <div v-if="matches.filtered.length" class="p-col-12">
-      <div class="p-grid p-ai-center">
-        <div v-for="asset in matches.filtered" class="p-col-12 p-md-6 p-lg-4" :key="asset">
-          <Asset
-            :type="type"
-            :asset="asset"
-            :folders="folders"
-            :selected="matches.selected.filter((obj) => obj.id === asset.id).length === 1"
-            :disabled="matches.disabled.includes(asset.id)"
-            :loaded="matches.loaded.includes(asset.id)"
-          />
+  <div v-show="matches.source.length" class="p-p-3">
+    <div class="p-grid p-nogutter">
+      <div class="p-col-12">
+        <div class="p-grid p-ai-center">
+          <div v-for="(asset, index) in matches.source" class="p-col-12 p-sm-6 p-md-4 p-lg-3" :key="asset">
+            <Asset
+              :type="type"
+              :asset="asset"
+              :folders="folders"
+              :selected="matches.selected.includes(asset.id)"
+              :disabled="matches.disabled.includes(asset.id)"
+              :loaded="matches.loaded.includes(asset.id)"
+              :index="index"
+            />
+          </div>
         </div>
       </div>
     </div>
-    <div v-else class="p-col-12 p-text-center p-text-bold p-pt-3 p-mt-5">No files found</div>
   </div>
 </template>
 

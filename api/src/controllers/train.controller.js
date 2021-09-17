@@ -1,5 +1,7 @@
+const { promisify } = require('util');
 const fs = require('fs');
-const sharp = require('sharp');
+const sizeOf = promisify(require('image-size'));
+const { getOrientation } = require('get-orientation');
 const time = require('../util/time.util');
 const database = require('../util/db.util');
 const train = require('../util/train.util');
@@ -43,6 +45,8 @@ module.exports.get = async (req, res) => {
       const { id, name, filename, results, createdAt } = obj;
 
       const key = `train/${name}/${filename}`;
+      const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
+      const orientation = await getOrientation(fs.readFileSync(`${STORAGE.PATH}/${key}`));
 
       const output = {
         id,
@@ -50,20 +54,13 @@ module.exports.get = async (req, res) => {
         file: {
           key,
           filename,
+          width: orientation === 6 ? height : width,
+          height: orientation === 6 ? width : height,
         },
         results,
         createdAt,
         token,
       };
-
-      if (fs.existsSync(`${STORAGE.PATH}/${key}`)) {
-        const base64 = await sharp(`${STORAGE.PATH}/${key}`)
-          .jpeg({ quality: 70 })
-          .resize(500)
-          .withMetadata()
-          .toBuffer();
-        output.file.base64 = base64.toString('base64');
-      }
 
       return output;
     })
@@ -81,7 +78,7 @@ module.exports.delete = async (req, res) => {
 
 module.exports.add = async (req, res) => {
   const { name } = req.params;
-  const { urls, files: matchFiles } = req.body;
+  const { urls, ids } = req.body;
 
   let files = [];
 
@@ -95,15 +92,16 @@ module.exports.add = async (req, res) => {
         files.push({ name, filename });
       })
     );
-  } else if (matchFiles) {
-    for (let i = 0; i < matchFiles.length; i++) {
-      const filename = matchFiles[i];
+  } else if (ids) {
+    ids.forEach((id) => {
+      const db = database.connect();
+      const [match] = db.prepare('SELECT filename FROM match WHERE id = ?').bind(id).all();
       filesystem.copy(
-        `${STORAGE.PATH}/matches/${filename}`,
-        `${STORAGE.PATH}/train/${name}/${filename}`
+        `${STORAGE.PATH}/matches/${match.filename}`,
+        `${STORAGE.PATH}/train/${name}/${match.filename}`
       );
-      files.push({ name, filename });
-    }
+      files.push({ name, filename: match.filename });
+    });
   } else {
     files = (urls ? await filesystem.saveURLs(urls, `train/${name}`) : []).map((filename) => ({
       filename,

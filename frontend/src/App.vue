@@ -1,9 +1,9 @@
 <template>
-  <div class="wrapper">
+  <div class="app-wrapper">
     <Toast position="bottom-left" />
     <ConfirmDialog />
-    <Toolbar />
-    <router-view />
+    <Toolbar ref="toolbar" />
+    <router-view :toolbarHeight="toolbarHeight" />
   </div>
 </template>
 
@@ -26,12 +26,18 @@ export default {
     ConfirmDialog,
     Toolbar,
   },
+  data: () => ({
+    toolbarHeight: null,
+  }),
   created() {
     this.checkLoginState();
     window.addEventListener('focus', this.checkLoginState);
     this.emitter.on('login', this.login);
     this.emitter.on('error', (error) => this.error(error));
     this.emitter.on('toast', (...args) => this.toast(...args));
+  },
+  mounted() {
+    this.toolbarHeight = this.$refs.toolbar.getHeight();
   },
   methods: {
     login() {
@@ -164,8 +170,9 @@ body {
 
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
-.wrapper {
+.app-wrapper {
   max-width: $max-width;
   margin: auto;
+  overflow: hidden;
 }
 </style>

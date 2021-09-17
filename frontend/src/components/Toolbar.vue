@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper p-pr-3 p-d-flex p-jc-between p-ai-center">
+  <div class="tool-bar-wrapper p-pr-3 p-d-flex p-jc-between p-ai-center" ref="toolbar">
     <div><TabMenu :model="navigation" v-if="$route.path !== '/login'" /></div>
     <div v-if="updateAvailable" class="version p-ml-auto p-mr-2" v-tooltip.left="`Update Available`">
       <div class="icon" @click="dockerHub"></div>
@@ -19,7 +19,7 @@
         position="top"
         :modal="true"
         :closable="false"
-        v-model:visible="password.show"
+        :visible="password.show"
         class="change-password-dialog"
         style="min-width: 300px"
       >
@@ -138,6 +138,9 @@ export default {
     },
   },
   methods: {
+    getHeight() {
+      return this.$refs.toolbar.clientHeight;
+    },
     async updatePassword() {
       try {
         await ApiService.patch('auth/password', { password: this.password.current, newPassword: this.password.new });
@@ -212,7 +215,7 @@ export default {
 
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
-.wrapper {
+.tool-bar-wrapper {
   height: $tool-bar-height;
   z-index: 5;
   position: fixed;

@@ -1,22 +1,37 @@
 <template>
-  <div class="wrapper">
+  <div class="train-wrapper">
     <Header
       type="train"
       :loading="loading"
       :stats="{ filtered: filtered.length, source: source.length }"
       :matches="matches"
       :areAllSelected="areAllSelected"
+      :toolbarHeight="toolbarHeight"
+      ref="header"
     />
-    <div class="p-d-flex p-jc-center p-p-3">
-      <div v-if="loading.status && status.length" class="p-d-flex p-flex-column progress-holder">
+    <div
+      class="loading-wrapper p-d-flex p-jc-center"
+      v-if="loading.files || loading.status || !matches.source.length"
+      :style="{ top: headerHeight + toolbarHeight + 'px' }"
+    >
+      <i
+        v-if="loading.files || (loading.status && !status.length)"
+        class="pi pi-spin pi-spinner p-as-center"
+        style="font-size: 2.5rem"
+      ></i>
+      <div v-else-if="loading.status && status.length" class="p-as-center progress-holder">
         <p class="p-mb-3 p-text-bold p-text-center">Training in progress...</p>
         <div v-for="name in status" :key="name" class="p-mb-3">
           <div class="p-mb-1 p-text-bold">{{ name.name }} - {{ name.trained }}/{{ name.total }}</div>
           <ProgressBar :value="name.percent" />
         </div>
       </div>
-      <i v-else-if="loading.files || loading.status" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
-      <Grid v-else type="train" :folders="folders" :matches="{ filtered, ...matches }" style="width: 100%" />
+      <div v-else class="p-text-center p-as-center">
+        <p class="p-text-bold p-mb-3">No files found</p>
+      </div>
+    </div>
+    <div v-else class="p-d-flex p-jc-center" :style="{ marginTop: headerHeight + 'px' }">
+      <Grid type="train" :folders="folders" :matches="{ filtered, ...matches }" style="width: 100%" />
     </div>
   </div>
 </template>
@@ -36,8 +51,8 @@ export default {
   },
   data: () => ({
     loading: {
-      files: false,
-      status: false,
+      files: true,
+      status: true,
     },
     folders: [],
     status: [],
@@ -48,7 +63,11 @@ export default {
       loaded: [],
     },
     trainingFolder: null,
+    headerHeight: 0,
   }),
+  props: {
+    toolbarHeight: Number,
+  },
   computed: {
     areAllSelected() {
       return this.filtered.length > 0 && this.matches.selected.length === this.filtered.length;
@@ -81,6 +100,7 @@ export default {
     this.emitter.on('assetLoaded', (...args) => this.assetLoaded(...args));
   },
   async mounted() {
+    this.headerHeight = this.$refs.header.getHeight();
     await this.init();
   },
   watch: {},
@@ -135,15 +155,19 @@ export default {
       return {
         async files() {
           try {
-            const ids = $this.matches.selected.map((obj) => obj.id);
-            const trained = $this.matches.selected.filter(
-              (obj) => obj.results.filter((res) => res.result.status.toString().charAt(0) === '2').length,
-            );
-            const untrained = $this.matches.selected.filter(
-              (obj) =>
-                !obj.results.length ||
-                obj.results.filter((res) => res.result.status.toString().charAt(0) !== '2').length,
-            );
+            const trained = $this.matches.selected
+              .map((id) => $this.matches.source.find((obj) => obj.id === id))
+              .filter((obj) => obj.results.filter(({ result }) => result.status.toString().charAt(0) === '2').length);
+
+            const untrained = $this.matches.selected
+              .map((id) => $this.matches.source.find((obj) => obj.id === id))
+              .filter(
+                (obj) =>
+                  trained.findIndex((item) => item.id === obj.id) === -1 &&
+                  (!obj.results.length ||
+                    obj.results.filter(({ result }) => result.status.toString().charAt(0) !== '2').length),
+              );
+
             const names = [...new Set(trained.map((obj) => obj.name))];
             let message = '';
             if (trained.length) {
@@ -167,7 +191,7 @@ export default {
               accept: async () => {
                 try {
                   names.forEach((name) => {
-                    ApiService.delete(`train/remove/${name}`, { data: ids });
+                    ApiService.delete(`train/remove/${name}`, { data: $this.matches.selected });
                   });
                   if (untrained.length) {
                     await ApiService.delete('storage/train', {
@@ -230,12 +254,14 @@ export default {
     selected(asset) {
       const { id } = asset;
       if (this.matches.disabled.includes(id)) return;
-      const index = this.matches.selected.findIndex((obj) => asset.id === obj.id);
+      const index = this.matches.selected.indexOf(id);
       if (index !== -1) this.matches.selected.splice(index, 1);
-      else this.matches.selected.unshift(asset);
+      else this.matches.selected.unshift(id);
     },
     toggleAll(state) {
-      const available = this.filtered.filter((obj) => !this.matches.disabled.includes(obj.id)).map((obj) => obj);
+      const available = this.matches.source
+        .filter((obj) => !this.matches.disabled.includes(obj.id))
+        .map((obj) => obj.id);
       this.matches.selected = state ? available : [];
     },
   },
@@ -244,6 +270,17 @@ export default {
 
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
+
+.loading-wrapper {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+
+  p {
+    margin: 0;
+  }
+}
 
 .fixed {
   position: fixed;
