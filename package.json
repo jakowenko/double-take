@@ -31,6 +31,6 @@
     "eslint-plugin-prettier": "^3.4.1",
     "husky": "^6.0.0",
     "nodemon": "^2.0.12",
-    "prettier": "^2.4.0"
+    "prettier": "^2.4.1"
   }
 }
