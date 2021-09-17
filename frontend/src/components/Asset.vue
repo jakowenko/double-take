@@ -22,7 +22,7 @@
             ></div>
           </div>
           <div v-if="selectedDetector" class="asset-result p-p-2">
-            <pre>{{ selectedDetector.result }}</pre>
+            <pre>{{ { ...selectedDetector.result, createdAt: asset.createdAt, updatedAt: asset.updatedAt } }}</pre>
           </div>
 
           <div class="ratio" :style="{ paddingTop: (asset.file.height / asset.file.width) * 100 + '%' }">
@@ -130,10 +130,20 @@
               </div>
             </div>
           </div>
-          <small v-if="type === 'match'" class="p-d-block" style="width: calc(100% - 45px)"
-            >{{ createdAt.ago }}{{ updatedAt ? ` (updated ${updatedAt.ago})` : '' }}</small
-          >
-          <small v-else-if="type === 'train'">{{ asset.name }}</small>
+          <div class="p-d-block" style="width: calc(100% - 40px)">
+            <small v-if="type === 'match'" v-tooltip.right="asset.createdAt" style="cursor: pointer">{{
+              createdAt.ago
+            }}</small>
+            <small
+              v-if="type === 'match' && updatedAt"
+              class="p-ml-2"
+              v-tooltip.right="asset.updatedAt"
+              style="cursor: pointer"
+            >
+              {{ updatedAt ? `(updated ${updatedAt.ago})` : '' }}
+            </small>
+            <small v-if="type === 'train'">{{ asset.name }}</small>
+          </div>
           <Button
             v-if="type === 'match'"
             :icon="reprocessing ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'"
