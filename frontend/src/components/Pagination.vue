@@ -5,7 +5,6 @@
       :records="pagination.total || 0"
       :per-page="pagination.limit"
       @paginate="paginate"
-      class="p-pt-3"
       :options="{
         chunk: 5,
         texts: { count: '' },
