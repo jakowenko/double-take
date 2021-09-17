@@ -46,7 +46,9 @@ module.exports.get = async (req, res) => {
 
       const key = `train/${name}/${filename}`;
       const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
-      const orientation = await getOrientation(fs.readFileSync(`${STORAGE.PATH}/${key}`));
+      const orientation = await getOrientation(fs.readFileSync(`${STORAGE.PATH}/${key}`)).catch(
+        (/* error */) => 0
+      );
 
       const output = {
         id,
