@@ -113,7 +113,7 @@
         </div>
       </div>
     </div>
-    <div v-if="type === 'match'" class="fixed-sub p-shadow-5 p-pl-3 p-pr-3 p-shadow-5" :class="{ show: showFilter }">
+    <div v-if="type === 'match'" class="fixed-sub p-pl-3 p-pr-3" :class="{ show: showFilter }">
       <div class="p-grid p-ai-center">
         <div class="p-col-6 p-pb-0 stats-text">{{ stats.current }} of {{ stats.total }}</div>
         <div class="p-col-6 p-d-flex p-jc-end p-pb-0">
@@ -534,7 +534,7 @@ export default {
   max-width: $max-width;
   z-index: 3;
   transition: all 0.5s;
-  box-shadow: inset 0 25px 19px -20px rgba(0, 0, 0, 0.5), 0 5px 15px 0 rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 25px 15px -20px rgba(0, 0, 0, 0.5), 0 5px 15px 0 rgba(0, 0, 0, 0.5);
 
   &.show {
     display: block;
