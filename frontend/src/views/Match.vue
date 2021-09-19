@@ -28,15 +28,16 @@
       </div>
     </div>
     <div v-else :style="{ marginTop: headerHeight + 'px' }">
-      <div v-if="matches.source.length && !liveReload" class="p-d-flex p-jc-center">
-        <Pagination :pagination="pagination" location="top" />
+      <div
+        v-if="matches.source.length && !liveReload"
+        class="pagination p-d-flex p-jc-center"
+        :style="{ top: headerHeight + toolbarHeight + 'px' }"
+      >
+        <Pagination :pagination="pagination" />
       </div>
-      <div class="p-d-flex p-jc-center">
+      <div class="p-d-flex p-jc-center" :class="isPaginationVisible ? 'pagination-padding' : ''">
         <Grid type="match" :matches="matches" style="width: 100%" />
       </div>
-    </div>
-    <div v-if="matches.source.length && !liveReload" class="p-d-flex p-jc-center">
-      <Pagination :pagination="pagination" location="bottom" />
     </div>
   </div>
 </template>
@@ -88,6 +89,9 @@ export default {
     toolbarHeight: Number,
   },
   computed: {
+    isPaginationVisible() {
+      return !this.liveReload && this.pagination.total > this.pagination.limit;
+    },
     areAllSelected() {
       return (
         this.matches.selected.length > 0 &&
@@ -286,11 +290,28 @@ export default {
   bottom: 0;
   right: 0;
   left: 0;
-  background: transparent;
-  // display: none;
 
   p {
     margin: 0;
   }
+}
+
+.pagination {
+  position: fixed;
+  left: 300px;
+  top: 100px;
+  z-index: 3;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: $max-width;
+  padding: 0.5rem 0;
+  background: red;
+  background: var(--surface-b);
+}
+
+.pagination-padding {
+  padding-top: 2rem;
 }
 </style>
