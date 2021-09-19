@@ -290,7 +290,7 @@ a.update.visible {
 ::v-deep(.p-tabmenu) {
   font-size: 0.9rem;
   @media only screen and (max-width: 576px) {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
   }
 }
 
