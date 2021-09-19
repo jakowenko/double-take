@@ -158,10 +158,16 @@ export default {
 
             if (!$this.liveReload) {
               $this.matches.source = data.matches;
+              if ($this.pagination.page > 1 && !data.matches.length) {
+                $this.pagination.page = 1;
+                await $this.get().matches();
+                return;
+              }
             }
 
             $this.loading.files = false;
           } catch (error) {
+            $this.loading.files = false;
             $this.emitter.emit('error', error);
           }
         },
