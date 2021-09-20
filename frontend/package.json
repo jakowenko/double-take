@@ -21,7 +21,7 @@
     "ace-builds": "^1.4.12",
     "axios": "^0.21.4",
     "copy-to-clipboard": "^3.3.1",
-    "core-js": "^3.17.3",
+    "core-js": "^3.18.0",
     "luxon": "^1.28.0",
     "mitt": "^3.0.0",
     "primeflex": "^2.0.0",
