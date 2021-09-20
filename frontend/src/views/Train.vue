@@ -130,7 +130,7 @@ export default {
         async status() {
           try {
             $this.loading.status = true;
-            await Sleep(1000);
+            await Sleep(250);
             const { data } = await ApiService.get('train/status');
             $this.status = data.filter((obj) => obj.percent < 100);
 
