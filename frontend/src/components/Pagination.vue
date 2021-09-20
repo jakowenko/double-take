@@ -25,15 +25,26 @@ export default {
   }),
   props: {
     pagination: Object,
+    loading: Object,
   },
   created() {},
   mounted() {
-    this.page = this.pagination.page;
+    this.page = this.pagination.temp;
   },
   methods: {
     paginate(value) {
-      if (this.page === this.pagination.page) return;
+      if (this.loading.files) {
+        this.page = this.pagination.temp;
+        return;
+      }
+      if (this.page === this.pagination.temp) return;
       this.emitter.emit('paginate', value);
+    },
+  },
+  watch: {
+    // eslint-disable-next-line object-shorthand
+    'pagination.page'(value) {
+      this.page = value;
     },
   },
 };
