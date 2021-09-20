@@ -28,6 +28,7 @@
     "primeicons": "^4.1.0",
     "primevue": "^3.7.2",
     "prismjs": "^1.25.0",
+    "socket.io-client": "^4.2.0",
     "v-pagination-3": "^0.1.6",
     "vue": "^3.2.12",
     "vue-router": "^4.0.11",

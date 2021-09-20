@@ -96,13 +96,13 @@
             :icon="loading.files || loading.status ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'"
             class="p-button p-button-sm p-mr-1 reload-btn"
             @click="refresh"
-            :disabled="liveReload || loading.files || loading.status"
+            :disabled="loading.files || loading.status"
           />
           <Button
             :icon="areAllSelected ? 'fa fa-check-square' : 'far fa-check-square'"
             class="p-button p-button-sm"
             @click="$parent.toggleAll(!areAllSelected)"
-            :disabled="(loading.files && !liveReload) || loading.status"
+            :disabled="!matches.source.length || loading.status"
           />
           <Button
             v-if="type === 'match'"
@@ -116,16 +116,14 @@
     <div v-if="type === 'match'" class="fixed-sub p-pl-3 p-pr-3" :class="{ show: showFilter }">
       <div class="p-grid p-ai-center">
         <div class="p-col-6 p-pb-0 stats-text">{{ stats.current }} of {{ stats.total }}</div>
-        <div class="p-col-6 p-d-flex p-jc-end p-pb-0">
-          <div class="p-field-checkbox p-mb-0">
-            <label for="liveReload" class="p-mr-1">Live Reload</label>
-            <Checkbox id="liveReload" v-model="liveReload" :binary="true" />
-          </div>
+        <div class="p-col-6 p-d-flex p-jc-end p-pb-0 p-ai-center socket-status">
+          Socket
+          <div class="icon p-ml-1" :class="socketClass"></div>
         </div>
         <div class="p-col-4 p-md-2 p-lg-2">
           <div class="p-fluid">
             <label class="p-d-block p-mb-1">Filter by name:</label>
-            <MultiSelect v-model="selected.names" :options="dropdowns.names" v-on:change="emitter.emit('update')">
+            <MultiSelect v-model="selected.names" :options="dropdowns.names" v-on:change="emitter.emit('updateFilter')">
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
                   <div>{{ option + addComma(slotProps.value.length, index) }}</div>
@@ -140,7 +138,11 @@
         <div class="p-col-4 p-md-2 p-lg-2">
           <div class="p-fluid">
             <label class="p-d-block p-mb-1">Filter by match:</label>
-            <MultiSelect v-model="selected.matches" :options="dropdowns.matches" v-on:change="emitter.emit('update')">
+            <MultiSelect
+              v-model="selected.matches"
+              :options="dropdowns.matches"
+              v-on:change="emitter.emit('updateFilter')"
+            >
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
                   <div>{{ option + addComma(slotProps.value.length, index) }}</div>
@@ -158,7 +160,7 @@
             <MultiSelect
               v-model="selected.detectors"
               :options="dropdowns.detectors"
-              v-on:change="emitter.emit('update')"
+              v-on:change="emitter.emit('updateFilter')"
             >
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
@@ -185,7 +187,7 @@
                     ? 0
                     : $event.target.value;
                 filters.confidence = $event.target.value === '' ? 0 : parseFloat($event.target.value);
-                emitter.emit('update');
+                emitter.emit('updateFilter');
               "
             />
           </div>
@@ -199,7 +201,7 @@
               @input="
                 $event.target.value = $event.target.value < 0 || $event.target.value === '' ? 0 : $event.target.value;
                 filters.width = $event.target.value === '' ? 0 : parseFloat($event.target.value);
-                emitter.emit('update');
+                emitter.emit('updateFilter');
               "
             />
           </div>
@@ -213,7 +215,7 @@
               @input="
                 $event.target.value = $event.target.value < 0 || $event.target.value === '' ? 0 : $event.target.value;
                 filters.height = $event.target.value === '' ? 0 : parseFloat($event.target.value);
-                emitter.emit('update');
+                emitter.emit('updateFilter');
               "
             />
           </div>
@@ -229,11 +231,9 @@ import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import MultiSelect from 'primevue/multiselect';
-import Checkbox from 'primevue/checkbox';
 
 import Constants from '@/util/constants.util';
 import ApiService from '@/services/api.service';
-import Sleep from '@/util/sleep.util';
 
 export default {
   components: {
@@ -241,7 +241,6 @@ export default {
     Dropdown,
     InputText,
     MultiSelect,
-    Checkbox,
     FileUpload,
   },
   data: () => ({
@@ -257,7 +256,6 @@ export default {
     },
     folder: null,
     folders: [],
-    liveReload: null,
     showFilter: false,
     filters: {
       names: [],
@@ -268,6 +266,7 @@ export default {
       height: 0,
     },
     selected: {},
+    socketClass: null,
   }),
   props: {
     areAllSelected: Boolean,
@@ -277,20 +276,23 @@ export default {
     loading: Object,
     type: String,
     toolbarHeight: Number,
-  },
-  created() {
-    this.emitter.on('setFilters', (value) => {
-      this.filters.confidence = value.confidence;
-      this.filters.width = value.width;
-      this.filters.height = value.height;
-    });
+    socket: Object,
   },
   mounted() {
     this.get().folders();
-  },
-  beforeUnmount() {
-    this.liveReload = false;
-    this.emitter.off('setFilters');
+
+    if (this.socket) {
+      this.socket.on('connect', () => {
+        this.socketClass = 'green';
+      });
+      this.socket.on('disconnect', () => {
+        this.socketClass = 'red';
+      });
+      this.socket.on('connect_error', () => {
+        this.socketClass = 'red';
+      });
+      this.socketClass = this.socket.connected ? 'green' : 'red';
+    }
   },
   methods: {
     getHeight() {
@@ -360,14 +362,8 @@ export default {
       };
     },
     refresh() {
-      if (this.type === 'match') this.$parent.get().matches();
+      if (this.type === 'match') this.$parent.get().matches(500);
       if (this.type === 'train') this.$parent.init();
-    },
-    async getMatchesInterval() {
-      if (!this.liveReload) return;
-      await this.$parent.get().matches();
-      await Sleep(1000);
-      await this.getMatchesInterval();
     },
     addComma(length, index) {
       return length - 1 === index ? ' ' : ',';
@@ -404,12 +400,6 @@ export default {
         this.filters.detectors = value?.detectors || [];
       },
       deep: true,
-    },
-    async liveReload(value) {
-      this.emitter.emit('liveReload', value);
-      if (value) {
-        this.getMatchesInterval();
-      }
     },
     folder(value) {
       if (value === 'add new') {
@@ -551,6 +541,22 @@ export default {
   .p-dropdown,
   .p-inputtext {
     width: 100%;
+  }
+}
+
+.socket-status {
+  font-size: 0.85rem;
+  .icon {
+    width: 10px;
+    height: 10px;
+    border-radius: 100%;
+    background: #a9a9a9;
+  }
+  .icon.green {
+    background: #78cc86;
+  }
+  .icon.red {
+    background: #c35f5f;
   }
 }
 </style>

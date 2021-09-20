@@ -3,11 +3,12 @@
     <Toast position="bottom-left" />
     <ConfirmDialog />
     <Toolbar ref="toolbar" />
-    <router-view :toolbarHeight="toolbarHeight" />
+    <router-view :socket="socket" :toolbarHeight="toolbarHeight" />
   </div>
 </template>
 
 <script>
+import io from 'socket.io-client';
 import Toast from 'primevue/toast';
 import ConfirmDialog from 'primevue/confirmdialog';
 import 'primevue/resources/themes/bootstrap4-dark-blue/theme.css';
@@ -15,6 +16,7 @@ import 'primevue/resources/primevue.min.css';
 import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
 
+import Constants from '@/util/constants.util';
 import ApiService from '@/services/api.service';
 import Toolbar from '@/components/Toolbar.vue';
 import '@/assets/font-awesome/css/all.min.css';
@@ -27,6 +29,7 @@ export default {
     Toolbar,
   },
   data: () => ({
+    socket: io(Constants().socket),
     toolbarHeight: null,
   }),
   created() {

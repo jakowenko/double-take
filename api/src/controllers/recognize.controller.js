@@ -8,6 +8,7 @@ const recognize = require('../util/recognize.util');
 const frigate = require('../util/frigate.util');
 const { jwt } = require('../util/auth.util');
 const mqtt = require('../util/mqtt.util');
+const { emit } = require('../util/socket.util');
 const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
 const { AUTH, FRIGATE, TOKEN } = require('../constants');
@@ -167,12 +168,9 @@ module.exports.start = async (req, res) => {
     res.send(output);
 
     mqtt.recognize(output);
-
     notify.publish(output, camera, results);
-
-    if (output.matches.length) {
-      IDS.push(id);
-    }
+    if (output.matches.length) IDS.push(id);
+    if (results.length) emit('recognize', true);
   } catch (error) {
     PROCESSING = false;
     res.send(error);

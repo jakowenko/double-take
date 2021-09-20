@@ -8,32 +8,34 @@
       :areAllSelected="areAllSelected"
       :dropdowns="dropdowns"
       :toolbarHeight="toolbarHeight"
+      :socket="socket"
       ref="header"
     />
     <div
-      class="loading-wrapper p-d-flex p-jc-center"
-      v-if="showLoading()"
+      class="loading-wrapper p-d-flex p-flex-column p-jc-center"
+      v-if="showLoading || showNoFiles"
       :style="{ top: headerHeight + toolbarHeight + 'px' }"
     >
-      <i
-        v-if="(liveReload && !matches.source.length) || (!liveReload && loading.files)"
-        class="pi pi-spin pi-spinner p-as-center"
-        style="font-size: 2.5rem"
-      ></i>
-      <div v-else class="p-text-center p-as-center">
+      <i class="pi pi-spin pi-spinner p-as-center" style="font-size: 2.5rem"></i>
+      <div v-if="showNoFiles" class="p-mt-5 p-text-center p-as-center" style="width: 100%">
         <p class="p-text-bold p-mb-3">No files found</p>
-        <div v-for="(filter, index) in filterHelpText()" :key="filter">
-          <p :class="index === 0 ? '' : 'p-mt-1'" v-html="filter"></p>
-        </div>
+        <DataTable class="filter-table p-datatable-sm" :value="filterHelpText()" responsiveLayout="scroll">
+          <Column>
+            <template v-slot:body="slotProps">
+              <strong>{{ slotProps.data.key }}</strong>
+            </template>
+          </Column>
+          <Column>
+            <template v-slot:body="slotProps">
+              <pre>{{ slotProps.data.value }}</pre>
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
-    <div v-else :style="{ marginTop: headerHeight + 'px' }">
-      <div
-        v-if="matches.source.length && !liveReload"
-        class="pagination p-d-flex p-jc-center"
-        :style="{ top: headerHeight + toolbarHeight + 'px' }"
-      >
-        <Pagination :pagination="pagination" />
+    <div :style="{ marginTop: headerHeight + 'px' }">
+      <div class="pagination p-d-flex p-jc-center" :style="{ top: headerHeight + toolbarHeight + 'px' }">
+        <Pagination :pagination="pagination" :loading="loading" />
       </div>
       <div class="p-d-flex p-jc-center" :class="isPaginationVisible ? 'pagination-padding' : ''">
         <Grid type="match" :matches="matches" style="width: 100%" />
@@ -43,6 +45,9 @@
 </template>
 
 <script>
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+
 import ApiService from '@/services/api.service';
 import Grid from '@/components/Grid.vue';
 import Header from '@/components/Header.vue';
@@ -54,19 +59,16 @@ export default {
     Header,
     Grid,
     Pagination,
+    DataTable,
+    Column,
   },
   data: () => ({
-    height: {
-      header: 0,
-      subheader: 0,
-      pagination: 0,
-    },
     pagination: {
       total: 0,
       page: 1,
+      temp: 1,
       limit: 0,
     },
-    info: null,
     folders: [],
     loading: {
       folders: true,
@@ -82,15 +84,21 @@ export default {
     dropdowns: {},
     filters: {},
     trainingFolder: null,
-    liveReload: false,
     headerHeight: 0,
   }),
   props: {
     toolbarHeight: Number,
+    socket: Object,
   },
   computed: {
+    showLoading() {
+      return this.loading.files && !this.matches.source.length;
+    },
+    showNoFiles() {
+      return !this.loading.files && !this.matches.source.length;
+    },
     isPaginationVisible() {
-      return !this.liveReload && this.pagination.total > this.pagination.limit;
+      return this.pagination.total > this.pagination.limit;
     },
     areAllSelected() {
       return (
@@ -102,18 +110,23 @@ export default {
   async mounted() {
     try {
       this.headerHeight = this.$refs.header.getHeight();
-      await this.get().matches();
+      if (this.socket) {
+        this.socket.on('recognize', (/* message */) => {
+          this.get().matches();
+        });
+      }
+      this.get().matches();
     } catch (error) {
       this.emitter.emit('error', error);
     }
   },
+  beforeUnmount() {
+    this.socket.off('recognize');
+  },
   created() {
-    this.emitter.on('liveReload', (value) => {
-      this.pagination.page = 1;
-      this.liveReload = value;
-    });
-    this.emitter.on('update', () => {
-      this.get().matches(true);
+    this.emitter.on('updateFilter', () => {
+      this.clear(['source', 'selected', 'disabled', 'loaded']);
+      this.get().matches();
     });
     this.emitter.on('trainingFolder', (value) => {
       this.trainingFolder = value;
@@ -125,46 +138,55 @@ export default {
       if (index !== -1) this.matches.source[index] = data;
     });
     this.emitter.on('paginate', (value) => {
-      this.pagination.page = value;
-      this.get().matches(true);
+      this.pagination.temp = value;
+      this.clear(['source', 'selected', 'disabled', 'loaded']);
+      this.get().matches();
     });
   },
   methods: {
+    clear(items) {
+      items.forEach((item) => {
+        this.matches[item] = [];
+      });
+    },
     get() {
       const $this = this;
       return {
-        async matches() {
+        async matches(delay = 0) {
           try {
             $this.loading.files = true;
-            if (!$this.liveReload) {
-              $this.matches.source = [];
-              $this.matches.loaded = [];
-              $this.matches.disabled = [];
-            }
-            await Sleep(1000);
+            await Sleep(delay);
             await $this.get().filters();
-            $this.filters = $this.$refs.header.getFilters();
-            const sinceId = $this.matches.source.length && $this.liveReload ? $this.matches.source[0].id : 0;
+            $this.filters = $this.$refs?.header?.getFilters() || {};
+            const sinceId =
+              // eslint-disable-next-line no-nested-ternary
+              $this.pagination.temp > 1 ? 0 : $this.matches.source.length ? $this.matches.source[0].id : 0;
             const { data } = await ApiService.get('match', {
-              params: { page: $this.pagination.page, sinceId, filters: $this.filters },
+              params: { page: $this.pagination.temp, sinceId, filters: $this.filters },
             });
             $this.pagination.limit = data.limit;
             $this.pagination.total = sinceId === 0 ? data.total : $this.pagination.total + data.matches.length;
 
-            if ($this.liveReload && data.matches.length) {
-              $this.matches.source.unshift(...data.matches);
-              $this.matches.source = $this.matches.source.slice(0, data.limit);
-            }
-
-            if (!$this.liveReload) {
-              $this.matches.source = data.matches;
-              if ($this.pagination.page > 1 && !data.matches.length) {
-                $this.pagination.page = 1;
-                await $this.get().matches();
-                return;
+            if (data.matches.length) {
+              $this.pagination.page = $this.pagination.temp;
+              if ($this.pagination.page === 1) {
+                $this.matches.disabled.forEach((id) => {
+                  const index = $this.matches.source.findIndex((obj) => obj.id === id);
+                  if (index !== -1) $this.matches.source.splice(index, 1);
+                });
+                $this.matches.source.unshift(...data.matches);
+                $this.matches.source = $this.matches.source.slice(0, data.limit);
+              } else if (JSON.stringify($this.matches.source) !== JSON.stringify(data.matches)) {
+                $this.clear(['source', 'disabled', 'loaded']);
+                $this.matches.source = data.matches;
               }
             }
 
+            if ($this.pagination.temp > 1 && !data.matches.length) {
+              $this.pagination.temp -= 1;
+              await $this.get().matches();
+              return;
+            }
             $this.loading.files = false;
           } catch (error) {
             $this.loading.files = false;
@@ -201,8 +223,8 @@ export default {
                   $this.matches.disabled = $this.matches.disabled.concat($this.matches.selected);
                   $this.matches.selected = [];
                   $this.emitter.emit('toast', { message: `${description} deleted` });
-
-                  if (areAllSelected && !$this.liveReload) {
+                  if (areAllSelected) {
+                    $this.clear(['source', 'selected', 'disabled', 'loaded']);
                     await $this.get().matches();
                   }
                 } catch (error) {
@@ -257,29 +279,17 @@ export default {
         .map((obj) => obj.id);
       this.matches.selected = state ? available : [];
     },
-    showLoading() {
-      if (this.liveReload) {
-        if (!this.matches.source.length) return true;
-      } else {
-        if (this.loading.files) return true;
-        if (!this.matches.source.length) return true;
-      }
-      return false;
-    },
     filterHelpText() {
       const filters = [];
       // eslint-disable-next-line no-restricted-syntax
-      for (const [filter] of Object.entries(this.filters)) {
-        filters.push(
-          `<strong>${filter}</strong>: ${
-            // eslint-disable-next-line no-nested-ternary
-            Array.isArray(this.filters[filter])
-              ? this.filters[filter].length
-                ? this.filters[filter].join(', ')
-                : 'none selected'
-              : this.filters[filter]
-          }`,
-        );
+      for (const [key] of Object.entries(this.filters)) {
+        // eslint-disable-next-line no-nested-ternary
+        const newValue = Array.isArray(this.filters[key])
+          ? this.filters[key].length
+            ? this.filters[key].join(', ')
+            : 'none selected'
+          : this.filters[key];
+        filters.push({ key, value: newValue });
       }
 
       return filters;
@@ -296,6 +306,8 @@ export default {
   bottom: 0;
   right: 0;
   left: 0;
+  z-index: 3;
+  background: var(--surface-b);
 
   p {
     margin: 0;
@@ -313,11 +325,28 @@ export default {
   width: 100%;
   max-width: $max-width;
   padding: 0.5rem 0;
-  background: red;
   background: var(--surface-b);
 }
 
 .pagination-padding {
   padding-top: 2rem;
+  @media only screen and (max-width: 576px) {
+    padding-top: 2.25rem;
+  }
+}
+
+::v-deep(.filter-table) {
+  width: 15%;
+  min-width: 250px;
+  margin: auto;
+  font-size: 0.85rem;
+
+  pre {
+    margin: 0;
+  }
+
+  .p-datatable-table thead {
+    display: none;
+  }
 }
 </style>
