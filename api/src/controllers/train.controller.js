@@ -8,23 +8,34 @@ const train = require('../util/train.util');
 const filesystem = require('../util/fs.util');
 const { jwt } = require('../util/auth.util');
 const { BAD_REQUEST } = require('../constants/http-status');
-const { AUTH, STORAGE } = require('../constants');
+const { AUTH, STORAGE, UI } = require('../constants');
 const { tryParseJSON } = require('../util/validators.util');
 
 module.exports.get = async (req, res) => {
+  const limit = UI.PAGINATION.LIMIT;
+  const { page } = req.query;
   const token = AUTH ? jwt.sign({ route: 'storage' }) : null;
   const db = database.connect();
   let files = req.query.name
     ? db
         .prepare(
-          'SELECT id, name, filename, createdAt FROM file WHERE name = ? AND isActive = 1 ORDER BY name ASC, id DESC'
+          'SELECT id, name, filename, createdAt FROM file WHERE name = ? AND isActive = 1 ORDER BY id DESC LIMIT ?,?'
         )
-        .all(req.query.name)
+        .bind(req.query.name, limit * (page - 1), limit)
+        .all()
     : db
         .prepare(
-          'SELECT id, name, filename, createdAt FROM file WHERE isActive = 1 ORDER BY name ASC, id DESC'
+          'SELECT id, name, filename, createdAt FROM file WHERE isActive = 1 ORDER BY  id DESC LIMIT ?,?'
         )
+        .bind(limit * (page - 1), limit)
         .all();
+
+  const [total] = req.query.name
+    ? db
+        .prepare('SELECT COUNT(*) count FROM file WHERE name = ? AND isActive = 1')
+        .bind(req.query.name)
+        .all()
+    : db.prepare('SELECT COUNT(*) count FROM file WHERE isActive = 1').all();
 
   files.forEach((file) => {
     file.results = [];
@@ -67,7 +78,7 @@ module.exports.get = async (req, res) => {
       return output;
     })
   );
-  res.send(files);
+  res.send({ limit, total: total.count, files });
 };
 
 module.exports.delete = async (req, res) => {
