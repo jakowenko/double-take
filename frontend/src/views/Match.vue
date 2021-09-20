@@ -71,9 +71,10 @@ export default {
     },
     folders: [],
     loading: {
-      folders: true,
-      files: true,
+      folders: false,
+      files: false,
       createFolder: false,
+      filter: false,
     },
     matches: {
       source: [],
@@ -124,9 +125,11 @@ export default {
     this.socket.off('recognize');
   },
   created() {
-    this.emitter.on('updateFilter', () => {
+    this.emitter.on('updateFilter', async () => {
       this.clear(['source', 'selected', 'disabled', 'loaded']);
-      this.get().matches();
+      this.loading.filter = true;
+      await this.get().matches();
+      this.loading.filter = false;
     });
     this.emitter.on('trainingFolder', (value) => {
       this.trainingFolder = value;
@@ -154,9 +157,11 @@ export default {
       return {
         async matches(delay = 0) {
           try {
+            if ($this.loading.files) return;
             $this.loading.files = true;
             await Sleep(delay);
-            await $this.get().filters();
+
+            if (!$this.loading.filter) await $this.get().filters();
             $this.filters = $this.$refs?.header?.getFilters() || {};
             const sinceId =
               // eslint-disable-next-line no-nested-ternary

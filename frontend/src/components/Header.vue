@@ -375,15 +375,14 @@ export default {
   watch: {
     dropdowns: {
       handler(value) {
-        this.selected.names = this.selected.names
-          ? this.selected.names.flatMap((item) => (value.names.includes(item) ? item : []))
-          : value.names;
-        this.selected.detectors = this.selected.detectors
-          ? this.selected.detectors.flatMap((item) => (value.detectors.includes(item) ? item : []))
-          : value.detectors;
-        this.selected.matches = this.selected.matches
-          ? this.selected.matches.flatMap((item) => (value.matches.includes(item) ? item : []))
-          : value.matches;
+        ['names', 'detectors', 'matches'].forEach((key) => {
+          this.selected[key] =
+            JSON.stringify(
+              this.selected[key] ? this.selected[key].flatMap((item) => (value[key].includes(item) ? item : [])) : [],
+            ) !== JSON.stringify(value[key])
+              ? value[key]
+              : this.selected[key];
+        });
 
         if (!this.selected.names.length && !this.selected.detectors.length && !this.selected.matches.length) {
           this.selected.names = value.names;
