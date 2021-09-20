@@ -9,6 +9,6 @@ router
   .get('/', jwt, validate([query('page').default(1).isInt()]), controller.get)
   .delete('/', jwt, controller.delete);
 router.patch('/reprocess/:matchId', jwt, controller.reprocess);
-router.get('/filters', controller.filters);
+router.get('/filters', jwt, controller.filters);
 
 module.exports = router;
