@@ -327,19 +327,19 @@ frigate:
     # add a delay expressed in seconds between each detection loop
     delay: 0
 
-    image:
-      # height of frigate image passed for facial recognition
-      height: 500
+  image:
+    # height of frigate image passed for facial recognition
+    height: 500
 
-    # only process images from specific cameras
-    # cameras:
-    #   - front-door
-    #   - garage
+  # only process images from specific cameras
+  cameras:
+    # - front-door
+    # - garage
 
-    # only process images from specific zones
-    # zones:
-    #   - camera: garage
-    #     zone: driveway
+  # only process images from specific zones
+  zones:
+    # - camera: garage
+    #   zone: driveway
 ```
 
 ### `cameras`
