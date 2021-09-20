@@ -33,7 +33,7 @@ export default {
   },
   methods: {
     paginate(value) {
-      if (this.loading.files) {
+      if (this.loading.files || this.loading.status) {
         this.page = this.pagination.temp;
         return;
       }
