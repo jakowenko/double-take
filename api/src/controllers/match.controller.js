@@ -5,7 +5,7 @@ const filesystem = require('../util/fs.util');
 const { tryParseJSON } = require('../util/validators.util');
 const { jwt } = require('../util/auth.util');
 const process = require('../util/process.util');
-const { AUTH, STORAGE } = require('../constants');
+const { AUTH, STORAGE, UI } = require('../constants');
 const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
 
@@ -40,7 +40,7 @@ const format = async (matches) => {
 };
 
 module.exports.get = async (req, res) => {
-  const limit = 100;
+  const limit = UI.PAGINATION.LIMIT;
   const { sinceId, page } = req.query;
   const filters = tryParseJSON(req.query.filters);
 

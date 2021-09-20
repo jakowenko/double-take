@@ -53,4 +53,13 @@ module.exports = {
   logs: {
     level: 'info',
   },
+  ui: {
+    pagination: {
+      limit: 50,
+    },
+    thumbnails: {
+      quality: 80,
+      width: 300,
+    },
+  },
 };

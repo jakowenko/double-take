@@ -7,8 +7,8 @@ const filesystem = require('../util/fs.util');
 const database = require('../util/db.util');
 const { tryParseJSON } = require('../util/validators.util');
 const { BAD_REQUEST } = require('../constants/http-status');
-
 const { PATH } = require('../constants').STORAGE;
+const { QUALITY, WIDTH } = require('../constants').UI.THUMBNAILS;
 
 module.exports.matches = async (req, res) => {
   const { box: showBox } = req.query;
@@ -85,7 +85,7 @@ module.exports.matches = async (req, res) => {
 
   const buffer =
     req.query.thumb === ''
-      ? await sharp(source).jpeg({ quality: 75 }).resize(400).withMetadata().toBuffer()
+      ? await sharp(source).jpeg({ quality: QUALITY }).resize(WIDTH).withMetadata().toBuffer()
       : fs.readFileSync(source);
   res.set('Content-Type', 'image/jpeg');
   return res.end(buffer);
@@ -99,7 +99,7 @@ module.exports.train = async (req, res) => {
 
   const buffer =
     req.query.thumb === ''
-      ? await sharp(source).jpeg({ quality: 75 }).resize(400).withMetadata().toBuffer()
+      ? await sharp(source).jpeg({ quality: QUALITY }).resize(WIDTH).withMetadata().toBuffer()
       : fs.readFileSync(source);
   res.set('Content-Type', 'image/jpeg');
 

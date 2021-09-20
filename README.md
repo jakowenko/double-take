@@ -460,6 +460,22 @@ logs:
   level: info
 ```
 
+### `ui`
+
+```yaml
+# ui settings (default: shown below)
+ui:
+  pagination:
+    # number of results per page
+    limit: 50
+
+  thumbnails:
+    # value between 0-100
+    quality: 80
+    # value in pixels
+    width: 300
+```
+
 ## Donations
 
 If you would like to make a donation to support development, please use [GitHub Sponsors](https://github.com/sponsors/jakowenko).
