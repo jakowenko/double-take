@@ -13,6 +13,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
@@ -21,7 +22,7 @@ jobs:
         run: npm install --save-dev
       - name: Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
           GIT_AUTHOR_NAME: David Jakowenko
           GIT_AUTHOR_EMAIL: jakowenko@gmail.com
           GIT_COMMITTER_NAME: David Jakowenko
