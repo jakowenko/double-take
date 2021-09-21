@@ -3,13 +3,12 @@
   "version": "1.0.0",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
-    "prepare": "husky install",
-    "setup": "npm install && cd ./api && npm install && cd ../frontend && npm install",
+    "prepare": "cd ./api && npm install && cd ../frontend && npm install && cd .. husky install",
     "update": "npm update && cd ./api && npm update && cd ../frontend && npm update",
     "audit": "npm audit fix && cd ./api && npm audit fix && cd ../frontend && npm audit fix",
     "frontend": "cd ./frontend && npm run serve",
     "api": "exec nodemon -e yml,js --watch ./.storage/config --watch ./api -q api/server.js || true",
-    "bump": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version"
+    "version": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version"
   },
   "repository": {
     "type": "git",
