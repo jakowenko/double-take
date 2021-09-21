@@ -1,6 +1,6 @@
 const express = require('express');
 const { jwt, validate, expressValidator } = require('../middlewares');
-const controller = require('../controllers/cameras.controller');
+const controller = require('../controllers/camera.controller');
 
 const { param, query } = expressValidator;
 
