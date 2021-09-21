@@ -1,39 +1,86 @@
 <template>
-  <div class="wrapper">
+  <div class="match-wrapper">
     <Header
       type="match"
       :loading="loading"
-      :folders="['add new', ...folders]"
       :matches="matches"
+      :stats="{ current: pagination.total, total: dropdowns.total }"
       :areAllSelected="areAllSelected"
-      :stats="{ filtered: filtered.length, source: source.length }"
+      :dropdowns="dropdowns"
+      :toolbarHeight="toolbarHeight"
+      :socket="socket"
+      ref="header"
     />
-    <div class="p-d-flex p-jc-center p-p-3">
-      <i v-if="loading.files && !source.length" class="pi pi-spin pi-spinner p-mt-5" style="font-size: 3rem"></i>
-      <Grid v-else type="match" :matches="{ filtered, ...matches }" style="width: 100%" />
+    <div
+      class="loading-wrapper p-d-flex p-flex-column p-jc-center"
+      v-if="showLoading || showNoFiles"
+      :style="{ top: headerHeight + toolbarHeight + 'px' }"
+    >
+      <i class="pi pi-spin pi-spinner p-as-center" style="font-size: 2.5rem"></i>
+      <div v-if="showNoFiles" class="p-mt-5 p-text-center p-as-center" style="width: 100%">
+        <p class="p-text-bold p-mb-3">No files found</p>
+        <DataTable class="filter-table p-datatable-sm" :value="filterHelpText()" responsiveLayout="scroll">
+          <Column>
+            <template v-slot:body="slotProps">
+              <strong>{{ slotProps.data.key }}</strong>
+            </template>
+          </Column>
+          <Column>
+            <template v-slot:body="slotProps">
+              <pre>{{ slotProps.data.value }}</pre>
+            </template>
+          </Column>
+        </DataTable>
+      </div>
+    </div>
+    <div
+      class="p-d-flex p-jc-center"
+      :class="isPaginationVisible ? 'pagination-padding' : ''"
+      :style="{ marginTop: headerHeight + 'px' }"
+    >
+      <Grid type="match" :matches="matches" style="width: 100%" />
+    </div>
+    <div
+      v-if="isPaginationVisible"
+      class="pagination p-d-flex p-jc-center"
+      :style="{ top: headerHeight + toolbarHeight + 'px' }"
+    >
+      <Pagination :pagination="pagination" :loading="loading" />
     </div>
   </div>
 </template>
 
 <script>
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+
 import ApiService from '@/services/api.service';
-import Constants from '@/util/constants.util';
 import Grid from '@/components/Grid.vue';
 import Header from '@/components/Header.vue';
+import Pagination from '@/components/Pagination.vue';
 import Sleep from '@/util/sleep.util';
 
 export default {
   components: {
     Header,
     Grid,
+    Pagination,
+    DataTable,
+    Column,
   },
   data: () => ({
-    info: null,
+    pagination: {
+      total: 0,
+      page: 1,
+      temp: 1,
+      limit: 0,
+    },
     folders: [],
     loading: {
       folders: false,
       files: false,
       createFolder: false,
+      filter: false,
     },
     matches: {
       source: [],
@@ -41,121 +88,129 @@ export default {
       disabled: [],
       loaded: [],
     },
-    filter: {},
+    dropdowns: {},
+    filters: {},
     trainingFolder: null,
-    liveReload: false,
+    headerHeight: 0,
   }),
+  props: {
+    toolbarHeight: Number,
+    socket: Object,
+  },
   computed: {
-    source() {
-      return JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
+    showLoading() {
+      return this.loading.files && !this.matches.source.length;
+    },
+    showNoFiles() {
+      return !this.loading.files && !this.matches.source.length;
+    },
+    isPaginationVisible() {
+      return this.pagination.total > this.pagination.limit;
     },
     areAllSelected() {
       return (
-        this.filtered.length > 0 &&
         this.matches.selected.length > 0 &&
-        this.matches.selected.length + this.matches.disabled.length === this.filtered.length
+        this.matches.selected.length + this.matches.disabled.length === this.matches.source.length
       );
     },
-    filtered() {
-      const files = JSON.parse(JSON.stringify(this.matches.source)).filter((obj) => obj);
-
-      const name = this.filter.name || [];
-      const match = this.filter.match || [];
-      const detector = this.filter.detector || [];
-      const confidence = this.filter.confidence || 0;
-      const width = this.filter.width || 0;
-      const height = this.filter.height || 0;
-
-      const filtered = files.map((file) => {
-        const largest = {
-          confidence: 0,
-          width: 0,
-          height: 0,
-        };
-        const names = [];
-        const matches = [];
-        const detectors = [];
-
-        file.response.forEach((obj) => {
-          names.push(...obj.results.map((item) => item.name));
-          matches.push(...obj.results.map((item) => (item.match ? 'match' : 'miss')));
-          detectors.push(obj.detector);
-          obj.results.forEach((item) => {
-            if (item.confidence > largest.confidence) largest.confidence = item.confidence;
-            if (item.box.width > largest.width) largest.width = item.box.width;
-            if (item.box.height > largest.height) largest.height = item.box.height;
-          });
+  },
+  async mounted() {
+    try {
+      this.headerHeight = this.$refs.header.getHeight();
+      if (this.socket) {
+        this.socket.on('recognize', (/* message */) => {
+          this.get().matches();
         });
-
-        if (
-          names.some((r) => name.includes(r)) &&
-          matches.some((r) => match.includes(r)) &&
-          detectors.some((r) => detector.includes(r)) &&
-          largest.confidence >= confidence &&
-          largest.width >= width &&
-          largest.height >= height
-        ) {
-          return file;
-        }
-        return [];
-      });
-      return filtered.flat().slice(0, 250);
-    },
+      }
+      this.get().matches();
+    } catch (error) {
+      this.emitter.emit('error', error);
+    }
+  },
+  beforeUnmount() {
+    const emitters = ['updateFilter', 'trainingFolder', 'assetLoaded', 'toggleAsset', 'reprocess', 'paginate'];
+    emitters.forEach((emitter) => {
+      this.emitter.off(emitter);
+    });
   },
   created() {
-    this.emitter.on('liveReload', (value) => {
-      this.liveReload = value;
-    });
-    this.emitter.on('filter', (value) => {
-      this.filter = value;
+    this.emitter.on('updateFilter', async () => {
+      this.clear(['source', 'selected', 'disabled', 'loaded']);
+      this.loading.filter = true;
+      await this.get().matches();
+      this.loading.filter = false;
     });
     this.emitter.on('trainingFolder', (value) => {
       this.trainingFolder = value;
     });
     this.emitter.on('assetLoaded', (...args) => this.assetLoaded(...args));
     this.emitter.on('toggleAsset', (...args) => this.selected(...args));
+    this.emitter.on('reprocess', (data) => {
+      const index = this.matches.source.findIndex((obj) => obj.id === data.id);
+      if (index !== -1) this.matches.source[index] = data;
+    });
+    this.emitter.on('paginate', (value) => {
+      this.pagination.temp = value;
+      this.clear(['source', 'selected', 'disabled', 'loaded']);
+      this.get().matches();
+    });
   },
-  async mounted() {
-    await this.init();
-  },
-  watch: {},
   methods: {
-    async init() {
-      const promises = [];
-      promises.push(this.get().matches());
-      await Promise.all(promises);
+    clear(items) {
+      items.forEach((item) => {
+        this.matches[item] = [];
+      });
     },
     get() {
       const $this = this;
       return {
-        async matches() {
+        async matches(delay = 0) {
           try {
+            if ($this.loading.files) return;
             $this.loading.files = true;
-            await Sleep(1000);
-            const sinceId =
-              $this.liveReload && $this.matches.source.length && $this.matches.source[0]
-                ? { ...$this.matches.source[0] }.id
-                : 0;
-            const { data } = await ApiService.get('match', { params: { sinceId } });
+            await Sleep(delay);
 
-            if (sinceId === 0) {
-              $this.matches.source = data.matches;
-            } else if (data.matches.length) $this.matches.source.unshift(...data.matches);
+            if (!$this.loading.filter) await $this.get().filters();
+            $this.filters = $this.$refs?.header?.getFilters() || {};
+            const sinceId =
+              // eslint-disable-next-line no-nested-ternary
+              $this.pagination.temp > 1 ? 0 : $this.matches.source.length ? $this.matches.source[0].id : 0;
+            const { data } = await ApiService.get('match', {
+              params: { page: $this.pagination.temp, sinceId, filters: $this.filters },
+            });
+            $this.pagination.limit = data.limit;
+            $this.pagination.total = sinceId === 0 ? data.total : $this.pagination.total + data.matches.length;
 
             if (data.matches.length) {
-              $this.matches.selected = $this.matches.source.filter((selected) =>
-                $this.matches.selected.some((filter) => filter.id === selected.id),
-              );
-
-              const deleteDisabled = $this.matches.source.flatMap((obj, i) =>
-                $this.matches.disabled.includes(obj.id) ? i : [],
-              );
-              for (let i = 0; i < deleteDisabled.length; i += 1) {
-                delete $this.matches.source[deleteDisabled[i]];
+              $this.pagination.page = $this.pagination.temp;
+              if ($this.pagination.page === 1) {
+                $this.matches.disabled.forEach((id) => {
+                  const index = $this.matches.source.findIndex((obj) => obj.id === id);
+                  if (index !== -1) $this.matches.source.splice(index, 1);
+                });
+                $this.matches.source.unshift(...data.matches);
+                $this.matches.source = $this.matches.source.slice(0, data.limit);
+              } else if (JSON.stringify($this.matches.source) !== JSON.stringify(data.matches)) {
+                $this.clear(['source', 'disabled', 'loaded']);
+                $this.matches.source = data.matches;
               }
             }
-            if (data.matches.length) $this.matches.disabled = [];
+
+            if ($this.pagination.temp > 1 && !data.matches.length) {
+              $this.pagination.temp -= 1;
+              await $this.get().matches();
+              return;
+            }
             $this.loading.files = false;
+          } catch (error) {
+            $this.loading.files = false;
+            $this.emitter.emit('error', error);
+          }
+        },
+        async filters() {
+          try {
+            const { data } = await ApiService.get('match/filters');
+            $this.dropdowns = data;
           } catch (error) {
             $this.emitter.emit('error', error);
           }
@@ -177,19 +232,13 @@ export default {
               position: 'top',
               accept: async () => {
                 try {
-                  const matches = $this.matches.selected.map((obj) => ({
-                    id: obj.id,
-                    key: obj.file.key,
-                    filename: obj.file.filename,
-                  }));
-                  const ids = $this.matches.selected.map((obj) => obj.id);
-                  await ApiService.delete('match', { data: matches });
+                  await ApiService.delete('match', { data: $this.matches.selected });
                   const { areAllSelected } = $this;
-                  $this.matches.disabled = $this.matches.disabled.concat(ids);
+                  $this.matches.disabled = $this.matches.disabled.concat($this.matches.selected);
                   $this.matches.selected = [];
                   $this.emitter.emit('toast', { message: `${description} deleted` });
-
-                  if (areAllSelected && !$this.liveReload) {
+                  if (areAllSelected) {
+                    $this.clear(['source', 'selected', 'disabled', 'loaded']);
                     await $this.get().matches();
                   }
                 } catch (error) {
@@ -214,13 +263,13 @@ export default {
         accept: async () => {
           try {
             await ApiService.post(`train/add/${this.trainingFolder}`, {
-              urls: $this.matches.selected.map((obj) => `${Constants().api}/storage/${obj.file.key}`),
+              ids: $this.matches.selected,
             });
-
-            const ids = $this.matches.selected.map((obj) => obj.id);
-            $this.matches.disabled = $this.matches.disabled.concat(ids);
+            $this.matches.selected.forEach((id) => {
+              const index = $this.matches.source.findIndex((obj) => obj.id === id);
+              if (index !== -1) $this.matches.source[index].isTrained = true;
+            });
             $this.matches.selected = [];
-
             $this.emitter.emit('toast', { message: `${description} trained for ${this.trainingFolder}` });
           } catch (error) {
             $this.emitter.emit('error', error);
@@ -231,19 +280,94 @@ export default {
     selected(match) {
       const { id } = match;
       if (this.matches.disabled.includes(id)) return;
-      const index = this.matches.selected.findIndex((obj) => match.id === obj.id);
+      const index = this.matches.selected.indexOf(id);
       if (index !== -1) this.matches.selected.splice(index, 1);
-      else this.matches.selected.unshift(match);
+      else this.matches.selected.unshift(id);
     },
     assetLoaded(id) {
       this.matches.loaded.push(id);
     },
     toggleAll(state) {
-      const available = this.filtered.filter((obj) => !this.matches.disabled.includes(obj.id)).map((obj) => obj);
+      const available = this.matches.source
+        .filter((obj) => !this.matches.disabled.includes(obj.id))
+        .map((obj) => obj.id);
       this.matches.selected = state ? available : [];
+    },
+    filterHelpText() {
+      const filters = [];
+      // eslint-disable-next-line no-restricted-syntax
+      for (const [key] of Object.entries(this.filters)) {
+        // eslint-disable-next-line no-nested-ternary
+        const newValue = Array.isArray(this.filters[key])
+          ? this.filters[key].length
+            ? this.filters[key].join(', ')
+            : 'none selected'
+          : this.filters[key];
+        filters.push({ key, value: newValue });
+      }
+
+      return filters;
     },
   },
 };
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+@import '@/assets/scss/_variables.scss';
+
+.loading-wrapper {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  z-index: 3;
+  background: var(--surface-b);
+
+  p {
+    margin: 0;
+  }
+}
+
+.pagination {
+  position: fixed;
+  left: 300px;
+  top: 100px;
+  z-index: 3;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: $max-width;
+  padding: 0.5rem 0;
+  background: var(--surface-b);
+}
+
+.pagination-padding {
+  padding-top: 2rem;
+  @media only screen and (max-width: 576px) {
+    padding-top: 2.25rem;
+  }
+}
+
+::v-deep(.filter-table) {
+  width: 25%;
+  min-width: 300px;
+  margin: auto;
+  font-size: 0.85rem;
+
+  pre {
+    margin: 0;
+  }
+
+  .p-datatable-table thead {
+    display: none;
+  }
+
+  .p-datatable-table tr td:first-child {
+    width: 30%;
+  }
+  .p-datatable-table tr td:last-child {
+    width: 70%;
+  }
+}
+</style>

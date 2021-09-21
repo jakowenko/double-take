@@ -1,7 +1,8 @@
 const fs = require('fs');
 const schedule = require('node-schedule');
 const database = require('./db.util');
-const { STORAGE, PURGE } = require('../constants');
+const { STORAGE } = require('../constants');
+const { MATCH, UNKNOWN } = require('../constants/config').detect();
 
 module.exports.purge = async () => {
   schedule.scheduleJob('* * * * *', async () => {
@@ -11,7 +12,7 @@ module.exports.purge = async () => {
         .prepare(
           `SELECT match.id, match.filename
         FROM match, json_tree(response)
-        WHERE key = 'match' AND value = 1 AND datetime(createdAt) <= datetime('now', '-${PURGE.MATCHES} hours')
+        WHERE key = 'match' AND value = 1 AND datetime(createdAt) <= datetime('now', '-${MATCH.PURGE} hours')
         GROUP BY match.id, value
         UNION ALL
         SELECT t1.id, t1.filename FROM (
@@ -19,7 +20,7 @@ module.exports.purge = async () => {
             SELECT match.id, match.filename, match.createdAt, value
             FROM match, json_tree(response)
             WHERE key = 'match'
-            AND datetime(match.createdAt) <= datetime('now', '-${PURGE.UNKNOWN} hours')
+            AND datetime(match.createdAt) <= datetime('now', '-${UNKNOWN.PURGE} hours')
             GROUP BY match.id, value
           ) t
         GROUP BY t.id
@@ -42,12 +43,18 @@ module.exports.purge = async () => {
 
       if (files.length > 0) console.log(`purged ${files.length} file(s)`);
     } catch (error) {
-      console.error(`purge error: ${error.message}`);
+      error.message = `purge error: ${error.message}`;
+      console.error(error);
     }
   });
 };
 
 module.exports.setup = () => {
+  if (fs.existsSync(STORAGE.TMP.PATH)) {
+    fs.rmdirSync(STORAGE.TMP.PATH, { recursive: true });
+  }
+  fs.mkdirSync(STORAGE.TMP.PATH, { recursive: true });
+
   if (!fs.existsSync(`${STORAGE.PATH}/matches`)) {
     fs.mkdirSync(`${STORAGE.PATH}/matches`, { recursive: true });
   }

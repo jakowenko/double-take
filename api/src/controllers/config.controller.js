@@ -1,33 +1,34 @@
 const fs = require('fs');
+const yaml = require('js-yaml');
+const redact = require('../util/redact-secrets.util');
 const config = require('../constants/config');
+const { BAD_REQUEST } = require('../constants/http-status');
 const { STORAGE } = require('../constants');
-const { respond, HTTPSuccess /* , HTTPError */ } = require('../util/respond.util');
-const { OK } = require('../constants/http-status');
 
 module.exports.get = async (req, res) => {
-  try {
-    const { format } = req.query;
-    const isLegacyPath = fs.existsSync('./config.yml');
-    const output =
-      format === 'yaml'
-        ? fs.readFileSync(
-            isLegacyPath ? './config.yml' : `${STORAGE.CONFIG.PATH}/config.yml`,
-            'utf8'
-          )
-        : config();
-    res.status(OK).json(output);
-  } catch (error) {
-    respond(error, res);
-  }
+  const { format } = req.query;
+  const isLegacyPath = fs.existsSync('./config.yml');
+  let output = {};
+  if (format === 'yaml')
+    output = fs.readFileSync(
+      isLegacyPath ? './config.yml' : `${STORAGE.CONFIG.PATH}/config.yml`,
+      'utf8'
+    );
+  else if (format === 'yaml-with-defaults') output = yaml.dump(config());
+  else if (req.query.redact === '') output = redact(config());
+  else output = config();
+  res.send(output);
 };
 
 module.exports.patch = async (req, res) => {
   try {
     const isLegacyPath = fs.existsSync('./config.yml');
     const { code } = req.body;
+    yaml.load(code);
     fs.writeFileSync(isLegacyPath ? './config.yml' : `${STORAGE.CONFIG.PATH}/config.yml`, code);
-    respond(HTTPSuccess(OK, req.body), res);
+    res.send();
   } catch (error) {
-    respond(error, res);
+    if (error.name === 'YAMLException') return res.status(BAD_REQUEST).send(error);
+    res.send(error);
   }
 };

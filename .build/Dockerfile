@@ -31,7 +31,7 @@ WORKDIR /double-take
 
 RUN npm install nodemon -g
 
-COPY /entrypoint.sh .
+COPY /.build/entrypoint.sh .
 
 ENV NODE_ENV=production
 

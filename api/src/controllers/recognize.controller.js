@@ -8,10 +8,10 @@ const recognize = require('../util/recognize.util');
 const frigate = require('../util/frigate.util');
 const { jwt } = require('../util/auth.util');
 const mqtt = require('../util/mqtt.util');
-const { respond, HTTPSuccess, HTTPError } = require('../util/respond.util');
-const { OK, BAD_REQUEST } = require('../constants/http-status');
+const { emit } = require('../util/socket.util');
+const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
-const { AUTH, FRIGATE } = require('../constants');
+const { AUTH, FRIGATE, TOKEN } = require('../constants');
 
 const { IDS, MATCH_IDS } = {
   IDS: [],
@@ -21,23 +21,23 @@ const { IDS, MATCH_IDS } = {
 let PROCESSING = false;
 
 module.exports.test = async (req, res) => {
-  try {
-    const promises = [];
-    for (const detector of DETECTORS) {
-      promises.push(
-        actions.recognize({ detector, test: true, key: `${__dirname}/../static/img/lenna.jpg` })
-      );
-    }
-    const results = await Promise.all(promises);
-    const output = results.map((result, i) => ({
-      detector: DETECTORS[i],
-      status: result.status,
-      response: result.data,
-    }));
-    respond(HTTPError(OK, output), res);
-  } catch (error) {
-    respond(error, res);
+  const promises = [];
+  for (const detector of DETECTORS) {
+    promises.push(
+      actions
+        .recognize({ detector, test: true, key: `${__dirname}/../static/img/lenna.jpg` })
+        .catch((error) => {
+          return { status: 500, data: error.message };
+        })
+    );
   }
+  const results = await Promise.all(promises);
+  const output = results.map((result, i) => ({
+    detector: DETECTORS[i],
+    status: result.status,
+    response: result.data,
+  }));
+  res.send(output);
 };
 
 module.exports.start = async (req, res) => {
@@ -47,15 +47,15 @@ module.exports.start = async (req, res) => {
       options: {
         break: req.query.break,
         results: req.query.results,
-        attempts: req.query.attempts,
+        attempts: req.query.attempts || null,
       },
     };
 
     if (event.type === 'frigate') {
-      const { type: frigateEventType } = req.body;
+      const { type: frigateEventType, topic } = req.body;
       const attributes = req.body.after ? req.body.after : req.body.before;
       const { id, label, camera, current_zones: zones } = attributes;
-      event = { id, label, camera, zones, frigateEventType, ...event };
+      event = { id, label, camera, zones, frigateEventType, topic, ...event };
     } else {
       const { url, camera } = req.query;
 
@@ -65,22 +65,17 @@ module.exports.start = async (req, res) => {
     const { id, camera, zones, url } = event;
     const { break: breakMatch, results: resultsOutput, attempts: manualAttempts } = event.options;
 
-    if (!DETECTORS) {
-      return respond(HTTPError(BAD_REQUEST, 'no detectors configured'), res);
-    }
+    if (!DETECTORS.length) return res.status(BAD_REQUEST).error('no detectors configured');
 
     if (event.type === 'frigate') {
-      try {
-        const check = await frigate.checks({
-          ...event,
-          PROCESSING,
-          IDS,
-        });
-        if (check !== true) {
-          return respond(HTTPError(BAD_REQUEST, check), res);
-        }
-      } catch (error) {
-        throw HTTPError(BAD_REQUEST, error.message);
+      const check = await frigate.checks({
+        ...event,
+        PROCESSING,
+        IDS,
+      });
+      if (check !== true) {
+        console.verbose(check);
+        return res.status(BAD_REQUEST).error(check);
       }
     }
 
@@ -105,7 +100,9 @@ module.exports.start = async (req, res) => {
               ...config,
               retries: FRIGATE.ATTEMPTS.LATEST,
               type: 'latest',
-              url: `${FRIGATE.URL}/api/${camera}/latest.jpg?h=${FRIGATE.IMAGE.HEIGHT}`,
+              url: `${frigate.topicURL(event.topic)}/api/${camera}/latest.jpg?h=${
+                FRIGATE.IMAGE.HEIGHT
+              }`,
             }
           )
         );
@@ -117,7 +114,9 @@ module.exports.start = async (req, res) => {
               ...config,
               retries: FRIGATE.ATTEMPTS.SNAPSHOT,
               type: 'snapshot',
-              url: `${FRIGATE.URL}/api/events/${id}/snapshot.jpg?crop=1&h=${FRIGATE.IMAGE.HEIGHT}`,
+              url: `${frigate.topicURL(event.topic)}/api/events/${id}/snapshot.jpg?h=${
+                FRIGATE.IMAGE.HEIGHT
+              }`,
             }
           )
         );
@@ -135,8 +134,9 @@ module.exports.start = async (req, res) => {
       );
     }
 
-    // return res.json(await Promise.all(promises));
-    const { best, unknown, results, attempts } = recognize.normalize(await Promise.all(promises));
+    const { best, misses, unknown, results, attempts } = recognize.normalize(
+      await Promise.all(promises)
+    );
 
     const duration = parseFloat((perf.stop('request').time / 1000).toFixed(2));
     const output = {
@@ -147,29 +147,32 @@ module.exports.start = async (req, res) => {
       camera,
       zones,
       matches: best,
+      misses,
     };
     if (unknown && Object.keys(unknown).length) output.unknown = unknown;
-    if (AUTH) output.token = jwt.sign({ route: 'storage' });
+    if (AUTH) output.token = jwt.sign({ route: 'storage', expiresIn: TOKEN.IMAGE });
 
     if (resultsOutput === 'all') output.results = results;
 
     console.log(`done processing ${camera}: ${id} in ${duration} sec`);
-    console.log(output);
+
+    const loggedOutput = JSON.parse(JSON.stringify(output));
+    ['matches', 'misses'].forEach((type) =>
+      loggedOutput[type].forEach((result) => delete result.base64)
+    );
+    if (loggedOutput.unknown) delete loggedOutput.unknown.base64;
+    console.log(loggedOutput);
 
     PROCESSING = false;
 
-    respond(HTTPSuccess(OK, output), res);
+    res.send(output);
 
     mqtt.recognize(output);
-
     notify.publish(output, camera, results);
-
-    if (output.matches.length) {
-      IDS.push(id);
-    }
+    if (output.matches.length) IDS.push(id);
+    if (results.length) emit('recognize', true);
   } catch (error) {
-    console.error(error.message);
     PROCESSING = false;
-    respond(error, res);
+    res.send(error);
   }
 };

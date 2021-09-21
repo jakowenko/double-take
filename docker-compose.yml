@@ -1,39 +1,109 @@
 version: '3.7'
 
-services:
-  frontend:
-    container_name: double-take-frontend
-    command: npm run frontend
-    depends_on:
-      - api
-    build:
-      context: .
-      dockerfile: ./.develop/Dockerfile.dev
-    ports:
-      - 8080:8080
-    volumes:
-      - .:/double-take
-      - /double-take/frontend/node_modules
+volumes:
+  double-take:
+  # deepstack:
+  # compreface:
 
-  api:
-    container_name: double-take-api
-    entrypoint: ./.develop/entrypoint.dev.sh
-    depends_on:
-      - mqtt
-    build:
-      context: .
-      dockerfile: ./.develop/Dockerfile.dev
+services:
+  double-take:
+    container_name: double-take
+    image: jakowenko/double-take
+    restart: unless-stopped
+    volumes:
+      - double-take:/.storage
     ports:
       - 3000:3000
-    volumes:
-      - .:/double-take
-      - /double-take/api/node_modules
 
-  mqtt:
-    container_name: double-take-mqtt
-    restart: unless-stopped
-    image: eclipse-mosquitto
-    volumes:
-      - ${PWD}/.develop/mosquitto.conf:/mosquitto/config/mosquitto.conf
-    ports:
-      - 1883:1883
+  # deepstack:
+  #   container_name: deepstack
+  #   image: deepquestai/deepstack
+  #   restart: unless-stopped
+  #   ports:
+  #     - 5000:5000
+  #   environment:
+  #     VISION-FACE: 'True'
+  #     MODE: High
+  #   volumes:
+  #     - deepstack:/datastore
+
+  # facebox:
+  #   container_name: facebox
+  #   image: machinebox/facebox
+  #   restart: unless-stopped
+  #   environment:
+  #     - MB_KEY=XXXXXXXXX
+  #     - MB_FACEBOX_DISABLE_RECOGNITION=false
+  #   ports:
+  #     - 8080:8080
+
+  # compreface-postgres-db:
+  #   image: postgres:11.5
+  #   container_name: "compreface-postgres-db"
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=frs
+  #   volumes:
+  #     - compreface:/var/lib/postgresql/data
+  #   labels:
+  #     - 'watchtower.enable=false'
+
+  # compreface-admin:
+  #   image: exadel/compreface-admin:0.6.0
+  #   container_name: "compreface-admin"
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_URL=jdbc:postgresql://compreface-postgres-db:5432/frs
+  #     - SPRING_PROFILES_ACTIVE=dev
+  #     - ENABLE_EMAIL_SERVER=false
+  #     - EMAIL_HOST=smtp.gmail.com
+  #     - EMAIL_USERNAME=
+  #     - EMAIL_FROM=
+  #     - EMAIL_PASSWORD=
+  #     - ADMIN_JAVA_OPTS=Xmx8g
+  #   depends_on:
+  #     - compreface-postgres-db
+  #     - compreface-api
+  #   labels:
+  #     - 'watchtower.enable=false'
+
+  # compreface-api:
+  #   image: exadel/compreface-api:0.6.0
+  #   container_name: "compreface-api"
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - compreface-postgres-db
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_URL=jdbc:postgresql://compreface-postgres-db:5432/frs
+  #     - SPRING_PROFILES_ACTIVE=dev
+  #     - API_JAVA_OPTS=Xmx8g
+  #     - SAVE_IMAGES_TO_DB=true
+  #   labels:
+  #     - 'watchtower.enable=false'
+
+  # compreface-fe:
+  #   image: exadel/compreface-fe:0.6.0
+  #   container_name: "compreface-ui"
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8000:80"
+  #   depends_on:
+  #     - compreface-api
+  #     - compreface-admin
+  #   labels:
+  #     - 'watchtower.enable=false'
+
+  # compreface-core:
+  #   image: exadel/compreface-core:0.6.0
+  #   container_name: "compreface-core"
+  #   restart: unless-stopped
+  #   environment:
+  #     - ML_PORT=3000
+  #   labels:
+  #     - 'watchtower.enable=false'

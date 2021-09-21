@@ -2,7 +2,6 @@ const expressValidator = require('express-validator');
 const { auth, jwt } = require('../util/auth.util');
 const { UNAUTHORIZED } = require('../constants/http-status');
 const { AUTH } = require('../constants');
-const { respond, HTTPError } = require('../util/respond.util');
 
 const { validationResult } = expressValidator;
 
@@ -19,7 +18,7 @@ module.exports.jwt = async (req, res, next) => {
     if (route && !req.baseUrl.includes(route)) throw Error('Unauthorized');
     next();
   } catch (error) {
-    respond(HTTPError(UNAUTHORIZED, 'Unauthorized'), res);
+    res.status(UNAUTHORIZED).error('Unauthorized');
   }
 };
 
@@ -29,7 +28,7 @@ module.exports.setup = async (req, res, next) => {
     if (password) throw Error('password is already set');
     next();
   } catch (error) {
-    respond(HTTPError(UNAUTHORIZED, error.message), res);
+    res.status(UNAUTHORIZED).error(error.message);
   }
 };
 

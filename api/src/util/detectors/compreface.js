@@ -1,8 +1,10 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
+const actions = require('./actions');
 const { doesUrlResolve } = require('../validators.util');
-const { DETECTORS, CONFIDENCE, OBJECTS } = require('../../constants');
+const { DETECTORS } = require('../../constants');
+const config = require('../../constants/config');
 
 const { COMPREFACE } = DETECTORS || {};
 
@@ -15,6 +17,7 @@ module.exports.recognize = async ({ test, key }) => {
   formData.append('file', fs.createReadStream(key));
   return axios({
     method: 'post',
+    timeout: COMPREFACE.TIMEOUT * 1000,
     headers: {
       ...formData.getHeaders(),
       'x-api-key': KEY,
@@ -36,6 +39,7 @@ module.exports.train = ({ name, key }) => {
   formData.append('file', fs.createReadStream(key));
   return axios({
     method: 'post',
+    timeout: COMPREFACE.TIMEOUT * 1000,
     headers: {
       ...formData.getHeaders(),
       'x-api-key': KEY,
@@ -52,6 +56,7 @@ module.exports.remove = ({ name }) => {
   const { URL, KEY } = COMPREFACE;
   return axios({
     method: 'delete',
+    timeout: COMPREFACE.TIMEOUT * 1000,
     headers: {
       'x-api-key': KEY,
     },
@@ -65,22 +70,22 @@ module.exports.remove = ({ name }) => {
   });
 };
 
-module.exports.normalize = ({ data }) => {
+module.exports.normalize = ({ camera, data }) => {
   if (!data.result) {
     if (data.code === 28) return [];
     throw new Error(data.message);
   }
-  const { MIN_AREA_MATCH } = OBJECTS.FACE;
-  const normalized = data.result.map((obj) => {
+  const { MATCH, UNKNOWN } = config.detect(camera);
+  const normalized = data.result.flatMap((obj) => {
     const [face] = obj.subjects;
     const confidence = face ? parseFloat((face.similarity * 100).toFixed(2)) : 0;
     const { box } = obj;
     const output = {
-      name: face && confidence >= CONFIDENCE.UNKNOWN ? face.subject.toLowerCase() : 'unknown',
+      name: face && confidence >= UNKNOWN.CONFIDENCE ? face.subject.toLowerCase() : 'unknown',
       confidence,
       match:
-        confidence >= CONFIDENCE.MATCH &&
-        (box.x_max - box.x_min) * (box.y_max - box.y_min) >= MIN_AREA_MATCH,
+        confidence >= MATCH.CONFIDENCE &&
+        (box.x_max - box.x_min) * (box.y_max - box.y_min) >= MATCH.MIN_AREA,
       box: {
         top: box.y_min,
         left: box.x_min,
@@ -88,9 +93,24 @@ module.exports.normalize = ({ data }) => {
         height: box.y_max - box.y_min,
       },
     };
-    if (obj.age) output.age = obj.age;
-    if (obj.gender) output.gender = obj.gender;
-    return output;
+    if (obj.age)
+      output.age = {
+        ...obj.age,
+        probability: parseFloat((obj.age.probability * 100).toFixed(2)),
+      };
+    if (obj.gender)
+      output.gender = {
+        ...obj.gender,
+        probability: parseFloat((obj.gender.probability * 100).toFixed(2)),
+      };
+    if (obj.mask)
+      output.mask = {
+        ...obj.mask,
+        probability: parseFloat((obj.mask.probability * 100).toFixed(2)),
+      };
+    const checks = actions.checks({ MATCH, UNKNOWN, ...output });
+    if (checks.length) output.checks = checks;
+    return checks !== false ? output : [];
   });
   return normalized;
 };

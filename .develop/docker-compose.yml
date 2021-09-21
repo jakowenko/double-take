@@ -1,0 +1,39 @@
+version: '3.7'
+
+services:
+  frontend:
+    container_name: double-take-frontend
+    command: npm run frontend
+    depends_on:
+      - api
+    build:
+      context: ../
+      dockerfile: ./.develop/Dockerfile.dev
+    ports:
+      - 8080:8080
+    volumes:
+      - ..:/double-take
+      - /double-take/frontend/node_modules
+
+  api:
+    container_name: double-take-api
+    entrypoint: .develop/entrypoint.dev.sh
+    depends_on:
+      - mqtt
+    build:
+      context: ../
+      dockerfile: ./.develop/Dockerfile.dev
+    ports:
+      - 3000:3000
+    volumes:
+      - ..:/double-take
+      - /double-take/api/node_modules
+
+  mqtt:
+    container_name: double-take-mqtt
+    restart: unless-stopped
+    image: eclipse-mosquitto
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - 1883:1883

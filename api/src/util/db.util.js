@@ -57,7 +57,8 @@ module.exports.init = async () => {
 
     await this.resync.files();
   } catch (error) {
-    console.error(`db init error: ${error.message}`);
+    error.message = `db init error: ${error.message}`;
+    console.error(error);
   }
 };
 
@@ -101,7 +102,8 @@ module.exports.migrations = () => {
       );
     }
   } catch (error) {
-    console.error(`db migrations error: ${error.message}`);
+    error.message = `db migrations error: ${error.message}`;
+    console.error(error);
   }
 };
 
@@ -184,6 +186,18 @@ module.exports.create = {
       event: event ? JSON.stringify(event) : null,
       response: response ? JSON.stringify(response) : null,
       createdAt: time.utc(),
+    });
+  },
+};
+
+module.exports.update = {
+  match: ({ id, event, response }) => {
+    event.updatedAt = time.utc();
+    const db = database.connect();
+    db.prepare(`UPDATE match SET event = :event, response = :response WHERE id = :id`).run({
+      event: event ? JSON.stringify(event) : null,
+      response: response ? JSON.stringify(response) : null,
+      id,
     });
   },
 };

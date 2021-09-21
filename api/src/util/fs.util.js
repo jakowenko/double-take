@@ -85,14 +85,16 @@ module.exports.writeMatches = (name, source, destination) => {
       }
     });
   } catch (error) {
-    console.error(`create match folder error: ${error.message}`);
+    error.message = `create match folder error: ${error.message}`;
+    console.error(error);
   }
 };
 
 module.exports.copy = (source, destination) => {
   fs.copyFile(source, destination, (error) => {
     if (error) {
-      console.error(`copy file error: ${error.message}`);
+      error.message = `copy file error: ${error.message}`;
+      console.error(error);
     }
   });
 };
@@ -103,7 +105,8 @@ module.exports.delete = (destination) => {
       fs.unlinkSync(destination);
     }
   } catch (error) {
-    console.error(`delete error: ${error.message}`);
+    error.message = `delete error: ${error.message}`;
+    console.error(error);
   }
 };
 
@@ -113,7 +116,8 @@ module.exports.move = (source, destination) => {
       fs.renameSync(source, destination);
     }
   } catch (error) {
-    console.error(`move error: ${error.message}`);
+    error.message = `move error: ${error.message}`;
+    console.error(error);
   }
 };
 
@@ -140,7 +144,8 @@ module.exports.saveURLs = async (urls, path) => {
         files.push(filename);
       }
     } catch (error) {
-      console.error(error.message);
+      error.message = `save url error: ${error.message}`;
+      console.error(error);
     }
   }
   return files;

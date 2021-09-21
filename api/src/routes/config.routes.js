@@ -7,7 +7,12 @@ const { query } = expressValidator;
 const router = express.Router();
 
 router
-  .get('/', validate([query('format').default('json').isIn(['json', 'yaml'])]), jwt, controller.get)
+  .get(
+    '/',
+    jwt,
+    validate([query('format').default('json').isIn(['json', 'yaml', 'yaml-with-defaults'])]),
+    controller.get
+  )
   .patch('/', jwt, controller.patch);
 
 module.exports = router;

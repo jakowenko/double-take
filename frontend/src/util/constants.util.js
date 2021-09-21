@@ -4,4 +4,9 @@ export default () => ({
       ? `${window.location.origin.replace(':8080', ':3000')}`
       : window.location.origin
   }/api`,
+  socket: `${
+    process.env.NODE_ENV === 'development'
+      ? `${window.location.origin.replace(':8080', ':3000')}`
+      : window.location.origin
+  }`,
 });

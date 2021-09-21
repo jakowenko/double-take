@@ -1,24 +1,29 @@
 module.exports = {
   auth: false,
-  confidence: {
-    match: 60,
-    unknown: 40,
+  token: {
+    image: '24h',
   },
-  save: {
-    matches: true,
-    unknown: true,
-  },
-  objects: {
-    face: { min_area_match: 10000 },
+  detect: {
+    match: {
+      save: true,
+      base64: false,
+      confidence: 60,
+      purge: 168,
+      min_area: 10000,
+    },
+    unknown: {
+      save: true,
+      base64: false,
+      confidence: 40,
+      purge: 8,
+      min_area: 0,
+    },
   },
   time: { timezone: 'UTC' },
   frigate: {
-    attempts: { latest: 10, snapshot: 0 },
+    attempts: { latest: 10, snapshot: 0, mqtt: true, delay: 0 },
     image: { height: 500 },
-  },
-  purge: {
-    matches: 168,
-    unknown: 8,
+    labels: ['person'],
   },
   mqtt: {
     topics: {
@@ -31,11 +36,30 @@ module.exports = {
   detectors: {
     compreface: {
       det_prob_threshold: 0.8,
+      timeout: 15,
+    },
+    deepstack: {
+      timeout: 15,
+    },
+    facebox: {
+      timeout: 15,
     },
   },
   notify: {
     gotify: {
       priority: 5,
+    },
+  },
+  logs: {
+    level: 'info',
+  },
+  ui: {
+    pagination: {
+      limit: 50,
+    },
+    thumbnails: {
+      quality: 80,
+      width: 300,
     },
   },
 };

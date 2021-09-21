@@ -36,7 +36,8 @@ module.exports.queue = async (files) => {
       database.create.train(records[i]);
     }
   } catch (error) {
-    console.error(`queue error: ${error.message}`);
+    error.message = `queue error: ${error.message}`;
+    console.error(error);
   }
 };
 

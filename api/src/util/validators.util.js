@@ -23,7 +23,8 @@ module.exports.doesUrlResolve = async (url) => {
     });
     return data;
   } catch (error) {
-    console.error(`url resolve error: ${error.message}`);
+    error.message = `url resolve error: ${error.message}`;
+    console.error(error);
     return false;
   }
 };

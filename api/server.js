@@ -1,5 +1,6 @@
 require('./src/util/logger.util').init();
 const http = require('http');
+const socket = require('./src/util/socket.util');
 const { SERVER } = require('./src/constants');
 const { version } = require('./package.json');
 const mqtt = require('./src/util/mqtt.util');
@@ -12,16 +13,17 @@ const shutdown = require('./src/util/shutdown.util');
 module.exports.start = async () => {
   storage.setup();
   console.log(`Double Take v${version}`);
-
   console.log(config());
-
   await database.init();
-
-  http.Server(app).listen(SERVER.PORT);
-
+  const server = http.Server(app).listen(SERVER.PORT);
   mqtt.connect();
   storage.purge();
+  socket.connect(server);
 };
 
-shutdown.listen();
-this.start();
+try {
+  this.start().catch((error) => console.error(error));
+  shutdown.listen();
+} catch (error) {
+  console.error(error);
+}

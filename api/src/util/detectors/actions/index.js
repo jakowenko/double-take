@@ -4,4 +4,14 @@ module.exports.recognize = ({ detector, test, key }) =>
   factory.get(detector).recognize({ test, key });
 module.exports.train = ({ name, key, detector }) => factory.get(detector).train({ name, key });
 module.exports.remove = ({ name, detector }) => factory.get(detector).remove({ name });
-module.exports.normalize = ({ detector, data }) => factory.get(detector).normalize({ data });
+module.exports.normalize = ({ camera, detector, data }) =>
+  factory.get(detector).normalize({ camera, data });
+module.exports.checks = ({ MATCH, UNKNOWN, name, confidence, box }) => {
+  const checks = [];
+  if (name === 'unknown' && box.width * box.height < UNKNOWN.MIN_AREA) return false;
+  if (confidence < MATCH.CONFIDENCE)
+    checks.push(`confidence too low: ${confidence} < ${MATCH.CONFIDENCE}`);
+  if (box.width * box.height < MATCH.MIN_AREA)
+    checks.push(`box area too low: ${box.width * box.height} < ${MATCH.MIN_AREA}`);
+  return checks;
+};

@@ -1,6 +1,6 @@
 *
 
-!entrypoint.sh
+!.build/entrypoint.sh
 !frontend/*
 !api/*
 

@@ -1,10 +1,10 @@
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const mqtt = require('mqtt');
-const fs = require('fs');
+const fs = require('./fs.util');
 const { contains } = require('./helpers.util');
 const { jwt } = require('./auth.util');
-const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS } = require('../constants');
+const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE } = require('../constants');
 
 let PREVIOUS_MQTT_LENGTHS = [];
 let JUST_SUBSCRIBED = false;
@@ -14,7 +14,7 @@ const PERSON_RESET_TIMEOUT = {};
 const cameraTopics = () => {
   return CAMERAS
     ? Object.keys(CAMERAS)
-        .filter((key) => CAMERAS[key].SNAPSHOT && CAMERAS[key].SNAPSHOT.TOPIC)
+        .filter((key) => CAMERAS[key]?.SNAPSHOT && CAMERAS[key]?.SNAPSHOT?.TOPIC)
         .map((key) => {
           return CAMERAS[key].SNAPSHOT.TOPIC;
         })
@@ -38,35 +38,36 @@ const processMessage = ({ topic, message }) => {
     }
     PREVIOUS_MQTT_LENGTHS.unshift(buffer.length);
 
-    fs.writeFileSync(`/tmp/${filename}`, buffer);
+    fs.writer(`${STORAGE.TMP.PATH}/${filename}`, buffer);
     await axios({
       method: 'get',
       url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
       headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       params: {
-        url: `http://0.0.0.0:${SERVER.PORT}/api/tmp/${filename}`,
+        url: `http://0.0.0.0:${SERVER.PORT}/api/${STORAGE.TMP.PATH}/${filename}`,
         type: 'mqtt',
         camera,
       },
-      validateStatus() {
-        return true;
-      },
+      validateStatus: () => true,
     });
+    fs.delete(`${STORAGE.TMP.PATH}/${filename}`, buffer);
     // only store last 10 mqtt lengths
     PREVIOUS_MQTT_LENGTHS = PREVIOUS_MQTT_LENGTHS.slice(0, 10);
   };
 
   const frigate = async () => {
+    const payload = JSON.parse(message.toString());
+    if (payload.type === 'end') return;
+
     await axios({
       method: 'post',
       url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
       headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       data: {
-        ...JSON.parse(message.toString()),
+        ...payload,
+        topic,
       },
-      validateStatus() {
-        return true;
-      },
+      validateStatus: () => true,
     });
   };
 
@@ -112,11 +113,12 @@ module.exports.subscribe = () => {
     topics.push(...frigateTopics);
     frigateTopics.forEach((topic) => {
       const [prefix] = topic.split('/');
-      topics.push(
-        ...(FRIGATE.CAMERAS
-          ? FRIGATE.CAMERAS.map((camera) => `${prefix}/${camera}/person/snapshot`)
-          : [`${prefix}/+/person/snapshot`])
-      );
+      if (FRIGATE.ATTEMPTS.MQTT === true)
+        topics.push(
+          ...(FRIGATE.CAMERAS
+            ? FRIGATE.CAMERAS.map((camera) => `${prefix}/${camera}/person/snapshot`)
+            : [`${prefix}/+/person/snapshot`])
+        );
     });
   }
 
@@ -286,11 +288,13 @@ module.exports.recognize = (data) => {
       }
     }, 30000);
   } catch (error) {
-    console.error(`MQTT: recognize error: ${error.message}`);
+    error.message = `MQTT: recognize error: ${error.message}`;
+    console.error(error);
   }
 };
 
 module.exports.publish = (data) => {
+  if (!CLIENT) return;
   const multiple = Array.isArray(data);
   const single = data && !multiple && typeof data === 'object';
 

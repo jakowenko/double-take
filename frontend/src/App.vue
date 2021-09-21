@@ -1,22 +1,25 @@
 <template>
-  <div class="wrapper">
+  <div class="app-wrapper">
     <Toast position="bottom-left" />
     <ConfirmDialog />
-    <Toolbar />
-    <router-view />
+    <Toolbar ref="toolbar" />
+    <router-view :socket="socket" :toolbarHeight="toolbarHeight" />
   </div>
 </template>
 
 <script>
-import ApiService from '@/services/api.service';
+import io from 'socket.io-client';
+import Toast from 'primevue/toast';
+import ConfirmDialog from 'primevue/confirmdialog';
 import 'primevue/resources/themes/bootstrap4-dark-blue/theme.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
-import '@/assets/font-awesome/css/all.min.css';
-import Toast from 'primevue/toast';
-import ConfirmDialog from 'primevue/confirmdialog';
+
+import Constants from '@/util/constants.util';
+import ApiService from '@/services/api.service';
 import Toolbar from '@/components/Toolbar.vue';
+import '@/assets/font-awesome/css/all.min.css';
 
 export default {
   name: 'Double Take',
@@ -25,12 +28,19 @@ export default {
     ConfirmDialog,
     Toolbar,
   },
+  data: () => ({
+    socket: io(Constants().socket),
+    toolbarHeight: null,
+  }),
   created() {
     this.checkLoginState();
     window.addEventListener('focus', this.checkLoginState);
     this.emitter.on('login', this.login);
     this.emitter.on('error', (error) => this.error(error));
     this.emitter.on('toast', (...args) => this.toast(...args));
+  },
+  mounted() {
+    this.toolbarHeight = this.$refs.toolbar.getHeight();
   },
   methods: {
     login() {
@@ -100,17 +110,19 @@ body {
   margin-top: 0 !important;
 }
 
+.p-tooltip {
+  max-width: 250px;
+}
+.p-tooltip.p-tooltip-right {
+  margin-left: 3px;
+}
+.p-tooltip.p-tooltip-left {
+  margin-left: -3px;
+}
+
 .p-tooltip .p-tooltip-text {
   font-size: 0.75rem;
-}
-.p-tooltip-left {
-  .p-tooltip-arrow {
-    margin-right: 5px;
-  }
-  .p-tooltip-text {
-    margin-right: 5px;
-    padding: 0.25rem;
-  }
+  padding: 0.35rem;
 }
 
 .double-take-menu {
@@ -153,12 +165,17 @@ body {
 .p-multiselect-panel .p-multiselect-items {
   font-size: 0.9rem;
 }
+
+.p-button-icon-only .p-button-label {
+  font-size: 0;
+}
 </style>
 
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
-.wrapper {
+.app-wrapper {
   max-width: $max-width;
   margin: auto;
+  overflow: hidden;
 }
 </style>

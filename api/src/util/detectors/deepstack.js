@@ -1,8 +1,10 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
+const actions = require('./actions');
 const { doesUrlResolve } = require('../validators.util');
-const { DETECTORS, CONFIDENCE, OBJECTS } = require('../../constants');
+const { DETECTORS } = require('../../constants');
+const config = require('../../constants/config');
 
 const { DEEPSTACK } = DETECTORS || {};
 
@@ -16,6 +18,7 @@ module.exports.recognize = async ({ test, key }) => {
   if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
+    timeout: DEEPSTACK.TIMEOUT * 1000,
     headers: {
       ...formData.getHeaders(),
     },
@@ -35,6 +38,7 @@ module.exports.train = ({ name, key }) => {
   if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
+    timeout: DEEPSTACK.TIMEOUT * 1000,
     headers: {
       ...formData.getHeaders(),
     },
@@ -50,6 +54,7 @@ module.exports.remove = ({ name }) => {
   if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
+    timeout: DEEPSTACK.TIMEOUT * 1000,
     url: `${URL}/v1/vision/face/delete`,
     headers: {
       ...formData.getHeaders(),
@@ -61,18 +66,18 @@ module.exports.remove = ({ name }) => {
   });
 };
 
-module.exports.normalize = ({ data }) => {
+module.exports.normalize = ({ camera, data }) => {
   if (data.success === false) return [];
-  const { MIN_AREA_MATCH } = OBJECTS.FACE;
-  const normalized = data.predictions.map((obj) => {
+  const { MATCH, UNKNOWN } = config.detect(camera);
+  const normalized = data.predictions.flatMap((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
-    return {
-      name: confidence >= CONFIDENCE.UNKNOWN ? obj.userid.toLowerCase() : 'unknown',
+    const output = {
+      name: confidence >= UNKNOWN.CONFIDENCE ? obj.userid.toLowerCase() : 'unknown',
       confidence,
       match:
         obj.userid !== 'unknown' &&
-        confidence >= CONFIDENCE.MATCH &&
-        (obj.x_max - obj.x_min) * (obj.y_max - obj.y_min) >= MIN_AREA_MATCH,
+        confidence >= MATCH.CONFIDENCE &&
+        (obj.x_max - obj.x_min) * (obj.y_max - obj.y_min) >= MATCH.MIN_AREA,
       box: {
         top: obj.y_min,
         left: obj.x_min,
@@ -80,6 +85,9 @@ module.exports.normalize = ({ data }) => {
         height: obj.y_max - obj.y_min,
       },
     };
+    const checks = actions.checks({ MATCH, UNKNOWN, ...output });
+    if (checks.length) output.checks = checks;
+    return checks !== false ? output : [];
   });
   return normalized;
 };

@@ -1,24 +1,52 @@
 <template>
   <div class="wrapper">
-    <div class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3">
-      <div class="service-wrapper p-d-flex p-ai-center">
-        <div v-for="service in combined" :key="service.name" class="service p-d-flex p-mr-3">
-          <div class="name p-as-center p-mr-1">{{ service.name }}</div>
-          <div class="status p-as-center">
+    <div class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3 p-d-flex p-jc-between">
+      <div class="service-wrapper p-d-flex">
+        <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-mr-2 p-ai-center">
+          <div class="name p-mr-1" v-if="index === 0" @click="copyVersion(service)" v-tooltip.right="'Copy Version'">
+            {{ service.name }}
+          </div>
+          <div class="name p-mr-1" v-else>{{ service.name }}</div>
+          <div class="status">
             <div
               v-if="service.status"
               class="icon"
               :style="{ background: service.status === 200 ? '#78cc86' : '#c35f5f' }"
-              v-tooltip.right="service.tooltip"
             ></div>
             <div v-else class="icon pulse" style="background: #a9a9a9" v-tooltip.right="'Checking...'"></div>
           </div>
         </div>
       </div>
+      <div class="p-d-flex">
+        <Button
+          icon="pi pi-copy"
+          class="p-button-sm p-button-secondary p-mr-1"
+          @click="copyYamlConfig"
+          v-tooltip.left="'Copy Config (YAML)'"
+        />
+        <Button
+          icon="pi pi-copy"
+          class="p-button-sm p-button-secondary"
+          @click="copyConfig"
+          v-tooltip.left="'Copy Config (JSON)'"
+        />
+      </div>
       <div class="p-mr-3 buttons">
-        <Button icon="pi pi-refresh" class="p-button-sm p-button-success p-mb-2" @click="reload" :disabled="loading" />
+        <Button
+          icon="pi pi-refresh"
+          class="p-button-sm p-button-success p-mb-1"
+          @click="reload"
+          :disabled="loading"
+          v-tooltip.left="'Refresh Page'"
+        />
         <br />
-        <Button icon="fa fa-save" class="p-button p-button-sm p-button-success" @click="save" :disabled="loading" />
+        <Button
+          icon="fa fa-save"
+          class="p-button p-button-sm p-button-success"
+          @click="save"
+          :disabled="loading"
+          v-tooltip.left="'Save Config and Restart'"
+        />
       </div>
     </div>
     <div class="editor-wrapper">
@@ -36,21 +64,24 @@
 </template>
 
 <script>
-import Button from 'primevue/button';
-import Sleep from '@/util/sleep.util';
+import copy from 'copy-to-clipboard';
 
 import 'ace-builds';
 import 'ace-builds/webpack-resolver';
-import ApiService from '@/services/api.service';
 
 import { VAceEditor } from 'vue3-ace-editor';
 import 'ace-builds/src-noconflict/theme-nord_dark';
 import 'ace-builds/src-noconflict/mode-yaml';
 
+import Button from 'primevue/button';
 import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/themes/prism-tomorrow.css';
+
+import Sleep from '@/util/sleep.util';
+import ApiService from '@/services/api.service';
+import { version } from '../../package.json';
 
 export default {
   components: {
@@ -63,6 +94,8 @@ export default {
     doubleTake: {
       status: null,
       name: 'Double Take',
+      version,
+      buildTag: null,
     },
     frigate: {
       configured: false,
@@ -73,8 +106,13 @@ export default {
     code: '',
     ready: false,
     loading: false,
-    height: `${window.innerHeight - 30 - 31 - 10}px`,
+    height: `${window.innerHeight - 40 - 30 - 10}px`,
   }),
+  created() {
+    this.emitter.on('buildTag', (data) => {
+      this.doubleTake.buildTag = data;
+    });
+  },
   async mounted() {
     try {
       this.loading = true;
@@ -88,6 +126,7 @@ export default {
       this.ready = true;
       this.checkDetectors();
       this.updateHeight();
+      this.emitter.emit('getBuildTag');
       window.addEventListener('keydown', this.saveListener);
       window.addEventListener('resize', this.updateHeight);
     } catch (error) {
@@ -96,6 +135,10 @@ export default {
     }
   },
   beforeUnmount() {
+    const emitters = ['buildTag'];
+    emitters.forEach((emitter) => {
+      this.emitter.off(emitter);
+    });
     window.removeEventListener('keydown', this.saveListener);
     window.removeEventListener('resize', this.updateHeight);
   },
@@ -177,15 +220,9 @@ export default {
           const { data: tests } = await ApiService.get('recognize/test');
           this.services = this.services.map((detector) => {
             const [result] = tests.filter((obj) => obj.detector.toLowerCase() === detector.name.toLowerCase());
-            let tooltip = null;
-            if (typeof result.response === 'string') tooltip = result.response;
-            else if (result.response && result.response.message) tooltip = result.response.message;
-            else if (result.response && result.response.error) tooltip = result.response.error;
-            else if (!tooltip && result.status === 404) tooltip = result.status;
             return {
               name: detector.name,
               status: result.status,
-              tooltip,
             };
           });
         } catch (error) {
@@ -200,7 +237,7 @@ export default {
       this.editor = editor;
     },
     updateHeight() {
-      this.height = `${window.innerHeight - 30 - 31 - 10}px`;
+      this.height = `${window.innerHeight - 40 - 30 - 10}px`;
     },
     highlighter(code) {
       return highlight(code, languages.js);
@@ -217,6 +254,34 @@ export default {
         delete this.doubleTake.status;
         delete this.frigate.status;
         this.waitForRestart();
+      } catch (error) {
+        this.loading = false;
+        this.emitter.emit('error', error);
+      }
+    },
+    copyVersion(service) {
+      if (!service.version) return;
+      try {
+        copy(`v${service.version}:${service.buildTag}`);
+        this.emitter.emit('toast', { message: 'Version copied' });
+      } catch (error) {
+        this.emitter.emit('error', error);
+      }
+    },
+    async copyConfig() {
+      try {
+        const { data } = await ApiService.get('config?redact');
+        copy(JSON.stringify(data, null, '\t'));
+        this.emitter.emit('toast', { message: 'JSON config copied' });
+      } catch (error) {
+        this.emitter.emit('error', error);
+      }
+    },
+    async copyYamlConfig() {
+      try {
+        const { data } = await ApiService.get('config?format=yaml-with-defaults');
+        copy(data);
+        this.emitter.emit('toast', { message: 'YAML config copied' });
       } catch (error) {
         this.emitter.emit('error', error);
       }
@@ -242,16 +307,25 @@ export default {
 }
 
 .service {
+  &:first-child > .name {
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
   .status {
     width: 13px;
   }
-  .icon,
-  .loader {
+  .icon {
     width: 70%;
     padding-top: 70%;
     border-radius: 100%;
     position: relative;
     top: 1px;
+    @media only screen and (max-width: 576px) {
+      top: 0;
+    }
   }
 
   .icon.pulse {
@@ -274,12 +348,6 @@ export default {
     white-space: nowrap;
     font-size: 0.9rem;
   }
-
-  @media only screen and (max-width: 576px) {
-    .name {
-      font-size: 0.75rem !important;
-    }
-  }
 }
 
 .fixed {
@@ -294,13 +362,13 @@ export default {
 
   .buttons {
     position: absolute;
-    top: 28px + 10px + 5px;
+    top: 40px + 10px + 5px;
     right: 0;
   }
 }
 
 .editor-wrapper {
-  padding-top: 10px;
+  padding-top: 20px;
   background: var(--surface-a);
 }
 

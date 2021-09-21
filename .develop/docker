@@ -1,0 +1,3 @@
+#!/bin/bash
+
+docker compose -p double-take -f ./.develop/docker-compose.yml $1 $2

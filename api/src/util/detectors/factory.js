@@ -7,6 +7,7 @@ module.exports.get = (detector) => {
   try {
     return detectors[detector];
   } catch (error) {
-    console.error(`${detector} factory error: ${error.message}`);
+    error.message = `${detector} factory error: ${error.message}`;
+    console.error(error);
   }
 };
