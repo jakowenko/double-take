@@ -129,6 +129,10 @@ export default {
     }
   },
   beforeUnmount() {
+    const emitters = ['buildTag'];
+    emitters.forEach((emitter) => {
+      this.emitter.off(emitter);
+    });
     window.removeEventListener('keydown', this.saveListener);
     window.removeEventListener('resize', this.updateHeight);
   },
