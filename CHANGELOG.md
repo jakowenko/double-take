@@ -1,0 +1,68 @@
+# [1.0.0](https://github.com/jakowenko/double-take/compare/v0.10.2...v1.0.0) (2021-09-21)
+
+
+### Bug Fixes
+
+* add auth middleware to filters route ([d25c1fd](https://github.com/jakowenko/double-take/commit/d25c1fd5baa53cee28990f3b1e999aa73bd08914))
+* add auth token to saveURLs function ([#70](https://github.com/jakowenko/double-take/issues/70)) ([167758f](https://github.com/jakowenko/double-take/commit/167758f1c2a0d9ad71fb47bd02e16235716434cf))
+* add support for multiple training uploads ([#77](https://github.com/jakowenko/double-take/issues/77)) ([142b3f7](https://github.com/jakowenko/double-take/commit/142b3f7ec39a11e63327dc50a2081407ab023e6f))
+* better error handling when training fails to prevent stuck loading bar ([07dfd25](https://github.com/jakowenko/double-take/commit/07dfd250fdc357574dc45eca51e2ce2060a5c69f))
+* better handling of new filters ([3fffa6e](https://github.com/jakowenko/double-take/commit/3fffa6e04b41fa14b3c2eba6bbea08cb5c5701ab))
+* button alignment on train toolbar ([c9b38ce](https://github.com/jakowenko/double-take/commit/c9b38ce9134abeb87e2c74edace8660423d4e180))
+* catch errors from recognize/test ([51629d3](https://github.com/jakowenko/double-take/commit/51629d3f970c4458cc472f5738701dc4ccc8c062))
+* catch get-orientation errors ([d1ca17d](https://github.com/jakowenko/double-take/commit/d1ca17d1215a204f4d765476d42a43868accb5ad))
+* catch if paginated page has no results and return to page 1 ([713be92](https://github.com/jakowenko/double-take/commit/713be926a3fa4c1aa686f2afc64a45809ac4f0e2))
+* catch invalid config on save before writing file ([#94](https://github.com/jakowenko/double-take/issues/94)) ([e4503e8](https://github.com/jakowenko/double-take/commit/e4503e86082e5c182a40801cf542c59abcfa586c))
+* catch when time format is null ([#98](https://github.com/jakowenko/double-take/issues/98)) ([ed872dd](https://github.com/jakowenko/double-take/commit/ed872dd4dbc7f85c6a6c2232bf5bf5d7362997c3))
+* check for first number in status to determine if file is trained or untrained ([125f96e](https://github.com/jakowenko/double-take/commit/125f96e2d7eba324a98b14000367ec310b631459))
+* clean /tmp files after processing and remove all on restarts [#76](https://github.com/jakowenko/double-take/issues/76) ([a5c761f](https://github.com/jakowenko/double-take/commit/a5c761fc01f4d524a45b139d4539d6d85eb4d505))
+* clean mqtt /tmp files after processing [#76](https://github.com/jakowenko/double-take/issues/76) ([b6478ce](https://github.com/jakowenko/double-take/commit/b6478ce9e3c50ba9302e1179c2a7951fae51c8be))
+* clear disabled array ([dd84f85](https://github.com/jakowenko/double-take/commit/dd84f85ebbdd62f1beeec7252e313ee9f99390ee))
+* define default value for error ([5f27099](https://github.com/jakowenko/double-take/commit/5f27099360c6616fb69385ad0081d4962906c07d))
+* don't reprocess if no detectors configured ([157e7c7](https://github.com/jakowenko/double-take/commit/157e7c78f9428564278916833da919d95958dccc))
+* loop through compreface plugin results on ui ([83cea24](https://github.com/jakowenko/double-take/commit/83cea249f250ae2a4d3512d9360e5de157cb55ed))
+* **mqtt:** don't publish message if client isn't connected ([5901ebe](https://github.com/jakowenko/double-take/commit/5901ebef1bbe9992c08ee315e9c9fceb496db662))
+* pass auth token on /cameras route to recognize endpoint ([2e940bf](https://github.com/jakowenko/double-take/commit/2e940bf39958e8498064185d1b2a9218ea283146))
+* pass upcoming filename to start function to use in response ([32f0bae](https://github.com/jakowenko/double-take/commit/32f0bae40ffd1c4e48d9bc31117cb7f618c549fc))
+* prevent pagination changes if api is loading ([c767aae](https://github.com/jakowenko/double-take/commit/c767aaed927e70e993ec42fdeaa1e81fb2dbabbb))
+* sanpshot mask check ([56f3ea6](https://github.com/jakowenko/double-take/commit/56f3ea6c40cbe1f2312fd2d5a32ee13ff245dedd))
+* update respond middleware to use res.customStatusCode instead of native res.statusCode ([caf6a89](https://github.com/jakowenko/double-take/commit/caf6a891d682f8d8afcc7ede9a1158b93aee21a9))
+* use HTTPSuccess for test controller response ([9bcf8fa](https://github.com/jakowenko/double-take/commit/9bcf8faa65ea4f0c1b5451c08bfeba6d30e836e6))
+
+
+### chore
+
+* release ([824db79](https://github.com/jakowenko/double-take/commit/824db79af1f007e4188e16d4d6723af746ea25b3))
+
+
+### Features
+
+* ability to adjust thumbnail quality/size and page limit ([e5207fa](https://github.com/jakowenko/double-take/commit/e5207fa8b39affa4a72e6213a0817b17781ff5ae))
+* ability to include base64 encoded string in API results and MQTT messages ([#52](https://github.com/jakowenko/double-take/issues/52)) ([233d56a](https://github.com/jakowenko/double-take/commit/233d56a36e09b6c408131ce64461e449021b8811))
+* ability to increase auth token expiration ([#78](https://github.com/jakowenko/double-take/issues/78), [#80](https://github.com/jakowenko/double-take/issues/80)) ([d68d39e](https://github.com/jakowenko/double-take/commit/d68d39ef0faf5d20edfbf9099bc0108e7e4dd6fd))
+* ability to mask images before processing [#79](https://github.com/jakowenko/double-take/issues/79) ([decb245](https://github.com/jakowenko/double-take/commit/decb245a5e1efd61af58e02354885e7952bf761f))
+* ability to reprocess images from the matches page ([#84](https://github.com/jakowenko/double-take/issues/84)) ([809d5f3](https://github.com/jakowenko/double-take/commit/809d5f3f3b6e41825a685deec8deb613306fc277))
+* ability to resize source images with query string ([c2ea600](https://github.com/jakowenko/double-take/commit/c2ea60055ccad0df7fe3b191a369146551f20812))
+* add a delay expressed in seconds between each detection loop ([#83](https://github.com/jakowenko/double-take/issues/83)) ([23dc29e](https://github.com/jakowenko/double-take/commit/23dc29e4c9e4cb6a382650ac563006326995773a))
+* add createdAt, updatedAt to detector detail and tooltip ([#100](https://github.com/jakowenko/double-take/issues/100)) ([03c83f5](https://github.com/jakowenko/double-take/commit/03c83f5a24dc48632ede070bbba0a4905d703299))
+* allow customizing frigate labels ([#95](https://github.com/jakowenko/double-take/issues/95)) ([5eb100a](https://github.com/jakowenko/double-take/commit/5eb100a0653e0fbe07efe827c0b0f6a9c07efd5a))
+* apple-touch-startup-image and theme color ([d8106bb](https://github.com/jakowenko/double-take/commit/d8106bbf61169a0da9f5d14e239e697619117beb))
+* configure detector timeouts ([f654dec](https://github.com/jakowenko/double-take/commit/f654dec6cdf9819bfdbc337261af4cf8e11a9d8e))
+* copy yaml config with defaults ([052ab4b](https://github.com/jakowenko/double-take/commit/052ab4b63553f70ae2457f2ead3a42c45bcdaf6a))
+* enable or disable frigate mqtt topic snapshot processing ([#83](https://github.com/jakowenko/double-take/issues/83)) ([3bf2bea](https://github.com/jakowenko/double-take/commit/3bf2beac78d139a746d4dd6308e54aff65e5c155))
+* filter training results when dropdown is used ([#89](https://github.com/jakowenko/double-take/issues/89)) ([81232aa](https://github.com/jakowenko/double-take/commit/81232aa7d2c23cf0fe72084ef9ea976c8e534732))
+* include reasons why image was a miss on matches page ([#90](https://github.com/jakowenko/double-take/issues/90)) ([f5e220b](https://github.com/jakowenko/double-take/commit/f5e220bd923b7e9621b7063aafacacf790dbb342))
+* include version on config page with ability to copy ([029bfea](https://github.com/jakowenko/double-take/commit/029bfeaf9d44859a91e05eaef989c8c6dbd34fcf))
+* log level support ([#84](https://github.com/jakowenko/double-take/issues/84)) ([5f91b83](https://github.com/jakowenko/double-take/commit/5f91b83d8df22d410dd6895c3d78f1c04e4793cd))
+* pagination and filtering on all matches + refactoring ([af30071](https://github.com/jakowenko/double-take/commit/af300715852b8a9717c86e8bd30538607f1042ce))
+* publish errors to mqtt topic ([#52](https://github.com/jakowenko/double-take/issues/52)) ([01a2d6c](https://github.com/jakowenko/double-take/commit/01a2d6cfa5fac13425dc555edc9b680a951537b9))
+* redact secrets and keys from logs ([0f3ef02](https://github.com/jakowenko/double-take/commit/0f3ef0274deda4e2b15de0ac2137c0e131cb0d55))
+* sockets for live reloading ([50fef76](https://github.com/jakowenko/double-take/commit/50fef76ac6cc8a43c22912d0725117f933d60e71))
+* support for compreface mask plugin ([#85](https://github.com/jakowenko/double-take/issues/85)) ([7951524](https://github.com/jakowenko/double-take/commit/795152451943d0d55a1f778365a7fad23fe62934))
+* support for multiple frigate urls and topics ([4ead9f7](https://github.com/jakowenko/double-take/commit/4ead9f7562e6ab82fe93909f47dbe50aa0aba624))
+* **train:** pagination ([f749437](https://github.com/jakowenko/double-take/commit/f749437e8bb4c666472799c088939705dc416cab))
+
+
+### BREAKING CHANGES
+
+* v1.0.0
