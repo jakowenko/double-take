@@ -33,13 +33,19 @@
         </DataTable>
       </div>
     </div>
-    <div :style="{ marginTop: headerHeight + 'px' }">
-      <div class="pagination p-d-flex p-jc-center" :style="{ top: headerHeight + toolbarHeight + 'px' }">
-        <Pagination :pagination="pagination" :loading="loading" />
-      </div>
-      <div class="p-d-flex p-jc-center" :class="isPaginationVisible ? 'pagination-padding' : ''">
-        <Grid type="match" :matches="matches" style="width: 100%" />
-      </div>
+    <div
+      class="p-d-flex p-jc-center"
+      :class="isPaginationVisible ? 'pagination-padding' : ''"
+      :style="{ marginTop: headerHeight + 'px' }"
+    >
+      <Grid type="match" :matches="matches" style="width: 100%" />
+    </div>
+    <div
+      v-if="isPaginationVisible"
+      class="pagination p-d-flex p-jc-center"
+      :style="{ top: headerHeight + toolbarHeight + 'px' }"
+    >
+      <Pagination :pagination="pagination" :loading="loading" />
     </div>
   </div>
 </template>
@@ -122,7 +128,10 @@ export default {
     }
   },
   beforeUnmount() {
-    this.socket.off('recognize');
+    const emitters = ['updateFilter', 'trainingFolder', 'assetLoaded', 'toggleAsset', 'reprocess', 'paginate'];
+    emitters.forEach((emitter) => {
+      this.emitter.off(emitter);
+    });
   },
   created() {
     this.emitter.on('updateFilter', async () => {
@@ -341,8 +350,8 @@ export default {
 }
 
 ::v-deep(.filter-table) {
-  width: 15%;
-  min-width: 250px;
+  width: 25%;
+  min-width: 300px;
   margin: auto;
   font-size: 0.85rem;
 
@@ -352,6 +361,13 @@ export default {
 
   .p-datatable-table thead {
     display: none;
+  }
+
+  .p-datatable-table tr td:first-child {
+    width: 30%;
+  }
+  .p-datatable-table tr td:last-child {
+    width: 70%;
   }
 }
 </style>
