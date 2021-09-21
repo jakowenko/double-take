@@ -2,5 +2,6 @@
   "name": "Double Take",
   "short_name": "Double Take",
   "start_url": "/",
-  "display": "standalone"
+  "display": "standalone",
+  "theme_color": "#20262e"
 }
