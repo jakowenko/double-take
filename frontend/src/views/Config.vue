@@ -20,15 +20,21 @@
       <div class="p-d-flex">
         <Button
           icon="pi pi-copy"
+          class="p-button-sm p-button-secondary p-mr-1"
+          @click="copyYamlConfig"
+          v-tooltip.left="'Copy Config (YAML)'"
+        />
+        <Button
+          icon="pi pi-copy"
           class="p-button-sm p-button-secondary"
           @click="copyConfig"
-          v-tooltip.left="'Copy Config'"
+          v-tooltip.left="'Copy Config (JSON)'"
         />
       </div>
       <div class="p-mr-3 buttons">
         <Button
           icon="pi pi-refresh"
-          class="p-button-sm p-button-success p-mb-2"
+          class="p-button-sm p-button-success p-mb-1"
           @click="reload"
           :disabled="loading"
           v-tooltip.left="'Refresh Page'"
@@ -266,7 +272,16 @@ export default {
       try {
         const { data } = await ApiService.get('config?redact');
         copy(JSON.stringify(data, null, '\t'));
-        this.emitter.emit('toast', { message: 'Config copied' });
+        this.emitter.emit('toast', { message: 'JSON config copied' });
+      } catch (error) {
+        this.emitter.emit('error', error);
+      }
+    },
+    async copyYamlConfig() {
+      try {
+        const { data } = await ApiService.get('config?format=yaml-with-defaults');
+        copy(data);
+        this.emitter.emit('toast', { message: 'YAML config copied' });
       } catch (error) {
         this.emitter.emit('error', error);
       }
