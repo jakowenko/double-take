@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.use('/auth', require('./auth.routes'));
 router.use('/config', require('./config.routes'));
-router.use('/cameras', require('./cameras.routes'));
+router.use('/camera', require('./camera.routes'));
 router.use('/recognize', require('./recognize.routes'));
 router.use('/match', require('./match.routes'));
 router.use('/filesystem', require('./fs.routes'));
