@@ -205,21 +205,13 @@ Documentation can be viewed on [Postman](https://documenter.getpostman.com/view/
 
 ## Usage
 
-### Docker Run
-
-```shell
-docker run -d \
-  --name=double-take \
-  --restart=unless-stopped \
-  -p 3000:3000 \
-  -v ${PWD}/.storage:/.storage \
-  jakowenko/double-take
-```
-
 ### Docker Compose
 
 ```yaml
 version: '3.7'
+
+volumes:
+  double-take:
 
 services:
   double-take:
@@ -227,7 +219,7 @@ services:
     image: jakowenko/double-take
     restart: unless-stopped
     volumes:
-      - ${PWD}/.storage:/.storage
+      - double-take:/.storage
     ports:
       - 3000:3000
 ```
@@ -474,6 +466,30 @@ ui:
     quality: 80
     # value in pixels
     width: 300
+```
+
+## Development
+
+### Run Local Containers
+
+| Service |                  |
+| ------- | ---------------- |
+| UI      | `localhost:8080` |
+| API     | `localhost:3000` |
+| MQTT    | `localhost:1883` |
+
+```bash
+# start development containers
+./.develop/docker up
+
+# remove development containers
+./.develop/docker down
+```
+
+### Build Local Image
+
+```bash
+./.develop/build
 ```
 
 ## Donations
