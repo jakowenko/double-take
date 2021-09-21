@@ -376,19 +376,14 @@ export default {
     dropdowns: {
       handler(value) {
         ['names', 'detectors', 'matches'].forEach((key) => {
-          this.selected[key] =
+          if (
             JSON.stringify(
               this.selected[key] ? this.selected[key].flatMap((item) => (value[key].includes(item) ? item : [])) : [],
             ) !== JSON.stringify(value[key])
-              ? value[key]
-              : this.selected[key];
+          ) {
+            this.selected[key] = value[key];
+          }
         });
-
-        if (!this.selected.names.length && !this.selected.detectors.length && !this.selected.matches.length) {
-          this.selected.names = value.names;
-          this.selected.detectors = value.detectors;
-          this.selected.matches = value.matches;
-        }
       },
       deep: true,
     },
