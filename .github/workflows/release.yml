@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 14
       - name: Install dependencies
-        run: npm ci
+        run: npm install --save-dev
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
