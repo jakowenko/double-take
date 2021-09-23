@@ -47,8 +47,6 @@ services:
   #     - POSTGRES_DB=frs
   #   volumes:
   #     - compreface:/var/lib/postgresql/data
-  #   labels:
-  #     - 'watchtower.enable=false'
 
   # compreface-admin:
   #   image: exadel/compreface-admin:0.6.0
@@ -64,12 +62,10 @@ services:
   #     - EMAIL_USERNAME=
   #     - EMAIL_FROM=
   #     - EMAIL_PASSWORD=
-  #     - ADMIN_JAVA_OPTS=Xmx8g
+  #     - ADMIN_JAVA_OPTS=-Xmx8g
   #   depends_on:
   #     - compreface-postgres-db
   #     - compreface-api
-  #   labels:
-  #     - 'watchtower.enable=false'
 
   # compreface-api:
   #   image: exadel/compreface-api:0.6.0
@@ -82,22 +78,18 @@ services:
   #     - POSTGRES_PASSWORD=postgres
   #     - POSTGRES_URL=jdbc:postgresql://compreface-postgres-db:5432/frs
   #     - SPRING_PROFILES_ACTIVE=dev
-  #     - API_JAVA_OPTS=Xmx8g
+  #     - API_JAVA_OPTS=-Xmx8g
   #     - SAVE_IMAGES_TO_DB=true
-  #   labels:
-  #     - 'watchtower.enable=false'
 
   # compreface-fe:
   #   image: exadel/compreface-fe:0.6.0
   #   container_name: "compreface-ui"
   #   restart: unless-stopped
   #   ports:
-  #     - "8000:80"
+  #     - "7000:80"
   #   depends_on:
   #     - compreface-api
   #     - compreface-admin
-  #   labels:
-  #     - 'watchtower.enable=false'
 
   # compreface-core:
   #   image: exadel/compreface-core:0.6.0
@@ -105,5 +97,3 @@ services:
   #   restart: unless-stopped
   #   environment:
   #     - ML_PORT=3000
-  #   labels:
-  #     - 'watchtower.enable=false'
