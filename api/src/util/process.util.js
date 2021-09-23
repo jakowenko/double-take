@@ -7,11 +7,14 @@ const database = require('./db.util');
 const mask = require('./mask-image.util');
 const sleep = require('./sleep.util');
 const { recognize, normalize } = require('./detectors/actions');
-const { SERVER, FRIGATE, STORAGE } = require('../constants');
+const { SERVER, STORAGE } = require('../constants');
 const DETECTORS = require('../constants/config').detectors();
 const config = require('../constants/config');
 
-module.exports.polling = async (event, { retries, id, type, url, breakMatch, MATCH_IDS }) => {
+module.exports.polling = async (
+  event,
+  { retries, id, type, url, breakMatch, MATCH_IDS, delay }
+) => {
   event.type = type;
   breakMatch = !!(breakMatch === 'true' || breakMatch === true);
   const { MATCH, UNKNOWN } = config.detect(event.camera);
@@ -23,10 +26,6 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
   perf.start(type);
 
   if (await this.isValidURL({ type, url })) {
-    if (event.type === 'snapshot' && !config.masks(event.camera)) {
-      url = `${url}&crop=1`;
-    }
-
     for (let i = 0; i < retries; i++) {
       if (breakMatch === true && MATCH_IDS.includes(id)) break;
 
@@ -84,7 +83,7 @@ module.exports.polling = async (event, { retries, id, type, url, breakMatch, MAT
           if (breakMatch === true) break;
         }
       }
-      if (frigateEventType && FRIGATE.ATTEMPTS.DELAY > 0) await sleep(FRIGATE.ATTEMPTS.DELAY);
+      if (frigateEventType && delay > 0) await sleep(delay);
     }
   }
 

@@ -87,3 +87,25 @@ module.exports.notify = () => {
   if (CONFIG.notify) for (const [notify] of Object.entries(CONFIG.notify)) results.push(notify);
   return results;
 };
+
+module.exports.frigate = ({ id, camera, topic }) => {
+  const { topicURL } = require('../util/frigate.util');
+  const { url, events, attempts, image } = JSON.parse(JSON.stringify(CONFIG.frigate));
+  const { masks } = module.exports;
+
+  _.mergeWith(image, events?.[camera]?.image || {}, customizer);
+  _.mergeWith(attempts, events?.[camera]?.attempts || {}, customizer);
+
+  const snapshot =
+    image.snapshot ||
+    (masks(camera)
+      ? `${topicURL(topic)}/api/events/${id}/snapshot.jpg?h=${image.height}`
+      : `${topicURL(topic)}/api/events/${id}/snapshot.jpg?h=${image.height}&crop=1`);
+
+  const latest = image.latest || `${topicURL(topic)}/api/${camera}/latest.jpg?h=${image.height}`;
+
+  return objectKeysToUpperCase({
+    url: { frigate: url, snapshot, latest },
+    attempts,
+  });
+};

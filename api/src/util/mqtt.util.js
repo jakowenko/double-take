@@ -5,6 +5,7 @@ const fs = require('./fs.util');
 const { contains } = require('./helpers.util');
 const { jwt } = require('./auth.util');
 const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE } = require('../constants');
+const config = require('../constants/config');
 
 let PREVIOUS_MQTT_LENGTHS = [];
 let JUST_SUBSCRIBED = false;
@@ -32,10 +33,9 @@ const processMessage = ({ topic, message }) => {
     const camera = topic.split('/')[1];
     const filename = `${uuidv4()}.jpg`;
     const buffer = Buffer.from(message);
+    const { ATTEMPTS } = config.frigate({ camera });
 
-    if (PREVIOUS_MQTT_LENGTHS.includes(buffer.length)) {
-      return;
-    }
+    if (!ATTEMPTS.MQTT || PREVIOUS_MQTT_LENGTHS.includes(buffer.length)) return;
     PREVIOUS_MQTT_LENGTHS.unshift(buffer.length);
 
     fs.writer(`${STORAGE.TMP.PATH}/${filename}`, buffer);
@@ -113,12 +113,11 @@ module.exports.subscribe = () => {
     topics.push(...frigateTopics);
     frigateTopics.forEach((topic) => {
       const [prefix] = topic.split('/');
-      if (FRIGATE.ATTEMPTS.MQTT === true)
-        topics.push(
-          ...(FRIGATE.CAMERAS
-            ? FRIGATE.CAMERAS.map((camera) => `${prefix}/${camera}/person/snapshot`)
-            : [`${prefix}/+/person/snapshot`])
-        );
+      topics.push(
+        ...(FRIGATE.CAMERAS
+          ? FRIGATE.CAMERAS.map((camera) => `${prefix}/${camera}/person/snapshot`)
+          : [`${prefix}/+/person/snapshot`])
+      );
     });
   }
 

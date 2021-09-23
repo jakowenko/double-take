@@ -11,7 +11,8 @@ const mqtt = require('../util/mqtt.util');
 const { emit } = require('../util/socket.util');
 const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
-const { AUTH, FRIGATE, TOKEN } = require('../constants');
+const config = require('../constants/config');
+const { AUTH, TOKEN } = require('../constants');
 
 const { IDS, MATCH_IDS } = {
   IDS: [],
@@ -85,24 +86,20 @@ module.exports.start = async (req, res) => {
 
     const promises = [];
 
-    const config = {
-      breakMatch,
-      id,
-      MATCH_IDS,
-    };
-
     if (event.type === 'frigate') {
+      const FRIGATE = config.frigate({ id, camera, topic: event.topic });
+
       if (FRIGATE.ATTEMPTS.LATEST)
         promises.push(
           process.polling(
             { ...event },
             {
-              ...config,
+              id,
+              MATCH_IDS,
               retries: FRIGATE.ATTEMPTS.LATEST,
               type: 'latest',
-              url: `${frigate.topicURL(event.topic)}/api/${camera}/latest.jpg?h=${
-                FRIGATE.IMAGE.HEIGHT
-              }`,
+              url: FRIGATE.URL.LATEST,
+              delay: FRIGATE.ATTEMPTS.DELAY,
             }
           )
         );
@@ -111,12 +108,12 @@ module.exports.start = async (req, res) => {
           process.polling(
             { ...event },
             {
-              ...config,
+              id,
+              MATCH_IDS,
               retries: FRIGATE.ATTEMPTS.SNAPSHOT,
               type: 'snapshot',
-              url: `${frigate.topicURL(event.topic)}/api/events/${id}/snapshot.jpg?h=${
-                FRIGATE.IMAGE.HEIGHT
-              }`,
+              url: FRIGATE.URL.SNAPSHOT,
+              delay: FRIGATE.ATTEMPTS.DELAY,
             }
           )
         );
@@ -125,7 +122,9 @@ module.exports.start = async (req, res) => {
         process.polling(
           { ...event },
           {
-            ...config,
+            id,
+            MATCH_IDS,
+            breakMatch,
             retries: parseInt(manualAttempts, 10),
             type: event.type,
             url,
