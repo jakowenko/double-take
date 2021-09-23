@@ -117,12 +117,12 @@
       <div class="p-grid p-ai-center">
         <div class="p-col-6 p-pb-0 stats-text">{{ stats.current }} of {{ stats.total }}</div>
         <div class="p-col-6 p-d-flex p-jc-end p-pb-0 p-ai-center socket-status">
-          Socket
+          WebSocket
           <div class="icon p-ml-1" :class="socketClass"></div>
         </div>
-        <div class="p-col-4 p-md-2 p-lg-2">
+        <div class="p-col custom-col">
           <div class="p-fluid">
-            <label class="p-d-block p-mb-1">Filter by name:</label>
+            <label class="p-d-block p-mb-1">Name</label>
             <MultiSelect v-model="selected.names" :options="dropdowns.names" v-on:change="emitter.emit('updateFilter')">
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
@@ -135,9 +135,9 @@
             </MultiSelect>
           </div>
         </div>
-        <div class="p-col-4 p-md-2 p-lg-2">
+        <div class="p-col custom-col-sm">
           <div class="p-fluid">
-            <label class="p-d-block p-mb-1">Filter by match:</label>
+            <label class="p-d-block p-mb-1">Match</label>
             <MultiSelect
               v-model="selected.matches"
               :options="dropdowns.matches"
@@ -154,9 +154,9 @@
             </MultiSelect>
           </div>
         </div>
-        <div class="p-col-4 p-md-2 p-lg-2">
+        <div class="p-col custom-col">
           <div class="p-fluid">
-            <label class="p-d-block p-mb-1">Filter by detector:</label>
+            <label class="p-d-block p-mb-1">Detector</label>
             <MultiSelect
               v-model="selected.detectors"
               :options="dropdowns.detectors"
@@ -173,7 +173,7 @@
             </MultiSelect>
           </div>
         </div>
-        <div class="p-col-4 p-md-2 p-lg-2">
+        <div class="p-col custom-col">
           <div class="p-fluid">
             <label class="p-d-block p-mb-1">Camera</label>
             <MultiSelect
@@ -226,9 +226,9 @@
             />
           </div>
         </div>
-        <div class="p-col-4 p-md-2 p-lg-2">
+        <div class="p-col custom-col-xsm">
           <div class="p-fluid">
-            <label class="p-d-block p-mb-1">Min box width (px):</label>
+            <label class="p-d-block p-mb-1" v-tooltip.left="'Minimum box height (pixels)'">Width</label>
             <InputText
               v-model="filters.width"
               type="number"
@@ -240,9 +240,9 @@
             />
           </div>
         </div>
-        <div class="p-col-4 p-md-2 p-lg-2">
+        <div class="p-col custom-col-xsm">
           <div class="p-fluid">
-            <label class="p-d-block p-mb-1">Min box height (px):</label>
+            <label class="p-d-block p-mb-1" v-tooltip.left="'Minimum box width (pixels)'">Height</label>
             <InputText
               v-model="filters.height"
               type="number"
@@ -490,6 +490,22 @@ export default {
     }
   }
 
+  .custom-col,
+  .custom-col-sm,
+  .custom-col-xsm {
+    width: 16.5%;
+    flex: 0 0 auto;
+    @media screen and (max-width: 1000px) {
+      width: 25% !important;
+    }
+  }
+  .custom-col-sm {
+    width: 10%;
+  }
+  .custom-col-xsm {
+    width: 8%;
+  }
+
   .p-button ::v-deep(.fa.p-button-icon),
   .p-button ::v-deep(.fas.p-button-icon),
   .p-button ::v-deep(.far.p-button-icon),
@@ -525,12 +541,14 @@ export default {
       font-size: 0.9rem;
       @media only screen and (max-width: 576px) {
         font-size: 1rem;
-        padding: 0.58rem 0.75rem;
+        // padding to keep toolbar height consistent when "add new" is selected
+        padding-top: 0.66rem;
+        padding-bottom: 0.66rem;
       }
     }
   }
 
-  ::v-deep(.p-inputnumber .p-inputtext) {
+  ::v-deep(.p-inputtext) {
     font-size: 0.9rem;
     @media only screen and (max-width: 576px) {
       font-size: 16px;
@@ -538,6 +556,10 @@ export default {
   }
   ::v-deep(.p-multiselect .p-multiselect-label) {
     font-size: 0.9rem;
+    @media only screen and (max-width: 576px) {
+      padding-top: 0.7rem;
+      padding-bottom: 0.7rem;
+    }
   }
 }
 
@@ -562,20 +584,22 @@ export default {
 
   label,
   .stats-text {
-    font-size: 13px;
-    @media only screen and (max-width: 576px) {
-      font-size: 11px;
-    }
+    font-size: 12px;
   }
 
-  .p-dropdown,
+  label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .p-inputtext {
     width: 100%;
   }
 }
 
 .socket-status {
-  font-size: 0.85rem;
+  font-size: 12px;
   .icon {
     width: 10px;
     height: 10px;
