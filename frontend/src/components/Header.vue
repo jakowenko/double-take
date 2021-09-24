@@ -398,7 +398,7 @@ export default {
       };
     },
     refresh() {
-      if (this.type === 'match') this.$parent.get().matches(500);
+      if (this.type === 'match') this.$parent.get().matches({ delay: 500 });
       if (this.type === 'train') this.$parent.init();
     },
     addComma(length, index) {
