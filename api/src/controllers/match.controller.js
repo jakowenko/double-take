@@ -144,6 +144,7 @@ module.exports.reprocess = async (req, res) => {
   if (!match) return res.status(BAD_REQUEST).error('No match found');
 
   const results = await process.start({
+    camera: tryParseJSON(match.event) ? tryParseJSON(match.event).camera : null,
     filename: match.filename,
     tmp: `${STORAGE.PATH}/matches/${match.filename}`,
   });
