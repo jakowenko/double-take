@@ -196,12 +196,12 @@ export default {
               }
             }
 
+            $this.loading.files = false;
+
             if ($this.pagination.temp > 1 && !data.matches.length) {
               $this.pagination.temp -= 1;
               await $this.get().matches();
-              return;
             }
-            $this.loading.files = false;
           } catch (error) {
             $this.loading.files = false;
             $this.emitter.emit('error', error);
