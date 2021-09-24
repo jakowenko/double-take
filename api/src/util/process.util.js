@@ -158,9 +158,11 @@ module.exports.isValidURL = async ({ type, url }) => {
     });
     const { headers } = request;
     const isValid = validOptions.includes(headers['content-type']);
-    if (!isValid) {
-      console.error(`url validation failed for ${type}: ${url}`);
-    }
+    if (!isValid)
+      console.error(
+        `url validation failed for ${type}: ${url} - ${headers['content-type']} not valid`
+      );
+
     return isValid;
   } catch (error) {
     error.message = `url validation error: ${error.message}`;
