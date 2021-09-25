@@ -1,3 +1,19 @@
+# [1.1.0](https://github.com/jakowenko/double-take/compare/v1.0.0...v1.1.0) (2021-09-25)
+
+
+### Bug Fixes
+
+* call for new matches on paginated page after loading is set to false ([231ac12](https://github.com/jakowenko/double-take/commit/231ac128f964028a4403395e373b210012e0a607))
+* don't reset filters when all results on page are deleted ([#106](https://github.com/jakowenko/double-take/issues/106)) ([bf5ebac](https://github.com/jakowenko/double-take/commit/bf5ebacd05ff66113886056ec58f34c9a30f4d1f))
+* pass camera name when reprocessing image ([cbe7a57](https://github.com/jakowenko/double-take/commit/cbe7a57907b2bc3148b7d523b03b240d3daa224a))
+* replace image-size with probe-image-size ([5b7816a](https://github.com/jakowenko/double-take/commit/5b7816a78cba2e4502266140506157215ec6b289))
+
+
+### Features
+
+* ability to override frigate options per camera ([#110](https://github.com/jakowenko/double-take/issues/110)) ([e2f93e6](https://github.com/jakowenko/double-take/commit/e2f93e63d0f7031b92690e612f9b57d28ebe4adc))
+* **ui:** camera and event type filters ([#106](https://github.com/jakowenko/double-take/issues/106)) ([c914308](https://github.com/jakowenko/double-take/commit/c91430843587291974627138b8370bdb9db61632))
+
 # [1.0.0](https://github.com/jakowenko/double-take/compare/v0.10.2...v1.0.0) (2021-09-21)
 
 
