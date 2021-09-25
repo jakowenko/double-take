@@ -71,6 +71,9 @@ export default {
     padding: 5px 10px;
     color: #fff;
     font-size: 1rem;
+    @media only screen and (max-width: 576px) {
+      font-size: 0.9rem;
+    }
   }
   li.active > button {
     background: #fff;
@@ -99,6 +102,9 @@ export default {
     }
     button:after {
       font-size: 1rem;
+      @media only screen and (max-width: 576px) {
+        font-size: 0.9rem;
+      }
     }
   }
   li.VuePagination__pagination-item-prev-page > button:after {
