@@ -35,6 +35,7 @@
               :class="loaded ? 'thumbnail' : 'thumbnail lazy'"
               :src="src"
               :onload="assetLoaded"
+              :style="{ position: asset.file.width === 0 || asset.file.height === 0 ? 'relative' : 'absolute' }"
             />
           </div>
         </div>
@@ -425,7 +426,6 @@ img.thumbnail {
   cursor: pointer;
   transition: opacity 0.5s;
   opacity: 1;
-  position: absolute;
   top: 0;
   left: 0;
 

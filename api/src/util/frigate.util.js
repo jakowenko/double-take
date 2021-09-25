@@ -69,6 +69,7 @@ module.exports.status = async (topic) => {
     const request = await axios({
       method: 'get',
       url: `${this.topicURL(topic)}/api/version`,
+      timeout: 5 * 1000,
     });
     return request.data;
   } catch (error) {

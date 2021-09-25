@@ -164,6 +164,16 @@ body {
 
 .p-multiselect-panel .p-multiselect-items {
   font-size: 0.9rem;
+  @media only screen and (max-width: 576px) {
+    font-size: 0.9rem;
+  }
+}
+
+.p-dropdown-panel {
+  font-size: 0.9rem;
+  @media only screen and (max-width: 576px) {
+    font-size: 0.9rem;
+  }
 }
 
 .p-button-icon-only .p-button-label {

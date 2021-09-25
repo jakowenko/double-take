@@ -1,6 +1,5 @@
-const { promisify } = require('util');
 const fs = require('fs');
-const sizeOf = promisify(require('image-size'));
+const sizeOf = require('probe-image-size');
 const { getOrientation } = require('get-orientation');
 const time = require('../util/time.util');
 const database = require('../util/db.util');
@@ -56,7 +55,9 @@ module.exports.get = async (req, res) => {
       const { id, name, filename, results, createdAt } = obj;
 
       const key = `train/${name}/${filename}`;
-      const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
+      const { width, height } = await sizeOf(fs.createReadStream(`${STORAGE.PATH}/${key}`)).catch(
+        (/* error */) => ({ width: 0, height: 0 })
+      );
       const orientation = await getOrientation(fs.readFileSync(`${STORAGE.PATH}/${key}`)).catch(
         (/* error */) => 0
       );

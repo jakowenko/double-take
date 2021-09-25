@@ -332,6 +332,27 @@ frigate:
   zones:
     # - camera: garage
     #   zone: driveway
+
+  # override frigate attempts and image per camera
+  events:
+    # front-door:
+    #   attempts:
+    #     # number of times double take will request a frigate latest.jpg for facial recognition
+    #     latest: 5
+    #     # number of times double take will request a frigate snapshot.jpg for facial recognition
+    #     snapshot: 5
+    #     # process frigate images from frigate/<camera-name>/person/snapshot topic
+    #     mqtt: false
+    #     # add a delay expressed in seconds between each detection loop
+    #     delay: 1
+
+    #   image:
+    #     # height of frigate image passed for facial recognition (only if using default latest.jpg and snapshot.jpg)
+    #     height: 1000
+    #     # custom image that will be used in place of latest.jpg
+    #     latest: http://camera-url.com/image.jpg
+    #     # custom image that will be used in place of snapshot.jpg
+    #     snapshot: http://camera-url.com/image.jpg
 ```
 
 ### `cameras`

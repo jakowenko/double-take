@@ -1,5 +1,5 @@
-const { promisify } = require('util');
-const sizeOf = promisify(require('image-size'));
+const fs = require('fs');
+const sizeOf = require('probe-image-size');
 const database = require('../util/db.util');
 const filesystem = require('../util/fs.util');
 const { tryParseJSON } = require('../util/validators.util');
@@ -16,7 +16,10 @@ const format = async (matches) => {
       const { id, filename, event, response, isTrained } = obj;
       const { camera, type, zones, updatedAt } = JSON.parse(event);
       const key = `matches/${filename}`;
-      const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
+      const { width, height } = await sizeOf(fs.createReadStream(`${STORAGE.PATH}/${key}`)).catch(
+        (/* error */) => ({ width: 0, height: 0 })
+      );
+
       return {
         id,
         camera,
@@ -63,12 +66,14 @@ module.exports.get = async (req, res) => {
 
   const filteredIds = db
     .prepare(
-      `SELECT t.id, detector, value FROM (
-          SELECT match.id,  json_extract(value, '$.detector') detector, json_extract(value, '$.results') results
+      `SELECT t.id, t.event, detector, value FROM (
+          SELECT match.id, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results
           FROM match, json_each( match.response)
           ) t, json_each(t.results)
         WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
         AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
+        AND json_extract(t.event, '$.camera') IN (${database.params(filters.cameras)})
+        AND json_extract(t.event, '$.type') IN (${database.params(filters.types)})
         AND json_extract(value, '$.confidence') >= ?
         AND json_extract(value, '$.box.width') >= ?
         AND json_extract(value, '$.box.height') >= ?
@@ -78,6 +83,8 @@ module.exports.get = async (req, res) => {
     .bind(
       filters.names,
       filters.matches.map((obj) => (obj === 'match' ? 1 : 0)),
+      filters.cameras,
+      filters.types,
       filters.confidence,
       filters.width,
       filters.height,
@@ -140,6 +147,7 @@ module.exports.reprocess = async (req, res) => {
   if (!match) return res.status(BAD_REQUEST).error('No match found');
 
   const results = await process.start({
+    camera: tryParseJSON(match.event) ? tryParseJSON(match.event).camera : null,
     filename: match.filename,
     tmp: `${STORAGE.PATH}/matches/${match.filename}`,
   });
@@ -169,7 +177,7 @@ module.exports.filters = async (req, res) => {
   const detectors = db
     .prepare(
       `SELECT json_extract(value, '$.detector') name
-        FROM match, json_each( match.response)
+        FROM match, json_each(match.response)
         GROUP BY name
         ORDER BY name ASC`
     )
@@ -180,7 +188,7 @@ module.exports.filters = async (req, res) => {
     .prepare(
       `SELECT json_extract(value, '$.name') name FROM (
           SELECT json_extract(value, '$.results') results
-          FROM match, json_each( match.response)
+          FROM match, json_each(match.response)
           ) t, json_each(t.results)
         GROUP BY name
         ORDER BY name ASC`
@@ -192,7 +200,7 @@ module.exports.filters = async (req, res) => {
     .prepare(
       `SELECT IIF(json_extract(value, '$.match') == 1, 'match', 'miss') name FROM (
           SELECT json_extract(value, '$.results') results
-          FROM match, json_each( match.response)
+          FROM match, json_each(match.response)
           ) t, json_each(t.results)
         GROUP BY name
         ORDER BY name ASC`
@@ -200,5 +208,25 @@ module.exports.filters = async (req, res) => {
     .all()
     .map((obj) => obj.name);
 
-  res.send({ total: total.count, detectors, names, matches });
+  const cameras = db
+    .prepare(
+      `SELECT json_extract(event, '$.camera') name
+      FROM match
+      GROUP BY name
+      ORDER BY name ASC`
+    )
+    .all()
+    .map((obj) => obj.name);
+
+  const types = db
+    .prepare(
+      `SELECT json_extract(event, '$.type') name
+      FROM match
+      GROUP BY name
+      ORDER BY name ASC`
+    )
+    .all()
+    .map((obj) => obj.name);
+
+  res.send({ total: total.count, detectors, names, matches, cameras, types });
 };

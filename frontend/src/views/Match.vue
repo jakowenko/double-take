@@ -136,9 +136,7 @@ export default {
   created() {
     this.emitter.on('updateFilter', async () => {
       this.clear(['source', 'selected', 'disabled', 'loaded']);
-      this.loading.filter = true;
-      await this.get().matches();
-      this.loading.filter = false;
+      await this.get().matches({ filters: false });
     });
     this.emitter.on('trainingFolder', (value) => {
       this.trainingFolder = value;
@@ -164,13 +162,14 @@ export default {
     get() {
       const $this = this;
       return {
-        async matches(delay = 0) {
+        async matches(options) {
           try {
+            const { filters = true, delay = 0 } = options || {};
             if ($this.loading.files) return;
             $this.loading.files = true;
             await Sleep(delay);
 
-            if (!$this.loading.filter) await $this.get().filters();
+            if (filters) await $this.get().filters();
             $this.filters = $this.$refs?.header?.getFilters() || {};
             const sinceId =
               // eslint-disable-next-line no-nested-ternary
@@ -196,12 +195,12 @@ export default {
               }
             }
 
+            $this.loading.files = false;
+
             if ($this.pagination.temp > 1 && !data.matches.length) {
               $this.pagination.temp -= 1;
-              await $this.get().matches();
-              return;
+              await $this.get().matches({ filters: false });
             }
-            $this.loading.files = false;
           } catch (error) {
             $this.loading.files = false;
             $this.emitter.emit('error', error);
@@ -239,7 +238,7 @@ export default {
                   $this.emitter.emit('toast', { message: `${description} deleted` });
                   if (areAllSelected) {
                     $this.clear(['source', 'selected', 'disabled', 'loaded']);
-                    await $this.get().matches();
+                    await $this.get().matches({ filters: false });
                   }
                 } catch (error) {
                   $this.emitter.emit('error', error);
