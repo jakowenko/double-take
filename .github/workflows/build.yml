@@ -8,6 +8,7 @@ on:
     types: [released]
     branches:
       - master
+  workflow_dispatch:
 
 jobs:
   build-docker:
@@ -36,9 +37,9 @@ jobs:
           echo "VERSION=${{steps.version.outputs.prop}}" >> $GITHUB_ENV
       - name: Version with SHA-7
         run: |
-          npm version ${{steps.version.outputs.prop}}-$(echo ${GITHUB_SHA} | cut -c1-7) --no-git-tag-version
-          cd ./api && npm version ${{steps.version.outputs.prop}}-$(echo ${GITHUB_SHA} | cut -c1-7) --no-git-tag-version
-          cd ../frontend && npm version ${{steps.version.outputs.prop}}-$(echo ${GITHUB_SHA} | cut -c1-7) --no-git-tag-version
+          npm version ${{steps.version.outputs.prop}}-$(echo ${GITHUB_SHA} | cut -c1-7) --no-git-tag-version --verbose
+          cd ./api && npm version ${{steps.version.outputs.prop}}-$(echo ${GITHUB_SHA} | cut -c1-7) --no-git-tag-version --verbose
+          cd ../frontend && npm version ${{steps.version.outputs.prop}}-$(echo ${GITHUB_SHA} | cut -c1-7) --no-git-tag-version --verbose
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
