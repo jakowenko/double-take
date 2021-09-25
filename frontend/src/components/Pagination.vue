@@ -61,12 +61,18 @@ export default {
   list-style: none !important;
   padding: 0;
   margin: 0;
+  display: flex;
+  align-items: center;
 
   li {
     display: inline-block;
     margin: 0px 5px;
+    @media only screen and (max-width: 576px) {
+      margin: 0px 3px;
+    }
   }
   li > button {
+    margin: 0;
     background: #2a323d;
     padding: 5px 10px;
     color: #fff;
@@ -103,7 +109,7 @@ export default {
     button:after {
       font-size: 1rem;
       @media only screen and (max-width: 576px) {
-        font-size: 0.9rem;
+        font-size: 0.825rem;
       }
     }
   }
