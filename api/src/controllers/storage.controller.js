@@ -1,7 +1,6 @@
 const fs = require('fs');
 const sharp = require('sharp');
-const { promisify } = require('util');
-const sizeOf = promisify(require('image-size'));
+const sizeOf = require('probe-image-size');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const filesystem = require('../util/fs.util');
 const database = require('../util/db.util');
@@ -34,7 +33,10 @@ module.exports.matches = async (req, res) => {
     const textPadding = 10;
     const lineWidth = 4;
 
-    const { width, height } = await sizeOf(source);
+    const { width, height } = await sizeOf(fs.createReadStream(source)).catch((/* error */) => ({
+      width: 0,
+      height: 0,
+    }));
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
     const image = await loadImage(source);

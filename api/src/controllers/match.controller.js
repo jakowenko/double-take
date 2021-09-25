@@ -1,5 +1,5 @@
-const { promisify } = require('util');
-const sizeOf = promisify(require('image-size'));
+const fs = require('fs');
+const sizeOf = require('probe-image-size');
 const database = require('../util/db.util');
 const filesystem = require('../util/fs.util');
 const { tryParseJSON } = require('../util/validators.util');
@@ -16,7 +16,10 @@ const format = async (matches) => {
       const { id, filename, event, response, isTrained } = obj;
       const { camera, type, zones, updatedAt } = JSON.parse(event);
       const key = `matches/${filename}`;
-      const { width, height } = await sizeOf(`${STORAGE.PATH}/${key}`);
+      const { width, height } = await sizeOf(fs.createReadStream(`${STORAGE.PATH}/${key}`)).catch(
+        (/* error */) => ({ width: 0, height: 0 })
+      );
+
       return {
         id,
         camera,

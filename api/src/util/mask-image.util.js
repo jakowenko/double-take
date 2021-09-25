@@ -1,6 +1,6 @@
-const { promisify } = require('util');
+const fs = require('fs');
 const { createCanvas, loadImage } = require('canvas');
-const sizeOf = promisify(require('image-size'));
+const sizeOf = require('probe-image-size');
 
 const config = require('../constants/config');
 
@@ -27,7 +27,10 @@ module.exports.buffer = async (event, tmp) => {
 
   if (!coordinates.length) return false;
 
-  const { width, height } = await sizeOf(tmp);
+  const { width, height } = await sizeOf(fs.createReadStream(tmp)).catch((/* error */) => ({
+    width: 0,
+    height: 0,
+  }));
 
   if (event.type === 'mqtt' && width === height) return false;
 
