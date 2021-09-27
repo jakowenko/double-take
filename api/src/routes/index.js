@@ -13,6 +13,7 @@ router.use('/filesystem', require('./fs.routes'));
 router.use('/train', require('./train.routes'));
 router.use('/storage', require('./storage.routes'));
 router.use('/proxy', require('./proxy.routes'));
+router.use('/logger', require('./logger.routes'));
 
 router.use(STORAGE.TMP.PATH, express.static(STORAGE.TMP.PATH));
 router.all('*', (req, res) => res.status(NOT_FOUND).error(`${req.originalUrl} not found`));

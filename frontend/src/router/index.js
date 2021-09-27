@@ -37,6 +37,13 @@ const routes = [
     component: () => import(/* webpackChunkName: "token" */ '@/views/Tokens.vue'),
   },
   {
+    path: '/logs',
+    meta: {
+      title: 'Logs',
+    },
+    component: () => import(/* webpackChunkName: "token" */ '@/views/Logs.vue'),
+  },
+  {
     path: '/logout',
     beforeEnter: (to, from, next) => {
       localStorage.removeItem('token');

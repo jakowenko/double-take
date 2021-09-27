@@ -54,6 +54,9 @@ module.exports = {
     level: 'info',
   },
   ui: {
+    logs: {
+      lines: 500,
+    },
     pagination: {
       limit: 50,
     },

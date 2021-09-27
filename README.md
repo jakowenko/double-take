@@ -487,6 +487,10 @@ ui:
     quality: 80
     # value in pixels
     width: 300
+
+  logs:
+    # number of lines displayed
+    lines: 500
 ```
 
 ## Development
