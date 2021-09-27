@@ -11,7 +11,7 @@
         v-if="$route.path === '/login'"
         ref="menu"
         class="double-take-menu"
-        :model="unauthorizedMenu"
+        :model="hasAuth ? [{ items: [{ ...unauthorizedMenu[0].items[0] }] }] : unauthorizedMenu"
         :popup="true"
       />
       <Menu v-else ref="menu" class="double-take-menu" :model="menu" :popup="true" />
@@ -77,12 +77,13 @@ export default {
     menu: [],
     unauthorizedMenu: [
       {
-        items: [],
+        items: [{ label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' }],
       },
     ],
     authorizedMenu: [
       {
         items: [
+          { label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' },
           { label: 'Access Tokens', icon: 'pi pi-fw pi-key', to: '/tokens' },
           {
             label: 'Change Password',
@@ -139,7 +140,7 @@ export default {
   },
   methods: {
     getHeight() {
-      return this.$refs.toolbar.clientHeight;
+      return this.$refs.toolbar.offsetHeight;
     },
     async updatePassword() {
       try {
