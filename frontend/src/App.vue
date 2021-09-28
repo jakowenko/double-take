@@ -209,6 +209,10 @@ body {
 .p-button-icon-only .p-button-label {
   font-size: 0;
 }
+
+i.pi-spin.pi-spinner {
+  color: var(--surface-g);
+}
 </style>
 
 <style scoped lang="scss">
