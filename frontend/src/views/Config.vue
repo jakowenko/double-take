@@ -185,7 +185,7 @@ export default {
         this.doubleTake.status = 200;
         this.loading = false;
         this.checkDetectors();
-        ApiService.get('auth/status').then(({ status }) => {
+        ApiService.get('auth/status').then(({ data: status }) => {
           this.emitter.emit('hasAuth', status.auth);
         });
         this.emitter.emit('setTheme', data.ui.theme);
