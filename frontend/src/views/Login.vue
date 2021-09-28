@@ -5,20 +5,14 @@
     <div v-else class="login-box">
       <div class="p-formgroup-inline p-d-inline-flex p-ai-center">
         <div class="p-field">
-          <InputText
-            type="password"
-            v-model="password"
-            placeholder="Password"
-            @keyup.enter="login"
-            class="p-d-block p-mb-1"
-          />
+          <InputText type="password" v-model="password" placeholder="Password" @keyup.enter="login" class="p-d-block" />
           <InputText
             v-if="firstSetup"
             type="password"
             v-model="verifyPassword"
             placeholder="Confirm Password"
             @keyup.enter="login"
-            class="p-d-block"
+            class="p-d-block p-mt-1"
           />
         </div>
         <Button
@@ -102,7 +96,7 @@ export default {
           ? await ApiService.post('auth/password', { password: this.password })
           : await ApiService.post('auth', { password: this.password });
         localStorage.setItem('token', data.token);
-        this.$router.push('/');
+        await this.$router.push('/');
       } catch (error) {
         error.message = error.response && error.response.status === 401 ? 'Password Incorrect' : error.message;
         this.emitter.emit('error', error);
