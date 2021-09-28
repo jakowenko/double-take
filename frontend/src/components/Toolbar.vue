@@ -226,7 +226,7 @@ export default {
   width: 100%;
   max-width: $max-width;
   background: var(--surface-b);
-  border-bottom: 1px solid var(--bluegray-700);
+  border-bottom: 1px solid var(--surface-d);
 }
 
 .change-password-dialog {
@@ -266,7 +266,7 @@ a.update.visible {
 
 .double-take-menu-wrapper {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-color-secondary);
   font-weight: bold;
   cursor: pointer;
 }

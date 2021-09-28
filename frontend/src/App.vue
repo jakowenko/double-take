@@ -11,7 +11,6 @@
 import io from 'socket.io-client';
 import Toast from 'primevue/toast';
 import ConfirmDialog from 'primevue/confirmdialog';
-import 'primevue/resources/themes/bootstrap4-dark-blue/theme.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
@@ -33,16 +32,47 @@ export default {
     toolbarHeight: null,
   }),
   created() {
+    this.getTheme();
     this.checkLoginState();
     window.addEventListener('focus', this.checkLoginState);
     this.emitter.on('login', this.login);
     this.emitter.on('error', (error) => this.error(error));
     this.emitter.on('toast', (...args) => this.toast(...args));
+    this.emitter.on('setTheme', (theme) => this.setTheme(theme));
   },
   mounted() {
     this.toolbarHeight = this.$refs.toolbar.getHeight();
   },
   methods: {
+    async getTheme() {
+      this.setTheme();
+      ApiService.get('config').then(({ data }) => {
+        localStorage.setItem('theme', data.ui.theme);
+        this.setTheme();
+      });
+    },
+    setTheme(newTheme) {
+      const theme = localStorage.getItem('theme');
+      if (newTheme && newTheme !== theme) {
+        document.getElementById('theme-link').setAttribute('href', `./themes/${newTheme}/theme.css`);
+        localStorage.setItem('theme', newTheme);
+      }
+      if (!newTheme && theme) {
+        document.getElementById('theme-link').setAttribute('href', `./themes/${theme}/theme.css`);
+      }
+
+      const bg = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
+      if (bg.includes('rgb')) {
+        const [r, g, b] = bg.replace('rgb(', '').replace(')', '').replace(/\s+/g, '').split(',');
+        const hex = this.rgbToHex(r, g, b);
+        document.getElementById('theme-color').setAttribute('content', hex);
+      }
+    },
+    rgbToHex(r, g, b) {
+      return `#${[parseInt(r, 10), parseInt(g, 10), parseInt(b, 10)]
+        .map((x) => x.toString(16).padStart(2, '0'))
+        .join('')}`;
+    },
     login() {
       if (this.$route.path !== '/login') {
         this.$router.push('/logout');

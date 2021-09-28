@@ -1,6 +1,6 @@
 <template>
-  <div class="wrapper">
-    <div class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3 p-d-flex p-jc-between">
+  <div class="config-wrapper">
+    <div ref="status" class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3 p-d-flex p-jc-between">
       <div class="service-wrapper p-d-flex">
         <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-mr-2 p-ai-center">
           <div class="name p-mr-1" v-if="index === 0" @click="copyVersion(service)" v-tooltip.right="'Copy Version'">
@@ -49,14 +49,18 @@
         />
       </div>
     </div>
-    <div class="editor-wrapper">
+    <div class="editor-wrapper" :style="{ height, marginTop: this.getStatusHeight() + 'px' }">
+      <div v-if="loading" class="p-d-flex p-jc-center" style="height: 100%">
+        <i class="pi pi-spin pi-spinner p-as-center" style="font-size: 2.5rem"></i>
+      </div>
       <VAceEditor
+        v-if="theme"
         v-model:value="code"
         lang="yaml"
         :wrap="true"
         :printMargin="false"
-        theme="nord_dark"
-        :style="{ height, opacity: ready ? '100%' : 0 }"
+        :theme="theme"
+        :style="{ height, opacity: !loading ? '100%' : 0 }"
         @init="editorInit"
       />
     </div>
@@ -70,14 +74,12 @@ import 'ace-builds';
 import 'ace-builds/webpack-resolver';
 
 import { VAceEditor } from 'vue3-ace-editor';
-import 'ace-builds/src-noconflict/theme-nord_dark';
 import 'ace-builds/src-noconflict/mode-yaml';
 
 import Button from 'primevue/button';
 import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
-import 'prismjs/themes/prism-tomorrow.css';
 
 import Sleep from '@/util/sleep.util';
 import ApiService from '@/services/api.service';
@@ -104,10 +106,13 @@ export default {
     },
     editor: null,
     code: '',
-    ready: false,
     loading: false,
-    height: `${window.innerHeight - 40 - 30 - 10}px`,
+    height: 0,
+    theme: null,
   }),
+  props: {
+    toolbarHeight: Number,
+  },
   created() {
     this.emitter.on('buildTag', (data) => {
       this.doubleTake.buildTag = data;
@@ -116,15 +121,15 @@ export default {
   async mounted() {
     try {
       this.loading = true;
+      this.updateHeight();
+      await this.getTheme();
       const { data } = await ApiService.get('config?format=yaml');
       this.doubleTake.status = 200;
       this.loading = false;
       this.code = data;
       this.editor.session.setValue(data);
       this.editor.session.setTabSize(2);
-      this.ready = true;
       this.checkDetectors();
-      this.updateHeight();
       this.emitter.emit('getBuildTag');
       window.addEventListener('keydown', this.saveListener);
       window.addEventListener('resize', this.updateHeight);
@@ -149,6 +154,13 @@ export default {
     },
   },
   methods: {
+    async getTheme() {
+      const { data } = await ApiService.get('config?format=json');
+      this.theme = data.ui.editor.theme;
+    },
+    getStatusHeight() {
+      return this.$refs.status?.clientHeight;
+    },
     reload() {
       window.location.reload();
     },
@@ -167,14 +179,16 @@ export default {
     async waitForRestart() {
       try {
         await Sleep(1000);
-        await ApiService.get('config');
+        const { data } = await ApiService.get('config');
+        this.theme = data.ui.editor.theme;
         this.restartCount = 0;
         this.doubleTake.status = 200;
         this.loading = false;
         this.checkDetectors();
-        ApiService.get('auth/status').then(({ data }) => {
-          this.emitter.emit('hasAuth', data.auth);
+        ApiService.get('auth/status').then(({ status }) => {
+          this.emitter.emit('hasAuth', status.auth);
         });
+        this.emitter.emit('setTheme', data.ui.theme);
         this.emitter.emit('toast', { message: 'Restart complete' });
       } catch (error) {
         if (this.restartCount < 5) {
@@ -236,7 +250,7 @@ export default {
       this.editor = editor;
     },
     updateHeight() {
-      this.height = `${window.innerHeight - 40 - 30 - 10}px`;
+      this.height = `${window.innerHeight - this.getStatusHeight() - this.toolbarHeight}px`;
     },
     highlighter(code) {
       return highlight(code, languages.js);
@@ -292,9 +306,8 @@ export default {
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
 
-.wrapper {
+.config-wrapper {
   position: relative;
-  padding-top: 28px;
 }
 
 .service-wrapper {
@@ -364,15 +377,6 @@ export default {
     top: 40px + 10px + 5px;
     right: 0;
   }
-}
-
-.editor-wrapper {
-  padding-top: 20px;
-  background: var(--surface-a);
-}
-
-.ace_editor {
-  background: var(--surface-a);
 }
 
 ::v-deep(.ace_editor) .ace_mobile-menu {

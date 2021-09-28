@@ -73,17 +73,17 @@ export default {
   }
   li > button {
     margin: 0;
-    background: #2a323d;
+    background: var(--surface-a);
     padding: 5px 10px;
-    color: #fff;
+    color: var(--text-color);
     font-size: 1rem;
     @media only screen and (max-width: 576px) {
       font-size: 0.9rem;
     }
   }
   li.active > button {
-    background: #fff;
-    color: #2a323d;
+    background: var(--surface-d);
+    color: var(--text-color);
   }
   li.disabled {
     opacity: 0.3;

@@ -380,6 +380,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
+  color: var(--gray-200);
   background: rgba(32, 38, 46, 0.85);
   z-index: 2;
   overflow-y: auto;
