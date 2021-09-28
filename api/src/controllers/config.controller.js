@@ -20,6 +20,11 @@ module.exports.get = async (req, res) => {
   res.send(output);
 };
 
+module.exports.theme = async (req, res) => {
+  const { ui } = config();
+  res.send({ theme: ui.theme, editor: ui.editor });
+};
+
 module.exports.patch = async (req, res) => {
   try {
     const isLegacyPath = fs.existsSync('./config.yml');

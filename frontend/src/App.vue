@@ -46,8 +46,8 @@ export default {
   methods: {
     async getTheme() {
       this.setTheme();
-      ApiService.get('config').then(({ data }) => {
-        localStorage.setItem('theme', data.ui.theme);
+      ApiService.get('config/theme').then(({ data }) => {
+        localStorage.setItem('theme', data.theme);
         this.setTheme();
       });
     },

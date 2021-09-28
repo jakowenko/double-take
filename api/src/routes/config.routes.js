@@ -13,6 +13,7 @@ router
     validate([query('format').default('json').isIn(['json', 'yaml', 'yaml-with-defaults'])]),
     controller.get
   )
+  .get('/theme', controller.theme)
   .patch('/', jwt, controller.patch);
 
 module.exports = router;
