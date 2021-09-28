@@ -1,9 +1,9 @@
 module.exports = {
-    projects: [
-      {
-        root: './frontend',
-        package: './package.json',
-        jsconfig: './jsconfig.json'
-      }
-    ]
-  }
+  projects: [
+    {
+      root: './frontend',
+      package: './package.json',
+      jsconfig: './jsconfig.json',
+    },
+  ],
+};
