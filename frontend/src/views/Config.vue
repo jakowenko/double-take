@@ -121,7 +121,6 @@ export default {
       this.loading = false;
       this.code = data;
       this.editor.session.setValue(data);
-      this.editor.gotoPageDown();
       this.editor.session.setTabSize(2);
       this.ready = true;
       this.checkDetectors();
