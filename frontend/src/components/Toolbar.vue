@@ -186,9 +186,7 @@ export default {
     },
     dockerHub() {
       window.open(
-        `${'https://hub.docker.com/repository/docker/jakowenko/double-take/tags?page=1&ordering=last_updated&name='}${
-          this.buildTag
-        }`,
+        `${'https://hub.docker.com/r/jakowenko/double-take/tags?page=1&ordering=last_updated&name='}${this.buildTag}`,
       );
     },
   },
