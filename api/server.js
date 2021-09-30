@@ -14,7 +14,7 @@ module.exports.start = async () => {
   config.setup();
   storage.setup();
   console.log(`Double Take v${version}`);
-  console.log(config());
+  console.verbose(config());
   await database.init();
   const server = http.Server(app).listen(SERVER.PORT);
   mqtt.connect();
