@@ -2,6 +2,7 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 const redact = require('../util/redact-secrets.util');
 const config = require('../constants/config');
+const { ui } = require('../constants/ui');
 const { BAD_REQUEST } = require('../constants/http-status');
 const { STORAGE } = require('../constants');
 
@@ -20,9 +21,17 @@ module.exports.get = async (req, res) => {
   res.send(output);
 };
 
-module.exports.theme = async (req, res) => {
-  const { ui } = config();
-  res.send({ theme: ui.theme, editor: ui.editor });
+module.exports.theme = {
+  get: async (req, res) => {
+    const settings = config();
+    res.send({ theme: settings.ui.theme, editor: settings.ui.editor });
+  },
+  patch: (req, res) => {
+    const { ui: theme, editor } = req.body;
+    ui.set({ theme, editor: { theme: editor } });
+    config.set.ui({ theme, editor: { theme: editor } });
+    res.send();
+  },
 };
 
 module.exports.patch = async (req, res) => {

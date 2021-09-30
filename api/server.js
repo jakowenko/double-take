@@ -11,6 +11,7 @@ const config = require('./src/constants/config');
 const shutdown = require('./src/util/shutdown.util');
 
 module.exports.start = async () => {
+  config.setup();
   storage.setup();
   console.log(`Double Take v${version}`);
   console.log(config());

@@ -1,37 +1,47 @@
 <template>
   <div class="config-wrapper">
-    <div ref="status" class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3 p-d-flex p-jc-between">
-      <div class="service-wrapper p-d-flex">
-        <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-mr-2 p-ai-center">
-          <div class="name p-mr-1" v-if="index === 0" @click="copyVersion(service)" v-tooltip.right="'Copy Version'">
-            {{ service.name }}
-          </div>
-          <div class="name p-mr-1" v-else>{{ service.name }}</div>
-          <div class="status">
+    <div ref="status" class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3">
+      <div class="p-d-flex p-jc-between">
+        <div class="service-wrapper p-d-flex">
+          <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-mr-2 p-ai-center">
+            <div class="name p-mr-1" v-if="index === 0" @click="copyVersion(service)" v-tooltip.right="'Copy Version'">
+              {{ service.name }}
+            </div>
+            <div class="name p-mr-1" v-else>{{ service.name }}</div>
             <div
               v-if="service.status"
-              class="icon"
-              :style="{ background: service.status === 200 ? '#78cc86' : '#c35f5f' }"
+              class="icon p-badge"
+              :class="service.status === 200 ? 'p-badge-success' : 'p-badge-danger'"
             ></div>
-            <div v-else class="icon pulse" style="background: #a9a9a9" v-tooltip.right="'Checking...'"></div>
+            <div v-else class="icon pulse p-badge p-badge-secondary" v-tooltip.right="'Checking...'"></div>
           </div>
         </div>
+        <div class="p-d-flex">
+          <Button
+            icon="pi pi-copy"
+            class="p-button-sm p-button-secondary p-mr-1"
+            @click="copyYamlConfig"
+            v-tooltip.left="'Copy Config (YAML)'"
+          />
+          <Button
+            icon="pi pi-copy"
+            class="p-button-sm p-button-secondary"
+            @click="copyConfig"
+            v-tooltip.left="'Copy Config (JSON)'"
+          />
+        </div>
       </div>
-      <div class="p-d-flex">
-        <Button
-          icon="pi pi-copy"
-          class="p-button-sm p-button-secondary p-mr-1"
-          @click="copyYamlConfig"
-          v-tooltip.left="'Copy Config (YAML)'"
-        />
-        <Button
-          icon="pi pi-copy"
-          class="p-button-sm p-button-secondary"
-          @click="copyConfig"
-          v-tooltip.left="'Copy Config (JSON)'"
-        />
+      <div class="p-d-flex p-ai-center p-mt-2 theme-holder">
+        <div>
+          <label class="p-d-block p-mb-1">UI Theme</label>
+          <Dropdown v-model="themes.ui" :options="options.ui" class="p-mr-2" v-on:change="updateThemes(true)" />
+        </div>
+        <div>
+          <label class="p-d-block p-mb-1">Editor Theme</label>
+          <Dropdown v-model="themes.editor" :options="options.editor" v-on:change="updateThemes" />
+        </div>
       </div>
-      <div class="p-mr-3 buttons">
+      <div class="buttons p-mt-1">
         <Button
           icon="pi pi-refresh"
           class="p-button-sm p-button-success p-mb-1"
@@ -54,12 +64,12 @@
         <i class="pi pi-spin pi-spinner p-as-center" style="font-size: 2.5rem"></i>
       </div>
       <VAceEditor
-        v-if="theme"
+        v-if="themes.editor"
         v-model:value="code"
         lang="yaml"
         :wrap="true"
         :printMargin="false"
-        :theme="theme"
+        :theme="themes.editor"
         :style="{ height, opacity: !loading ? '100%' : 0 }"
         @init="editorInit"
       />
@@ -77,6 +87,7 @@ import { VAceEditor } from 'vue3-ace-editor';
 import 'ace-builds/src-noconflict/mode-yaml';
 
 import Button from 'primevue/button';
+import Dropdown from 'primevue/dropdown';
 import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
@@ -89,10 +100,101 @@ export default {
   components: {
     VAceEditor,
     Button,
+    Dropdown,
   },
   data: () => ({
     restartCount: 0,
     services: [],
+    themes: {
+      ui: null,
+      editor: null,
+    },
+    options: {
+      ui: [
+        'arya-purple',
+        'arya-blue',
+        'arya-green',
+        'arya-orange',
+        'bootstrap4-dark-blue',
+        'bootstrap4-dark-purple',
+        'bootstrap4-light-blue',
+        'bootstrap4-light-purple',
+        'fluent-light',
+        'luna-amber',
+        'luna-blue',
+        'luna-green',
+        'luna-pink',
+        'md-dark-deeppurple',
+        'md-dark-indigo',
+        'md-light-deeppurple',
+        'md-light-indigo',
+        'mdc-dark-deeppurple',
+        'mdc-dark-indigo',
+        'mdc-light-deeppurple',
+        'mdc-light-indigo',
+        'mira',
+        'nano',
+        'nova',
+        'nova-accent',
+        'nova-alt',
+        'nova-vue',
+        'rhea',
+        'saga-blue',
+        'saga-green',
+        'saga-orange',
+        'saga-purple',
+        'soho-light',
+        'soho-dark',
+        'tailwind-light',
+        'vela-blue',
+        'vela-green',
+        'vela-orange',
+        'vela-purple',
+        'viva-light',
+        'viva-dark',
+      ],
+      editor: [
+        'ambiance',
+        'chaos',
+        'chrome',
+        'clouds_midnight',
+        'clouds',
+        'cobalt',
+        'crimson_editor',
+        'dawn',
+        'dracula',
+        'dreamweaver',
+        'eclipse',
+        'github',
+        'gob',
+        'gruvbox',
+        'idle_fingers',
+        'iplastic',
+        'katzenmilch',
+        'kr_theme',
+        'kuroir',
+        'merbivore_soft',
+        'merbivore',
+        'mono_industrial',
+        'monokai',
+        'nord_dark',
+        'one_dark',
+        'pastel_on_dark',
+        'solarized_dark',
+        'solarized_light',
+        'sqlserver',
+        'terminal',
+        'textmate',
+        'tomorrow_night_blue',
+        'tomorrow_night_bright',
+        'tomorrow_night_eighties',
+        'tomorrow_night',
+        'tomorrow',
+        'twilight',
+        'vibrant_ink',
+        'xcode',
+      ],
+    },
     doubleTake: {
       status: null,
       name: 'Double Take',
@@ -108,7 +210,6 @@ export default {
     code: '',
     loading: false,
     height: 0,
-    theme: null,
   }),
   props: {
     toolbarHeight: Number,
@@ -121,8 +222,7 @@ export default {
   async mounted() {
     try {
       this.loading = true;
-      this.updateHeight();
-      await this.getTheme();
+      await this.getThemes();
       const { data } = await ApiService.get('config?format=yaml');
       this.doubleTake.status = 200;
       this.loading = false;
@@ -133,6 +233,7 @@ export default {
       this.emitter.emit('getBuildTag');
       window.addEventListener('keydown', this.saveListener);
       window.addEventListener('resize', this.updateHeight);
+      this.updateHeight();
     } catch (error) {
       this.doubleTake.status = error.response && error.response.status ? error.response.status : 500;
       this.emitter.emit('error', error);
@@ -154,9 +255,27 @@ export default {
     },
   },
   methods: {
-    async getTheme() {
+    async updateThemes(reload) {
+      try {
+        await ApiService.patch('config/theme', { ...this.themes });
+        this.emitter.emit('toast', { message: 'Theme updated' });
+        if (reload === true) {
+          this.loading = true;
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+          return;
+        }
+        this.emitter.emit('setTheme', this.themes.ui);
+      } catch (error) {
+        this.emitter.emit('error', error);
+      }
+    },
+    async getThemes() {
       const { data } = await ApiService.get('config?format=json');
-      this.theme = data.ui.editor.theme;
+
+      this.themes.editor = data.ui.editor.theme;
+      this.themes.ui = data.ui.theme;
     },
     getStatusHeight() {
       return this.$refs.status?.clientHeight;
@@ -180,7 +299,7 @@ export default {
       try {
         await Sleep(1000);
         const { data } = await ApiService.get('config');
-        this.theme = data.ui.editor.theme;
+        this.themes.editor = data.ui.editor.theme;
         this.restartCount = 0;
         this.doubleTake.status = 200;
         this.loading = false;
@@ -318,6 +437,29 @@ export default {
   }
 }
 
+@media only screen and (max-width: 576px) {
+  .theme-holder > div {
+    width: 50%;
+  }
+  .theme-holder > div:last-child {
+    margin-left: 0.5rem;
+  }
+}
+
+.p-dropdown {
+  width: 150px;
+  @media only screen and (max-width: 576px) {
+    width: 100%;
+  }
+  ::v-deep(.p-inputtext) {
+    font-size: 0.8rem;
+  }
+}
+
+label {
+  font-size: 12px;
+}
+
 .service {
   &:first-child > .name {
     cursor: pointer;
@@ -326,14 +468,7 @@ export default {
       text-decoration: underline;
     }
   }
-  .status {
-    width: 13px;
-  }
   .icon {
-    width: 70%;
-    padding-top: 70%;
-    border-radius: 100%;
-    position: relative;
     top: 1px;
     @media only screen and (max-width: 576px) {
       top: 0;
@@ -373,9 +508,10 @@ export default {
   max-width: $max-width;
 
   .buttons {
+    display: inline-block;
     position: absolute;
-    top: 40px + 10px + 5px;
-    right: 0;
+    right: 1rem;
+    top: 100%;
   }
 }
 

@@ -60,6 +60,20 @@ module.exports = () => {
   return CONFIG;
 };
 
+module.exports.setup = () => {
+  const { ui } = require('./ui');
+  const { theme, editor } = ui.create({ theme: CONFIG.ui.theme, editor: CONFIG.ui.editor });
+  CONFIG.ui.theme = theme;
+  CONFIG.ui.editor = editor;
+};
+
+module.exports.set = {
+  ui: ({ theme, editor }) => {
+    CONFIG.ui.theme = theme;
+    CONFIG.ui.editor = editor;
+  },
+};
+
 module.exports.detectors = () => {
   const results = [];
   if (CONFIG.detectors)

@@ -128,6 +128,24 @@ body {
     'Segoe UI Emoji', 'Segoe UI Symbol';
 }
 
+.p-dropdown .p-dropdown-trigger {
+  width: 2rem;
+}
+
+.p-multiselect .p-multiselect-trigger {
+  width: 2rem;
+}
+
+.icon.p-badge {
+  display: block;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  min-width: auto;
+  border-radius: 100%;
+  position: relative;
+}
+
 .p-toast {
   z-index: 10000 !important;
 }
