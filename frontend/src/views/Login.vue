@@ -69,7 +69,7 @@ export default {
       try {
         this.loading = true;
         await Sleep(250);
-        const { data } = await ApiService.get('auth/status');
+        const { data } = await ApiService.get('status/auth');
         this.emitter.emit('hasAuth', data.auth);
         if (data.auth === false) {
           this.$router.push('/');

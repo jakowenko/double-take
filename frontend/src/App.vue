@@ -94,13 +94,17 @@ export default {
       });
     },
     async checkLoginState() {
-      const { data } = await ApiService.get('auth/status');
-      this.emitter.emit('hasAuth', data.auth);
-      if (data.auth && !data.jwtValid) {
-        this.$router.push('login');
-      }
-      if (!data.auth && this.$route.path === '/tokens') {
-        this.$router.push('/');
+      try {
+        const { data } = await ApiService.get('status/auth');
+        this.emitter.emit('hasAuth', data.auth);
+        if (data.auth && !data.jwtValid) {
+          this.$router.push('login');
+        }
+        if (!data.auth && this.$route.path === '/tokens') {
+          this.$router.push('/');
+        }
+      } catch (error) {
+        this.emitter.emit('error', error);
       }
     },
   },
