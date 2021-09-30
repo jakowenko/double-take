@@ -1,6 +1,6 @@
 <template>
   <div class="tool-bar-wrapper p-pr-3 p-d-flex p-jc-between p-ai-center" ref="toolbar">
-    <div><TabMenu :model="navigation" v-if="$route.path !== '/login'" /></div>
+    <div><TabMenu :model="navigation" v-show="showNavigation" /></div>
     <div v-if="updateAvailable" class="version p-ml-auto p-mr-2" v-tooltip.left="`Update Available`">
       <div class="icon" @click="dockerHub"></div>
     </div>
@@ -60,6 +60,7 @@ export default {
   },
   data: () => ({
     version,
+    showNavigation: false,
     updateAvailable: false,
     buildTag: null,
     hasAuth: null,
@@ -202,6 +203,7 @@ export default {
       this.menu = this.unauthorizedMenu;
     },
     $route(to) {
+      this.showNavigation = to.fullPath !== '/login';
       if (this.hasAuth && (to.query.password || to.query.password === null)) {
         this.password.show = true;
         return;
