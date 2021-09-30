@@ -1,9 +1,12 @@
 <template>
   <div class="app-wrapper">
+    <div class="loading p-d-flex p-jc-center" :class="{ loaded, hidden }">
+      <img class="p-d-block" :src="require('@/assets/img/icon.svg')" style="width: 100px" />
+    </div>
     <Toast position="bottom-left" />
     <ConfirmDialog />
     <Toolbar ref="toolbar" />
-    <router-view :socket="socket" :toolbarHeight="toolbarHeight" />
+    <router-view class="router-wrapper" :class="{ visible: hidden }" :socket="socket" :toolbarHeight="toolbarHeight" />
   </div>
 </template>
 
@@ -30,6 +33,8 @@ export default {
   data: () => ({
     socket: io(Constants().socket),
     toolbarHeight: null,
+    loaded: false,
+    hidden: false,
   }),
   created() {
     this.getTheme();
@@ -42,6 +47,14 @@ export default {
   },
   mounted() {
     this.toolbarHeight = this.$refs.toolbar.getHeight();
+    this.$nextTick(() => {
+      setTimeout(() => {
+        this.loaded = true;
+      }, 250);
+      setTimeout(() => {
+        this.hidden = true;
+      }, 250 + 350);
+    });
   },
   methods: {
     async getTheme() {
@@ -142,6 +155,33 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol';
+}
+
+.loading {
+  position: fixed;
+  z-index: 6;
+  background: rgba(0, 0, 0, 0.75);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.5s;
+
+  &.loaded {
+    opacity: 0;
+  }
+  &.hidden {
+    display: none !important;
+  }
+}
+
+.router-wrapper {
+  opacity: 0;
+  transition: opacity 0.5s;
+
+  &.visible {
+    opacity: 1;
+  }
 }
 
 .p-dropdown .p-dropdown-trigger {
