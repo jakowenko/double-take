@@ -1,7 +1,7 @@
 const Database = require('better-sqlite3');
 const time = require('./time.util');
 const filesystem = require('./fs.util');
-const { STORAGE } = require('../constants');
+const { STORAGE } = require('../constants')();
 const DETECTORS = require('../constants/config').detectors();
 
 const database = this;

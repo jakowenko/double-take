@@ -1,7 +1,7 @@
 const perf = require('execution-time')();
 const database = require('./db.util');
 const { train, remove } = require('./detectors/actions');
-const { STORAGE } = require('../constants');
+const { STORAGE } = require('../constants')();
 const DETECTORS = require('../constants/config').detectors();
 
 module.exports.queue = async (files) => {

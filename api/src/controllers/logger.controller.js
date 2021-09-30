@@ -1,6 +1,6 @@
 const fs = require('fs');
 const readLastLines = require('read-last-lines');
-const { STORAGE, UI } = require('../constants');
+const { STORAGE, UI } = require('../constants')();
 
 const bytesToSize = (bytes) => {
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];

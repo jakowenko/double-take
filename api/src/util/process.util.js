@@ -7,7 +7,7 @@ const database = require('./db.util');
 const mask = require('./mask-image.util');
 const sleep = require('./sleep.util');
 const { recognize, normalize } = require('./detectors/actions');
-const { SERVER, STORAGE } = require('../constants');
+const { SERVER, STORAGE } = require('../constants')();
 const DETECTORS = require('../constants/config').detectors();
 const config = require('../constants/config');
 

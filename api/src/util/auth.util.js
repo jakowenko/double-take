@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const yaml = require('js-yaml');
 const { v4: uuidv4 } = require('uuid');
-const { STORAGE } = require('../constants');
+const { STORAGE } = require('../constants')();
 
 module.exports.auth = {
   get: () => {

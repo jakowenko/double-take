@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const { auth, jwt } = require('../util/auth.util');
-const { AUTH } = require('../constants');
+const { AUTH } = require('../constants')();
 const { BAD_REQUEST, UNAUTHORIZED } = require('../constants/http-status');
 
 module.exports.status = (req, res) => {

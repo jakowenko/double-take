@@ -6,8 +6,8 @@ const filesystem = require('../util/fs.util');
 const database = require('../util/db.util');
 const { tryParseJSON } = require('../util/validators.util');
 const { BAD_REQUEST } = require('../constants/http-status');
-const { PATH } = require('../constants').STORAGE;
-const { QUALITY, WIDTH } = require('../constants').UI.THUMBNAILS;
+const { PATH } = require('../constants')().STORAGE;
+const { QUALITY, WIDTH } = require('../constants')().UI.THUMBNAILS;
 
 module.exports.matches = async (req, res) => {
   const { box: showBox } = req.query;

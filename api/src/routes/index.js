@@ -1,5 +1,5 @@
 const express = require('express');
-const { STORAGE } = require('../constants');
+const { STORAGE } = require('../constants')();
 const { NOT_FOUND } = require('../constants/http-status');
 
 const router = express.Router();

@@ -1,7 +1,7 @@
 require('./src/util/logger.util').init();
 const http = require('http');
 const socket = require('./src/util/socket.util');
-const { SERVER } = require('./src/constants');
+const { SERVER } = require('./src/constants')();
 const { version } = require('./package.json');
 const mqtt = require('./src/util/mqtt.util');
 const { app } = require('./src/app');

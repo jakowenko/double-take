@@ -4,7 +4,7 @@ const redact = require('../util/redact-secrets.util');
 const config = require('../constants/config');
 const { ui } = require('../constants/ui');
 const { BAD_REQUEST } = require('../constants/http-status');
-const { STORAGE } = require('../constants');
+const { STORAGE } = require('../constants')();
 
 module.exports.get = async (req, res) => {
   const { format } = req.query;

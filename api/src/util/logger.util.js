@@ -1,7 +1,7 @@
 const { createLogger, format, transports } = require('winston');
 const util = require('util');
 const { core: SYSTEM_CORE } = require('../constants/system');
-const { LOGS } = require('../constants');
+const { LOGS } = require('../constants')();
 const mqtt = require('./mqtt.util');
 const redact = require('./redact-secrets.util');
 

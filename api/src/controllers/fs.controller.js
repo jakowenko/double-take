@@ -1,7 +1,7 @@
 const fs = require('fs');
 const filesystem = require('../util/fs.util');
 const { resync } = require('../util/db.util');
-const { STORAGE } = require('../constants');
+const { STORAGE } = require('../constants')();
 
 module.exports.folders = {
   list: async (req, res) => res.send(await filesystem.folders().train()),

@@ -4,7 +4,7 @@ const mqtt = require('mqtt');
 const fs = require('./fs.util');
 const { contains } = require('./helpers.util');
 const { jwt } = require('./auth.util');
-const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE } = require('../constants');
+const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE } = require('../constants')();
 const config = require('../constants/config');
 
 let PREVIOUS_MQTT_LENGTHS = [];
