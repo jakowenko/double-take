@@ -34,11 +34,22 @@
       <div class="p-d-flex p-ai-center p-mt-2 theme-holder">
         <div>
           <label class="p-d-block p-mb-1">UI Theme</label>
-          <Dropdown v-model="themes.ui" :options="options.ui" class="p-mr-2" @before-hide="updateThemes(true)" />
+          <Dropdown
+            v-model="themes.ui"
+            :options="options.ui"
+            class="p-mr-2"
+            @before-hide="updateThemes('hide', true)"
+            @keyup.enter="updateThemes('enter', true)"
+          />
         </div>
         <div>
           <label class="p-d-block p-mb-1">Editor Theme</label>
-          <Dropdown v-model="themes.editor" :options="options.editor" @before-hide="updateThemes" />
+          <Dropdown
+            v-model="themes.editor"
+            :options="options.editor"
+            @before-hide="updateThemes('hide')"
+            @keyup.enter="updateThemes('enter')"
+          />
         </div>
       </div>
       <div class="buttons p-mt-1">
@@ -261,8 +272,10 @@ export default {
     },
   },
   methods: {
-    async updateThemes(reload) {
+    async updateThemes(type, reload) {
       try {
+        const panelVisible = document.getElementsByClassName('p-dropdown-panel').length;
+        if (type === 'enter' && panelVisible) return;
         await ApiService.patch('config/theme', { ...this.themes });
         this.emitter.emit('toast', { message: 'Theme updated' });
         if (reload === true) {
