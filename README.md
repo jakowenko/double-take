@@ -409,6 +409,7 @@ cameras:
 detectors:
   compreface:
     url:
+    # recognition api key
     key:
     # number of seconds before the request times out and is aborted
     timeout: 15
@@ -478,13 +479,6 @@ logs:
 ```yaml
 # ui settings (default: shown below)
 ui:
-  # available themes: https://github.com/jakowenko/double-take/tree/master/frontend/public/themes
-  theme: bootstrap4-dark-blue
-
-  editor:
-    # available themes: https://github.com/ajaxorg/ace/tree/master/lib/ace/theme
-    theme: nord_dark
-
   pagination:
     # number of results per page
     limit: 50
