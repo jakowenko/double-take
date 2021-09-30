@@ -178,7 +178,6 @@ export default {
         'mono_industrial',
         'monokai',
         'nord_dark',
-        'one_dark',
         'pastel_on_dark',
         'solarized_dark',
         'solarized_light',
