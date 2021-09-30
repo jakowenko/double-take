@@ -3,7 +3,7 @@ const FormData = require('form-data');
 const fs = require('fs');
 const actions = require('./actions');
 const { doesUrlResolve } = require('../validators.util');
-const { DETECTORS } = require('../../constants');
+const { DETECTORS } = require('../../constants')();
 const config = require('../../constants/config');
 
 const { FACEBOX } = DETECTORS || {};

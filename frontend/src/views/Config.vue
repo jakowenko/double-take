@@ -1,37 +1,58 @@
 <template>
-  <div class="wrapper">
-    <div class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3 p-d-flex p-jc-between">
-      <div class="service-wrapper p-d-flex">
-        <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-mr-2 p-ai-center">
-          <div class="name p-mr-1" v-if="index === 0" @click="copyVersion(service)" v-tooltip.right="'Copy Version'">
-            {{ service.name }}
-          </div>
-          <div class="name p-mr-1" v-else>{{ service.name }}</div>
-          <div class="status">
+  <div class="config-wrapper">
+    <div ref="status" class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3">
+      <div class="p-d-flex p-jc-between">
+        <div class="service-wrapper p-d-flex">
+          <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-mr-2 p-ai-center">
+            <div class="name p-mr-1" v-if="index === 0" @click="copyVersion(service)" v-tooltip.right="'Copy Version'">
+              {{ service.name }}
+            </div>
+            <div class="name p-mr-1" v-else>{{ service.name }}</div>
             <div
               v-if="service.status"
-              class="icon"
-              :style="{ background: service.status === 200 ? '#78cc86' : '#c35f5f' }"
+              class="icon p-badge"
+              :class="service.status === 200 ? 'p-badge-success' : 'p-badge-danger'"
             ></div>
-            <div v-else class="icon pulse" style="background: #a9a9a9" v-tooltip.right="'Checking...'"></div>
+            <div v-else class="icon pulse p-badge p-badge-secondary" v-tooltip.right="'Checking...'"></div>
           </div>
         </div>
+        <div class="p-d-flex">
+          <Button
+            icon="pi pi-copy"
+            class="p-button-sm p-button-secondary p-mr-1"
+            @click="copyYamlConfig"
+            v-tooltip.left="'Copy Config (YAML)'"
+          />
+          <Button
+            icon="pi pi-copy"
+            class="p-button-sm p-button-secondary"
+            @click="copyConfig"
+            v-tooltip.left="'Copy Config (JSON)'"
+          />
+        </div>
       </div>
-      <div class="p-d-flex">
-        <Button
-          icon="pi pi-copy"
-          class="p-button-sm p-button-secondary p-mr-1"
-          @click="copyYamlConfig"
-          v-tooltip.left="'Copy Config (YAML)'"
-        />
-        <Button
-          icon="pi pi-copy"
-          class="p-button-sm p-button-secondary"
-          @click="copyConfig"
-          v-tooltip.left="'Copy Config (JSON)'"
-        />
+      <div class="p-d-flex p-ai-center p-mt-2 theme-holder">
+        <div>
+          <label class="p-d-block p-mb-1">UI Theme</label>
+          <Dropdown
+            v-model="themes.ui"
+            :options="options.ui"
+            class="p-mr-2"
+            @before-hide="updateThemes('hide', true)"
+            @keyup.enter="updateThemes('enter', true)"
+          />
+        </div>
+        <div>
+          <label class="p-d-block p-mb-1">Editor Theme</label>
+          <Dropdown
+            v-model="themes.editor"
+            :options="options.editor"
+            @before-hide="updateThemes('hide')"
+            @keyup.enter="updateThemes('enter')"
+          />
+        </div>
       </div>
-      <div class="p-mr-3 buttons">
+      <div class="buttons p-mt-1">
         <Button
           icon="pi pi-refresh"
           class="p-button-sm p-button-success p-mb-1"
@@ -49,14 +70,18 @@
         />
       </div>
     </div>
-    <div class="editor-wrapper">
+    <div class="editor-wrapper" :style="{ height, marginTop: this.getStatusHeight() + 'px' }">
+      <div v-if="loading" class="p-d-flex p-jc-center" style="height: 100%">
+        <i class="pi pi-spin pi-spinner p-as-center" style="font-size: 2.5rem"></i>
+      </div>
       <VAceEditor
+        v-if="themes.editor"
         v-model:value="code"
         lang="yaml"
         :wrap="true"
         :printMargin="false"
-        theme="nord_dark"
-        :style="{ height, opacity: ready ? '100%' : 0 }"
+        :theme="themes.editor"
+        :style="{ height, opacity: !loading ? '100%' : 0 }"
         @init="editorInit"
       />
     </div>
@@ -70,14 +95,13 @@ import 'ace-builds';
 import 'ace-builds/webpack-resolver';
 
 import { VAceEditor } from 'vue3-ace-editor';
-import 'ace-builds/src-noconflict/theme-nord_dark';
 import 'ace-builds/src-noconflict/mode-yaml';
 
 import Button from 'primevue/button';
+import Dropdown from 'primevue/dropdown';
 import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
-import 'prismjs/themes/prism-tomorrow.css';
 
 import Sleep from '@/util/sleep.util';
 import ApiService from '@/services/api.service';
@@ -87,15 +111,110 @@ export default {
   components: {
     VAceEditor,
     Button,
+    Dropdown,
   },
   data: () => ({
     restartCount: 0,
     services: [],
+    themes: {
+      ui: null,
+      editor: null,
+    },
+    options: {
+      ui: [
+        'arya-purple',
+        'arya-blue',
+        'arya-green',
+        'arya-orange',
+        'bootstrap4-dark-blue',
+        'bootstrap4-dark-purple',
+        'bootstrap4-light-blue',
+        'bootstrap4-light-purple',
+        'fluent-light',
+        'luna-amber',
+        'luna-blue',
+        'luna-green',
+        'luna-pink',
+        'md-dark-deeppurple',
+        'md-dark-indigo',
+        'md-light-deeppurple',
+        'md-light-indigo',
+        'mdc-dark-deeppurple',
+        'mdc-dark-indigo',
+        'mdc-light-deeppurple',
+        'mdc-light-indigo',
+        'mira',
+        'nano',
+        'nova',
+        'nova-accent',
+        'nova-alt',
+        'nova-vue',
+        'rhea',
+        'saga-blue',
+        'saga-green',
+        'saga-orange',
+        'saga-purple',
+        'soho-light',
+        'soho-dark',
+        'tailwind-light',
+        'vela-blue',
+        'vela-green',
+        'vela-orange',
+        'vela-purple',
+        'viva-light',
+        'viva-dark',
+      ],
+      editor: [
+        'ambiance',
+        'chaos',
+        'chrome',
+        'clouds_midnight',
+        'clouds',
+        'cobalt',
+        'crimson_editor',
+        'dawn',
+        'dracula',
+        'dreamweaver',
+        'eclipse',
+        'github',
+        'gob',
+        'gruvbox',
+        'idle_fingers',
+        'iplastic',
+        'katzenmilch',
+        'kr_theme',
+        'kuroir',
+        'merbivore_soft',
+        'merbivore',
+        'mono_industrial',
+        'monokai',
+        'nord_dark',
+        'pastel_on_dark',
+        'solarized_dark',
+        'solarized_light',
+        'sqlserver',
+        'terminal',
+        'textmate',
+        'tomorrow_night_blue',
+        'tomorrow_night_bright',
+        'tomorrow_night_eighties',
+        'tomorrow_night',
+        'tomorrow',
+        'twilight',
+        'vibrant_ink',
+        'xcode',
+      ],
+    },
     doubleTake: {
       status: null,
       name: 'Double Take',
       version,
       buildTag: null,
+    },
+    mqtt: {
+      configured: false,
+      status: null,
+      name: 'MQTT',
     },
     frigate: {
       configured: false,
@@ -104,10 +223,12 @@ export default {
     },
     editor: null,
     code: '',
-    ready: false,
     loading: false,
-    height: `${window.innerHeight - 40 - 30 - 10}px`,
+    height: 0,
   }),
+  props: {
+    toolbarHeight: Number,
+  },
   created() {
     this.emitter.on('buildTag', (data) => {
       this.doubleTake.buildTag = data;
@@ -116,19 +237,18 @@ export default {
   async mounted() {
     try {
       this.loading = true;
+      await this.getThemes();
       const { data } = await ApiService.get('config?format=yaml');
       this.doubleTake.status = 200;
       this.loading = false;
       this.code = data;
       this.editor.session.setValue(data);
-      this.editor.gotoPageDown();
       this.editor.session.setTabSize(2);
-      this.ready = true;
       this.checkDetectors();
-      this.updateHeight();
       this.emitter.emit('getBuildTag');
       window.addEventListener('keydown', this.saveListener);
       window.addEventListener('resize', this.updateHeight);
+      this.updateHeight();
     } catch (error) {
       this.doubleTake.status = error.response && error.response.status ? error.response.status : 500;
       this.emitter.emit('error', error);
@@ -144,12 +264,41 @@ export default {
   },
   computed: {
     combined() {
-      return this.frigate.configured
-        ? [{ ...this.doubleTake }, { ...this.frigate }, ...this.services]
-        : [{ ...this.doubleTake }, ...this.services];
+      const extra = [];
+      if (this.mqtt.configured) extra.push(this.mqtt);
+      if (this.frigate.configured) extra.push(this.frigate);
+
+      return [{ ...this.doubleTake }, ...extra, ...this.services];
     },
   },
   methods: {
+    async updateThemes(type, reload) {
+      try {
+        const panelVisible = document.getElementsByClassName('p-dropdown-panel').length;
+        if (type === 'enter' && panelVisible) return;
+        await ApiService.patch('config/theme', { ...this.themes });
+        this.emitter.emit('toast', { message: 'Theme updated' });
+        if (reload === true) {
+          this.loading = true;
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+          return;
+        }
+        this.emitter.emit('setTheme', this.themes.ui);
+      } catch (error) {
+        this.emitter.emit('error', error);
+      }
+    },
+    async getThemes() {
+      const { data } = await ApiService.get('config?format=json');
+
+      this.themes.editor = data.ui.editor.theme;
+      this.themes.ui = data.ui.theme;
+    },
+    getStatusHeight() {
+      return this.$refs.status?.clientHeight;
+    },
     reload() {
       window.location.reload();
     },
@@ -168,14 +317,16 @@ export default {
     async waitForRestart() {
       try {
         await Sleep(1000);
-        await ApiService.get('config');
+        const { data } = await ApiService.get('config');
+        this.themes.editor = data.ui.editor.theme;
         this.restartCount = 0;
         this.doubleTake.status = 200;
         this.loading = false;
         this.checkDetectors();
-        ApiService.get('auth/status').then(({ data }) => {
-          this.emitter.emit('hasAuth', data.auth);
+        ApiService.get('status/auth').then(({ data: status }) => {
+          this.emitter.emit('hasAuth', status.auth);
         });
+        this.emitter.emit('setTheme', data.ui.theme);
         this.emitter.emit('toast', { message: 'Restart complete' });
       } catch (error) {
         if (this.restartCount < 5) {
@@ -203,13 +354,22 @@ export default {
         this.frigate.status = status;
       }
     },
+    async checkMQTT() {
+      try {
+        const { data } = await ApiService.get('status/mqtt');
+        this.mqtt.status = data.status ? 200 : 500;
+      } catch (error) {
+        this.mqtt.status = 500;
+      }
+    },
     async checkDetectors() {
       const { data } = await ApiService.get('config?format=json');
 
-      if (data.frigate && data.frigate.url) {
-        this.frigate.configured = true;
-        this.checkFrigate(data.frigate.url);
-      }
+      this.frigate.configured = data.frigate?.url;
+      if (this.frigate.configured) this.checkFrigate(data.frigate.url);
+
+      this.mqtt.configured = data.mqtt?.host;
+      if (this.mqtt.configured) this.checkMQTT();
 
       this.services = data?.detectors
         ? Object.keys(data.detectors).map((item) => ({ name: this.formatName(item), status: null }))
@@ -237,7 +397,7 @@ export default {
       this.editor = editor;
     },
     updateHeight() {
-      this.height = `${window.innerHeight - 40 - 30 - 10}px`;
+      this.height = `${window.innerHeight - this.getStatusHeight() - this.toolbarHeight}px`;
     },
     highlighter(code) {
       return highlight(code, languages.js);
@@ -252,6 +412,7 @@ export default {
           delete detector.status;
         });
         delete this.doubleTake.status;
+        delete this.mqtt.status;
         delete this.frigate.status;
         this.waitForRestart();
       } catch (error) {
@@ -293,9 +454,8 @@ export default {
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
 
-.wrapper {
+.config-wrapper {
   position: relative;
-  padding-top: 28px;
 }
 
 .service-wrapper {
@@ -306,6 +466,29 @@ export default {
   }
 }
 
+@media only screen and (max-width: 576px) {
+  .theme-holder > div {
+    width: 50%;
+  }
+  .theme-holder > div:last-child {
+    margin-left: 0.5rem;
+  }
+}
+
+.p-dropdown {
+  width: 150px;
+  @media only screen and (max-width: 576px) {
+    width: 100%;
+  }
+  ::v-deep(.p-inputtext) {
+    font-size: 0.8rem;
+  }
+}
+
+label {
+  font-size: 12px;
+}
+
 .service {
   &:first-child > .name {
     cursor: pointer;
@@ -314,14 +497,7 @@ export default {
       text-decoration: underline;
     }
   }
-  .status {
-    width: 13px;
-  }
   .icon {
-    width: 70%;
-    padding-top: 70%;
-    border-radius: 100%;
-    position: relative;
     top: 1px;
     @media only screen and (max-width: 576px) {
       top: 0;
@@ -361,19 +537,11 @@ export default {
   max-width: $max-width;
 
   .buttons {
+    display: inline-block;
     position: absolute;
-    top: 40px + 10px + 5px;
-    right: 0;
+    right: 1rem;
+    top: 100%;
   }
-}
-
-.editor-wrapper {
-  padding-top: 20px;
-  background: var(--surface-a);
-}
-
-.ace_editor {
-  background: var(--surface-a);
 }
 
 ::v-deep(.ace_editor) .ace_mobile-menu {

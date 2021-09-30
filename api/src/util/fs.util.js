@@ -2,7 +2,7 @@ const fs = require('fs');
 const axios = require('axios');
 const time = require('./time.util');
 const { jwt } = require('./auth.util');
-const { AUTH, STORAGE } = require('../constants');
+const { AUTH, STORAGE } = require('../constants')();
 
 module.exports.folders = () => {
   return {

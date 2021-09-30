@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { jwt } = require('../util/auth.util');
-const { AUTH, SERVER, CAMERAS } = require('../constants');
+const { AUTH, SERVER, CAMERAS } = require('../constants')();
 const { BAD_REQUEST } = require('../constants/http-status');
 
 module.exports.event = async (req, res) => {

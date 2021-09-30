@@ -7,7 +7,7 @@ const train = require('../util/train.util');
 const filesystem = require('../util/fs.util');
 const { jwt } = require('../util/auth.util');
 const { BAD_REQUEST } = require('../constants/http-status');
-const { AUTH, STORAGE, UI } = require('../constants');
+const { AUTH, STORAGE, UI } = require('../constants')();
 const { tryParseJSON } = require('../util/validators.util');
 
 module.exports.get = async (req, res) => {

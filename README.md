@@ -409,6 +409,7 @@ cameras:
 detectors:
   compreface:
     url:
+    # recognition api key
     key:
     # number of seconds before the request times out and is aborted
     timeout: 15
@@ -487,6 +488,10 @@ ui:
     quality: 80
     # value in pixels
     width: 300
+
+  logs:
+    # number of lines displayed
+    lines: 500
 ```
 
 ## Development

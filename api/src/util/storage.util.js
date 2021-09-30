@@ -1,7 +1,7 @@
 const fs = require('fs');
 const schedule = require('node-schedule');
 const database = require('./db.util');
-const { STORAGE } = require('../constants');
+const { STORAGE } = require('../constants')();
 const { MATCH, UNKNOWN } = require('../constants/config').detect();
 
 module.exports.purge = async () => {

@@ -1,7 +1,7 @@
 const expressValidator = require('express-validator');
 const { auth, jwt } = require('../util/auth.util');
 const { UNAUTHORIZED } = require('../constants/http-status');
-const { AUTH } = require('../constants');
+const { AUTH } = require('../constants')();
 
 const { validationResult } = expressValidator;
 

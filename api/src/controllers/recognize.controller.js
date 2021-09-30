@@ -12,7 +12,7 @@ const { emit } = require('../util/socket.util');
 const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
 const config = require('../constants/config');
-const { AUTH, TOKEN } = require('../constants');
+const { AUTH, TOKEN } = require('../constants')();
 
 const { IDS, MATCH_IDS } = {
   IDS: [],

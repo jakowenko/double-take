@@ -8,7 +8,6 @@ const router = express.Router();
 
 router
   .post('/', validate([body('password').isLength({ min: 1 })]), controller.login)
-  .get('/status', controller.status)
   .post('/password', validate([body('password').isLength({ min: 1 })]), setup, controller.password)
   .patch(
     '/password',

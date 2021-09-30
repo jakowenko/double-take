@@ -1,5 +1,5 @@
 const factory = require('../factory');
-const { NOTIFY } = require('../../../constants');
+const { NOTIFY } = require('../../../constants')();
 const SERVICES = require('../../../constants/config').notify();
 
 module.exports.send = (service, output) => factory.get(service).send(output);

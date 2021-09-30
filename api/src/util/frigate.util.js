@@ -1,7 +1,7 @@
 const axios = require('axios');
 const sleep = require('./sleep.util');
 
-const { FRIGATE, MQTT } = require('../constants');
+const { FRIGATE, MQTT } = require('../constants')();
 
 const frigate = this;
 

@@ -51,6 +51,7 @@
                 :multiple="true"
                 chooseLabel="Upload"
                 :disabled="loading.files || loading.status"
+                class="p-button-sm"
               />
             </div>
             <Button
@@ -118,7 +119,7 @@
         <div class="p-col-6 p-pb-0 stats-text">{{ stats.current }} of {{ stats.total }}</div>
         <div class="p-col-6 p-d-flex p-jc-end p-pb-0 p-ai-center socket-status">
           WebSocket
-          <div class="icon p-ml-1" :class="socketClass"></div>
+          <div class="icon p-badge p-ml-1" :class="socketClass"></div>
         </div>
         <div class="p-col custom-col">
           <div class="p-fluid">
@@ -302,7 +303,7 @@ export default {
       height: 0,
     },
     selected: {},
-    socketClass: null,
+    socketClass: 'p-badge-secondary',
   }),
   props: {
     areAllSelected: Boolean,
@@ -319,15 +320,15 @@ export default {
 
     if (this.socket) {
       this.socket.on('connect', () => {
-        this.socketClass = 'green';
+        this.socketClass = 'p-badge-success';
       });
       this.socket.on('disconnect', () => {
-        this.socketClass = 'red';
+        this.socketClass = 'p-badge-danger';
       });
       this.socket.on('connect_error', () => {
-        this.socketClass = 'red';
+        this.socketClass = 'p-badge-danger';
       });
-      this.socketClass = this.socket.connected ? 'green' : 'red';
+      this.socketClass = this.socket.connected ? 'p-badge-success' : 'p-badge-danger';
     }
   },
   methods: {
@@ -463,31 +464,33 @@ export default {
   z-index: 4;
 
   .p-fileupload {
-    ::v-deep(.p-button) {
-      padding: 0.4375rem 0.65625rem;
-      font-size: 0.875rem;
-    }
     @media only screen and (max-width: 576px) {
       ::v-deep(.p-button-icon) {
         margin-right: 0;
-        font-size: 1rem;
       }
       ::v-deep(.p-button-label) {
         font-size: 0;
+        display: none;
       }
     }
   }
 
   @media only screen and (max-width: 576px) {
     .responsive-button {
-      width: 2.357rem;
+      width: auto;
+      min-width: auto;
       ::v-deep(.p-button-icon) {
         margin-right: 0;
       }
       ::v-deep(.p-button-label) {
         font-size: 0;
+        display: none;
       }
     }
+  }
+
+  .p-button.p-button-icon-only {
+    width: auto;
   }
 
   .custom-col,
@@ -506,12 +509,12 @@ export default {
     width: 8%;
   }
 
-  .p-button ::v-deep(.fa.p-button-icon),
-  .p-button ::v-deep(.fas.p-button-icon),
-  .p-button ::v-deep(.far.p-button-icon),
-  .p-button ::v-deep(.pi) {
-    font-size: 1rem;
-  }
+  // .p-button ::v-deep(.fa.p-button-icon),
+  // .p-button ::v-deep(.fas.p-button-icon),
+  // .p-button ::v-deep(.far.p-button-icon),
+  // .p-button ::v-deep(.pi) {
+  //   font-size: 1rem;
+  // }
   .p-button ::v-deep(.push-top) {
     position: relative;
     top: 1px;
@@ -601,16 +604,7 @@ export default {
 .socket-status {
   font-size: 12px;
   .icon {
-    width: 10px;
-    height: 10px;
-    border-radius: 100%;
-    background: #a9a9a9;
-  }
-  .icon.green {
-    background: #78cc86;
-  }
-  .icon.red {
-    background: #c35f5f;
+    top: 1px;
   }
 }
 </style>

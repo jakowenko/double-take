@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { oxfordComma } = require('../helpers.util');
-const { SERVER } = require('../../constants');
-const { GOTIFY } = require('../../constants').NOTIFY || {};
+const { SERVER } = require('../../constants')();
+const { GOTIFY } = require('../../constants')().NOTIFY || {};
 
 module.exports.send = async (output) => {
   const { filename, message } = this.normalize(output);

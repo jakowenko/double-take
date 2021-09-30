@@ -1,14 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const { auth, jwt } = require('../util/auth.util');
-const { AUTH } = require('../constants');
 const { BAD_REQUEST, UNAUTHORIZED } = require('../constants/http-status');
-
-module.exports.status = (req, res) => {
-  const response = { auth: AUTH };
-  if (AUTH && auth.get().password) response.configured = true;
-  if (AUTH) response.jwtValid = jwt.verify(req.headers.authorization);
-  res.send(response);
-};
 
 module.exports.tokens = {
   get: (req, res) => {

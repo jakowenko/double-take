@@ -29,11 +29,11 @@
             <div v-if="!loaded" style="position: absolute; top: 50%; left: 50%; margin-left: -0.75rem">
               <i class="pi pi-spin pi-spinner" style="font-size: 1.5rem"></i>
             </div>
-            <img
+            <VLazyImage
               ref="thumbnail"
               @click="emitter.emit('toggleAsset', asset)"
               :class="loaded ? 'thumbnail' : 'thumbnail lazy'"
-              :src="src"
+              :src="imageURL()"
               :onload="assetLoaded"
               :style="{ position: asset.file.width === 0 || asset.file.height === 0 ? 'relative' : 'absolute' }"
             />
@@ -160,6 +160,7 @@
 
 <script>
 import { DateTime } from 'luxon';
+import VLazyImage from 'v-lazy-image';
 
 import Button from 'primevue/button';
 import Badge from 'primevue/badge';
@@ -188,6 +189,7 @@ export default {
     Column,
     Dropdown,
     Button,
+    VLazyImage,
   },
   data: () => ({
     timestamp: Date.now(),
@@ -201,11 +203,6 @@ export default {
     setInterval(() => {
       this.timestamp = Date.now();
     }, 1000);
-  },
-  mounted() {
-    setTimeout(() => {
-      this.src = this.imageURL();
-    }, this.index * (this.loaded ? 0 : 25));
   },
   methods: {
     constants: () => ({
@@ -383,6 +380,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
+  color: var(--gray-200);
   background: rgba(32, 38, 46, 0.85);
   z-index: 2;
   overflow-y: auto;

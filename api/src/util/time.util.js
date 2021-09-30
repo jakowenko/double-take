@@ -1,5 +1,5 @@
 const { DateTime } = require('luxon');
-const { TIMEZONE, FORMAT } = require('../constants').TIME;
+const { TIMEZONE, FORMAT } = require('../constants')().TIME;
 
 module.exports.current = () => {
   return FORMAT

@@ -1,6 +1,6 @@
 <template>
   <div class="tool-bar-wrapper p-pr-3 p-d-flex p-jc-between p-ai-center" ref="toolbar">
-    <div><TabMenu :model="navigation" v-if="$route.path !== '/login'" /></div>
+    <div><TabMenu :model="navigation" v-show="showNavigation" /></div>
     <div v-if="updateAvailable" class="version p-ml-auto p-mr-2" v-tooltip.left="`Update Available`">
       <div class="icon" @click="dockerHub"></div>
     </div>
@@ -11,7 +11,7 @@
         v-if="$route.path === '/login'"
         ref="menu"
         class="double-take-menu"
-        :model="unauthorizedMenu"
+        :model="hasAuth ? [{ items: [{ ...unauthorizedMenu[0].items[0] }] }] : unauthorizedMenu"
         :popup="true"
       />
       <Menu v-else ref="menu" class="double-take-menu" :model="menu" :popup="true" />
@@ -60,6 +60,7 @@ export default {
   },
   data: () => ({
     version,
+    showNavigation: false,
     updateAvailable: false,
     buildTag: null,
     hasAuth: null,
@@ -77,12 +78,13 @@ export default {
     menu: [],
     unauthorizedMenu: [
       {
-        items: [],
+        items: [{ label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' }],
       },
     ],
     authorizedMenu: [
       {
         items: [
+          { label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' },
           { label: 'Access Tokens', icon: 'pi pi-fw pi-key', to: '/tokens' },
           {
             label: 'Change Password',
@@ -139,7 +141,7 @@ export default {
   },
   methods: {
     getHeight() {
-      return this.$refs.toolbar.clientHeight;
+      return this.$refs.toolbar.offsetHeight;
     },
     async updatePassword() {
       try {
@@ -185,9 +187,7 @@ export default {
     },
     dockerHub() {
       window.open(
-        `${'https://hub.docker.com/repository/docker/jakowenko/double-take/tags?page=1&ordering=last_updated&name='}${
-          this.buildTag
-        }`,
+        `${'https://hub.docker.com/r/jakowenko/double-take/tags?page=1&ordering=last_updated&name='}${this.buildTag}`,
       );
     },
   },
@@ -203,6 +203,7 @@ export default {
       this.menu = this.unauthorizedMenu;
     },
     $route(to) {
+      this.showNavigation = to.fullPath !== '/login';
       if (this.hasAuth && (to.query.password || to.query.password === null)) {
         this.password.show = true;
         return;
@@ -225,7 +226,7 @@ export default {
   width: 100%;
   max-width: $max-width;
   background: var(--surface-b);
-  border-bottom: 1px solid var(--bluegray-700);
+  border-bottom: 1px solid var(--surface-d);
 }
 
 .change-password-dialog {
@@ -265,7 +266,7 @@ a.update.visible {
 
 .double-take-menu-wrapper {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-color-secondary);
   font-weight: bold;
   cursor: pointer;
 }

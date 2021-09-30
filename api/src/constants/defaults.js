@@ -54,6 +54,13 @@ module.exports = {
     level: 'info',
   },
   ui: {
+    theme: 'bootstrap4-dark-blue',
+    editor: {
+      theme: 'nord_dark',
+    },
+    logs: {
+      lines: 500,
+    },
     pagination: {
       limit: 50,
     },

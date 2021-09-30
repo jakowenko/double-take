@@ -5,7 +5,7 @@ const filesystem = require('../util/fs.util');
 const { tryParseJSON } = require('../util/validators.util');
 const { jwt } = require('../util/auth.util');
 const process = require('../util/process.util');
-const { AUTH, STORAGE, UI } = require('../constants');
+const { AUTH, STORAGE, UI } = require('../constants')();
 const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
 

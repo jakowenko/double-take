@@ -2,8 +2,9 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 const redact = require('../util/redact-secrets.util');
 const config = require('../constants/config');
+const { ui } = require('../constants/ui');
 const { BAD_REQUEST } = require('../constants/http-status');
-const { STORAGE } = require('../constants');
+const { STORAGE } = require('../constants')();
 
 module.exports.get = async (req, res) => {
   const { format } = req.query;
@@ -18,6 +19,19 @@ module.exports.get = async (req, res) => {
   else if (req.query.redact === '') output = redact(config());
   else output = config();
   res.send(output);
+};
+
+module.exports.theme = {
+  get: async (req, res) => {
+    const settings = config();
+    res.send({ theme: settings.ui.theme, editor: settings.ui.editor });
+  },
+  patch: (req, res) => {
+    const { ui: theme, editor } = req.body;
+    ui.set({ theme, editor: { theme: editor } });
+    config.set.ui({ theme, editor: { theme: editor } });
+    res.send();
+  },
 };
 
 module.exports.patch = async (req, res) => {
