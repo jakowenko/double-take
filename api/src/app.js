@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const { LIMIT } = require('./constants')().API;
 require('express-async-errors');
 
 const app = express();
