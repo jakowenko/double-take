@@ -34,11 +34,11 @@
       <div class="p-d-flex p-ai-center p-mt-2 theme-holder">
         <div>
           <label class="p-d-block p-mb-1">UI Theme</label>
-          <Dropdown v-model="themes.ui" :options="options.ui" class="p-mr-2" v-on:change="updateThemes(true)" />
+          <Dropdown v-model="themes.ui" :options="options.ui" class="p-mr-2" @before-hide="updateThemes(true)" />
         </div>
         <div>
           <label class="p-d-block p-mb-1">Editor Theme</label>
-          <Dropdown v-model="themes.editor" :options="options.editor" v-on:change="updateThemes" />
+          <Dropdown v-model="themes.editor" :options="options.editor" @before-hide="updateThemes" />
         </div>
       </div>
       <div class="buttons p-mt-1">
