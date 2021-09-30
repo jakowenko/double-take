@@ -338,10 +338,8 @@ export default {
     async checkDetectors() {
       const { data } = await ApiService.get('config?format=json');
 
-      if (data.frigate && data.frigate.url) {
-        this.frigate.configured = true;
-        this.checkFrigate(data.frigate.url);
-      }
+      this.frigate.configured = data.frigate && data.frigate.url;
+      if (this.frigate.configured) this.checkFrigate(data.frigate.url);
 
       this.services = data?.detectors
         ? Object.keys(data.detectors).map((item) => ({ name: this.formatName(item), status: null }))
