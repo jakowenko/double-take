@@ -158,6 +158,12 @@ body {
   position: relative;
 }
 
+.p-badge-secondary,
+.p-button-secondary {
+  background: var(--gray-200) !important;
+  color: #121212 !important;
+}
+
 .p-toast {
   z-index: 10000 !important;
 }
