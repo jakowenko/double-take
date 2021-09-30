@@ -111,6 +111,7 @@ export default {
 @import '@/assets/scss/_variables.scss';
 html {
   font-size: 15px;
+  scrollbar-width: thin;
   @media only screen and (max-width: 576px) {
     font-size: 14px;
   }
@@ -121,6 +122,17 @@ body {
   color: var(--text-color);
   padding-top: $tool-bar-height;
 }
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--text-color-secondary);
+  border-radius: 3px;
+}
+
 #app {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
