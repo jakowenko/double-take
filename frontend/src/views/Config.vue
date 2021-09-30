@@ -201,6 +201,11 @@ export default {
       version,
       buildTag: null,
     },
+    mqtt: {
+      configured: false,
+      status: null,
+      name: 'MQTT',
+    },
     frigate: {
       configured: false,
       status: null,
@@ -249,9 +254,11 @@ export default {
   },
   computed: {
     combined() {
-      return this.frigate.configured
-        ? [{ ...this.doubleTake }, { ...this.frigate }, ...this.services]
-        : [{ ...this.doubleTake }, ...this.services];
+      const extra = [];
+      if (this.mqtt.configured) extra.push(this.mqtt);
+      if (this.frigate.configured) extra.push(this.frigate);
+
+      return [{ ...this.doubleTake }, ...extra, ...this.services];
     },
   },
   methods: {
@@ -335,11 +342,22 @@ export default {
         this.frigate.status = status;
       }
     },
+    async checkMQTT() {
+      try {
+        const { data } = await ApiService.get('status/mqtt');
+        this.mqtt.status = data.status ? 200 : 500;
+      } catch (error) {
+        this.mqtt.status = 500;
+      }
+    },
     async checkDetectors() {
       const { data } = await ApiService.get('config?format=json');
 
-      this.frigate.configured = data.frigate && data.frigate.url;
+      this.frigate.configured = data.frigate?.url;
       if (this.frigate.configured) this.checkFrigate(data.frigate.url);
+
+      this.mqtt.configured = data.mqtt?.host;
+      if (this.mqtt.configured) this.checkMQTT();
 
       this.services = data?.detectors
         ? Object.keys(data.detectors).map((item) => ({ name: this.formatName(item), status: null }))
@@ -382,6 +400,7 @@ export default {
           delete detector.status;
         });
         delete this.doubleTake.status;
+        delete this.mqtt.status;
         delete this.frigate.status;
         this.waitForRestart();
       } catch (error) {
