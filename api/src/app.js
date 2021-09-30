@@ -24,4 +24,4 @@ app.use('/', (req, res) => {
 
 app.use((err, req, res, next) => res.send(err));
 
-module.exports = { app };
+module.exports = app;
