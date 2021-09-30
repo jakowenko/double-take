@@ -1,3 +1,18 @@
+# [1.2.0](https://github.com/jakowenko/double-take/compare/v1.1.0...v1.2.0) (2021-09-30)
+
+
+### Bug Fixes
+
+* **ui:** remove frigate status icon if removed after displayed ([f01c735](https://github.com/jakowenko/double-take/commit/f01c7355c692a67ea653439e169bd3b50f01cc66))
+
+
+### Features
+
+* custom webkit scrollbars to match theme ([b6620af](https://github.com/jakowenko/double-take/commit/b6620afe570fc79e4d3f6968eb4c2b9217027840))
+* **ui:** change ui and editor theme via config ([5d6d123](https://github.com/jakowenko/double-take/commit/5d6d123665f0227810e610f89afe3800d79b64f7))
+* **ui:** log page for viewing / clearing log file ([#113](https://github.com/jakowenko/double-take/issues/113)) ([2ab8d14](https://github.com/jakowenko/double-take/commit/2ab8d146461a2703f880be01367e4bdef0c15b13))
+* **ui:** mqtt status on config page ([7b3b425](https://github.com/jakowenko/double-take/commit/7b3b42597ed52fb4f86924cc56142f4eedc9f3dd))
+
 # [1.1.0](https://github.com/jakowenko/double-take/compare/v1.0.0...v1.1.0) (2021-09-25)
 
 
