@@ -77,41 +77,12 @@
         </div>
       </div>
       <div class="p-d-inline-flex p-ai-center">
-        <div>
-          <Button
-            v-if="type === 'match'"
-            icon="pi pi-trash"
-            class="p-button-danger p-button-sm p-mr-1"
-            @click="$parent.remove().files($event)"
-            :disabled="matches.selected.length === 0"
-          />
-          <Button
-            v-else-if="type === 'train'"
-            icon="pi pi-trash"
-            class="p-button-danger p-button-sm p-mr-1"
-            @click="$parent.remove().files($event)"
-            :disabled="matches.selected.length === 0"
-          />
-
-          <Button
-            :icon="loading.files || loading.status ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'"
-            class="p-button p-button-sm p-mr-1 reload-btn"
-            @click="refresh"
-            :disabled="loading.files || loading.status"
-          />
-          <Button
-            :icon="areAllSelected ? 'fa fa-check-square' : 'far fa-check-square'"
-            class="p-button p-button-sm"
-            @click="$parent.toggleAll(!areAllSelected)"
-            :disabled="!matches.source.length || loading.status"
-          />
-          <Button
-            v-if="type === 'match'"
-            icon="pi pi-cog"
-            class="p-button p-button-sm p-ml-1"
-            @click="showFilter = !showFilter"
-          />
-        </div>
+        <SpeedDial
+          :model="speedDial"
+          direction="left"
+          :hideOnClickOutside="false"
+          :tooltipOptions="{ position: 'top' }"
+        />
       </div>
     </div>
     <div v-if="type === 'match'" class="fixed-sub p-pl-3 p-pr-3" :class="{ show: showFilter }">
@@ -266,6 +237,7 @@ import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import MultiSelect from 'primevue/multiselect';
+import SpeedDial from '@/components/SpeedDial.vue';
 
 import Constants from '@/util/constants.util';
 import ApiService from '@/services/api.service';
@@ -277,9 +249,10 @@ export default {
     InputText,
     MultiSelect,
     FileUpload,
+    SpeedDial,
   },
   data: () => ({
-    headerHeight: 0,
+    speedDial: [],
     pagination: {
       page: 1,
       total: 0,
@@ -317,6 +290,46 @@ export default {
   },
   mounted() {
     this.get().folders();
+
+    this.speedDial = [
+      {
+        label: 'Filters',
+        icon: 'pi pi-cog',
+        command: () => {
+          this.showFilter = !this.showFilter;
+        },
+      },
+      {
+        label: 'Refresh',
+        icon: 'pi pi-refresh',
+        command: () => {
+          if (this.loading.files || this.loading.status) return;
+          if (this.type === 'match') this.$parent.get().matches({ delay: 500 });
+          if (this.type === 'train') this.$parent.init();
+        },
+      },
+      {
+        label: 'Toggle All',
+        icon: 'far fa-check-square',
+        command: () => {
+          if (!this.matches.source.length || this.loading.status) return;
+          this.$parent.toggleAll(!this.areAllSelected);
+        },
+      },
+      {
+        label: 'Trash',
+        icon: 'pi pi-trash',
+        command: () => {
+          if (!this.matches.selected.length) return;
+          this.$parent.remove().files();
+        },
+      },
+    ];
+
+    if (this.type === 'train') {
+      const index = this.speedDial.findIndex(({ label }) => label.toLowerCase() === 'filters');
+      if (index > -1) this.speedDial.splice(index, 1);
+    }
 
     if (this.socket) {
       this.socket.on('connect', () => {
@@ -398,10 +411,6 @@ export default {
         },
       };
     },
-    refresh() {
-      if (this.type === 'match') this.$parent.get().matches({ delay: 500 });
-      if (this.type === 'train') this.$parent.init();
-    },
     addComma(length, index) {
       return length - 1 === index ? ' ' : ',';
     },
@@ -410,6 +419,14 @@ export default {
     },
   },
   watch: {
+    'loading.files': function (value) {
+      const target = this.speedDial.find(({ label }) => label.toLowerCase() === 'refresh');
+      target.icon = value ? 'pi pi-spin pi-spinner' : 'pi pi-refresh';
+    },
+    areAllSelected(value) {
+      const target = this.speedDial.find(({ label }) => label.toLowerCase() === 'toggle all');
+      target.icon = value ? 'fa fa-check-square' : 'far fa-check-square';
+    },
     dropdowns: {
       handler(value) {
         ['names', 'detectors', 'matches', 'cameras', 'types'].forEach((key) => {
@@ -451,6 +468,41 @@ export default {
 
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
+
+::v-deep(.p-speeddial) {
+  position: relative;
+  display: inline-flex;
+  align-self: center;
+
+  .p-button {
+    width: 2rem;
+    height: 2rem;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+
+    &:focus {
+      box-shadow: none;
+    }
+  }
+
+  .p-button-icon {
+    font-size: 0.8rem !important;
+  }
+
+  ul.p-speeddial-list {
+    position: absolute;
+    top: 50%;
+    margin-top: -0.9rem;
+    right: 2rem;
+    .p-speeddial-action {
+      width: 1.8rem;
+      height: 1.8rem;
+      text-decoration: none;
+    }
+    .p-speeddial-action-icon {
+      font-size: 0.8rem !important;
+    }
+  }
+}
 
 .header-wrapper {
   background: var(--surface-a);
