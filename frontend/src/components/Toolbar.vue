@@ -1,6 +1,6 @@
 <template>
   <div class="tool-bar-wrapper p-pr-3 p-d-flex p-jc-between p-ai-center" ref="toolbar">
-    <div><TabMenu :model="navigation" v-show="showNavigation" /></div>
+    <div><TabMenu :model="navigation" class="navigation" :class="{ show: showNavigation }" /></div>
     <div v-if="updateAvailable" class="version p-ml-auto p-mr-2" v-tooltip.left="`Update Available`">
       <div class="icon" @click="dockerHub"></div>
     </div>
@@ -19,6 +19,7 @@
         position="top"
         :modal="true"
         :closable="false"
+        :draggable="false"
         :visible="password.show"
         class="change-password-dialog"
         style="min-width: 300px"
@@ -111,6 +112,8 @@ export default {
   },
   async mounted() {
     try {
+      this.showNavigation = this.$route.fullPath !== '/login';
+
       const obj = {
         label: `v${this.version}`,
         command: () => {
@@ -217,7 +220,6 @@ export default {
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
 .tool-bar-wrapper {
-  height: $tool-bar-height;
   z-index: 5;
   position: fixed;
   top: 0;
@@ -227,6 +229,16 @@ export default {
   max-width: $max-width;
   background: var(--surface-b);
   border-bottom: 1px solid var(--surface-d);
+}
+
+.navigation {
+  opacity: 0;
+  pointer-events: none;
+
+  &.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .change-password-dialog {
