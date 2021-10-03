@@ -1,6 +1,6 @@
 <template>
   <div class="config-wrapper">
-    <div ref="status" class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3">
+    <div ref="status" class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3" :style="'top: ' + toolbarHeight + 'px'">
       <div class="p-d-flex p-jc-between">
         <div class="service-wrapper p-d-flex">
           <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-mr-2 p-ai-center">
@@ -528,7 +528,6 @@ label {
 
 .fixed {
   position: fixed;
-  top: $tool-bar-height;
   z-index: 5;
   left: 50%;
   transform: translateX(-50%);
