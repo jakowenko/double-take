@@ -80,6 +80,7 @@ export default {
         const hex = this.rgbToHex(r, g, b);
         document.getElementById('theme-color').setAttribute('content', hex);
       }
+      document.getElementsByTagName('body')[0].style.paddingTop = `${this.toolbarHeight}px`;
     },
     rgbToHex(r, g, b) {
       return `#${[parseInt(r, 10), parseInt(g, 10), parseInt(b, 10)]
@@ -137,7 +138,6 @@ body {
   margin: 0;
   background: var(--surface-b);
   color: var(--text-color);
-  padding-top: $tool-bar-height;
 }
 
 ::-webkit-scrollbar {
@@ -229,6 +229,9 @@ body {
 }
 .p-tooltip.p-tooltip-left {
   margin-left: -3px;
+}
+.p-tooltip.p-tooltip-top {
+  margin-top: -3px;
 }
 
 .p-tooltip .p-tooltip-text {

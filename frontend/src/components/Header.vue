@@ -346,7 +346,7 @@ export default {
   },
   methods: {
     getHeight() {
-      return this.$refs.header.clientHeight;
+      return this.$refs.header.offsetHeight;
     },
     get() {
       const $this = this;
