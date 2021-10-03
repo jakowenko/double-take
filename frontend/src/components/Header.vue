@@ -419,6 +419,7 @@ export default {
     },
   },
   watch: {
+    // eslint-disable-next-line func-names
     'loading.files': function (value) {
       const target = this.speedDial.find(({ label }) => label.toLowerCase() === 'refresh');
       target.icon = value ? 'pi pi-spin pi-spinner' : 'pi pi-refresh';
