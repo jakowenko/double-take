@@ -326,6 +326,7 @@ export default {
         ApiService.get('status/auth').then(({ data: status }) => {
           this.emitter.emit('hasAuth', status.auth);
         });
+        this.emitter.emit('setup');
         this.emitter.emit('setTheme', data.ui.theme);
         this.emitter.emit('toast', { message: 'Restart complete' });
       } catch (error) {

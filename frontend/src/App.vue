@@ -38,12 +38,15 @@ export default {
   }),
   created() {
     this.getTheme();
-    this.checkLoginState();
+    this.checkLoginState().then((runSetup) => {
+      if (runSetup) this.setup();
+    });
     window.addEventListener('focus', this.checkLoginState);
     this.emitter.on('login', this.login);
     this.emitter.on('error', (error) => this.error(error));
     this.emitter.on('toast', (...args) => this.toast(...args));
     this.emitter.on('setTheme', (theme) => this.setTheme(theme));
+    this.emitter.on('setup', () => this.setup());
   },
   mounted() {
     this.toolbarHeight = this.$refs.toolbar.getHeight();
@@ -57,6 +60,12 @@ export default {
     });
   },
   methods: {
+    async setup() {
+      ApiService.get('config').then(({ data }) => {
+        const { time } = data;
+        localStorage.setItem('time', JSON.stringify(time));
+      });
+    },
     async getTheme() {
       this.setTheme();
       ApiService.get('config/theme').then(({ data }) => {
@@ -108,18 +117,22 @@ export default {
       });
     },
     async checkLoginState() {
+      let runSetup = true;
       try {
         const { data } = await ApiService.get('status/auth');
         this.emitter.emit('hasAuth', data.auth);
         if (data.auth && !data.jwtValid) {
+          runSetup = false;
           this.$router.push('login');
         }
         if (!data.auth && this.$route.path === '/tokens') {
           this.$router.push('/');
         }
       } catch (error) {
+        runSetup = false;
         this.emitter.emit('error', error);
       }
+      return runSetup;
     },
   },
 };

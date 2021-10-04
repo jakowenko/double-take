@@ -132,13 +132,13 @@
             </div>
           </div>
           <div class="p-d-block" style="width: calc(100% - 40px)">
-            <small v-if="type === 'match'" v-tooltip.right="asset.createdAt" style="cursor: pointer">{{
+            <small v-if="type === 'match'" v-tooltip.right="formatTime(asset.createdAt)" style="cursor: pointer">{{
               createdAt.ago
             }}</small>
             <small
               v-if="type === 'match' && updatedAt"
               class="p-ml-2"
-              v-tooltip.right="asset.updatedAt"
+              v-tooltip.right="formatTime(asset.updatedAt)"
               style="cursor: pointer"
             >
               {{ updatedAt ? `(updated ${updatedAt.ago})` : '' }}
@@ -208,6 +208,18 @@ export default {
     constants: () => ({
       ...Constants(),
     }),
+    formatTime(ISO) {
+      try {
+        const time = localStorage.getItem('time');
+        if (time) {
+          const { timezone, format } = JSON.parse(time);
+          return format ? DateTime.fromISO(ISO).setZone(timezone.toUpperCase()).toFormat(format) : ISO;
+        }
+        return ISO;
+      } catch (error) {
+        return ISO;
+      }
+    },
     imageURL() {
       return `${this.constants().api}/storage/${this.asset.file.key}?thumb${
         this.asset.token ? `&token=${this.asset.token}` : ''

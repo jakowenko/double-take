@@ -97,6 +97,7 @@ export default {
           : await ApiService.post('auth', { password: this.password });
         localStorage.setItem('token', data.token);
         await this.$router.push('/');
+        this.emitter.emit('setup');
       } catch (error) {
         error.message = error.response && error.response.status === 401 ? 'Password Incorrect' : error.message;
         this.emitter.emit('error', error);
