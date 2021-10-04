@@ -459,7 +459,7 @@ notify:
 # time settings (default: shown below)
 time:
   # defaults to iso 8601 format with support for token-based formatting
-  # https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens
+  # https://github.com/moment/luxon/blob/master/docs/formatting.md#table-of-tokens
   format:
   # time zone used in logs
   timezone: UTC
