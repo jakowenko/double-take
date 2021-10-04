@@ -3,7 +3,7 @@
     <div ref="status" class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3" :style="'top: ' + toolbarHeight + 'px'">
       <div class="p-d-flex p-jc-between">
         <div class="service-wrapper p-d-flex">
-          <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-mr-2 p-ai-center">
+          <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-pr-2 p-ai-center">
             <div class="name p-mr-1" v-if="index === 0" @click="copyVersion(service)" v-tooltip.right="'Copy Version'">
               {{ service.name }}
             </div>
@@ -498,12 +498,6 @@ label {
       text-decoration: underline;
     }
   }
-  .icon {
-    top: 1px;
-    @media only screen and (max-width: 576px) {
-      top: 0;
-    }
-  }
 
   .icon.pulse {
     opacity: 1;
@@ -524,6 +518,7 @@ label {
     text-align: center;
     white-space: nowrap;
     font-size: 0.9rem;
+    line-height: 0.9rem;
   }
 }
 

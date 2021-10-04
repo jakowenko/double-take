@@ -498,6 +498,7 @@ export default {
       width: 1.8rem;
       height: 1.8rem;
       text-decoration: none;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     }
     .p-speeddial-action-icon {
       font-size: 0.8rem !important;
@@ -656,8 +657,6 @@ export default {
 
 .socket-status {
   font-size: 12px;
-  .icon {
-    top: 1px;
-  }
+  line-height: 12px;
 }
 </style>
