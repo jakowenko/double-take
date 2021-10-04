@@ -485,9 +485,9 @@ ui:
 
   thumbnails:
     # value between 0-100
-    quality: 80
+    quality: 95
     # value in pixels
-    width: 300
+    width: 500
 
   logs:
     # number of lines displayed

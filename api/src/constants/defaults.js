@@ -65,8 +65,8 @@ module.exports = {
       limit: 50,
     },
     thumbnails: {
-      quality: 80,
-      width: 300,
+      quality: 95,
+      width: 500,
     },
   },
 };
