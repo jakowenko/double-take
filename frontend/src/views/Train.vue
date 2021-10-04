@@ -1,5 +1,5 @@
 <template>
-  <div id="pull-to-reload" class="train-wrapper" :style="{ paddingTop: headerHeight + 'px' }">
+  <div class="train-wrapper" :style="{ paddingTop: headerHeight + 'px' }">
     <Header
       type="train"
       :loading="loading"
@@ -26,8 +26,8 @@
         <p class="p-text-bold p-mb-3">No files found</p>
       </div>
     </div>
-    <div id="pull-to-reload-message"></div>
-    <div v-if="!showLoading" class="p-d-flex p-jc-center" :class="isPaginationVisible ? 'pagination-padding' : ''">
+    <div class="p-d-flex p-jc-center p-flex-column" :class="isPaginationVisible ? 'pagination-padding' : ''">
+      <div id="pull-to-reload-message"></div>
       <Grid type="train" :folders="folders" :matches="{ filtered, ...matches }" style="width: 100%" />
     </div>
     <div
@@ -147,11 +147,14 @@ export default {
     this.init();
     PullToRefresh.init({
       mainElement: '#pull-to-reload-message',
-      triggerElement: '#pull-to-reload',
+      triggerElement: '#app-wrapper',
       distMax: 50,
       distThreshold: 45,
       onRefresh() {
         return $this.init();
+      },
+      shouldPullToRefresh() {
+        return window.scrollY === 0;
       },
     });
   },

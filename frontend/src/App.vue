@@ -1,5 +1,5 @@
 <template>
-  <div class="app-wrapper">
+  <div id="app-wrapper">
     <div class="loading p-d-flex p-jc-center" :class="{ loaded, hidden }">
       <img class="p-d-block" :src="require('@/assets/img/icon.svg')" style="width: 100px" />
     </div>
@@ -143,12 +143,14 @@ export default {
 html {
   font-size: 15px;
   scrollbar-width: thin;
+  height: 100%;
   @media only screen and (max-width: 576px) {
     font-size: 14px;
   }
 }
 body {
   margin: 0;
+  height: 100%;
   background: var(--surface-b);
   color: var(--text-color);
 }
@@ -168,6 +170,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol';
+  height: 100%;
+}
+
+#app-wrapper {
+  min-height: 100%;
 }
 
 .loading {
@@ -311,10 +318,14 @@ i.pi-spin.pi-spinner {
   color: var(--surface-g);
 }
 
-#pull-to-reload-message {
-  position: relative;
-  z-index: 4;
-}
+// #pull-to-reload {
+//   position: fixed;
+//   top: 0;
+//   left: 0;
+//   right: 0;
+//   bottom: 0;
+//   z-index: 999;
+// }
 
 .ptr--ptr {
   box-shadow: none !important;
@@ -337,7 +348,7 @@ i.pi-spin.pi-spinner {
 
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
-.app-wrapper {
+#app-wrapper {
   max-width: $max-width;
   margin: auto;
   overflow: hidden;

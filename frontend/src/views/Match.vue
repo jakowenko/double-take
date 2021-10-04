@@ -1,5 +1,5 @@
 <template>
-  <div id="pull-to-reload" class="match-wrapper" :style="{ paddingTop: headerHeight + 'px' }">
+  <div class="match-wrapper" :style="{ paddingTop: headerHeight + 'px' }">
     <Header
       type="match"
       :loading="loading"
@@ -33,8 +33,9 @@
         </DataTable>
       </div>
     </div>
-    <div id="pull-to-reload-message"></div>
-    <div class="p-d-flex p-jc-center" :class="isPaginationVisible ? 'pagination-padding' : ''">
+    <div class="p-d-flex p-jc-center p-flex-column" :class="isPaginationVisible ? 'pagination-padding' : ''">
+      <div id="pull-to-reload-message"></div>
+
       <Grid type="match" :matches="matches" style="width: 100%" />
     </div>
     <div
@@ -118,12 +119,15 @@ export default {
       const $this = this;
       PullToRefresh.init({
         mainElement: '#pull-to-reload-message',
-        triggerElement: '#pull-to-reload',
+        triggerElement: '#app-wrapper',
         distMax: 50,
         distThreshold: 45,
         onRefresh() {
           $this.clear(['source', 'selected', 'disabled', 'loaded']);
           return $this.get().matches({ delay: 500 });
+        },
+        shouldPullToRefresh() {
+          return window.scrollY === 0;
         },
       });
 
