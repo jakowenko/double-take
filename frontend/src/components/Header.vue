@@ -515,7 +515,7 @@ export default {
   transform: translateX(-50%);
   width: 100%;
   max-width: $max-width;
-  z-index: 4;
+  z-index: 3;
 
   .p-fileupload {
     @media only screen and (max-width: 576px) {
@@ -631,7 +631,6 @@ export default {
   transform: translateX(-50%);
   width: 100%;
   max-width: $max-width;
-  z-index: 3;
   transition: all 0.5s;
   box-shadow: inset 0 25px 15px -20px rgba(0, 0, 0, 0.5), 0 5px 15px 0 rgba(0, 0, 0, 0.5);
 

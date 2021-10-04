@@ -343,6 +343,7 @@ export default {
   bottom: 0;
   right: 0;
   left: 0;
+  z-index: 3;
 
   p {
     margin: 0;
@@ -353,7 +354,7 @@ export default {
   position: fixed;
   left: 300px;
   top: 100px;
-  z-index: 3;
+  z-index: 2;
   top: 0;
   left: 50%;
   transform: translateX(-50%);

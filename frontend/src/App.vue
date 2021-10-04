@@ -172,7 +172,7 @@ body {
 
 .loading {
   position: fixed;
-  z-index: 6;
+  z-index: 999;
   background: rgba(0, 0, 0, 0.75);
   top: 0;
   left: 0;
@@ -318,8 +318,7 @@ i.pi-spin.pi-spinner {
 
 .ptr--ptr {
   box-shadow: none !important;
-  position: relative;
-  z-index: 4;
+  z-index: 1;
 
   .ptr--box {
     padding-bottom: 0;
