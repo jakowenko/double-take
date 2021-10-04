@@ -236,6 +236,7 @@ export default {
   },
   async mounted() {
     try {
+      this.updateHeight();
       this.loading = true;
       await this.getThemes();
       const { data } = await ApiService.get('config?format=yaml');
