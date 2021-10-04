@@ -1,5 +1,5 @@
 <template>
-  <div class="match-wrapper">
+  <div id="pull-to-reload" class="match-wrapper" :style="{ paddingTop: headerHeight + 'px' }">
     <Header
       type="match"
       :loading="loading"
@@ -33,11 +33,8 @@
         </DataTable>
       </div>
     </div>
-    <div
-      class="p-d-flex p-jc-center"
-      :class="isPaginationVisible ? 'pagination-padding' : ''"
-      :style="{ marginTop: headerHeight + 'px' }"
-    >
+    <div id="pull-to-reload-message"></div>
+    <div class="p-d-flex p-jc-center" :class="isPaginationVisible ? 'pagination-padding' : ''">
       <Grid type="match" :matches="matches" style="width: 100%" />
     </div>
     <div
@@ -51,6 +48,8 @@
 </template>
 
 <script>
+import PullToRefresh from 'pulltorefreshjs';
+
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 
@@ -116,6 +115,18 @@ export default {
   },
   async mounted() {
     try {
+      const $this = this;
+      PullToRefresh.init({
+        mainElement: '#pull-to-reload-message',
+        triggerElement: '#pull-to-reload',
+        distMax: 50,
+        distThreshold: 45,
+        onRefresh() {
+          $this.clear(['source', 'selected', 'disabled', 'loaded']);
+          return $this.get().matches({ delay: 500 });
+        },
+      });
+
       this.headerHeight = this.$refs.header.getHeight();
       if (this.socket) {
         this.socket.on('recognize', (/* message */) => {
@@ -132,6 +143,7 @@ export default {
     emitters.forEach((emitter) => {
       this.emitter.off(emitter);
     });
+    PullToRefresh.destroyAll();
   },
   created() {
     this.emitter.on('updateFilter', async () => {

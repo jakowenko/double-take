@@ -297,6 +297,30 @@ body {
 i.pi-spin.pi-spinner {
   color: var(--surface-g);
 }
+
+#pull-to-reload-message {
+  position: relative;
+  z-index: 4;
+}
+
+.ptr--ptr {
+  box-shadow: none !important;
+  position: relative;
+  z-index: 4;
+
+  .ptr--box {
+    padding-bottom: 0;
+  }
+
+  .ptr--content {
+    .ptr--text {
+      color: var(--text-color);
+    }
+    .ptr--icon {
+      color: var(--text-color);
+    }
+  }
+}
 </style>
 
 <style scoped lang="scss">

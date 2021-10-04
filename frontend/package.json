@@ -28,6 +28,7 @@
     "primeicons": "^4.1.0",
     "primevue": "^3.7.2",
     "prismjs": "^1.25.0",
+    "pulltorefreshjs": "^0.1.22",
     "socket.io-client": "^4.2.0",
     "v-lazy-image": "^2.0.1",
     "v-pagination-3": "^0.1.6",

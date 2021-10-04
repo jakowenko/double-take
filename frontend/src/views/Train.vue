@@ -1,5 +1,5 @@
 <template>
-  <div class="train-wrapper">
+  <div id="pull-to-reload" class="train-wrapper" :style="{ paddingTop: headerHeight + 'px' }">
     <Header
       type="train"
       :loading="loading"
@@ -11,7 +11,7 @@
     />
     <div
       class="loading-wrapper p-d-flex p-flex-column p-jc-center"
-      v-if="loading.files || loading.status || !matches.source.length"
+      v-if="showLoading"
       :style="{ top: headerHeight + toolbarHeight + 'px' }"
     >
       <i v-if="loading.files || loading.status" class="pi pi-spin pi-spinner p-as-center" style="font-size: 2.5rem"></i>
@@ -26,12 +26,8 @@
         <p class="p-text-bold p-mb-3">No files found</p>
       </div>
     </div>
-    <div
-      v-else
-      class="p-d-flex p-jc-center"
-      :style="{ marginTop: headerHeight + 'px' }"
-      :class="isPaginationVisible ? 'pagination-padding' : ''"
-    >
+    <div id="pull-to-reload-message"></div>
+    <div v-if="!showLoading" class="p-d-flex p-jc-center" :class="isPaginationVisible ? 'pagination-padding' : ''">
       <Grid type="train" :folders="folders" :matches="{ filtered, ...matches }" style="width: 100%" />
     </div>
     <div
@@ -45,7 +41,10 @@
 </template>
 
 <script>
+import PullToRefresh from 'pulltorefreshjs';
+
 import ProgressBar from 'primevue/progressbar';
+
 import Grid from '@/components/Grid.vue';
 import Sleep from '@/util/sleep.util';
 import ApiService from '@/services/api.service';
@@ -85,6 +84,9 @@ export default {
     toolbarHeight: Number,
   },
   computed: {
+    showLoading() {
+      return this.loading.files || this.loading.status || !this.matches.source.length;
+    },
     isPaginationVisible() {
       return this.pagination.total > this.pagination.limit;
     },
@@ -137,10 +139,21 @@ export default {
     emitters.forEach((emitter) => {
       this.emitter.off(emitter);
     });
+    PullToRefresh.destroyAll();
   },
   async mounted() {
+    const $this = this;
     this.headerHeight = this.$refs.header.getHeight();
-    await this.init();
+    this.init();
+    PullToRefresh.init({
+      mainElement: '#pull-to-reload-message',
+      triggerElement: '#pull-to-reload',
+      distMax: 50,
+      distThreshold: 45,
+      onRefresh() {
+        return $this.init();
+      },
+    });
   },
   watch: {},
   methods: {
