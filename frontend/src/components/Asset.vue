@@ -159,7 +159,6 @@
 </template>
 
 <script>
-import { DateTime } from 'luxon';
 import VLazyImage from 'v-lazy-image';
 
 import Button from 'primevue/button';
@@ -169,6 +168,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dropdown from 'primevue/dropdown';
 
+import Time from '@/util/time.util';
 import Constants from '@/util/constants.util';
 import ApiService from '@/services/api.service';
 
@@ -208,18 +208,8 @@ export default {
     constants: () => ({
       ...Constants(),
     }),
-    formatTime(ISO) {
-      try {
-        const time = localStorage.getItem('time');
-        if (time) {
-          const { timezone, format } = JSON.parse(time);
-          return format ? DateTime.fromISO(ISO).setZone(timezone.toUpperCase()).toFormat(format) : ISO;
-        }
-        return ISO;
-      } catch (error) {
-        return ISO;
-      }
-    },
+    formatTime: (ISO) => Time.format(ISO),
+    agoTime: (ISO) => Time.ago(ISO),
     imageURL() {
       return `${this.constants().api}/storage/${this.asset.file.key}?thumb${
         this.asset.token ? `&token=${this.asset.token}` : ''
@@ -295,25 +285,11 @@ export default {
       return ages;
     },
     createdAt() {
-      const units = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
-
-      const dateTime = DateTime.fromISO(this.asset.createdAt);
-      const diff = dateTime.diffNow().shiftTo(...units);
-      const unit = units.find((u) => diff.get(u) !== 0) || 'second';
-
-      const relativeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-      return { ago: relativeFormatter.format(Math.trunc(diff.as(unit)), unit), timestamp: this.timestamp };
+      return { ago: this.agoTime(this.asset.createdAt), timestamp: this.timestamp };
     },
     updatedAt() {
       if (!this.asset.updatedAt) return null;
-      const units = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
-
-      const dateTime = DateTime.fromISO(this.asset.updatedAt);
-      const diff = dateTime.diffNow().shiftTo(...units);
-      const unit = units.find((u) => diff.get(u) !== 0) || 'second';
-
-      const relativeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-      return { ago: relativeFormatter.format(Math.trunc(diff.as(unit)), unit), timestamp: this.timestamp };
+      return { ago: this.agoTime(this.asset.updatedAt), timestamp: this.timestamp };
     },
   },
   watch: {
