@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { connected } = require('../util/mqtt.util');
 const { auth, jwt } = require('../util/auth.util');
+const { BAD_REQUEST } = require('../constants/http-status');
 const { AUTH, FRIGATE } = require('../constants')();
 
 module.exports.mqtt = (req, res) => {
@@ -16,6 +17,7 @@ module.exports.auth = (req, res) => {
 };
 
 module.exports.frigate = async (req, res) => {
+  if (!FRIGATE.URL) return res.status(BAD_REQUEST).error('Frigate URL not configured');
   const { data: version } = await axios({
     method: 'get',
     url: `${FRIGATE.URL}/api/version`,
