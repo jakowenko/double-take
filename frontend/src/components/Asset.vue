@@ -318,15 +318,6 @@ export default {
     cursor: pointer;
   }
 
-  .p-datatable-thead > tr > th:first-child,
-  .p-datatable-tbody > tr > td:first-child {
-    padding-left: 0;
-  }
-  .p-datatable-thead > tr > th:last-child,
-  .p-datatable-tbody > tr > td:last-child {
-    padding-right: 0;
-  }
-
   td {
     position: relative;
   }

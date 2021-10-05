@@ -144,7 +144,7 @@ export default {
   },
   methods: {
     getHeight() {
-      return this.$refs.toolbar.offsetHeight;
+      return this.$refs.toolbar.clientHeight;
     },
     async updatePassword() {
       try {
