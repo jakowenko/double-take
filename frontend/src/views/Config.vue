@@ -118,7 +118,8 @@ export default {
     Dropdown,
   },
   data: () => ({
-    restartCount: 0,
+    statusInterval: null,
+    waitForRestart: false,
     services: [],
     themes: {
       ui: null,
@@ -232,6 +233,7 @@ export default {
   }),
   props: {
     toolbarHeight: Number,
+    socket: Object,
   },
   created() {
     this.emitter.on('buildTag', (data) => {
@@ -244,7 +246,6 @@ export default {
       this.loading = true;
       await this.getThemes();
       const { data } = await ApiService.get('config?format=yaml');
-      this.doubleTake.status = 200;
       this.loading = false;
       this.code = data;
       this.editor.session.setValue(data);
@@ -254,6 +255,21 @@ export default {
       window.addEventListener('keydown', this.saveListener);
       window.addEventListener('resize', this.updateHeight);
       this.updateHeight();
+      this.checkStatus();
+
+      if (this.socket) {
+        this.socket.on('connect', () => {
+          if (this.waitForRestart) this.postRestart();
+          this.doubleTake.status = 200;
+        });
+        this.socket.on('disconnect', () => {
+          this.doubleTake.status = 500;
+        });
+        this.socket.on('connect_error', () => {
+          this.doubleTake.status = 500;
+        });
+        this.doubleTake.status = this.socket.connected ? 200 : 500;
+      }
     } catch (error) {
       this.doubleTake.status = error.response && error.response.status ? error.response.status : 500;
       this.emitter.emit('error', error);
@@ -266,6 +282,7 @@ export default {
     });
     window.removeEventListener('keydown', this.saveListener);
     window.removeEventListener('resize', this.updateHeight);
+    clearInterval(this.statusInterval);
   },
   computed: {
     combined() {
@@ -277,6 +294,9 @@ export default {
     },
   },
   methods: {
+    checkStatus() {
+      this.statusInterval = setInterval(this.checkDetectors, 30000);
+    },
     async updateThemes(type, reload) {
       try {
         const panelVisible = document.getElementsByClassName('p-dropdown-panel').length;
@@ -319,37 +339,16 @@ export default {
       if (name === 'facebox') return 'Facebox';
       return name;
     },
-    async waitForRestart() {
-      try {
-        await Sleep(1000);
-        const { data } = await ApiService.get('config');
-        this.themes.editor = data.ui.editor.theme;
-        this.restartCount = 0;
-        this.doubleTake.status = 200;
-        this.loading = false;
-        this.checkDetectors();
-        ApiService.get('status/auth').then(({ data: status }) => {
-          this.emitter.emit('hasAuth', status.auth);
-        });
-        this.emitter.emit('setup');
-        this.emitter.emit('setTheme', data.ui.theme);
-        this.emitter.emit('toast', { message: 'Restart complete' });
-      } catch (error) {
-        if (this.restartCount < 5) {
-          this.restartCount += 1;
-          this.waitForRestart();
-          return;
-        }
-        this.restartCount = 0;
-        const status = error.response && error.response.status ? error.response.status : 500;
-        this.doubleTake.status = status;
-        this.services.forEach((service) => {
-          service.status = status;
-        });
-
-        error.message = 'Restart Error: check container logs';
-        this.emitter.emit('error', error);
-      }
+    async postRestart() {
+      this.waitForRestart = false;
+      this.loading = false;
+      this.checkDetectors();
+      ApiService.get('status/auth').then(({ data: status }) => {
+        this.emitter.emit('hasAuth', status.auth);
+      });
+      this.emitter.emit('setup');
+      this.emitter.emit('toast', { message: 'Restart complete' });
+      this.checkStatus();
     },
     async checkFrigate() {
       try {
@@ -367,6 +366,8 @@ export default {
     },
     async checkMQTT() {
       try {
+        this.mqtt.status = null;
+        await Sleep(1000);
         const { data } = await ApiService.get('status/mqtt');
         this.mqtt.status = data.status ? 200 : 500;
       } catch (error) {
@@ -377,7 +378,7 @@ export default {
       const { data } = await ApiService.get('config?format=json');
 
       this.frigate.configured = data.frigate?.url;
-      if (this.frigate.configured) this.checkFrigate(data.frigate.url);
+      if (this.frigate.configured) this.checkFrigate();
 
       this.mqtt.configured = data.mqtt?.host;
       if (this.mqtt.configured) this.checkMQTT();
@@ -417,17 +418,23 @@ export default {
       try {
         if (this.loading) return;
         this.loading = true;
-        await ApiService.patch('config', { code: this.code });
+        clearInterval(this.statusInterval);
+        delete this.mqtt.status;
+        delete this.frigate.status;
         this.emitter.emit('toast', { message: 'Restarting to load changes' });
         this.services.forEach((detector) => {
           delete detector.status;
         });
-        delete this.doubleTake.status;
-        delete this.mqtt.status;
-        delete this.frigate.status;
-        this.waitForRestart();
+        this.waitForRestart = true;
+        await ApiService.patch('config', { code: this.code });
+        setTimeout(() => {
+          if (!this.socket.connected) {
+            this.emitter.emit('error', Error('Restart Error: check container logs'));
+          }
+        }, 10000);
       } catch (error) {
         this.loading = false;
+        this.waitForRestart = false;
         this.emitter.emit('error', error);
       }
     },
