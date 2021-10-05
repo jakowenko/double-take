@@ -47,7 +47,7 @@
               <template v-slot:body="slotProps">
                 <div class="p-d-block" style="position: relative">
                   <Badge
-                    :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
+                    :value="slotProps.data.detector"
                     :severity="slotProps.data.match ? 'success' : 'danger'"
                     class="clickable"
                     :class="{ selected: selectedDetector?.index === slotProps.index }"
@@ -330,7 +330,7 @@ export default {
     position: absolute;
     top: 50%;
     margin-top: -5px;
-    margin-left: -19px;
+    margin-left: -15px;
     background: #78cc86;
   }
   .icon.compreface {
@@ -346,6 +346,8 @@ export default {
 
 .p-badge.clickable {
   cursor: pointer;
+  margin-right: 0;
+  padding-right: 18px;
 
   &:hover,
   &.selected {
