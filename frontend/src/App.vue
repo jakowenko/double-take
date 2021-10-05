@@ -329,7 +329,7 @@ i.pi-spin.pi-spinner {
 
 .ptr--ptr {
   box-shadow: none !important;
-  z-index: 1;
+  z-index: 2;
 
   .ptr--box {
     padding-bottom: 0;
