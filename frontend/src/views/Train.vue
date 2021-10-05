@@ -106,7 +106,10 @@ export default {
       if (value !== 'add new' && value !== null) shouldRefresh = true;
       if (value === null && this.trainingFolder !== 'add new') shouldRefresh = true;
       this.trainingFolder = value;
-      if (shouldRefresh) this.get().status();
+      if (shouldRefresh) {
+        this.clear(['source', 'selected', 'disabled', 'loaded']);
+        this.get().status();
+      }
     });
 
     this.emitter.on('folders', (value) => {
