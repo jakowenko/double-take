@@ -564,7 +564,7 @@ label {
 
 .fixed {
   position: fixed;
-  z-index: 5;
+  z-index: 3;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
