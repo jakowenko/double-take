@@ -82,6 +82,7 @@
       <div v-if="loading" class="p-d-flex p-jc-center" style="height: 100%">
         <i class="pi pi-spin pi-spinner p-as-center" style="font-size: 2.5rem"></i>
       </div>
+      <div id="pull-to-reload-message"></div>
       <VAceEditor
         v-if="themes.editor"
         v-model:value="code"
@@ -97,6 +98,7 @@
 </template>
 
 <script>
+import PullToRefresh from 'pulltorefreshjs';
 import copy from 'copy-to-clipboard';
 
 import 'ace-builds';
@@ -275,11 +277,26 @@ export default {
         });
         this.doubleTake.status = this.socket.connected ? 200 : 500;
       }
+
+      PullToRefresh.init({
+        mainElement: '#pull-to-reload-message',
+        triggerElement: '#app-wrapper',
+        distMax: 50,
+        distThreshold: 45,
+        classPrefix: 'config-ptr--',
+        onRefresh() {
+          window.location.reload();
+        },
+        shouldPullToRefresh() {
+          return window.scrollY === 0;
+        },
+      });
     } catch (error) {
       this.doubleTake.status = error.response && error.response.status ? error.response.status : 500;
       this.emitter.emit('error', error);
     }
   },
+
   beforeUnmount() {
     const emitters = ['buildTag'];
     emitters.forEach((emitter) => {
@@ -288,6 +305,7 @@ export default {
     window.removeEventListener('keydown', this.saveListener);
     window.removeEventListener('resize', this.updateHeight);
     clearInterval(this.statusInterval);
+    PullToRefresh.destroyAll();
   },
   computed: {
     combined() {
