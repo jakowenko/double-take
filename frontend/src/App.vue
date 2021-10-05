@@ -318,30 +318,28 @@ i.pi-spin.pi-spinner {
   color: var(--surface-g);
 }
 
-// #pull-to-reload {
-//   position: fixed;
-//   top: 0;
-//   left: 0;
-//   right: 0;
-//   bottom: 0;
-//   z-index: 999;
-// }
-
+.config-ptr--ptr,
 .ptr--ptr {
   box-shadow: none !important;
   z-index: 2;
 
-  .ptr--box {
+  div[class*='--box'] {
     padding-bottom: 0;
   }
 
-  .ptr--content {
-    .ptr--text {
+  div[class*='--content'] {
+    div[class*='--text'] {
       color: var(--text-color);
     }
-    .ptr--icon {
+    div[class*='--icon'] {
       color: var(--text-color);
     }
+  }
+}
+
+.config-ptr--ptr {
+  div[class*='--box'] {
+    padding-bottom: 10px;
   }
 }
 </style>
