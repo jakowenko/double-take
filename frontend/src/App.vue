@@ -35,6 +35,7 @@ export default {
     toolbarHeight: null,
     loaded: false,
     hidden: false,
+    lastTheme: null,
   }),
   created() {
     this.getTheme();
@@ -75,26 +76,47 @@ export default {
     },
     setTheme(newTheme) {
       const theme = localStorage.getItem('theme');
+
+      if (theme === this.lastTheme) return;
+      if (document.getElementById('theme-link')) document.getElementById('theme-link').outerHTML = '';
+
+      const themeLink = document.createElement('link');
+      themeLink.setAttribute('id', 'theme-link');
+      themeLink.setAttribute('rel', 'stylesheet');
+      themeLink.setAttribute('type', 'text/css');
+      themeLink.onload = () => {
+        this.setThemeColor();
+      };
+
       if (newTheme && newTheme !== theme) {
-        document.getElementById('theme-link').setAttribute('href', `./themes/${newTheme}/theme.css`);
+        this.lastTheme = newTheme;
+        themeLink.setAttribute('href', `./themes/${newTheme}/theme.css`);
         localStorage.setItem('theme', newTheme);
       }
       if (!newTheme && theme) {
-        document.getElementById('theme-link').setAttribute('href', `./themes/${theme}/theme.css`);
+        this.lastTheme = theme;
+        themeLink.setAttribute('href', `./themes/${theme}/theme.css`);
       }
 
-      const bg = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
-      if (bg.includes('rgb')) {
-        const [r, g, b] = bg.replace('rgb(', '').replace(')', '').replace(/\s+/g, '').split(',');
-        const hex = this.rgbToHex(r, g, b);
-        document.getElementById('theme-color').setAttribute('content', hex);
-      }
+      document.getElementsByTagName('head')[0].prepend(themeLink);
       document.getElementsByTagName('body')[0].style.paddingTop = `${this.toolbarHeight}px`;
     },
     rgbToHex(r, g, b) {
       return `#${[parseInt(r, 10), parseInt(g, 10), parseInt(b, 10)]
         .map((x) => x.toString(16).padStart(2, '0'))
         .join('')}`;
+    },
+    setThemeColor() {
+      const bg = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
+      if (bg.includes('rgb')) {
+        const [r, g, b] = bg
+          .match(/\(([^)]+)\)/)[1]
+          .replace(/\s+/g, '')
+          .split(',');
+        const hex = this.rgbToHex(r, g, b);
+        const currentHex = document.getElementById('theme-color').getAttribute('content');
+        if (hex !== currentHex) document.getElementById('theme-color').setAttribute('content', hex);
+      }
     },
     login() {
       if (this.$route.path !== '/login') {
