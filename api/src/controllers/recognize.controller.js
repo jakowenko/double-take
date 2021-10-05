@@ -12,6 +12,7 @@ const { emit } = require('../util/socket.util');
 const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
 const config = require('../constants/config');
+const schedule = require('../util/schedule.util');
 const { AUTH, TOKEN } = require('../constants')();
 
 const { IDS, MATCH_IDS } = {
@@ -67,6 +68,13 @@ module.exports.start = async (req, res) => {
     const { break: breakMatch, results: resultsOutput, attempts: manualAttempts } = event.options;
 
     if (!DETECTORS.length) return res.status(BAD_REQUEST).error('no detectors configured');
+
+    const scheduleCheck = schedule.checks(camera);
+    if (scheduleCheck.length) {
+      console.verbose('disabled schedule');
+      console.verbose(scheduleCheck);
+      return res.status(BAD_REQUEST).send({ error: 'disabled schedule', checks: scheduleCheck });
+    }
 
     if (event.type === 'frigate') {
       process.env.FRIGATE_LAST_EVENT = time.utc();

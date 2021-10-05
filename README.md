@@ -432,6 +432,30 @@ detectors:
     timeout: 15
 ```
 
+### `schedule`
+
+```yaml
+# schedule settings (default: shown below)
+schedule:
+  # disable recognition if conditions are met
+  disabled:
+    # - days:
+    #     - monday
+    #     - tuesday
+    #   times:
+    #     - 20:00-23:59
+    #   cameras:
+    #     - office
+    # - days:
+    #     - tuesday
+    #     - wednesday
+    #   times:
+    #     - 13:00-15:00
+    #     - 18:00-20:00
+    #   cameras:
+    #     - living-room
+```
+
 ### `notify`
 
 ```yaml
