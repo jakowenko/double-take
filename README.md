@@ -32,6 +32,35 @@ There's a lot of great open source software to perform facial recognition, but e
 
 - [Frigate](https://github.com/blakeblackshear/frigate) v0.8.0-0.9.0
 
+## Getting started
+Double-Take utilizes MQTT and Frigate to get the images into it's ecosystem. Therefore Frigate and MQTT are required components.
+
+Double-Take does not include the "Integrations" below, it requires you to first setup then up and get them running.
+
+The following is required to get Double-Take to work:
+- Working Frigate setup and working connection to the MQTT broker
+- A detector installed and working (such as Deepstack)
+
+To get Double-Take up and running you do not need to setup any Double-Take configuration file prior to starting the docker container, you can do all configuration via en UI after the initial startup.
+
+Minimal configuration settings to get basic functionality in Double-Take
+
+```yaml
+mqtt:
+  host: 192.168.1.20 # Change the IP to suit your setup
+#  username: username
+#  password: password
+
+frigate:
+  url: "http://192.168.1.22:5000" # Change the IP to suit your setup
+
+detectors:
+  deepstack:
+    url: "http://192.168.1.23:5000" # Change the IP to suit your setup
+```
+
+If you decide to go with Deepstack it will require you to enable two enviormental variable to support face detection `-e VISION-DETECTION=True -e VISION-FACE=True`. Please consult the Deepstack docker documentation for details.
+
 ## Integrations
 
 ### [Frigate](https://github.com/blakeblackshear/frigate)
