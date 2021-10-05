@@ -1,6 +1,6 @@
 const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
-const process = require('../util/process.util');
+const { polling } = require('../util/process.util');
 const actions = require('../util/detectors/actions');
 const notify = require('../util/notify/actions');
 const time = require('../util/time.util');
@@ -69,6 +69,7 @@ module.exports.start = async (req, res) => {
     if (!DETECTORS.length) return res.status(BAD_REQUEST).error('no detectors configured');
 
     if (event.type === 'frigate') {
+      process.env.FRIGATE_LAST_EVENT = time.utc();
       const check = await frigate.checks({
         ...event,
         PROCESSING,
@@ -91,7 +92,7 @@ module.exports.start = async (req, res) => {
 
       if (FRIGATE.ATTEMPTS.LATEST)
         promises.push(
-          process.polling(
+          polling(
             { ...event },
             {
               id,
@@ -105,7 +106,7 @@ module.exports.start = async (req, res) => {
         );
       if (FRIGATE.ATTEMPTS.SNAPSHOT)
         promises.push(
-          process.polling(
+          polling(
             { ...event },
             {
               id,
@@ -119,7 +120,7 @@ module.exports.start = async (req, res) => {
         );
     } else {
       promises.push(
-        process.polling(
+        polling(
           { ...event },
           {
             id,

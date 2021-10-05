@@ -7,6 +7,9 @@
             <div class="name p-mr-1" v-if="index === 0" @click="copyVersion(service)" v-tooltip.right="'Copy Version'">
               {{ service.name }}
             </div>
+            <div class="name p-mr-1" v-else-if="service.tooltip" v-tooltip.right="service.tooltip">
+              {{ service.name }}
+            </div>
             <div class="name p-mr-1" v-else>{{ service.name }}</div>
             <div
               v-if="service.status"
@@ -103,6 +106,7 @@ import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 
+import Time from '@/util/time.util';
 import Sleep from '@/util/sleep.util';
 import ApiService from '@/services/api.service';
 import { version } from '../../package.json';
@@ -347,12 +351,17 @@ export default {
         this.emitter.emit('error', error);
       }
     },
-    async checkFrigate(url) {
+    async checkFrigate() {
       try {
-        await ApiService.get(`proxy?url=${url}/api/version`);
+        this.frigate.status = null;
+        await Sleep(1000);
+        const { data } = await ApiService.get('status/frigate');
         this.frigate.status = 200;
+        this.frigate.tooltip = data.version;
+        if (data.last) this.frigate.tooltip = `${this.frigate.tooltip} | Last Event: ${Time.ago(data.last)}`;
       } catch (error) {
         const status = error.response && error.response.status ? error.response.status : 500;
+        this.frigate.tooltip = null;
         this.frigate.status = status;
       }
     },
