@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { tryParseJSON } = require('../util/validators.util');
 const { connected } = require('../util/mqtt.util');
 const { auth, jwt } = require('../util/auth.util');
 const { BAD_REQUEST } = require('../constants/http-status');
@@ -18,10 +19,16 @@ module.exports.auth = (req, res) => {
 
 module.exports.frigate = async (req, res) => {
   if (!FRIGATE.URL) return res.status(BAD_REQUEST).error('Frigate URL not configured');
+
+  const { time, camera } = tryParseJSON(process.env.FRIGATE_LAST_EVENT) || {
+    time: null,
+    camera: null,
+  };
+
   const { data: version } = await axios({
     method: 'get',
     url: `${FRIGATE.URL}/api/version`,
   });
 
-  res.send({ version, last: process.env.FRIGATE_LAST_EVENT || null });
+  res.send({ version, last: { time, camera } });
 };

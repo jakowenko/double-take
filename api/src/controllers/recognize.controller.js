@@ -79,7 +79,7 @@ module.exports.start = async (req, res) => {
     }
 
     if (event.type === 'frigate') {
-      process.env.FRIGATE_LAST_EVENT = time.utc();
+      process.env.FRIGATE_LAST_EVENT = JSON.stringify({ time: time.utc(), camera });
       const check = await frigate.checks({
         ...event,
         PROCESSING,

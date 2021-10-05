@@ -382,8 +382,11 @@ export default {
         await Sleep(1000);
         const { data } = await ApiService.get('status/frigate');
         this.frigate.status = 200;
-        this.frigate.tooltip = data.version;
-        if (data.last) this.frigate.tooltip = `${this.frigate.tooltip} | Last Event: ${Time.ago(data.last)}`;
+        this.frigate.tooltip = `Version: ${data.version}`;
+        const { last } = data;
+        if (last.time && last.camera) {
+          this.frigate.tooltip += `\nLast Event: ${Time.ago(last.time)} (${last.camera})`;
+        }
       } catch (error) {
         const status = error.response && error.response.status ? error.response.status : 500;
         this.frigate.tooltip = null;
