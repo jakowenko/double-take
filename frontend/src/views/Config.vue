@@ -7,7 +7,12 @@
             <div class="name p-mr-1" v-if="index === 0" @click="copyVersion(service)" v-tooltip.right="'Copy Version'">
               {{ service.name }}
             </div>
-            <div class="name p-mr-1" v-else-if="service.tooltip" v-tooltip.right="service.tooltip">
+            <div
+              class="name p-mr-1"
+              v-else-if="service.tooltip"
+              v-tooltip.right="service.tooltip"
+              style="cursor: pointer"
+            >
               {{ service.name }}
             </div>
             <div class="name p-mr-1" v-else>{{ service.name }}</div>
