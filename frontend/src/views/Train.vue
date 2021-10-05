@@ -88,7 +88,7 @@ export default {
       return this.loading.files || this.loading.status || !this.matches.source.length;
     },
     isPaginationVisible() {
-      return this.pagination.total > this.pagination.limit;
+      return !this.loading.status && this.pagination.total > this.pagination.limit;
     },
     areAllSelected() {
       return this.filtered.length > 0 && this.matches.selected.length === this.filtered.length;
@@ -108,7 +108,8 @@ export default {
       this.trainingFolder = value;
       if (shouldRefresh) {
         this.clear(['source', 'selected', 'disabled', 'loaded']);
-        this.get().status();
+        this.pagination.temp = 1;
+        this.get().files();
       }
     });
 
@@ -126,7 +127,7 @@ export default {
     this.emitter.on('paginate', (value) => {
       this.pagination.temp = value;
       this.clear(['source', 'selected', 'disabled', 'loaded']);
-      this.get().status();
+      this.get().files();
     });
   },
   beforeUnmount() {
