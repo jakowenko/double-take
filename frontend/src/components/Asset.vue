@@ -50,6 +50,7 @@
                     :value="slotProps.data.detector"
                     :severity="slotProps.data.match ? 'success' : 'danger'"
                     class="clickable"
+                    style="padding-right: 18px"
                     :class="{ selected: selectedDetector?.index === slotProps.index }"
                     @click="
                       selectedDetector =
@@ -347,7 +348,6 @@ export default {
 .p-badge.clickable {
   cursor: pointer;
   margin-right: 0;
-  padding-right: 18px;
 
   &:hover,
   &.selected {
