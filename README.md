@@ -438,7 +438,7 @@ detectors:
 # schedule settings (default: shown below)
 schedule:
   # disable recognition if conditions are met
-  disabled:
+  disable:
     # - days:
     #     - monday
     #     - tuesday

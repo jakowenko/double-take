@@ -71,9 +71,11 @@ module.exports.start = async (req, res) => {
 
     const scheduleCheck = schedule.checks(camera);
     if (scheduleCheck.length) {
-      console.verbose('disabled schedule');
+      console.verbose('recognition disabled due to schedule');
       console.verbose(scheduleCheck);
-      return res.status(BAD_REQUEST).send({ error: 'disabled schedule', checks: scheduleCheck });
+      return res
+        .status(BAD_REQUEST)
+        .send({ error: 'recognition disabled due to schedule', checks: scheduleCheck });
     }
 
     if (event.type === 'frigate') {

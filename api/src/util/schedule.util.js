@@ -5,10 +5,10 @@ const { schedule } = require('../constants/config')();
 module.exports = {
   checks: (camera) => {
     const checks = [];
-    if (!schedule || !Array.isArray(schedule.disabled)) return checks;
+    if (!schedule || !Array.isArray(schedule.disable)) return checks;
     const date = DateTime.now().setZone(TIME.TIMEZONE.toUpperCase());
     const weekDay = date.weekdayLong.toLowerCase();
-    schedule.disabled.forEach((obj) => {
+    schedule.disable.forEach((obj) => {
       const { days = [], times = [], cameras = [] } = obj;
       const dayCameraMatch = days.includes(weekDay) && cameras.includes(camera);
 
