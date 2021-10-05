@@ -127,6 +127,7 @@ export default {
   data: () => ({
     statusInterval: null,
     waitForRestart: false,
+    themeUpdating: false,
     services: [],
     themes: {
       ui: null,
@@ -323,17 +324,19 @@ export default {
     async updateThemes(type, reload) {
       try {
         const panelVisible = document.getElementsByClassName('p-dropdown-panel').length;
-        if (type === 'enter' && panelVisible) return;
+        if ((type === 'enter' && panelVisible) || this.themeUpdating) return;
+        this.themeUpdating = true;
+        if (reload === true) this.emitter.emit('appLoading', true);
+        await Sleep(250);
         await ApiService.patch('config/theme', { ...this.themes });
         this.emitter.emit('toast', { message: 'Theme updated' });
         if (reload === true) {
-          this.loading = true;
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-          return;
+          this.emitter.emit('setTheme', this.themes.ui);
+          await Sleep(1000);
+          this.emitter.emit('appLoading', false);
         }
-        this.emitter.emit('setTheme', this.themes.ui);
+        this.themeUpdating = false;
+        this.updateHeight();
       } catch (error) {
         this.emitter.emit('error', error);
       }

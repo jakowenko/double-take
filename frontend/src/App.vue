@@ -1,6 +1,6 @@
 <template>
   <div id="app-wrapper">
-    <div class="loading p-d-flex p-jc-center" :class="{ loaded, hidden }">
+    <div class="loading p-d-flex p-jc-center" :class="{ loaded, hidden, dark }">
       <img class="p-d-block" :src="require('@/assets/img/icon.svg')" style="width: 100px" />
     </div>
     <Toast position="bottom-left" />
@@ -34,6 +34,7 @@ export default {
     socket: io(Constants().socket),
     toolbarHeight: null,
     loaded: false,
+    dark: false,
     hidden: false,
     lastTheme: null,
   }),
@@ -48,6 +49,11 @@ export default {
     this.emitter.on('toast', (...args) => this.toast(...args));
     this.emitter.on('setTheme', (theme) => this.setTheme(theme));
     this.emitter.on('setup', () => this.setup());
+    this.emitter.on('appLoading', (status) => {
+      this.dark = status;
+      this.hidden = !status;
+      this.loaded = !status;
+    });
   },
   mounted() {
     this.toolbarHeight = this.$refs.toolbar.getHeight();
@@ -68,18 +74,20 @@ export default {
       });
     },
     async getTheme() {
-      this.setTheme();
-      ApiService.get('config/theme').then(({ data }) => {
-        localStorage.setItem('theme', data.theme);
+      this.$nextTick(() => {
         this.setTheme();
+        ApiService.get('config/theme').then(({ data }) => {
+          localStorage.setItem('theme', data.theme);
+          this.setTheme();
+        });
       });
     },
     setTheme(newTheme) {
       const theme = localStorage.getItem('theme');
 
-      if (theme === this.lastTheme) return;
+      if (!newTheme && theme === this.lastTheme) return;
       if (document.getElementById('theme-link')) document.getElementById('theme-link').outerHTML = '';
-
+      document.getElementsByTagName('body')[0].className = 'overflow-hidden';
       const themeLink = document.createElement('link');
       themeLink.setAttribute('id', 'theme-link');
       themeLink.setAttribute('rel', 'stylesheet');
@@ -100,6 +108,9 @@ export default {
 
       document.getElementsByTagName('head')[0].prepend(themeLink);
       document.getElementsByTagName('body')[0].style.paddingTop = `${this.toolbarHeight}px`;
+      setTimeout(() => {
+        document.getElementsByTagName('body')[0].className = '';
+      }, 250);
     },
     rgbToHex(r, g, b) {
       return `#${[parseInt(r, 10), parseInt(g, 10), parseInt(b, 10)]
@@ -175,6 +186,15 @@ body {
   height: 100%;
   background: var(--surface-b);
   color: var(--text-color);
+
+  &.overflow-hidden {
+    overflow: hidden !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 ::-webkit-scrollbar {
@@ -214,6 +234,9 @@ body {
   }
   &.hidden {
     display: none !important;
+  }
+  &.dark {
+    background: #20262e;
   }
 }
 
