@@ -11,7 +11,11 @@
         v-if="$route.path === '/login'"
         ref="menu"
         class="double-take-menu"
-        :model="hasAuth ? [{ items: [{ ...unauthorizedMenu[0].items[0] }] }] : unauthorizedMenu"
+        :model="
+          hasAuth
+            ? [{ items: unauthorizedMenu[0].items.filter((obj) => obj.label.toLowerCase() !== 'logs') }]
+            : unauthorizedMenu
+        "
         :popup="true"
       />
       <Menu v-else ref="menu" class="double-take-menu" :model="menu" :popup="true" />
@@ -79,12 +83,28 @@ export default {
     menu: [],
     unauthorizedMenu: [
       {
-        items: [{ label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' }],
+        items: [
+          {
+            label: 'Sponsor',
+            icon: 'pi pi-heart',
+            command: () => {
+              window.open('https://github.com/sponsors/jakowenko');
+            },
+          },
+          { label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' },
+        ],
       },
     ],
     authorizedMenu: [
       {
         items: [
+          {
+            label: 'Sponsor',
+            icon: 'pi pi-heart',
+            command: () => {
+              window.open('https://github.com/sponsors/jakowenko');
+            },
+          },
           { label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' },
           { label: 'Access Tokens', icon: 'pi pi-fw pi-key', to: '/tokens' },
           {
