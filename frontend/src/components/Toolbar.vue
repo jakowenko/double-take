@@ -1,6 +1,6 @@
 <template>
   <div class="tool-bar-wrapper p-pr-3 p-d-flex p-jc-between p-ai-center" ref="toolbar">
-    <div><TabMenu :model="navigation" v-show="showNavigation" /></div>
+    <div><TabMenu :model="navigation" class="navigation" :class="{ show: showNavigation }" /></div>
     <div v-if="updateAvailable" class="version p-ml-auto p-mr-2" v-tooltip.left="`Update Available`">
       <div class="icon" @click="dockerHub"></div>
     </div>
@@ -11,7 +11,11 @@
         v-if="$route.path === '/login'"
         ref="menu"
         class="double-take-menu"
-        :model="hasAuth ? [{ items: [{ ...unauthorizedMenu[0].items[0] }] }] : unauthorizedMenu"
+        :model="
+          hasAuth
+            ? [{ items: unauthorizedMenu[0].items.filter((obj) => obj.label.toLowerCase() !== 'logs') }]
+            : unauthorizedMenu
+        "
         :popup="true"
       />
       <Menu v-else ref="menu" class="double-take-menu" :model="menu" :popup="true" />
@@ -19,6 +23,7 @@
         position="top"
         :modal="true"
         :closable="false"
+        :draggable="false"
         :visible="password.show"
         class="change-password-dialog"
         style="min-width: 300px"
@@ -78,12 +83,28 @@ export default {
     menu: [],
     unauthorizedMenu: [
       {
-        items: [{ label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' }],
+        items: [
+          {
+            label: 'Sponsor',
+            icon: 'pi pi-heart',
+            command: () => {
+              window.open('https://github.com/sponsors/jakowenko');
+            },
+          },
+          { label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' },
+        ],
       },
     ],
     authorizedMenu: [
       {
         items: [
+          {
+            label: 'Sponsor',
+            icon: 'pi pi-heart',
+            command: () => {
+              window.open('https://github.com/sponsors/jakowenko');
+            },
+          },
           { label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' },
           { label: 'Access Tokens', icon: 'pi pi-fw pi-key', to: '/tokens' },
           {
@@ -111,6 +132,8 @@ export default {
   },
   async mounted() {
     try {
+      this.showNavigation = this.$route.fullPath !== '/login';
+
       const obj = {
         label: `v${this.version}`,
         command: () => {
@@ -141,7 +164,7 @@ export default {
   },
   methods: {
     getHeight() {
-      return this.$refs.toolbar.offsetHeight;
+      return this.$refs.toolbar.clientHeight;
     },
     async updatePassword() {
       try {
@@ -217,7 +240,6 @@ export default {
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
 .tool-bar-wrapper {
-  height: $tool-bar-height;
   z-index: 5;
   position: fixed;
   top: 0;
@@ -227,6 +249,16 @@ export default {
   max-width: $max-width;
   background: var(--surface-b);
   border-bottom: 1px solid var(--surface-d);
+}
+
+.navigation {
+  opacity: 0;
+  pointer-events: none;
+
+  &.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .change-password-dialog {

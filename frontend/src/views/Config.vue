@@ -1,10 +1,18 @@
 <template>
   <div class="config-wrapper">
-    <div ref="status" class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3">
+    <div ref="status" class="fixed p-pt-2 p-pb-2 p-pl-3 p-pr-3" :style="'top: ' + toolbarHeight + 'px'">
       <div class="p-d-flex p-jc-between">
         <div class="service-wrapper p-d-flex">
-          <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-mr-2 p-ai-center">
+          <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-pr-2 p-ai-center">
             <div class="name p-mr-1" v-if="index === 0" @click="copyVersion(service)" v-tooltip.right="'Copy Version'">
+              {{ service.name }}
+            </div>
+            <div
+              class="name p-mr-1"
+              v-else-if="service.tooltip"
+              v-tooltip.right="service.tooltip"
+              style="cursor: pointer"
+            >
               {{ service.name }}
             </div>
             <div class="name p-mr-1" v-else>{{ service.name }}</div>
@@ -74,6 +82,7 @@
       <div v-if="loading" class="p-d-flex p-jc-center" style="height: 100%">
         <i class="pi pi-spin pi-spinner p-as-center" style="font-size: 2.5rem"></i>
       </div>
+      <div id="pull-to-reload-message"></div>
       <VAceEditor
         v-if="themes.editor"
         v-model:value="code"
@@ -89,6 +98,7 @@
 </template>
 
 <script>
+import PullToRefresh from 'pulltorefreshjs';
 import copy from 'copy-to-clipboard';
 
 import 'ace-builds';
@@ -103,6 +113,7 @@ import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 
+import Time from '@/util/time.util';
 import Sleep from '@/util/sleep.util';
 import ApiService from '@/services/api.service';
 import { version } from '../../package.json';
@@ -114,7 +125,9 @@ export default {
     Dropdown,
   },
   data: () => ({
-    restartCount: 0,
+    statusInterval: null,
+    waitForRestart: false,
+    themeUpdating: false,
     services: [],
     themes: {
       ui: null,
@@ -228,6 +241,7 @@ export default {
   }),
   props: {
     toolbarHeight: Number,
+    socket: Object,
   },
   created() {
     this.emitter.on('buildTag', (data) => {
@@ -236,10 +250,10 @@ export default {
   },
   async mounted() {
     try {
+      this.updateHeight();
       this.loading = true;
       await this.getThemes();
       const { data } = await ApiService.get('config?format=yaml');
-      this.doubleTake.status = 200;
       this.loading = false;
       this.code = data;
       this.editor.session.setValue(data);
@@ -249,11 +263,41 @@ export default {
       window.addEventListener('keydown', this.saveListener);
       window.addEventListener('resize', this.updateHeight);
       this.updateHeight();
+      this.checkStatus();
+
+      if (this.socket) {
+        this.socket.on('connect', () => {
+          if (this.waitForRestart) this.postRestart();
+          this.doubleTake.status = 200;
+        });
+        this.socket.on('disconnect', () => {
+          this.doubleTake.status = 500;
+        });
+        this.socket.on('connect_error', () => {
+          this.doubleTake.status = 500;
+        });
+        this.doubleTake.status = this.socket.connected ? 200 : 500;
+      }
+
+      PullToRefresh.init({
+        mainElement: '#pull-to-reload-message',
+        triggerElement: '#app-wrapper',
+        distMax: 50,
+        distThreshold: 45,
+        classPrefix: 'config-ptr--',
+        onRefresh() {
+          window.location.reload();
+        },
+        shouldPullToRefresh() {
+          return window.scrollY === 0;
+        },
+      });
     } catch (error) {
       this.doubleTake.status = error.response && error.response.status ? error.response.status : 500;
       this.emitter.emit('error', error);
     }
   },
+
   beforeUnmount() {
     const emitters = ['buildTag'];
     emitters.forEach((emitter) => {
@@ -261,6 +305,8 @@ export default {
     });
     window.removeEventListener('keydown', this.saveListener);
     window.removeEventListener('resize', this.updateHeight);
+    clearInterval(this.statusInterval);
+    PullToRefresh.destroyAll();
   },
   computed: {
     combined() {
@@ -272,20 +318,25 @@ export default {
     },
   },
   methods: {
+    checkStatus() {
+      this.statusInterval = setInterval(this.checkDetectors, 30000);
+    },
     async updateThemes(type, reload) {
       try {
         const panelVisible = document.getElementsByClassName('p-dropdown-panel').length;
-        if (type === 'enter' && panelVisible) return;
+        if ((type === 'enter' && panelVisible) || this.themeUpdating) return;
+        this.themeUpdating = true;
+        if (reload === true) this.emitter.emit('appLoading', true);
+        await Sleep(250);
         await ApiService.patch('config/theme', { ...this.themes });
         this.emitter.emit('toast', { message: 'Theme updated' });
         if (reload === true) {
-          this.loading = true;
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-          return;
+          this.emitter.emit('setTheme', this.themes.ui);
+          await Sleep(1000);
+          this.emitter.emit('appLoading', false);
         }
-        this.emitter.emit('setTheme', this.themes.ui);
+        this.themeUpdating = false;
+        this.updateHeight();
       } catch (error) {
         this.emitter.emit('error', error);
       }
@@ -314,48 +365,38 @@ export default {
       if (name === 'facebox') return 'Facebox';
       return name;
     },
-    async waitForRestart() {
-      try {
-        await Sleep(1000);
-        const { data } = await ApiService.get('config');
-        this.themes.editor = data.ui.editor.theme;
-        this.restartCount = 0;
-        this.doubleTake.status = 200;
-        this.loading = false;
-        this.checkDetectors();
-        ApiService.get('status/auth').then(({ data: status }) => {
-          this.emitter.emit('hasAuth', status.auth);
-        });
-        this.emitter.emit('setTheme', data.ui.theme);
-        this.emitter.emit('toast', { message: 'Restart complete' });
-      } catch (error) {
-        if (this.restartCount < 5) {
-          this.restartCount += 1;
-          this.waitForRestart();
-          return;
-        }
-        this.restartCount = 0;
-        const status = error.response && error.response.status ? error.response.status : 500;
-        this.doubleTake.status = status;
-        this.services.forEach((service) => {
-          service.status = status;
-        });
-
-        error.message = 'Restart Error: check container logs';
-        this.emitter.emit('error', error);
-      }
+    async postRestart() {
+      this.waitForRestart = false;
+      this.loading = false;
+      this.checkDetectors();
+      ApiService.get('status/auth').then(({ data: status }) => {
+        this.emitter.emit('hasAuth', status.auth);
+      });
+      this.emitter.emit('setup');
+      this.emitter.emit('toast', { message: 'Restart complete' });
+      this.checkStatus();
     },
-    async checkFrigate(url) {
+    async checkFrigate() {
       try {
-        await ApiService.get(`proxy?url=${url}/api/version`);
+        this.frigate.status = null;
+        await Sleep(1000);
+        const { data } = await ApiService.get('status/frigate');
         this.frigate.status = 200;
+        this.frigate.tooltip = `Version: ${data.version}`;
+        const { last } = data;
+        if (last.time && last.camera) {
+          this.frigate.tooltip += `\nLast Event: ${Time.ago(last.time)} (${last.camera})`;
+        }
       } catch (error) {
         const status = error.response && error.response.status ? error.response.status : 500;
+        this.frigate.tooltip = null;
         this.frigate.status = status;
       }
     },
     async checkMQTT() {
       try {
+        this.mqtt.status = null;
+        await Sleep(1000);
         const { data } = await ApiService.get('status/mqtt');
         this.mqtt.status = data.status ? 200 : 500;
       } catch (error) {
@@ -366,7 +407,7 @@ export default {
       const { data } = await ApiService.get('config?format=json');
 
       this.frigate.configured = data.frigate?.url;
-      if (this.frigate.configured) this.checkFrigate(data.frigate.url);
+      if (this.frigate.configured) this.checkFrigate();
 
       this.mqtt.configured = data.mqtt?.host;
       if (this.mqtt.configured) this.checkMQTT();
@@ -406,17 +447,23 @@ export default {
       try {
         if (this.loading) return;
         this.loading = true;
-        await ApiService.patch('config', { code: this.code });
+        clearInterval(this.statusInterval);
+        delete this.mqtt.status;
+        delete this.frigate.status;
         this.emitter.emit('toast', { message: 'Restarting to load changes' });
         this.services.forEach((detector) => {
           delete detector.status;
         });
-        delete this.doubleTake.status;
-        delete this.mqtt.status;
-        delete this.frigate.status;
-        this.waitForRestart();
+        this.waitForRestart = true;
+        await ApiService.patch('config', { code: this.code });
+        setTimeout(() => {
+          if (!this.socket.connected) {
+            this.emitter.emit('error', Error('Restart Error: check container logs'));
+          }
+        }, 10000);
       } catch (error) {
         this.loading = false;
+        this.waitForRestart = false;
         this.emitter.emit('error', error);
       }
     },
@@ -497,12 +544,6 @@ label {
       text-decoration: underline;
     }
   }
-  .icon {
-    top: 1px;
-    @media only screen and (max-width: 576px) {
-      top: 0;
-    }
-  }
 
   .icon.pulse {
     opacity: 1;
@@ -523,13 +564,13 @@ label {
     text-align: center;
     white-space: nowrap;
     font-size: 0.9rem;
+    line-height: 0.9rem;
   }
 }
 
 .fixed {
   position: fixed;
-  top: $tool-bar-height;
-  z-index: 5;
+  z-index: 3;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;

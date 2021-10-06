@@ -1,6 +1,6 @@
 <template>
-  <div class="app-wrapper">
-    <div class="loading p-d-flex p-jc-center" :class="{ loaded, hidden }">
+  <div id="app-wrapper">
+    <div class="loading p-d-flex p-jc-center" :class="{ loaded, hidden, dark }">
       <img class="p-d-block" :src="require('@/assets/img/icon.svg')" style="width: 100px" />
     </div>
     <Toast position="bottom-left" />
@@ -34,16 +34,26 @@ export default {
     socket: io(Constants().socket),
     toolbarHeight: null,
     loaded: false,
+    dark: false,
     hidden: false,
+    lastTheme: null,
   }),
   created() {
     this.getTheme();
-    this.checkLoginState();
+    this.checkLoginState().then((runSetup) => {
+      if (runSetup) this.setup();
+    });
     window.addEventListener('focus', this.checkLoginState);
     this.emitter.on('login', this.login);
     this.emitter.on('error', (error) => this.error(error));
     this.emitter.on('toast', (...args) => this.toast(...args));
     this.emitter.on('setTheme', (theme) => this.setTheme(theme));
+    this.emitter.on('setup', () => this.setup());
+    this.emitter.on('appLoading', (status) => {
+      this.dark = status;
+      this.hidden = !status;
+      this.loaded = !status;
+    });
   },
   mounted() {
     this.toolbarHeight = this.$refs.toolbar.getHeight();
@@ -57,34 +67,67 @@ export default {
     });
   },
   methods: {
+    async setup() {
+      ApiService.get('config').then(({ data }) => {
+        const { time } = data;
+        localStorage.setItem('time', JSON.stringify(time));
+      });
+    },
     async getTheme() {
-      this.setTheme();
-      ApiService.get('config/theme').then(({ data }) => {
-        localStorage.setItem('theme', data.theme);
+      this.$nextTick(() => {
         this.setTheme();
+        ApiService.get('config/theme').then(({ data }) => {
+          localStorage.setItem('theme', data.theme);
+          this.setTheme();
+        });
       });
     },
     setTheme(newTheme) {
       const theme = localStorage.getItem('theme');
+
+      if (!newTheme && theme === this.lastTheme) return;
+      if (document.getElementById('theme-link')) document.getElementById('theme-link').outerHTML = '';
+      document.getElementsByTagName('body')[0].className = 'overflow-hidden';
+      const themeLink = document.createElement('link');
+      themeLink.setAttribute('id', 'theme-link');
+      themeLink.setAttribute('rel', 'stylesheet');
+      themeLink.setAttribute('type', 'text/css');
+      themeLink.onload = () => {
+        this.setThemeColor();
+      };
+
       if (newTheme && newTheme !== theme) {
-        document.getElementById('theme-link').setAttribute('href', `./themes/${newTheme}/theme.css`);
+        this.lastTheme = newTheme;
+        themeLink.setAttribute('href', `./themes/${newTheme}/theme.css`);
         localStorage.setItem('theme', newTheme);
       }
       if (!newTheme && theme) {
-        document.getElementById('theme-link').setAttribute('href', `./themes/${theme}/theme.css`);
+        this.lastTheme = theme;
+        themeLink.setAttribute('href', `./themes/${theme}/theme.css`);
       }
 
-      const bg = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
-      if (bg.includes('rgb')) {
-        const [r, g, b] = bg.replace('rgb(', '').replace(')', '').replace(/\s+/g, '').split(',');
-        const hex = this.rgbToHex(r, g, b);
-        document.getElementById('theme-color').setAttribute('content', hex);
-      }
+      document.getElementsByTagName('head')[0].prepend(themeLink);
+      document.getElementsByTagName('body')[0].style.paddingTop = `${this.toolbarHeight}px`;
+      setTimeout(() => {
+        document.getElementsByTagName('body')[0].className = '';
+      }, 250);
     },
     rgbToHex(r, g, b) {
       return `#${[parseInt(r, 10), parseInt(g, 10), parseInt(b, 10)]
         .map((x) => x.toString(16).padStart(2, '0'))
         .join('')}`;
+    },
+    setThemeColor() {
+      const bg = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
+      if (bg.includes('rgb')) {
+        const [r, g, b] = bg
+          .match(/\(([^)]+)\)/)[1]
+          .replace(/\s+/g, '')
+          .split(',');
+        const hex = this.rgbToHex(r, g, b);
+        const currentHex = document.getElementById('theme-color').getAttribute('content');
+        if (hex !== currentHex) document.getElementById('theme-color').setAttribute('content', hex);
+      }
     },
     login() {
       if (this.$route.path !== '/login') {
@@ -107,18 +150,22 @@ export default {
       });
     },
     async checkLoginState() {
+      let runSetup = true;
       try {
         const { data } = await ApiService.get('status/auth');
         this.emitter.emit('hasAuth', data.auth);
         if (data.auth && !data.jwtValid) {
+          runSetup = false;
           this.$router.push('login');
         }
         if (!data.auth && this.$route.path === '/tokens') {
           this.$router.push('/');
         }
       } catch (error) {
+        runSetup = false;
         this.emitter.emit('error', error);
       }
+      return runSetup;
     },
   },
 };
@@ -129,15 +176,25 @@ export default {
 html {
   font-size: 15px;
   scrollbar-width: thin;
+  height: 100%;
   @media only screen and (max-width: 576px) {
     font-size: 14px;
   }
 }
 body {
   margin: 0;
+  height: 100%;
   background: var(--surface-b);
   color: var(--text-color);
-  padding-top: $tool-bar-height;
+
+  &.overflow-hidden {
+    overflow: hidden !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 ::-webkit-scrollbar {
@@ -155,11 +212,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol';
+  height: 100%;
+}
+
+#app-wrapper {
+  min-height: 100%;
 }
 
 .loading {
   position: fixed;
-  z-index: 6;
+  z-index: 999;
   background: rgba(0, 0, 0, 0.75);
   top: 0;
   left: 0;
@@ -172,6 +234,9 @@ body {
   }
   &.hidden {
     display: none !important;
+  }
+  &.dark {
+    background: #20262e;
   }
 }
 
@@ -229,6 +294,9 @@ body {
 }
 .p-tooltip.p-tooltip-left {
   margin-left: -3px;
+}
+.p-tooltip.p-tooltip-top {
+  margin-top: -3px;
 }
 
 .p-tooltip .p-tooltip-text {
@@ -294,11 +362,36 @@ body {
 i.pi-spin.pi-spinner {
   color: var(--surface-g);
 }
+
+.config-ptr--ptr,
+.ptr--ptr {
+  box-shadow: none !important;
+  z-index: 2;
+
+  div[class*='--box'] {
+    padding-bottom: 0;
+  }
+
+  div[class*='--content'] {
+    div[class*='--text'] {
+      color: var(--text-color);
+    }
+    div[class*='--icon'] {
+      color: var(--text-color);
+    }
+  }
+}
+
+.config-ptr--ptr {
+  div[class*='--box'] {
+    padding-bottom: 10px;
+  }
+}
 </style>
 
 <style scoped lang="scss">
 @import '@/assets/scss/_variables.scss';
-.app-wrapper {
+#app-wrapper {
   max-width: $max-width;
   margin: auto;
   overflow: hidden;

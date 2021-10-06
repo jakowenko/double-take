@@ -303,4 +303,4 @@ module.exports.publish = (data) => {
   messages.forEach((message) => CLIENT.publish(message.topic, message.message, { retain: true }));
 };
 
-module.exports.connected = () => CLIENT.connected;
+module.exports.connected = () => CLIENT.connected || false;

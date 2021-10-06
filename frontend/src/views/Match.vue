@@ -1,5 +1,5 @@
 <template>
-  <div class="match-wrapper">
+  <div class="match-wrapper" :style="{ paddingTop: headerHeight + 'px' }">
     <Header
       type="match"
       :loading="loading"
@@ -33,11 +33,9 @@
         </DataTable>
       </div>
     </div>
-    <div
-      class="p-d-flex p-jc-center"
-      :class="isPaginationVisible ? 'pagination-padding' : ''"
-      :style="{ marginTop: headerHeight + 'px' }"
-    >
+    <div class="p-d-flex p-jc-center p-flex-column" :class="isPaginationVisible ? 'pagination-padding' : ''">
+      <div id="pull-to-reload-message"></div>
+
       <Grid type="match" :matches="matches" style="width: 100%" />
     </div>
     <div
@@ -51,6 +49,8 @@
 </template>
 
 <script>
+import PullToRefresh from 'pulltorefreshjs';
+
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 
@@ -116,6 +116,21 @@ export default {
   },
   async mounted() {
     try {
+      const $this = this;
+      PullToRefresh.init({
+        mainElement: '#pull-to-reload-message',
+        triggerElement: '#app-wrapper',
+        distMax: 50,
+        distThreshold: 45,
+        onRefresh() {
+          $this.clear(['source', 'selected', 'disabled', 'loaded']);
+          return $this.get().matches({ delay: 500 });
+        },
+        shouldPullToRefresh() {
+          return window.scrollY === 0;
+        },
+      });
+
       this.headerHeight = this.$refs.header.getHeight();
       if (this.socket) {
         this.socket.on('recognize', (/* message */) => {
@@ -132,6 +147,7 @@ export default {
     emitters.forEach((emitter) => {
       this.emitter.off(emitter);
     });
+    PullToRefresh.destroyAll();
   },
   created() {
     this.emitter.on('updateFilter', async () => {
@@ -319,7 +335,7 @@ export default {
   bottom: 0;
   right: 0;
   left: 0;
-  z-index: 3;
+  z-index: 2;
   background: var(--surface-b);
 
   p {
@@ -331,7 +347,7 @@ export default {
   position: fixed;
   left: 300px;
   top: 100px;
-  z-index: 3;
+  z-index: 2;
   top: 0;
   left: 50%;
   transform: translateX(-50%);

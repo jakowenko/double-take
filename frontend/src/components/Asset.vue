@@ -47,9 +47,10 @@
               <template v-slot:body="slotProps">
                 <div class="p-d-block" style="position: relative">
                   <Badge
-                    :value="slotProps.data.detector + '&nbsp;&nbsp;&nbsp;'"
+                    :value="slotProps.data.detector"
                     :severity="slotProps.data.match ? 'success' : 'danger'"
                     class="clickable"
+                    style="padding-right: 18px"
                     :class="{ selected: selectedDetector?.index === slotProps.index }"
                     @click="
                       selectedDetector =
@@ -132,13 +133,13 @@
             </div>
           </div>
           <div class="p-d-block" style="width: calc(100% - 40px)">
-            <small v-if="type === 'match'" v-tooltip.right="asset.createdAt" style="cursor: pointer">{{
+            <small v-if="type === 'match'" v-tooltip.right="formatTime(asset.createdAt)" style="cursor: pointer">{{
               createdAt.ago
             }}</small>
             <small
               v-if="type === 'match' && updatedAt"
               class="p-ml-2"
-              v-tooltip.right="asset.updatedAt"
+              v-tooltip.right="formatTime(asset.updatedAt)"
               style="cursor: pointer"
             >
               {{ updatedAt ? `(updated ${updatedAt.ago})` : '' }}
@@ -159,7 +160,6 @@
 </template>
 
 <script>
-import { DateTime } from 'luxon';
 import VLazyImage from 'v-lazy-image';
 
 import Button from 'primevue/button';
@@ -169,6 +169,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dropdown from 'primevue/dropdown';
 
+import Time from '@/util/time.util';
 import Constants from '@/util/constants.util';
 import ApiService from '@/services/api.service';
 
@@ -208,6 +209,8 @@ export default {
     constants: () => ({
       ...Constants(),
     }),
+    formatTime: (ISO) => Time.format(ISO),
+    agoTime: (ISO) => Time.ago(ISO),
     imageURL() {
       return `${this.constants().api}/storage/${this.asset.file.key}?thumb${
         this.asset.token ? `&token=${this.asset.token}` : ''
@@ -283,25 +286,11 @@ export default {
       return ages;
     },
     createdAt() {
-      const units = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
-
-      const dateTime = DateTime.fromISO(this.asset.createdAt);
-      const diff = dateTime.diffNow().shiftTo(...units);
-      const unit = units.find((u) => diff.get(u) !== 0) || 'second';
-
-      const relativeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-      return { ago: relativeFormatter.format(Math.trunc(diff.as(unit)), unit), timestamp: this.timestamp };
+      return { ago: this.agoTime(this.asset.createdAt), timestamp: this.timestamp };
     },
     updatedAt() {
       if (!this.asset.updatedAt) return null;
-      const units = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
-
-      const dateTime = DateTime.fromISO(this.asset.updatedAt);
-      const diff = dateTime.diffNow().shiftTo(...units);
-      const unit = units.find((u) => diff.get(u) !== 0) || 'second';
-
-      const relativeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-      return { ago: relativeFormatter.format(Math.trunc(diff.as(unit)), unit), timestamp: this.timestamp };
+      return { ago: this.agoTime(this.asset.updatedAt), timestamp: this.timestamp };
     },
   },
   watch: {
@@ -330,15 +319,6 @@ export default {
     cursor: pointer;
   }
 
-  .p-datatable-thead > tr > th:first-child,
-  .p-datatable-tbody > tr > td:first-child {
-    padding-left: 0;
-  }
-  .p-datatable-thead > tr > th:last-child,
-  .p-datatable-tbody > tr > td:last-child {
-    padding-right: 0;
-  }
-
   td {
     position: relative;
   }
@@ -351,7 +331,7 @@ export default {
     position: absolute;
     top: 50%;
     margin-top: -5px;
-    margin-left: -19px;
+    margin-left: -15px;
     background: #78cc86;
   }
   .icon.compreface {
@@ -367,6 +347,7 @@ export default {
 
 .p-badge.clickable {
   cursor: pointer;
+  margin-right: 0;
 
   &:hover,
   &.selected {

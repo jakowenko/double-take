@@ -1,5 +1,5 @@
 <template>
-  <div class="train-wrapper">
+  <div class="train-wrapper" :style="{ paddingTop: headerHeight + 'px' }">
     <Header
       type="train"
       :loading="loading"
@@ -11,7 +11,7 @@
     />
     <div
       class="loading-wrapper p-d-flex p-flex-column p-jc-center"
-      v-if="loading.files || loading.status || !matches.source.length"
+      v-if="showLoading"
       :style="{ top: headerHeight + toolbarHeight + 'px' }"
     >
       <i v-if="loading.files || loading.status" class="pi pi-spin pi-spinner p-as-center" style="font-size: 2.5rem"></i>
@@ -26,12 +26,8 @@
         <p class="p-text-bold p-mb-3">No files found</p>
       </div>
     </div>
-    <div
-      v-else
-      class="p-d-flex p-jc-center"
-      :style="{ marginTop: headerHeight + 'px' }"
-      :class="isPaginationVisible ? 'pagination-padding' : ''"
-    >
+    <div class="p-d-flex p-jc-center p-flex-column" :class="isPaginationVisible ? 'pagination-padding' : ''">
+      <div id="pull-to-reload-message"></div>
       <Grid type="train" :folders="folders" :matches="{ filtered, ...matches }" style="width: 100%" />
     </div>
     <div
@@ -45,7 +41,10 @@
 </template>
 
 <script>
+import PullToRefresh from 'pulltorefreshjs';
+
 import ProgressBar from 'primevue/progressbar';
+
 import Grid from '@/components/Grid.vue';
 import Sleep from '@/util/sleep.util';
 import ApiService from '@/services/api.service';
@@ -85,8 +84,11 @@ export default {
     toolbarHeight: Number,
   },
   computed: {
+    showLoading() {
+      return this.loading.files || this.loading.status || !this.matches.source.length;
+    },
     isPaginationVisible() {
-      return this.pagination.total > this.pagination.limit;
+      return !this.loading.status && this.pagination.total > this.pagination.limit;
     },
     areAllSelected() {
       return this.filtered.length > 0 && this.matches.selected.length === this.filtered.length;
@@ -104,7 +106,11 @@ export default {
       if (value !== 'add new' && value !== null) shouldRefresh = true;
       if (value === null && this.trainingFolder !== 'add new') shouldRefresh = true;
       this.trainingFolder = value;
-      if (shouldRefresh) this.get().status();
+      if (shouldRefresh) {
+        this.clear(['source', 'selected', 'disabled', 'loaded']);
+        this.pagination.temp = 1;
+        this.get().files();
+      }
     });
 
     this.emitter.on('folders', (value) => {
@@ -121,7 +127,7 @@ export default {
     this.emitter.on('paginate', (value) => {
       this.pagination.temp = value;
       this.clear(['source', 'selected', 'disabled', 'loaded']);
-      this.get().status();
+      this.get().files();
     });
   },
   beforeUnmount() {
@@ -137,10 +143,25 @@ export default {
     emitters.forEach((emitter) => {
       this.emitter.off(emitter);
     });
+    PullToRefresh.destroyAll();
   },
   async mounted() {
+    const $this = this;
     this.headerHeight = this.$refs.header.getHeight();
-    await this.init();
+    this.init();
+    PullToRefresh.init({
+      mainElement: '#pull-to-reload-message',
+      triggerElement: '#app-wrapper',
+      distMax: 50,
+      distThreshold: 45,
+      onRefresh() {
+        $this.clear(['loaded']);
+        return $this.get().files(true);
+      },
+      shouldPullToRefresh() {
+        return window.scrollY === 0;
+      },
+    });
   },
   watch: {},
   methods: {
@@ -158,9 +179,9 @@ export default {
     get() {
       const $this = this;
       return {
-        async files() {
+        async files(isRefresh = false) {
           try {
-            $this.loading.files = true;
+            $this.loading.files = !isRefresh;
             const { data } = $this.trainingFolder
               ? await ApiService.get(`train?name=${$this.trainingFolder}`, { params: { page: $this.pagination.temp } })
               : await ApiService.get('train', { params: { page: $this.pagination.temp } });
@@ -330,6 +351,7 @@ export default {
   bottom: 0;
   right: 0;
   left: 0;
+  z-index: 3;
 
   p {
     margin: 0;
@@ -340,7 +362,7 @@ export default {
   position: fixed;
   left: 300px;
   top: 100px;
-  z-index: 3;
+  z-index: 2;
   top: 0;
   left: 50%;
   transform: translateX(-50%);

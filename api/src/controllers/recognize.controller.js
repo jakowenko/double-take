@@ -1,6 +1,6 @@
 const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
-const process = require('../util/process.util');
+const { polling } = require('../util/process.util');
 const actions = require('../util/detectors/actions');
 const notify = require('../util/notify/actions');
 const time = require('../util/time.util');
@@ -12,6 +12,7 @@ const { emit } = require('../util/socket.util');
 const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
 const config = require('../constants/config');
+const schedule = require('../util/schedule.util');
 const { AUTH, TOKEN } = require('../constants')();
 
 const { IDS, MATCH_IDS } = {
@@ -68,7 +69,17 @@ module.exports.start = async (req, res) => {
 
     if (!DETECTORS.length) return res.status(BAD_REQUEST).error('no detectors configured');
 
+    const scheduleCheck = schedule.checks(camera);
+    if (scheduleCheck.length) {
+      console.verbose('recognition disabled due to schedule');
+      console.verbose(scheduleCheck);
+      return res
+        .status(BAD_REQUEST)
+        .send({ error: 'recognition disabled due to schedule', checks: scheduleCheck });
+    }
+
     if (event.type === 'frigate') {
+      process.env.FRIGATE_LAST_EVENT = JSON.stringify({ time: time.utc(), camera });
       const check = await frigate.checks({
         ...event,
         PROCESSING,
@@ -91,7 +102,7 @@ module.exports.start = async (req, res) => {
 
       if (FRIGATE.ATTEMPTS.LATEST)
         promises.push(
-          process.polling(
+          polling(
             { ...event },
             {
               id,
@@ -105,7 +116,7 @@ module.exports.start = async (req, res) => {
         );
       if (FRIGATE.ATTEMPTS.SNAPSHOT)
         promises.push(
-          process.polling(
+          polling(
             { ...event },
             {
               id,
@@ -119,7 +130,7 @@ module.exports.start = async (req, res) => {
         );
     } else {
       promises.push(
-        process.polling(
+        polling(
           { ...event },
           {
             id,

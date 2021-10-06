@@ -432,6 +432,30 @@ detectors:
     timeout: 15
 ```
 
+### `schedule`
+
+```yaml
+# schedule settings (default: shown below)
+schedule:
+  # disable recognition if conditions are met
+  disable:
+    # - days:
+    #     - monday
+    #     - tuesday
+    #   times:
+    #     - 20:00-23:59
+    #   cameras:
+    #     - office
+    # - days:
+    #     - tuesday
+    #     - wednesday
+    #   times:
+    #     - 13:00-15:00
+    #     - 18:00-20:00
+    #   cameras:
+    #     - living-room
+```
+
 ### `notify`
 
 ```yaml
@@ -459,7 +483,7 @@ notify:
 # time settings (default: shown below)
 time:
   # defaults to iso 8601 format with support for token-based formatting
-  # https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens
+  # https://github.com/moment/luxon/blob/master/docs/formatting.md#table-of-tokens
   format:
   # time zone used in logs
   timezone: UTC
@@ -485,9 +509,9 @@ ui:
 
   thumbnails:
     # value between 0-100
-    quality: 80
+    quality: 95
     # value in pixels
-    width: 300
+    width: 500
 
   logs:
     # number of lines displayed
