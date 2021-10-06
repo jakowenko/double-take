@@ -155,7 +155,8 @@ export default {
       distMax: 50,
       distThreshold: 45,
       onRefresh() {
-        return $this.init();
+        $this.clear(['loaded']);
+        return $this.get().files(true);
       },
       shouldPullToRefresh() {
         return window.scrollY === 0;
@@ -178,9 +179,9 @@ export default {
     get() {
       const $this = this;
       return {
-        async files() {
+        async files(isRefresh = false) {
           try {
-            $this.loading.files = true;
+            $this.loading.files = !isRefresh;
             const { data } = $this.trainingFolder
               ? await ApiService.get(`train?name=${$this.trainingFolder}`, { params: { page: $this.pagination.temp } })
               : await ApiService.get('train', { params: { page: $this.pagination.temp } });
