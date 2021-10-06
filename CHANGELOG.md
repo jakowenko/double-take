@@ -1,3 +1,17 @@
+# [1.3.0](https://github.com/jakowenko/double-take/compare/v1.2.0...v1.3.0) (2021-10-06)
+
+
+### Features
+
+* schedule to disable recognition ([#115](https://github.com/jakowenko/double-take/issues/115)) ([84235d3](https://github.com/jakowenko/double-take/commit/84235d38c243a33bd67946f764d698acf81e530f))
+* **ui:config:** double take status is determined by sockets ([65d094f](https://github.com/jakowenko/double-take/commit/65d094fe8376db828bba802eca7f35206ec8cba7))
+* **ui:config:** frigate version and last event in tooltip ([cddbebc](https://github.com/jakowenko/double-take/commit/cddbebc9b81ebf1d262e433340ab93aed4254852))
+* **ui:config:** pull to refresh ([57af9d5](https://github.com/jakowenko/double-take/commit/57af9d5b8dfae9b300976c7005ec719e19665c0f))
+* **ui:menu:** speed dial action buttons ([8282320](https://github.com/jakowenko/double-take/commit/82823207960bf0e0a3831c60ff46c9a045859219))
+* **ui:status:** frigate last camera in tooltip ([ac9c7a8](https://github.com/jakowenko/double-take/commit/ac9c7a8d8d27b2e30fa32da1c8665dc291d1ef8d))
+* **ui:** format tooltips times ([aee36d8](https://github.com/jakowenko/double-take/commit/aee36d8b8d1d32a282ee85cc6c1bf0832be8ed9e))
+* **ui:** pull to refresh on matches and training pages ([80aa5a8](https://github.com/jakowenko/double-take/commit/80aa5a87942cc5045e2fe68b5472efac10eec053))
+
 # [1.2.0](https://github.com/jakowenko/double-take/compare/v1.1.0...v1.2.0) (2021-09-30)
 
 
