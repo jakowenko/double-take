@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/jakowenko/double-take#readme",
   "dependencies": {
-    "axios": "^0.21.4",
+    "axios": "^0.22.0",
     "better-sqlite3": "^7.4.3",
     "canvas": "^2.8.0",
     "cors": "^2.8.5",
