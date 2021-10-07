@@ -91,12 +91,14 @@
         <div class="p-col-6 p-pb-0 stats-text">{{ stats.current }} of {{ stats.total }}</div>
         <div class="p-col-6 p-d-flex p-jc-end p-pb-0 p-ai-center socket-status">
           <Button
-            label="WebSocket"
+            label="Live Updates"
             class="p-button-text p-button-sm websocket-btn"
             @click="filterSettings.socket = { enabled: !filterSettings.socket.enabled, type: 'click' }"
           />
           <div
             class="icon p-badge p-ml-1"
+            v-tooltip.left="socketMessage"
+            style="cursor: pointer"
             :class="filterSettings.socket.enabled ? socketClass : 'p-button-secondary'"
           ></div>
         </div>
@@ -442,7 +444,7 @@ export default {
     'filterSettings.socket': {
       handler({ type, enabled }) {
         if (type === 'click') {
-          this.emitter.emit('toast', { message: `WebSocket ${enabled ? 'enabled' : 'disabled'}` });
+          this.emitter.emit('toast', { message: `Live updates ${enabled ? 'enabled' : 'disabled'}` });
         }
         this.emitter.emit('updateFilterSettings', { socket: enabled });
       },
@@ -499,6 +501,12 @@ export default {
   computed: {
     uploadUrl() {
       return `${Constants().api}/train/add/${this.folder}`;
+    },
+    socketMessage() {
+      if (this.filterSettings.socket.enabled) {
+        return this.socketClass.includes('success') ? 'Connected' : 'Disconnected';
+      }
+      return 'Disabled';
     },
   },
 };
@@ -692,11 +700,7 @@ export default {
 }
 
 .websocket-btn {
-  padding: 0.25rem;
-}
-
-.socket-status {
+  padding: 0.25rem 0.35rem;
   font-size: 12px;
-  line-height: 12px;
 }
 </style>
