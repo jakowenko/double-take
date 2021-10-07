@@ -30,10 +30,14 @@ const processMessage = ({ topic, message }) => {
   };
 
   const snapshot = async () => {
-    const camera = topic.split('/')[1];
+    const foundCamera = CAMERAS
+      ? Object.keys(CAMERAS).find((key) => CAMERAS[key]?.SNAPSHOT?.TOPIC === topic)
+      : null;
+    const camera = (foundCamera || topic.split('/')[1]).toLowerCase();
     const filename = `${uuidv4()}.jpg`;
     const buffer = Buffer.from(message);
-    const { ATTEMPTS } = config.frigate({ camera });
+
+    const { ATTEMPTS } = foundCamera ? { ATTEMPTS: { MQTT: true } } : config.frigate({ camera });
 
     if (!ATTEMPTS.MQTT || PREVIOUS_MQTT_LENGTHS.includes(buffer.length)) return;
     PREVIOUS_MQTT_LENGTHS.unshift(buffer.length);
