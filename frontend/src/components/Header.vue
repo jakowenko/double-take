@@ -82,6 +82,7 @@
           direction="left"
           :hideOnClickOutside="false"
           :tooltipOptions="{ position: 'top' }"
+          :visible="showSpeedDial()"
         />
       </div>
     </div>
@@ -358,6 +359,9 @@ export default {
     }
   },
   methods: {
+    showSpeedDial() {
+      return window.outerWidth > 576;
+    },
     getHeight() {
       return this.$refs.header.offsetHeight;
     },
@@ -534,7 +538,7 @@ export default {
       -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     }
     .p-speeddial-action-icon {
-      font-size: 0.8rem !important;
+      font-size: 0.9rem !important;
     }
   }
 }
@@ -685,6 +689,10 @@ export default {
   .p-inputtext {
     width: 100%;
   }
+}
+
+.websocket-btn {
+  padding: 0.25rem;
 }
 
 .socket-status {
