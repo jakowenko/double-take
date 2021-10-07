@@ -105,7 +105,13 @@
         <div class="p-col custom-col">
           <div class="p-fluid">
             <label class="p-d-block p-mb-1">Name</label>
-            <MultiSelect v-model="selected.names" :options="dropdowns.names" v-on:change="emitter.emit('updateFilter')">
+            <MultiSelect
+              v-model="selected.names"
+              :options="dropdowns.names"
+              v-on:change="emitter.emit('updateFilter')"
+              @show="fixSelectPanel(true, 0)"
+              @hide="fixSelectPanel(false)"
+            >
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
                   <div>{{ option + addComma(slotProps.value.length, index) }}</div>
@@ -124,6 +130,8 @@
               v-model="selected.matches"
               :options="dropdowns.matches"
               v-on:change="emitter.emit('updateFilter')"
+              @show="fixSelectPanel(true, 1)"
+              @hide="fixSelectPanel(false)"
             >
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
@@ -143,6 +151,8 @@
               v-model="selected.detectors"
               :options="dropdowns.detectors"
               v-on:change="emitter.emit('updateFilter')"
+              @show="fixSelectPanel(true, 2)"
+              @hide="fixSelectPanel(false)"
             >
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
@@ -162,6 +172,8 @@
               v-model="selected.cameras"
               :options="dropdowns.cameras"
               v-on:change="emitter.emit('updateFilter')"
+              @show="fixSelectPanel(true, 3)"
+              @hide="fixSelectPanel(false)"
             >
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
@@ -177,7 +189,13 @@
         <div class="p-col custom-col">
           <div class="p-fluid">
             <label class="p-d-block p-mb-1">Type</label>
-            <MultiSelect v-model="selected.types" :options="dropdowns.types" v-on:change="emitter.emit('updateFilter')">
+            <MultiSelect
+              v-model="selected.types"
+              :options="dropdowns.types"
+              v-on:change="emitter.emit('updateFilter')"
+              @show="fixSelectPanel(true, 4)"
+              @hide="fixSelectPanel(false)"
+            >
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
                   <div>{{ option + addComma(slotProps.value.length, index) }}</div>
@@ -361,6 +379,14 @@ export default {
     }
   },
   methods: {
+    fixSelectPanel(value, index) {
+      const sub = document.getElementsByClassName('p-multiselect')[index];
+      const [panel] = document.getElementsByClassName('p-multiselect-panel');
+      if (panel && sub) {
+        panel.style.position = value ? 'fixed' : 'absolute';
+        panel.style.top = `${sub.getBoundingClientRect().bottom}px`;
+      }
+    },
     showSpeedDial() {
       return window.outerWidth > 576;
     },
