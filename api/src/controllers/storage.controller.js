@@ -116,6 +116,9 @@ module.exports.delete = async (req, res) => {
     db.prepare(
       `DELETE FROM file WHERE id IN (${files.map((obj) => `'${obj.id}'`).join(',')})`
     ).run();
+    db.prepare(
+      `DELETE FROM train WHERE fileId IN (${files.map((obj) => `'${obj.id}'`).join(',')})`
+    ).run();
     files.forEach((obj) => {
       filesystem.delete(`${PATH}/${obj.key}`);
     });

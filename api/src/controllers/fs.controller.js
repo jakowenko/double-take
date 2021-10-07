@@ -1,5 +1,6 @@
 const fs = require('fs');
 const filesystem = require('../util/fs.util');
+const database = require('../util/db.util');
 const { resync } = require('../util/db.util');
 const { STORAGE } = require('../constants')();
 
@@ -18,6 +19,9 @@ module.exports.folders = {
       fs.rmdirSync(`${STORAGE.PATH}/train/${name}`, { recursive: true });
       await resync.files();
     }
+    const db = database.connect();
+    db.prepare('DELETE FROM file WHERE name = ?').run(name);
+    db.prepare('DELETE FROM train WHERE name = ?').run(name);
     res.send({ success: true });
   },
 };
