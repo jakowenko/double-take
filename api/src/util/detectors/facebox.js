@@ -61,6 +61,7 @@ module.exports.remove = ({ name }) => {
 };
 
 module.exports.normalize = ({ camera, data }) => {
+  if (!data.success) throw new Error(data.error);
   const { MATCH, UNKNOWN } = config.detect(camera);
   const normalized = data.faces.map((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
