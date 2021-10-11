@@ -27,13 +27,13 @@ jobs:
         if: endsWith(github.ref, '/beta')
         run: |
           echo "TAG=beta" >> $GITHUB_ENV
-          echo "ARCH=linux/amd64" >> $GITHUB_ENV
+          echo "ARCH=linux/amd64,linux/arm/v7,linux/arm64" >> $GITHUB_ENV
           echo "VERSION=beta-${{steps.version.outputs.prop}}" >> $GITHUB_ENV
       - name: Set ENV to latest
         if: ${{ github.event_name == 'release' && github.event.action == 'released' || github.event_name == 'workflow_dispatch' }}
         run: |
           echo "TAG=latest" >> $GITHUB_ENV
-          echo "ARCH=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64" >> $GITHUB_ENV
+          echo "ARCH=linux/amd64,linux/arm/v7,linux/arm64" >> $GITHUB_ENV
           echo "VERSION=${{steps.version.outputs.prop}}" >> $GITHUB_ENV
       - name: Version with SHA-7
         run: |
