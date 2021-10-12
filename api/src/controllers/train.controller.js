@@ -99,7 +99,11 @@ module.exports.add = async (req, res) => {
   if (req.files) {
     await Promise.all(
       req.files.map(async (obj) => {
-        const { originalname, buffer } = obj;
+        const { originalname, buffer, mimetype } = obj;
+        if (!['image/jpeg', 'image/png'].includes(mimetype)) {
+          console.warn(`training incorrect mime type: ${mimetype}`);
+          return;
+        }
         const ext = `.${originalname.split('.').pop()}`;
         const filename = `${originalname.replace(ext, '')}-${time.unix()}${ext}`;
         await filesystem.writer(`${STORAGE.PATH}/train/${name}/${filename}`, buffer);
@@ -123,7 +127,7 @@ module.exports.add = async (req, res) => {
     }));
   }
 
-  train.add(name, { files });
+  if (files.length) train.add(name, { files });
   res.send({ message: `training queued for ${name}` });
 };
 
