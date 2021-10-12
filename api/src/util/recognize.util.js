@@ -1,3 +1,28 @@
+const fs = require('fs');
+const { STORAGE } = require('../constants')();
+
+module.exports.save = {
+  latest: (camera, best = [], unknown = {}) => {
+    best.forEach(({ name, filename }) => {
+      fs.copyFileSync(`${STORAGE.PATH}/matches/${filename}`, `${STORAGE.PATH}/latest/${name}.jpg`);
+      fs.copyFileSync(
+        `${STORAGE.PATH}/matches/${filename}`,
+        `${STORAGE.PATH}/latest/${camera}.jpg`
+      );
+    });
+    if (unknown.filename)
+      fs.copyFileSync(
+        `${STORAGE.PATH}/matches/${unknown.filename}`,
+        `${STORAGE.PATH}/latest/unknown.jpg`
+      );
+    if (!best.length)
+      fs.copyFileSync(
+        `${STORAGE.PATH}/matches/${unknown.filename}`,
+        `${STORAGE.PATH}/latest/${camera}.jpg`
+      );
+  },
+};
+
 module.exports.normalize = (results = []) => {
   const best = { matches: [], misses: [] };
   const tmp = { matches: {}, misses: {} };
@@ -19,7 +44,7 @@ module.exports.normalize = (results = []) => {
             duration: attempt.duration,
             detector: attempt.detector,
             filename: attempt.filename,
-            base64: attempt.base64,
+            base64: attempt.base64 || null,
           };
         }
       });
@@ -35,7 +60,7 @@ module.exports.normalize = (results = []) => {
             duration: attempt.duration,
             detector: attempt.detector,
             filename: attempt.filename,
-            base64: attempt.base64,
+            base64: attempt.base64 || null,
           };
         }
       });
@@ -51,7 +76,7 @@ module.exports.normalize = (results = []) => {
             duration: attempt.duration,
             detector: attempt.detector,
             filename: attempt.filename,
-            base64: attempt.base64,
+            base64: attempt.base64 || null,
           };
         }
       });

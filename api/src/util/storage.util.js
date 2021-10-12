@@ -50,7 +50,12 @@ module.exports.purge = async () => {
 };
 
 module.exports.setup = () => {
-  const folders = [STORAGE.TMP.PATH, `${STORAGE.PATH}/matches`, `${STORAGE.PATH}/train`];
+  const folders = [
+    STORAGE.TMP.PATH,
+    `${STORAGE.PATH}/matches`,
+    `${STORAGE.PATH}/train`,
+    `${STORAGE.PATH}/latest`,
+  ];
   if (fs.existsSync(STORAGE.TMP.PATH)) {
     fs.rmdirSync(STORAGE.TMP.PATH, { recursive: true });
   }
