@@ -1,6 +1,9 @@
-FROM node:14-bullseye
+FROM ubuntu:20.04 as build
+ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y libcairo2-dev libpango1.0-dev libvips-dev
+RUN apt-get update && apt-get install -y curl bash
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get install -y nodejs gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg8-dev libgif-dev
 
 WORKDIR /double-take/api
 COPY /api/package.json .
@@ -23,8 +26,7 @@ WORKDIR /
 RUN mkdir /.storage
 RUN ln -s /.storage /double-take/.storage
 
-WORKDIR /double-take
-
+FROM ubuntu:20.04
+COPY --from=build . .
 ENV NODE_ENV=development
-
-RUN npm install nodemon -g
+WORKDIR /double-take
