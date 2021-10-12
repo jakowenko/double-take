@@ -10,16 +10,17 @@ module.exports.save = {
         `${STORAGE.PATH}/latest/${camera}.jpg`
       );
     });
-    if (unknown.filename)
+    if (unknown.filename) {
       fs.copyFileSync(
         `${STORAGE.PATH}/matches/${unknown.filename}`,
         `${STORAGE.PATH}/latest/unknown.jpg`
       );
-    if (!best.length)
-      fs.copyFileSync(
-        `${STORAGE.PATH}/matches/${unknown.filename}`,
-        `${STORAGE.PATH}/latest/${camera}.jpg`
-      );
+      if (!best.length)
+        fs.copyFileSync(
+          `${STORAGE.PATH}/matches/${unknown.filename}`,
+          `${STORAGE.PATH}/latest/${camera}.jpg`
+        );
+    }
   },
 };
 
