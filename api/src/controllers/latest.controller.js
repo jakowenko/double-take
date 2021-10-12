@@ -50,7 +50,7 @@ module.exports.image = async (req, res) => {
   const request = await axios({
     method: 'get',
     url: `http://0.0.0.0:${SERVER.PORT}/api/storage/matches/${originalFilename}?box=true`,
-    headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
+    headers: AUTH ? { authorization: jwt.sign({ route: 'storage' }) } : null,
     responseType: 'arraybuffer',
   });
 
