@@ -127,6 +127,7 @@ export default {
   data: () => ({
     statusInterval: null,
     waitForRestart: false,
+    restartTimeout: null,
     themeUpdating: false,
     services: [],
     themes: {
@@ -456,7 +457,8 @@ export default {
         });
         this.waitForRestart = true;
         await ApiService.patch('config', { code: this.code });
-        setTimeout(() => {
+        clearTimeout(this.restartTimeout);
+        this.restartTimeout = setTimeout(() => {
           if (!this.socket.connected) {
             this.emitter.emit('error', Error('Restart Error: check container logs'));
           }

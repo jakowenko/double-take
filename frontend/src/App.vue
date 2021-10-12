@@ -83,9 +83,9 @@ export default {
       });
     },
     setTheme(newTheme) {
-      const theme = localStorage.getItem('theme');
+      const theme = newTheme || localStorage.getItem('theme');
 
-      if (!newTheme && theme === this.lastTheme) return;
+      if (theme === this.lastTheme) return;
       if (document.getElementById('theme-link')) document.getElementById('theme-link').outerHTML = '';
       document.getElementsByTagName('body')[0].className = 'overflow-hidden';
       const themeLink = document.createElement('link');
@@ -96,15 +96,9 @@ export default {
         this.setThemeColor();
       };
 
-      if (newTheme && newTheme !== theme) {
-        this.lastTheme = newTheme;
-        themeLink.setAttribute('href', `./themes/${newTheme}/theme.css`);
-        localStorage.setItem('theme', newTheme);
-      }
-      if (!newTheme && theme) {
-        this.lastTheme = theme;
-        themeLink.setAttribute('href', `./themes/${theme}/theme.css`);
-      }
+      themeLink.setAttribute('href', `./themes/${theme}/theme.css`);
+      localStorage.setItem('theme', theme);
+      this.lastTheme = theme;
 
       document.getElementsByTagName('head')[0].prepend(themeLink);
       document.getElementsByTagName('body')[0].style.paddingTop = `${this.toolbarHeight}px`;

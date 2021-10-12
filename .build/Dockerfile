@@ -1,7 +1,9 @@
-FROM node:14-alpine
-RUN apk --update add --no-cache bash python make g++ libpng libpng-dev jpeg-dev pango-dev cairo-dev giflib-dev libheif-dev
-RUN apk add libimagequant-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main
-RUN apk add vips-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
+FROM ubuntu:20.04 as build
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y curl bash
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get install -y nodejs gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg8-dev libgif-dev
 
 WORKDIR /double-take/api
 COPY /api/package.json .
@@ -28,11 +30,11 @@ RUN mkdir /.storage
 RUN ln -s /.storage /double-take/.storage
 
 WORKDIR /double-take
-
 RUN npm install nodemon -g
-
 COPY /.build/entrypoint.sh .
 
+FROM ubuntu:20.04
+COPY --from=build . .
 ENV NODE_ENV=production
-
+WORKDIR /double-take
 ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]

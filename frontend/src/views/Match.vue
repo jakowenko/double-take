@@ -1,5 +1,5 @@
 <template>
-  <div class="match-wrapper" :style="{ paddingTop: headerHeight + 'px' }">
+  <div class="match-wrapper" :style="{ paddingTop: headerHeight + filterBarHeight + 'px' }">
     <Header
       type="match"
       :loading="loading"
@@ -14,7 +14,7 @@
     <div
       class="loading-wrapper p-d-flex p-flex-column p-jc-center"
       v-if="showLoading || showNoFiles"
-      :style="{ top: headerHeight + toolbarHeight + 'px' }"
+      :style="{ top: headerHeight + toolbarHeight + filterBarHeight + 'px' }"
     >
       <i class="pi pi-spin pi-spinner p-as-center" style="font-size: 2.5rem"></i>
       <div v-if="showNoFiles" class="p-mt-5 p-text-center p-as-center" style="width: 100%">
@@ -41,7 +41,7 @@
     <div
       v-if="isPaginationVisible"
       class="pagination p-d-flex p-jc-center"
-      :style="{ top: headerHeight + toolbarHeight + 'px' }"
+      :style="{ top: headerHeight + toolbarHeight + filterBarHeight + 'px' }"
     >
       <Pagination :pagination="pagination" :loading="loading" />
     </div>
@@ -69,6 +69,7 @@ export default {
     Column,
   },
   data: () => ({
+    socketEnabled: null,
     pagination: {
       total: 0,
       page: 1,
@@ -92,6 +93,7 @@ export default {
     filters: {},
     trainingFolder: null,
     headerHeight: 0,
+    filterBarHeight: 0,
   }),
   props: {
     toolbarHeight: Number,
@@ -116,15 +118,13 @@ export default {
   },
   async mounted() {
     try {
-      const $this = this;
       PullToRefresh.init({
         mainElement: '#pull-to-reload-message',
         triggerElement: '#app-wrapper',
         distMax: 50,
         distThreshold: 45,
         onRefresh() {
-          $this.clear(['source', 'selected', 'disabled', 'loaded']);
-          return $this.get().matches({ delay: 500 });
+          window.location.reload();
         },
         shouldPullToRefresh() {
           return window.scrollY === 0;
@@ -134,7 +134,7 @@ export default {
       this.headerHeight = this.$refs.header.getHeight();
       if (this.socket) {
         this.socket.on('recognize', (/* message */) => {
-          this.get().matches();
+          if (this.socketEnabled) this.get().matches();
         });
       }
       this.get().matches();
@@ -143,13 +143,33 @@ export default {
     }
   },
   beforeUnmount() {
-    const emitters = ['updateFilter', 'trainingFolder', 'assetLoaded', 'toggleAsset', 'reprocess', 'paginate'];
+    const emitters = [
+      'updateFilter',
+      'trainingFolder',
+      'assetLoaded',
+      'toggleAsset',
+      'reprocess',
+      'paginate',
+      'updateFilterSettings',
+    ];
     emitters.forEach((emitter) => {
       this.emitter.off(emitter);
     });
     PullToRefresh.destroyAll();
   },
   created() {
+    this.emitter.on('updateFilterSettings', (obj) => {
+      this.updateFilterSettings(obj);
+      if ('socket' in obj) {
+        this.socketEnabled = obj.socket;
+      }
+      if ('bar' in obj) {
+        this.$nextTick(() => {
+          if (obj.bar === true) this.filterBarHeight = this.$refs.header.getSubHeight();
+          else this.filterBarHeight = 0;
+        });
+      }
+    });
     this.emitter.on('updateFilter', async () => {
       this.clear(['source', 'selected', 'disabled', 'loaded']);
       await this.get().matches({ filters: false });
@@ -322,6 +342,10 @@ export default {
       }
 
       return filters;
+    },
+    updateFilterSettings(value) {
+      const settings = JSON.parse(localStorage.getItem('filter-settings')) || {};
+      localStorage.setItem('filter-settings', JSON.stringify({ ...settings, ...value }));
     },
   },
 };

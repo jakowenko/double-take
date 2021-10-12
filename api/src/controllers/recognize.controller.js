@@ -177,6 +177,7 @@ module.exports.start = async (req, res) => {
 
     res.send(output);
 
+    recognize.save.latest(camera, best, unknown);
     mqtt.recognize(output);
     notify.publish(output, camera, results);
     if (output.matches.length) IDS.push(id);

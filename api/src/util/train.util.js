@@ -79,7 +79,7 @@ module.exports.add = async (name, opts = {}) => {
   const { ids, files } = opts;
   await database.resync.files();
   const queue = files
-    ? files.map((obj) => database.get.fileByFilename(obj.name, obj.filename))
+    ? files.map((obj) => database.get.fileByFilename(obj.name, obj.filename)).filter((obj) => obj)
     : ids
     ? database.get.filesById(ids)
     : database.get.untrained(name);

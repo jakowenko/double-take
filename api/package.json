@@ -1,6 +1,6 @@
 {
   "name": "double-take-api",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "start": "node server.js",
@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/jakowenko/double-take#readme",
   "dependencies": {
-    "axios": "^0.21.4",
+    "axios": "^0.22.0",
     "better-sqlite3": "^7.4.3",
     "canvas": "^2.8.0",
     "cors": "^2.8.5",

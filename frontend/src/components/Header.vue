@@ -82,20 +82,36 @@
           direction="left"
           :hideOnClickOutside="false"
           :tooltipOptions="{ position: 'top' }"
+          :visible="showSpeedDial()"
         />
       </div>
     </div>
-    <div v-if="type === 'match'" class="fixed-sub p-pl-3 p-pr-3" :class="{ show: showFilter }">
+    <div v-if="type === 'match'" ref="sub" class="fixed-sub p-pl-3 p-pr-3" :class="{ show: filterSettings.bar }">
       <div class="p-grid p-ai-center">
         <div class="p-col-6 p-pb-0 stats-text">{{ stats.current }} of {{ stats.total }}</div>
         <div class="p-col-6 p-d-flex p-jc-end p-pb-0 p-ai-center socket-status">
-          WebSocket
-          <div class="icon p-badge p-ml-1" :class="socketClass"></div>
+          <Button
+            label="Live Updates"
+            class="p-button-text p-button-sm websocket-btn"
+            @click="filterSettings.socket = { enabled: !filterSettings.socket.enabled, type: 'click' }"
+          />
+          <div
+            class="icon p-badge p-ml-1"
+            v-tooltip.left="socketMessage"
+            style="cursor: pointer"
+            :class="filterSettings.socket.enabled ? socketClass : 'p-button-secondary'"
+          ></div>
         </div>
         <div class="p-col custom-col">
           <div class="p-fluid">
             <label class="p-d-block p-mb-1">Name</label>
-            <MultiSelect v-model="selected.names" :options="dropdowns.names" v-on:change="emitter.emit('updateFilter')">
+            <MultiSelect
+              v-model="selected.names"
+              :options="dropdowns.names"
+              v-on:change="emitter.emit('updateFilter')"
+              @show="fixSelectPanel(true, 0)"
+              @hide="fixSelectPanel(false)"
+            >
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
                   <div>{{ option + addComma(slotProps.value.length, index) }}</div>
@@ -114,6 +130,8 @@
               v-model="selected.matches"
               :options="dropdowns.matches"
               v-on:change="emitter.emit('updateFilter')"
+              @show="fixSelectPanel(true, 1)"
+              @hide="fixSelectPanel(false)"
             >
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
@@ -133,6 +151,8 @@
               v-model="selected.detectors"
               :options="dropdowns.detectors"
               v-on:change="emitter.emit('updateFilter')"
+              @show="fixSelectPanel(true, 2)"
+              @hide="fixSelectPanel(false)"
             >
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
@@ -152,6 +172,8 @@
               v-model="selected.cameras"
               :options="dropdowns.cameras"
               v-on:change="emitter.emit('updateFilter')"
+              @show="fixSelectPanel(true, 3)"
+              @hide="fixSelectPanel(false)"
             >
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
@@ -167,7 +189,13 @@
         <div class="p-col custom-col">
           <div class="p-fluid">
             <label class="p-d-block p-mb-1">Type</label>
-            <MultiSelect v-model="selected.types" :options="dropdowns.types" v-on:change="emitter.emit('updateFilter')">
+            <MultiSelect
+              v-model="selected.types"
+              :options="dropdowns.types"
+              v-on:change="emitter.emit('updateFilter')"
+              @show="fixSelectPanel(true, 4)"
+              @hide="fixSelectPanel(false)"
+            >
               <template v-slot:value="slotProps">
                 <div v-for="(option, index) of slotProps.value" :key="option" class="p-d-inline-flex p-mr-1">
                   <div>{{ option + addComma(slotProps.value.length, index) }}</div>
@@ -264,7 +292,6 @@ export default {
     },
     folder: null,
     folders: [],
-    showFilter: false,
     filters: {
       names: [],
       matches: [],
@@ -277,6 +304,10 @@ export default {
     },
     selected: {},
     socketClass: 'p-badge-secondary',
+    filterSettings: {
+      socket: {},
+      bar: null,
+    },
   }),
   props: {
     areAllSelected: Boolean,
@@ -289,6 +320,9 @@ export default {
     socket: Object,
   },
   mounted() {
+    const settings = JSON.parse(localStorage.getItem('filter-settings')) || { socket: true, bar: false };
+    if (settings && 'socket' in settings) this.filterSettings.socket.enabled = settings.socket;
+    if (settings && 'bar' in settings && this.type === 'match') this.filterSettings.bar = settings.bar;
     this.get().folders();
 
     this.speedDial = [
@@ -296,7 +330,7 @@ export default {
         label: 'Filters',
         icon: 'pi pi-cog',
         command: () => {
-          this.showFilter = !this.showFilter;
+          this.filterSettings.bar = !this.filterSettings.bar;
         },
       },
       {
@@ -345,8 +379,22 @@ export default {
     }
   },
   methods: {
+    fixSelectPanel(value, index) {
+      const sub = document.getElementsByClassName('p-multiselect')[index];
+      const [panel] = document.getElementsByClassName('p-multiselect-panel');
+      if (panel && sub) {
+        panel.style.position = value ? 'fixed' : 'absolute';
+        panel.style.top = `${sub.getBoundingClientRect().bottom}px`;
+      }
+    },
+    showSpeedDial() {
+      return window.outerWidth > 576;
+    },
     getHeight() {
       return this.$refs.header.offsetHeight;
+    },
+    getSubHeight() {
+      return this.$refs.sub.clientHeight;
     },
     get() {
       const $this = this;
@@ -419,6 +467,23 @@ export default {
     },
   },
   watch: {
+    'filterSettings.socket': {
+      handler({ type, enabled }) {
+        if (type === 'click') {
+          this.emitter.emit('toast', { message: `Live updates ${enabled ? 'enabled' : 'disabled'}` });
+        }
+        this.emitter.emit('updateFilterSettings', { socket: enabled });
+      },
+      deep: true,
+    },
+    'filterSettings.bar': {
+      handler(value) {
+        const target = this.speedDial.find(({ label }) => label.toLowerCase() === 'filters');
+        target.icon = value ? 'pi pi-cog active' : 'pi pi-cog';
+        this.emitter.emit('updateFilterSettings', { bar: value });
+      },
+      deep: true,
+    },
     // eslint-disable-next-line func-names
     'loading.files': function (value) {
       const target = this.speedDial.find(({ label }) => label.toLowerCase() === 'refresh');
@@ -463,6 +528,12 @@ export default {
     uploadUrl() {
       return `${Constants().api}/train/add/${this.folder}`;
     },
+    socketMessage() {
+      if (this.filterSettings.socket.enabled) {
+        return this.socketClass.includes('success') ? 'Connected' : 'Disconnected';
+      }
+      return 'Disabled';
+    },
   },
 };
 </script>
@@ -501,7 +572,7 @@ export default {
       -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     }
     .p-speeddial-action-icon {
-      font-size: 0.8rem !important;
+      font-size: 0.9rem !important;
     }
   }
 }
@@ -654,8 +725,8 @@ export default {
   }
 }
 
-.socket-status {
+.websocket-btn {
+  padding: 0.25rem 0.35rem;
   font-size: 12px;
-  line-height: 12px;
 }
 </style>
