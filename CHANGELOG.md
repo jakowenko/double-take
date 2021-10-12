@@ -1,3 +1,21 @@
+# [1.4.0](https://github.com/jakowenko/double-take/compare/v1.3.0...v1.4.0) (2021-10-12)
+
+
+### Bug Fixes
+
+* **api:train:** validate mime type and result of database.get.fileByFilename ([#123](https://github.com/jakowenko/double-take/issues/123)) ([d5e050f](https://github.com/jakowenko/double-take/commit/d5e050fa708b500f97f2babde5b7256d08bea426))
+* **api:** catch facebox error before normalizing data ([67c93c4](https://github.com/jakowenko/double-take/commit/67c93c4ce10d35efb6f678841c867dc0cc7a71cc))
+* **api:** delete orphaned db records when deleting training folder / files ([f031545](https://github.com/jakowenko/double-take/commit/f031545b15b6193e6e4c15a73222f2593c26e265))
+* **ui:** fix multiselect dropdowns when open and scrolling ([ae2085b](https://github.com/jakowenko/double-take/commit/ae2085bf8d9b04bdaead3bf40c10f63cc9eaea7b))
+* **ui:** theme wouldn't load if setting to same theme ([88b0976](https://github.com/jakowenko/double-take/commit/88b097621c0d6bce9c90059d470723dfcbe5ace1))
+
+
+### Features
+
+* **api:** api/latest/<name>.jpg ([#120](https://github.com/jakowenko/double-take/issues/120)) ([cd765ae](https://github.com/jakowenko/double-take/commit/cd765ae39067221687a1ba3c72b7f2c92e8d5c46))
+* **api:** use camera name when using custom mqtt topic ([70a4ce3](https://github.com/jakowenko/double-take/commit/70a4ce3d0b6d22eb0619b31a65616b84beba7f98))
+* **ui:** enable/disable sockets on matches page ([bb95e0a](https://github.com/jakowenko/double-take/commit/bb95e0a0ff20c9e11f3a28b2405ccdf2d35b763a))
+
 # [1.3.0](https://github.com/jakowenko/double-take/compare/v1.2.0...v1.3.0) (2021-10-06)
 
 
