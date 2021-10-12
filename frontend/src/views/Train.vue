@@ -146,7 +146,6 @@ export default {
     PullToRefresh.destroyAll();
   },
   async mounted() {
-    const $this = this;
     this.headerHeight = this.$refs.header.getHeight();
     this.init();
     PullToRefresh.init({
@@ -155,8 +154,7 @@ export default {
       distMax: 50,
       distThreshold: 45,
       onRefresh() {
-        $this.clear(['loaded']);
-        return $this.get().files(true);
+        window.location.reload();
       },
       shouldPullToRefresh() {
         return window.scrollY === 0;

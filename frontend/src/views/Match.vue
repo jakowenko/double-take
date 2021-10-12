@@ -118,15 +118,13 @@ export default {
   },
   async mounted() {
     try {
-      const $this = this;
       PullToRefresh.init({
         mainElement: '#pull-to-reload-message',
         triggerElement: '#app-wrapper',
         distMax: 50,
         distThreshold: 45,
         onRefresh() {
-          $this.clear(['source', 'selected', 'disabled', 'loaded']);
-          return $this.get().matches({ delay: 500 });
+          window.location.reload();
         },
         shouldPullToRefresh() {
           return window.scrollY === 0;
