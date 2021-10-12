@@ -179,6 +179,7 @@ export default {
       return {
         async files(isRefresh = false) {
           try {
+            if ($this.loading.status) return;
             $this.loading.files = !isRefresh;
             const { data } = $this.trainingFolder
               ? await ApiService.get(`train?name=${$this.trainingFolder}`, { params: { page: $this.pagination.temp } })
