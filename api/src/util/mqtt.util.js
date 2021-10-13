@@ -237,12 +237,13 @@ module.exports.recognize = (data) => {
       }
     });
 
-    if (matches.length || hasUnknown) {
+    if (matches.length || misses.length || hasUnknown) {
       messages.push({
         topic: `${MQTT.TOPICS.CAMERAS}/${camera}`,
         message: JSON.stringify({
           ...configData,
           matches,
+          misses,
           unknown,
         }),
       });
@@ -266,6 +267,7 @@ module.exports.recognize = (data) => {
           message: JSON.stringify({
             ...configData,
             matches,
+            misses,
             unknown,
             personCount,
           }),
