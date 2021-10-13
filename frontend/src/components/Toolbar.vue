@@ -196,7 +196,8 @@ export default {
                 ? run.event === 'release' && run.status === 'completed' && run.conclusion === 'success'
                 : run.head_branch === currentBuild.head_branch &&
                   run.status === 'completed' &&
-                  run.conclusion === 'success',
+                  run.conclusion === 'success' &&
+                  run.name !== 'CodeQL',
             );
             if (currentBuild.id < lastBuild.id) this.updateAvailable = true;
           }

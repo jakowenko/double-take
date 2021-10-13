@@ -1,6 +1,6 @@
 {
   "name": "double-take-api",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "start": "node server.js",
@@ -24,7 +24,7 @@
     "execution-time": "^1.4.1",
     "express": "^4.16.1",
     "express-async-errors": "^3.1.1",
-    "express-validator": "^6.12.2",
+    "express-validator": "^6.13.0",
     "form-data": "^4.0.0",
     "get-orientation": "^1.1.2",
     "js-yaml": "^4.1.0",

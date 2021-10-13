@@ -141,7 +141,7 @@ module.exports.subscribe = () => {
 module.exports.recognize = (data) => {
   try {
     if (!MQTT || !MQTT.HOST) return;
-    const { matches, unknown, camera } = data;
+    const { matches, misses, unknown, camera } = data;
     const hasUnknown = unknown && Object.keys(unknown).length;
 
     const configData = JSON.parse(JSON.stringify(data));
@@ -150,17 +150,23 @@ module.exports.recognize = (data) => {
     delete configData.results;
 
     const messages = [];
-
-    let personCount = matches.length ? matches.length : hasUnknown ? 1 : 0;
+    const persons = [...new Set([...matches, ...misses].map(({ name }) => name))];
+    let personCount = persons.length ? persons.length : hasUnknown ? 1 : 0;
     // check to see if unknown bounding box is contained within or contains any of the match bounding boxes
     // if false, then add 1 to the person count
-    if (matches.length && hasUnknown) {
-      let unknownContained = false;
+    if (persons.length && hasUnknown) {
+      let unknownFoundInMatch = false;
       matches.forEach((match) => {
         if (contains(match.box, unknown.box) || contains(unknown.box, match.box))
-          unknownContained = true;
+          unknownFoundInMatch = true;
       });
-      if (!unknownContained) personCount += 1;
+
+      let unknownFoundInMiss = false;
+      misses.forEach((miss) => {
+        if (contains(miss.box, unknown.box) || contains(unknown.box, miss.box))
+          unknownFoundInMiss = true;
+      });
+      if (!unknownFoundInMatch && !unknownFoundInMiss) personCount += 1;
     }
 
     messages.push({
@@ -237,12 +243,13 @@ module.exports.recognize = (data) => {
       }
     });
 
-    if (matches.length || hasUnknown) {
+    if (matches.length || misses.length || hasUnknown) {
       messages.push({
         topic: `${MQTT.TOPICS.CAMERAS}/${camera}`,
         message: JSON.stringify({
           ...configData,
           matches,
+          misses,
           unknown,
         }),
       });
@@ -266,6 +273,7 @@ module.exports.recognize = (data) => {
           message: JSON.stringify({
             ...configData,
             matches,
+            misses,
             unknown,
             personCount,
           }),
