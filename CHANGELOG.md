@@ -1,3 +1,13 @@
+## [1.4.1](https://github.com/jakowenko/double-take/compare/v1.4.0...v1.4.1) (2021-10-13)
+
+
+### Bug Fixes
+
+* account for misses in camera person count ([561ec5c](https://github.com/jakowenko/double-take/commit/561ec5c2998af1502eec82a31c751394f7b9a1e8))
+* **api:** publish camera mqtt topic for misses ([#125](https://github.com/jakowenko/double-take/issues/125)) ([cb3fb22](https://github.com/jakowenko/double-take/commit/cb3fb228412161e53991182e119be56582aca7b3))
+* **api:** save latest images for misses ([62f586c](https://github.com/jakowenko/double-take/commit/62f586c761baa45b794ed405df27bbd767b72d0b))
+* **ui:** don't show update icon if last run was from CodeQL ([8d258ea](https://github.com/jakowenko/double-take/commit/8d258ea7371334ce0648bb4e16b0ebb74c5225d2))
+
 # [1.4.0](https://github.com/jakowenko/double-take/compare/v1.3.0...v1.4.0) (2021-10-12)
 
 
