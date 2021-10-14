@@ -2,17 +2,13 @@ const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 const actions = require('./actions');
-const { doesUrlResolve } = require('../validators.util');
 const { DETECTORS } = require('../../constants')();
 const config = require('../../constants/config');
 
 const { DEEPSTACK } = DETECTORS || {};
 
-module.exports.recognize = async ({ test, key }) => {
+module.exports.recognize = async ({ key }) => {
   const { URL, KEY } = DEEPSTACK;
-  if (test && !(await doesUrlResolve(URL))) {
-    return { status: 404 };
-  }
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
   if (KEY) formData.append('api_key', KEY);
