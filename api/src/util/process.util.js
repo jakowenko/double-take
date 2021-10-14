@@ -155,6 +155,7 @@ module.exports.isValidURL = async ({ type, url }) => {
     const request = await axios({
       method: 'get',
       url,
+      timeout: 5000,
     });
     const { headers } = request;
     const isValid = validOptions.includes(headers['content-type']);
