@@ -152,13 +152,12 @@ module.exports.process = async ({ camera, detector, tmp, errors }) => {
 module.exports.isValidURL = async ({ type, url }) => {
   const validOptions = ['image/jpg', 'image/jpeg', 'image/png'];
   try {
-    const request = await axios({
+    const { headers } = await axios({
       method: 'get',
       url,
       timeout: 5000,
     });
-    const { headers } = request;
-    const isValid = validOptions.includes(headers['content-type']);
+    const isValid = !!validOptions.filter((opt) => headers['content-type'].includes(opt)).length;
     if (!isValid)
       console.error(
         `url validation failed for ${type}: ${url} - ${headers['content-type']} not valid`
