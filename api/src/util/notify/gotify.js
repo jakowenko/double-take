@@ -14,14 +14,14 @@ module.exports.send = async (output) => {
     method: 'post',
     url: `${GOTIFY.URL}/message?token=${GOTIFY.TOKEN}`,
     data: {
-      message: `${message} ![Camera Image](data:image/jpg;base64,${buffer.toString('base64')})`,
+      message: `${message} ![Camera Image](data:image/jpeg;base64,${buffer.toString('base64')})`,
       priority: GOTIFY.PRIORITY,
       extras: {
         'client::display': {
           contentType: 'text/markdown',
         },
         'client::notification': {
-          click: { url: `data:image/jpg;base64,${buffer.toString('base64')}` },
+          click: { url: `data:image/jpeg;base64,${buffer.toString('base64')}` },
         },
       },
     },
