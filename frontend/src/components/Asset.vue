@@ -149,7 +149,7 @@
           <Button
             v-if="type === 'match'"
             :icon="reprocessing ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'"
-            class="reprocess-btn"
+            class="reprocess-btn p-button-sm"
             @click="reprocess"
             v-tooltip.right="'Reprocess Image'"
           />
