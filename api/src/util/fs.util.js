@@ -126,7 +126,7 @@ module.exports.saveURLs = async (urls, path) => {
   const files = [];
   for (let i = 0; i < urls.length; i++) {
     try {
-      const validOptions = ['image/jpeg', 'image/png'];
+      const validOptions = ['image/jpg', 'image/jpeg', 'image/png'];
       const url = urls[i];
       const { headers, data: buffer } = await axios({
         method: 'get',
