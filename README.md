@@ -14,13 +14,20 @@ There's a lot of great open source software to perform facial recognition, but e
 
 ## Features
 
-- UI and API bundled into single Docker image
+- Responsive UI and API bundled into single Docker image
 - Ability to password protect UI and API
 - Support for multiple detectors
 - Train and untrain images for subjects
 - Process images from NVRs
 - Publish results to MQTT topics
 - REST API can be invoked by other applications
+- Disable detection based on a schedule
+
+### Supported Architecture
+
+- amd64
+- arm64
+- arm/v7
 
 ### Supported Detectors
 
@@ -48,7 +55,7 @@ frigate:
 
 When the `frigate/events` topic is updated the API begins to process the [`snapshot.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apieventsidsnapshotjpg) and [`latest.jpg`](https://blakeblackshear.github.io/frigate/usage/api/#apicamera_namelatestjpgh300) images from Frigate's API. These images are passed from the API to the configured detector(s) until a match is found that meets the configured requirements. To improve the chances of finding a match, the processing of the images will repeat until the amount of retries is exhausted or a match is found.
 
-When the `frigate/+/person/snapshot` topic is updated the API will process that image with the configured detector(s). It is recommended to increase the MQTT snapshot size in the [Frigate camera config](https://blakeblackshear.github.io/frigate/configuration/cameras#full-example).
+When the `frigate/+/person/snapshot` topic is updated the API will process that image with the configured detector(s). It is recommended to increase the MQTT snapshot size in the [Frigate camera config](https://docs.frigate.video/configuration/index).
 
 ```yaml
 cameras:
@@ -57,10 +64,11 @@ cameras:
       timestamp: False
       bounding_box: False
       crop: True
+      quality: 100
       height: 500
 ```
 
-If a match is found the image is saved to `/.storage/matches/${filename}`.
+If a match is found the image is saved to `/.storage/matches/<filename>`.
 
 ### [Home Assistant](https://www.home-assistant.io)
 
@@ -95,18 +103,18 @@ action:
         attachment:
           url: |-
             {% if trigger.to_state.attributes.match is defined %}
-              http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true&token={{trigger.to_state.attributes.token}}
+              http://localhost:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true&token={{trigger.to_state.attributes.token}}
             {% elif trigger.to_state.attributes.unknown is defined %}
-               http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.unknown.filename}}?box=true&token={{trigger.to_state.attributes.token}}
+               http://localhost:3000/api/storage/matches/{{trigger.to_state.attributes.unknown.filename}}?box=true&token={{trigger.to_state.attributes.token}}
             {% endif %}
         actions:
           - action: URI
             title: View Image
             uri: |-
               {% if trigger.to_state.attributes.match is defined %}
-                http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true&token={{trigger.to_state.attributes.token}}
+                http://localhost:3000/api/storage/matches/{{trigger.to_state.attributes.match.filename}}?box=true&token={{trigger.to_state.attributes.token}}
               {% elif trigger.to_state.attributes.unknown is defined %}
-                 http://192.168.1.2:3000/api/storage/matches/{{trigger.to_state.attributes.unknown.filename}}?box=true&token={{trigger.to_state.attributes.token}}
+                 http://localhost:3000/api/storage/matches/{{trigger.to_state.attributes.unknown.filename}}?box=true&token={{trigger.to_state.attributes.token}}
               {% endif %}
 mode: parallel
 max: 10
@@ -114,7 +122,7 @@ max: 10
 
 ### MQTT
 
-Publish results to `double-take/matches/${name}` and `double-take/cameras/${camera}`. The number of results will also be published to `double-take/cameras/${camera}/person` and will reset back to `0` after 30 seconds.
+Publish results to `double-take/matches/<name>` and `double-take/cameras/<camera>`. The number of results will also be published to `double-take/cameras/<camera>/person` and will reset back to `0` after 30 seconds.
 
 Errors from the API will be published to `double-take/errors`.
 
@@ -182,9 +190,22 @@ notify:
     token:
 ```
 
+## API Images
+
+Match images are saved to `/.storage/matches` and can be accessed via `http://localhost:3000/api/storage/matches/<filename>`.
+
+Training images are saved to `/.storage/train` and can be accessed via `http://localhost:3000/api/storage/train/<name>/<filename>`.
+
+Latest images are saved to `/.storage/latest` and can be accessed via `http://localhost:3000/api/storage/latest/<name|camera>.jpg`.
+
+| Query Parameters | Description                    | Default |
+| ---------------- | ------------------------------ | ------- |
+| `box`            | Show bounding box around faces | `false` |
+| `token`          | Access token                   |         |
+
 ## UI
 
-The UI is accessible from `http://localhost:3000`.
+The UI is accessible via `http://localhost:3000`.
 
 - Matches: `/`
 - Train: `/train`
@@ -226,7 +247,7 @@ services:
 
 ## Configuration
 
-Configurable options that can be passed by mounting a file at `/double-take/config.yml` and is editable via the UI at `http://localhost:3000/config`. _Default values do not need to be specified in configuration unless they need to be overwritten._
+Configurable options are saved to `/.storage/config/config.yml` and are editable via the UI at `http://localhost:3000/config`. _Default values do not need to be specified in configuration unless they need to be overwritten._
 
 ### `auth`
 
@@ -313,7 +334,7 @@ frigate:
     # number of times double take will request a frigate latest.jpg for facial recognition
     latest: 10
     # number of times double take will request a frigate snapshot.jpg for facial recognition
-    snapshot: 0
+    snapshot: 10
     # process frigate images from frigate/+/person/snapshot topics
     mqtt: true
     # add a delay expressed in seconds between each detection loop
