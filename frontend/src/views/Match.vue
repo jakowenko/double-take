@@ -268,6 +268,8 @@ export default {
               accept: async () => {
                 try {
                   await ApiService.delete('match', { data: $this.matches.selected });
+                  $this.pagination.total -= $this.matches.selected.length;
+                  $this.dropdowns.total -= $this.matches.selected.length;
                   const { areAllSelected } = $this;
                   $this.matches.disabled = $this.matches.disabled.concat($this.matches.selected);
                   $this.matches.selected = [];
