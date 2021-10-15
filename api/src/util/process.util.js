@@ -150,7 +150,7 @@ module.exports.process = async ({ camera, detector, tmp, errors }) => {
 };
 
 module.exports.isValidURL = async ({ type, url }) => {
-  const validOptions = ['image/jpg', 'image/jpeg', 'image/png'];
+  const validOptions = ['image/jpeg', 'image/png'];
   try {
     const { headers } = await axios({
       method: 'get',
