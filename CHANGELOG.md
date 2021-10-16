@@ -1,3 +1,17 @@
+# [1.5.0](https://github.com/jakowenko/double-take/compare/v1.4.1...v1.5.0) (2021-10-16)
+
+
+### Bug Fixes
+
+* **api:** validate content type to allow for extra strings from Hikvision cameras ([#127](https://github.com/jakowenko/double-take/issues/127)) ([db7d58f](https://github.com/jakowenko/double-take/commit/db7d58f1616d437d97a7433e7aa7eaa33e44d5d8))
+* **ui:** update pagination and dropdown totals when deleting matches ([77e63f4](https://github.com/jakowenko/double-take/commit/77e63f420b2134091c03217775638deeb4ccad9e))
+
+
+### Features
+
+* frigate snapshot attempts default from 0 to 10 ([423d204](https://github.com/jakowenko/double-take/commit/423d204bc3608adf1dee4bef7f62002b26a2d67f))
+* support digest auth ([#128](https://github.com/jakowenko/double-take/issues/128)) ([eebb792](https://github.com/jakowenko/double-take/commit/eebb7923f50fbdd99cb38daae963d14a71bb5170))
+
 ## [1.4.1](https://github.com/jakowenko/double-take/compare/v1.4.0...v1.4.1) (2021-10-13)
 
 
