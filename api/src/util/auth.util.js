@@ -2,7 +2,10 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const yaml = require('js-yaml');
 const { v4: uuidv4 } = require('uuid');
+const AxiosDigestAuth = require('@mhoc/axios-digest-auth').default;
 const { STORAGE } = require('../constants')();
+
+const DIGEST_AUTH = [];
 
 module.exports.auth = {
   get: () => {
@@ -45,3 +48,40 @@ module.exports.jwt = {
     }
   },
 };
+
+module.exports.parse = {
+  url: (url) => {
+    const login = url
+      .substring(0, url.indexOf('@'))
+      .replace(/(^\w+:|^)\/\//, '')
+      .split(':');
+    return login.length === 2 ? { username: login[0], password: login[1] } : false;
+  },
+};
+
+module.exports.digest = Object.assign(
+  ({ username, password }) => {
+    return new AxiosDigestAuth({
+      username,
+      password,
+    });
+  },
+  {
+    exists: (url) => {
+      if (!DIGEST_AUTH.includes(url) || !this.parse.url(url)) return false;
+      const { username, password } = this.parse.url(url);
+      return {
+        url: this.digest.strip(url),
+        username,
+        password,
+      };
+    },
+    add: (url) => {
+      if (!this.digest.exists(url)) DIGEST_AUTH.push(url);
+    },
+    strip: (url) => {
+      const { username, password } = this.parse.url(url);
+      return url.replace(`${username}:${password}@`, '');
+    },
+  }
+);

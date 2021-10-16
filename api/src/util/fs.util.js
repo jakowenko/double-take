@@ -134,7 +134,7 @@ module.exports.saveURLs = async (urls, path) => {
         responseType: 'arraybuffer',
       });
 
-      const isValid = validOptions.includes(headers['content-type']);
+      const isValid = !!validOptions.filter((opt) => headers['content-type'].includes(opt)).length;
 
       if (isValid) {
         let filename = url.substring(url.lastIndexOf('/') + 1);

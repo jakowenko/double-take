@@ -13,6 +13,7 @@ router
     controller.matches
   )
   .delete('/train', jwt, controller.delete)
-  .get('/train/:name/:filename', jwt, controller.train);
+  .get('/train/:name/:filename', jwt, controller.train)
+  .get('/latest/:filename', jwt, controller.latest);
 
 module.exports = router;

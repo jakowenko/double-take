@@ -158,23 +158,4 @@ module.exports.patch = async (req, res) => {
   res.send({ success: true });
 };
 
-module.exports.upload = async (req, res) => {
-  const { name } = req.params;
-  const files = [];
-
-  await Promise.all(
-    req.files.map(async (obj) => {
-      const { originalname, buffer } = obj;
-      const ext = `.${originalname.split('.').pop()}`;
-      const filename = `${originalname.replace(ext, '')}-${time.unix()}${ext}`;
-      await filesystem.writer(`${STORAGE.PATH}/train/${name}/${filename}`, buffer);
-      files.push({ name, filename });
-    })
-  );
-
-  train.add(name, { files });
-
-  res.send({ success: true });
-};
-
 module.exports.status = async (req, res) => res.send(train.status());

@@ -26,8 +26,8 @@ jobs:
       - name: Set ENV to beta
         if: endsWith(github.ref, '/beta')
         run: |
-          echo "ARCH=linux/amd64,linux/arm/v7,linux/arm64" >> $GITHUB_ENV
-          echo "TAGS=jakowenko/double-take:beta,jakowenko/double-take:beta-${{steps.version.outputs.prop}}" >> $GITHUB_ENV
+          echo "ARCH=linux/amd64" >> $GITHUB_ENV
+          echo "TAGS=jakowenko/double-take:beta" >> $GITHUB_ENV
       - name: Set ENV to latest
         if: ${{ github.event_name == 'release' && github.event.action == 'released' || github.event_name == 'workflow_dispatch' }}
         run: |

@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import io from 'socket.io-client';
+import { io } from 'socket.io-client';
 import Toast from 'primevue/toast';
 import ConfirmDialog from 'primevue/confirmdialog';
 import 'primevue/resources/primevue.min.css';

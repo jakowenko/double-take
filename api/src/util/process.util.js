@@ -4,6 +4,7 @@ const perf = require('execution-time')();
 const { v4: uuidv4 } = require('uuid');
 const filesystem = require('./fs.util');
 const database = require('./db.util');
+const { parse, digest } = require('./auth.util');
 const mask = require('./mask-image.util');
 const sleep = require('./sleep.util');
 const { recognize, normalize } = require('./detectors/actions');
@@ -149,15 +150,16 @@ module.exports.process = async ({ camera, detector, tmp, errors }) => {
   }
 };
 
-module.exports.isValidURL = async ({ type, url }) => {
+module.exports.isValidURL = async ({ auth = false, type, url }) => {
   const validOptions = ['image/jpg', 'image/jpeg', 'image/png'];
   try {
-    const request = await axios({
-      method: 'get',
-      url,
-    });
-    const { headers } = request;
-    const isValid = validOptions.includes(headers['content-type']);
+    const isDigest = digest.exists(url) || auth === 'digest';
+    const digestAuth = isDigest ? digest(parse.url(url)) : false;
+    const opts = { method: 'GET', url: isDigest ? digest.strip(url) : url, timeout: 5000 };
+    const { headers } = await (digestAuth ? digestAuth.request(opts) : axios(opts));
+    const isValid = !!validOptions.filter((opt) => headers['content-type'].includes(opt)).length;
+    if (digestAuth) digest.add(url);
+
     if (!isValid)
       console.error(
         `url validation failed for ${type}: ${url} - ${headers['content-type']} not valid`
@@ -165,6 +167,9 @@ module.exports.isValidURL = async ({ type, url }) => {
 
     return isValid;
   } catch (error) {
+    const authType =
+      error?.response?.headers['www-authenticate'].toLowerCase().split(' ')[0] || false;
+    if (authType === 'digest' && !auth) return this.isValidURL({ auth: authType, type, url });
     error.message = `url validation error: ${error.message}`;
     console.error(error);
     return false;
@@ -173,12 +178,16 @@ module.exports.isValidURL = async ({ type, url }) => {
 
 module.exports.stream = async (url) => {
   try {
-    const request = await axios({
-      method: 'get',
-      url,
+    const isDigest = digest.exists(url);
+    const digestAuth = isDigest ? digest(isDigest) : false;
+    const opts = {
+      method: 'GET',
+      url: isDigest ? isDigest.url : url,
       responseType: 'arraybuffer',
-    });
-    return request.data;
+      timeout: 5000,
+    };
+    const { data } = await (isDigest ? digestAuth.request(opts) : axios(opts));
+    return data;
   } catch (error) {
     error.message = `stream error: ${error.message}`;
     console.error(error);
