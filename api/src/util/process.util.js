@@ -167,9 +167,11 @@ module.exports.isValidURL = async ({ auth = false, type, url }) => {
 
     return isValid;
   } catch (error) {
-    const authType =
-      error?.response?.headers['www-authenticate'].toLowerCase().split(' ')[0] || false;
-    if (authType === 'digest' && !auth) return this.isValidURL({ auth: authType, type, url });
+    if (error?.response?.headers['www-authenticate']) {
+      const authType =
+        error.response.headers['www-authenticate'].toLowerCase().split(' ')[0] || false;
+      if (authType === 'digest' && !auth) return this.isValidURL({ auth: authType, type, url });
+    }
     error.message = `url validation error: ${error.message}`;
     console.error(error);
     return false;

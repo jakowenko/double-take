@@ -1,6 +1,6 @@
 {
   "name": "double-take-frontend",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -29,7 +29,7 @@
     "primevue": "^3.8.1",
     "prismjs": "^1.25.0",
     "pulltorefreshjs": "^0.1.22",
-    "socket.io-client": "4.2.0",
+    "socket.io-client": "^4.3.2",
     "v-lazy-image": "^2.0.1",
     "v-pagination-3": "^0.1.6",
     "vue": "^3.2.20",
