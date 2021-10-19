@@ -30,7 +30,7 @@
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "^7.0.2",
-    "nodemon": "^2.0.13",
+    "nodemon": "^2.0.14",
     "prettier": "^2.4.1",
     "semantic-release": "^18.0.0"
   },
