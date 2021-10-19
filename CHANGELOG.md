@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/jakowenko/double-take/compare/v1.5.0...v1.5.1) (2021-10-19)
+
+
+### Bug Fixes
+
+* **api:** verify www-authenticate header exists ([cd78efe](https://github.com/jakowenko/double-take/commit/cd78efe6671d3a7f1acebc85ac1f57bb36b3f2ad))
+
 # [1.5.0](https://github.com/jakowenko/double-take/compare/v1.4.1...v1.5.0) (2021-10-16)
 
 
