@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/jakowenko/double-take/compare/v1.5.1...v1.5.2) (2021-10-21)
+
+
+### Bug Fixes
+
+* **api:** delete tmp file after processing ([#76](https://github.com/jakowenko/double-take/issues/76)) ([189216b](https://github.com/jakowenko/double-take/commit/189216bfe001eae568974d427636d913026db330))
+
 ## [1.5.1](https://github.com/jakowenko/double-take/compare/v1.5.0...v1.5.1) (2021-10-19)
 
 
