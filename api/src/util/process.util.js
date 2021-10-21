@@ -77,7 +77,7 @@ module.exports.polling = async (
 
         allResults.push(...results);
 
-        filesystem.delete(tmp);
+        filesystem.delete(tmp.source);
 
         if (foundMatch) {
           MATCH_IDS.push(id);
