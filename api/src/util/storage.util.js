@@ -57,7 +57,7 @@ module.exports.setup = () => {
     `${STORAGE.PATH}/latest`,
   ];
   if (fs.existsSync(STORAGE.TMP.PATH)) {
-    fs.rmdirSync(STORAGE.TMP.PATH, { recursive: true });
+    fs.rmSync(STORAGE.TMP.PATH, { recursive: true });
   }
 
   folders.forEach((folder) => {
