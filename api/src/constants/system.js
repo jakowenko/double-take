@@ -8,7 +8,3 @@ module.exports.core = {
     tmp: { path: fs.existsSync('/dev/shm') ? '/dev/shm/double-take' : '/tmp/double-take' },
   },
 };
-
-module.exports.dev = {
-  mqtt: { host: 'double-take-mqtt' },
-};
