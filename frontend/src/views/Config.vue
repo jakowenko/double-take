@@ -4,13 +4,11 @@
       <div class="p-d-flex p-jc-between">
         <div class="service-wrapper p-d-flex">
           <div v-for="(service, index) in combined" :key="service.name" class="service p-d-flex p-pr-2 p-ai-center">
-            <div class="name p-mr-1" v-if="index === 0" @click="copyVersion(service)" v-tooltip.right="'Copy Version'">
-              {{ service.name }}
-            </div>
             <div
               class="name p-mr-1"
-              v-else-if="service.tooltip"
-              v-tooltip.right="service.tooltip"
+              @click="copyService(index, service)"
+              v-if="service.tooltip && service.status"
+              v-tooltip.right="typeof service.tooltip === 'object' ? JSON.stringify(service.tooltip) : service.tooltip"
               style="cursor: pointer"
             >
               {{ service.name }}
@@ -21,7 +19,7 @@
               class="icon p-badge"
               :class="service.status === 200 ? 'p-badge-success' : 'p-badge-danger'"
             ></div>
-            <div v-else class="icon pulse p-badge p-badge-secondary" v-tooltip.right="'Checking...'"></div>
+            <div v-else class="icon pulse p-badge p-badge-secondary"></div>
           </div>
         </div>
         <div class="p-d-flex">
@@ -222,6 +220,7 @@ export default {
     doubleTake: {
       status: null,
       name: 'Double Take',
+      tooltip: 'Copy Version',
       version,
       buildTag: null,
     },
@@ -399,9 +398,11 @@ export default {
         this.mqtt.status = null;
         await Sleep(1000);
         const { data } = await ApiService.get('status/mqtt');
-        this.mqtt.status = data.status ? 200 : 500;
+        this.mqtt.status = data.connected ? 200 : 500;
+        this.mqtt.tooltip = data.status;
       } catch (error) {
         this.mqtt.status = 500;
+        this.mqtt.tooltip = error.message;
       }
     },
     async checkDetectors() {
@@ -413,25 +414,36 @@ export default {
       this.mqtt.configured = data.mqtt?.host;
       if (this.mqtt.configured) this.checkMQTT();
 
-      this.services = data?.detectors
-        ? Object.keys(data.detectors).map((item) => ({ name: this.formatName(item), status: null }))
-        : [];
+      this.services = [];
+      if (data?.detectors) {
+        // eslint-disable-next-line no-restricted-syntax
+        for (const [key, value] of Object.entries(data.detectors)) {
+          if (Array.isArray(value)) {
+            for (let i = 0; i < value.length; i += 1) this.services.push({ name: this.formatName(key), status: null });
+          } else this.services.push({ name: this.formatName(key), status: null });
+        }
+      }
 
       if (this.services.length) {
         try {
           const { data: tests } = await ApiService.get('recognize/test');
+          let previous;
+          let index = 0;
           this.services = this.services.map((detector) => {
-            const [result] = tests.filter((obj) => obj.detector.toLowerCase() === detector.name.toLowerCase());
-            return {
+            if (previous !== detector.name) index = 0;
+            const results = tests.filter((obj) => obj.detector.toLowerCase() === detector.name.toLowerCase());
+            const output = {
               name: detector.name,
-              status: result.status,
+              tooltip: results[index].response,
+              status: results[index].status,
             };
+            previous = detector.name;
+            index += 1;
+            return output;
           });
         } catch (error) {
-          this.services = this.services.map((detector) => ({
-            name: detector.name,
-            status: 404,
-          }));
+          this.services = this.services.map((obj) => ({ ...obj, tooltip: error.message, status: 500 }));
+          this.emitter.emit('error', error);
         }
       }
     },
@@ -469,11 +481,12 @@ export default {
         this.emitter.emit('error', error);
       }
     },
-    copyVersion(service) {
-      if (!service.version) return;
+    copyService(index, service) {
+      if ((index === 0 && !service.version) || !service.tooltip) return;
       try {
-        copy(`v${service.version}:${service.buildTag}`);
-        this.emitter.emit('toast', { message: 'Version copied' });
+        if (index === 0) copy(`v${service.version}:${service.buildTag}`);
+        else copy(typeof service.tooltip === 'object' ? JSON.stringify(service.tooltip, null, '\t') : service.tooltip);
+        this.emitter.emit('toast', { message: index === 0 ? 'Version copied' : 'Tooltip copied' });
       } catch (error) {
         this.emitter.emit('error', error);
       }
