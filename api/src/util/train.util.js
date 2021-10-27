@@ -28,7 +28,7 @@ module.exports.queue = async (files) => {
       const { name, filename, detector } = records[i];
       const result = await this.process({
         name,
-        key: `${STORAGE.PATH}/train/${name}/${filename}`,
+        key: `${STORAGE.MEDIA.PATH}/train/${name}/${filename}`,
         detector,
       }).catch((error) => ({ error: error.message }));
       outputs.push({ ...result });
