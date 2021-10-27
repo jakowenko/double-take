@@ -9,7 +9,7 @@ const database = require('../util/db.util');
 const { tryParseJSON } = require('../util/validators.util');
 const { BAD_REQUEST } = require('../constants/http-status');
 const { AUTH, SERVER } = require('../constants')();
-const { PATH } = require('../constants')().STORAGE;
+const { PATH } = require('../constants')().STORAGE.MEDIA;
 const { QUALITY, WIDTH } = require('../constants')().UI.THUMBNAILS;
 
 module.exports.matches = async (req, res) => {

@@ -9,29 +9,29 @@ module.exports.save = {
     [...best, ...misses].forEach(({ name, filename }) => {
       if (!names.includes(name)) {
         fs.copyFileSync(
-          `${STORAGE.PATH}/matches/${filename}`,
-          `${STORAGE.PATH}/latest/${name}.jpg`
+          `${STORAGE.MEDIA.PATH}/matches/${filename}`,
+          `${STORAGE.MEDIA.PATH}/latest/${name}.jpg`
         );
         names.push(name);
       }
 
       if (!cameras.includes(camera)) {
         fs.copyFileSync(
-          `${STORAGE.PATH}/matches/${filename}`,
-          `${STORAGE.PATH}/latest/${camera}.jpg`
+          `${STORAGE.MEDIA.PATH}/matches/${filename}`,
+          `${STORAGE.MEDIA.PATH}/latest/${camera}.jpg`
         );
         cameras.push(camera);
       }
     });
     if (unknown.filename) {
       fs.copyFileSync(
-        `${STORAGE.PATH}/matches/${unknown.filename}`,
-        `${STORAGE.PATH}/latest/unknown.jpg`
+        `${STORAGE.MEDIA.PATH}/matches/${unknown.filename}`,
+        `${STORAGE.MEDIA.PATH}/latest/unknown.jpg`
       );
       if (!best.length && !misses.length)
         fs.copyFileSync(
-          `${STORAGE.PATH}/matches/${unknown.filename}`,
-          `${STORAGE.PATH}/latest/${camera}.jpg`
+          `${STORAGE.MEDIA.PATH}/matches/${unknown.filename}`,
+          `${STORAGE.MEDIA.PATH}/latest/${camera}.jpg`
         );
     }
   },

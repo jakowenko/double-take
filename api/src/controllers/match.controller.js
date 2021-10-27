@@ -16,9 +16,9 @@ const format = async (matches) => {
       const { id, filename, event, response, isTrained } = obj;
       const { camera, type, zones, updatedAt } = JSON.parse(event);
       const key = `matches/${filename}`;
-      const { width, height } = await sizeOf(fs.createReadStream(`${STORAGE.PATH}/${key}`)).catch(
-        (/* error */) => ({ width: 0, height: 0 })
-      );
+      const { width, height } = await sizeOf(
+        fs.createReadStream(`${STORAGE.MEDIA.PATH}/${key}`)
+      ).catch((/* error */) => ({ width: 0, height: 0 }));
 
       return {
         id,
@@ -130,7 +130,7 @@ module.exports.delete = async (req, res) => {
     db.prepare(`DELETE FROM match WHERE id IN (${database.params(ids)})`).run(ids);
 
     files.forEach(({ filename }) => {
-      filesystem.delete(`${STORAGE.PATH}/matches/${filename}`);
+      filesystem.delete(`${STORAGE.MEDIA.PATH}/matches/${filename}`);
     });
   }
 
@@ -149,7 +149,7 @@ module.exports.reprocess = async (req, res) => {
   const results = await process.start({
     camera: tryParseJSON(match.event) ? tryParseJSON(match.event).camera : null,
     filename: match.filename,
-    tmp: `${STORAGE.PATH}/matches/${match.filename}`,
+    tmp: `${STORAGE.MEDIA.PATH}/matches/${match.filename}`,
   });
   database.update.match({
     id: match.id,

@@ -8,15 +8,15 @@ module.exports.folders = {
   list: async (req, res) => res.send(await filesystem.folders().train()),
   create: (req, res) => {
     const { name } = req.params;
-    if (!fs.existsSync(`${STORAGE.PATH}/train/${name}`)) {
-      fs.mkdirSync(`${STORAGE.PATH}/train/${name}`);
+    if (!fs.existsSync(`${STORAGE.MEDIA.PATH}/train/${name}`)) {
+      fs.mkdirSync(`${STORAGE.MEDIA.PATH}/train/${name}`);
     }
     res.send({ success: true });
   },
   delete: async (req, res) => {
     const { name } = req.params;
-    if (fs.existsSync(`${STORAGE.PATH}/train/${name}`)) {
-      fs.rmdirSync(`${STORAGE.PATH}/train/${name}`, { recursive: true });
+    if (fs.existsSync(`${STORAGE.MEDIA.PATH}/train/${name}`)) {
+      fs.rmSync(`${STORAGE.MEDIA.PATH}/train/${name}`, { recursive: true });
       await resync.files();
     }
     const db = database.connect();

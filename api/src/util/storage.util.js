@@ -32,8 +32,8 @@ module.exports.purge = async () => {
 
       const promises = [];
       files.forEach(({ filename }) => {
-        if (fs.existsSync(`${STORAGE.PATH}/matches/${filename}`)) {
-          promises.push(fs.promises.unlink(`${STORAGE.PATH}/matches/${filename}`));
+        if (fs.existsSync(`${STORAGE.MEDIA.PATH}/matches/${filename}`)) {
+          promises.push(fs.promises.unlink(`${STORAGE.MEDIA.PATH}/matches/${filename}`));
         }
       });
       await Promise.all(promises);
@@ -52,9 +52,9 @@ module.exports.purge = async () => {
 module.exports.setup = () => {
   const folders = [
     STORAGE.TMP.PATH,
-    `${STORAGE.PATH}/matches`,
-    `${STORAGE.PATH}/train`,
-    `${STORAGE.PATH}/latest`,
+    `${STORAGE.MEDIA.PATH}/matches`,
+    `${STORAGE.MEDIA.PATH}/train`,
+    `${STORAGE.MEDIA.PATH}/latest`,
   ];
   if (fs.existsSync(STORAGE.TMP.PATH)) {
     fs.rmSync(STORAGE.TMP.PATH, { recursive: true });
