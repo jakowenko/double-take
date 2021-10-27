@@ -90,8 +90,8 @@ module.exports.connect = () => {
   }
   CLIENT = mqtt.connect(`mqtt://${MQTT.HOST}`, {
     reconnectPeriod: 10000,
-    username: MQTT.USERNAME,
-    password: MQTT.PASSWORD,
+    username: MQTT.USERNAME || MQTT.USER,
+    password: MQTT.PASSWORD || MQTT.PASS,
   });
 
   CLIENT.on('connect', () => {
