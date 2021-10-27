@@ -220,9 +220,7 @@ export default {
     doubleTake: {
       status: null,
       name: 'Double Take',
-      tooltip: 'Copy Version',
-      version,
-      buildTag: null,
+      tooltip: `v${version}`,
     },
     mqtt: {
       configured: false,
@@ -245,7 +243,7 @@ export default {
   },
   created() {
     this.emitter.on('buildTag', (data) => {
-      this.doubleTake.buildTag = data;
+      this.doubleTake.tooltip = `v${version}:${data}`;
     });
   },
   async mounted() {
@@ -382,7 +380,7 @@ export default {
         await Sleep(1000);
         const { data } = await ApiService.get('status/frigate');
         this.frigate.status = 200;
-        this.frigate.tooltip = `Version: ${data.version}`;
+        this.frigate.tooltip = `v${data.version}`;
         const { last } = data;
         if (last.time && last.camera) {
           this.frigate.tooltip += `\nLast Event: ${Time.ago(last.time)} (${last.camera})`;
@@ -482,10 +480,9 @@ export default {
       }
     },
     copyService(index, service) {
-      if ((index === 0 && !service.version) || !service.tooltip) return;
+      if (!service.tooltip) return;
       try {
-        if (index === 0) copy(`v${service.version}:${service.buildTag}`);
-        else copy(typeof service.tooltip === 'object' ? JSON.stringify(service.tooltip, null, '\t') : service.tooltip);
+        copy(typeof service.tooltip === 'object' ? JSON.stringify(service.tooltip, null, '\t') : service.tooltip);
         this.emitter.emit('toast', { message: index === 0 ? 'Version copied' : 'Tooltip copied' });
       } catch (error) {
         this.emitter.emit('error', error);
@@ -552,14 +549,6 @@ label {
 }
 
 .service {
-  &:first-child > .name {
-    cursor: pointer;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-
   .icon.pulse {
     opacity: 1;
     animation: fade 1.5s linear infinite;
