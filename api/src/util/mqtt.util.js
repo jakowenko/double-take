@@ -100,7 +100,7 @@ module.exports.connect = () => {
     this.available('online');
     this.subscribe();
   })
-    .on('error', (err) => logStatus(err.code, console.error))
+    .on('error', (err) => logStatus(err.message, console.error))
     .on('offline', () => logStatus('offline', console.error))
     .on('disconnect', () => logStatus('disconnected', console.error))
     .on('reconnect', () => logStatus('reconnecting', console.warn))
