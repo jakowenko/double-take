@@ -1,3 +1,11 @@
+# [1.6.0](https://github.com/jakowenko/double-take/compare/v1.5.2...v1.6.0) (2021-10-29)
+
+
+### Features
+
+* hass.io add-on support ([724c076](https://github.com/jakowenko/double-take/commit/724c0765a106147126edde002ea35defeb335d7d))
+* **ui:** config service tooltips ([324b9cb](https://github.com/jakowenko/double-take/commit/324b9cbf44f75942db78fc3f38cd3be83a0b93aa))
+
 ## [1.5.2](https://github.com/jakowenko/double-take/compare/v1.5.1...v1.5.2) (2021-10-21)
 
 
