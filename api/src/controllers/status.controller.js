@@ -1,12 +1,12 @@
 const axios = require('axios');
 const { tryParseJSON } = require('../util/validators.util');
-const { connected } = require('../util/mqtt.util');
+const mqtt = require('../util/mqtt.util');
 const { auth, jwt } = require('../util/auth.util');
 const { BAD_REQUEST } = require('../constants/http-status');
 const { AUTH, FRIGATE } = require('../constants')();
 
 module.exports.mqtt = (req, res) => {
-  res.send({ status: connected() });
+  res.send(mqtt.status());
 };
 
 module.exports.auth = (req, res) => {

@@ -7,14 +7,18 @@ const { AUTH, STORAGE } = require('../constants')();
 module.exports.folders = () => {
   return {
     matches: async () => {
-      let folders = await fs.promises.readdir(`${STORAGE.PATH}/matches`, { withFileTypes: true });
+      let folders = await fs.promises.readdir(`${STORAGE.MEDIA.PATH}/matches`, {
+        withFileTypes: true,
+      });
       folders = folders
         .filter((file) => file.isDirectory() && file.name !== 'unknown')
         .map((file) => file.name);
       return folders;
     },
     train: async () => {
-      let folders = await fs.promises.readdir(`${STORAGE.PATH}/train`, { withFileTypes: true });
+      let folders = await fs.promises.readdir(`${STORAGE.MEDIA.PATH}/train`, {
+        withFileTypes: true,
+      });
       folders = folders.filter((file) => file.isDirectory()).map((file) => file.name);
       return folders;
     },
@@ -24,11 +28,13 @@ module.exports.folders = () => {
 module.exports.files = {
   traverse: async (path) => {
     const output = [];
-    let folders = await fs.promises.readdir(`${STORAGE.PATH}/${path}`, { withFileTypes: true });
+    let folders = await fs.promises.readdir(`${STORAGE.MEDIA.PATH}/${path}`, {
+      withFileTypes: true,
+    });
     folders = folders.filter((file) => file.isDirectory()).map((file) => file.name);
 
     for (const folder of folders) {
-      let images = await fs.promises.readdir(`${STORAGE.PATH}/${path}/${folder}`, {
+      let images = await fs.promises.readdir(`${STORAGE.MEDIA.PATH}/${path}/${folder}`, {
         withFileTypes: true,
       });
       images = images
@@ -41,7 +47,7 @@ module.exports.files = {
             file.toLowerCase().includes('.png')
         );
       images.forEach((filename) => {
-        const { birthtime } = fs.statSync(`${STORAGE.PATH}/${path}/${folder}/${filename}`);
+        const { birthtime } = fs.statSync(`${STORAGE.MEDIA.PATH}/${path}/${folder}/${filename}`);
         output.push({ name: folder, filename, key: `${path}/${folder}/${filename}`, birthtime });
       });
     }
@@ -76,8 +82,8 @@ module.exports.writerStream = async (stream, file) => {
 
 module.exports.writeMatches = (name, source, destination) => {
   try {
-    if (!fs.existsSync(`${STORAGE.PATH}/matches/${name}`)) {
-      fs.mkdirSync(`${STORAGE.PATH}/matches/${name}`);
+    if (!fs.existsSync(`${STORAGE.MEDIA.PATH}/matches/${name}`)) {
+      fs.mkdirSync(`${STORAGE.MEDIA.PATH}/matches/${name}`);
     }
     fs.copyFile(source, destination, (error) => {
       if (error) {
@@ -140,7 +146,7 @@ module.exports.saveURLs = async (urls, path) => {
         let filename = url.substring(url.lastIndexOf('/') + 1);
         const ext = `.${filename.split('.').pop()}`;
         filename = `${filename.replace(ext, '')}-${time.unix()}${ext}`;
-        fs.writeFileSync(`${STORAGE.PATH}/${path}/${filename}`, buffer);
+        fs.writeFileSync(`${STORAGE.MEDIA.PATH}/${path}/${filename}`, buffer);
         files.push(filename);
       }
     } catch (error) {

@@ -11,6 +11,12 @@ let PREVIOUS_MQTT_LENGTHS = [];
 let JUST_SUBSCRIBED = false;
 let CLIENT = false;
 const PERSON_RESET_TIMEOUT = {};
+let STATUS;
+
+const logStatus = (status, console) => {
+  STATUS = status;
+  console(`MQTT: ${status}`);
+};
 
 const cameraTopics = () => {
   return CAMERAS
@@ -84,20 +90,20 @@ module.exports.connect = () => {
   }
   CLIENT = mqtt.connect(`mqtt://${MQTT.HOST}`, {
     reconnectPeriod: 10000,
-    username: MQTT.USERNAME,
-    password: MQTT.PASSWORD,
+    username: MQTT.USERNAME || MQTT.USER,
+    password: MQTT.PASSWORD || MQTT.PASS,
   });
 
   CLIENT.on('connect', () => {
-    console.log('MQTT: connected');
+    logStatus('connected', console.log);
     this.publish({ topic: 'double-take/errors' });
     this.available('online');
     this.subscribe();
   })
-    .on('error', (err) => console.error(`MQTT: ${err.code}`))
-    .on('offline', () => console.error('MQTT: offline'))
-    .on('disconnect', () => console.error('MQTT: disconnected'))
-    .on('reconnect', () => console.warn('MQTT: attempting to reconnect'))
+    .on('error', (err) => logStatus(err.message, console.error))
+    .on('offline', () => logStatus('offline', console.error))
+    .on('disconnect', () => logStatus('disconnected', console.error))
+    .on('reconnect', () => logStatus('reconnecting', console.warn))
     .on('message', async (topic, message) => processMessage({ topic, message }).init());
 };
 
@@ -315,4 +321,7 @@ module.exports.publish = (data) => {
   messages.forEach((message) => CLIENT.publish(message.topic, message.message, { retain: true }));
 };
 
-module.exports.connected = () => CLIENT.connected || false;
+module.exports.status = () => ({
+  connected: CLIENT.connected || false,
+  status: STATUS || false,
+});

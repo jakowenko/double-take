@@ -1,6 +1,6 @@
 {
   "name": "double-take-api",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "start": "node server.js",
@@ -18,8 +18,8 @@
   "homepage": "https://github.com/jakowenko/double-take#readme",
   "dependencies": {
     "@mhoc/axios-digest-auth": "^0.8.0",
-    "axios": "^0.22.0",
-    "better-sqlite3": "^7.4.3",
+    "axios": "^0.24.0",
+    "better-sqlite3": "^7.4.4",
     "canvas": "^2.8.0",
     "cors": "^2.8.5",
     "execution-time": "^1.4.1",
@@ -37,7 +37,7 @@
     "node-schedule": "^2.0.0",
     "probe-image-size": "^7.2.1",
     "read-last-lines": "^1.8.0",
-    "sharp": "^0.29.1",
+    "sharp": "^0.29.2",
     "socket.io": "^4.3.1",
     "traverse": "^0.6.6",
     "uuid": "^8.3.2",

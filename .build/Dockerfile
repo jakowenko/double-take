@@ -2,7 +2,7 @@ FROM ubuntu:20.04 as build
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y curl bash
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 RUN apt-get install -y nodejs gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg8-dev libgif-dev
 
 WORKDIR /double-take/api
@@ -11,7 +11,7 @@ RUN npm install --production
 
 WORKDIR /double-take/frontend
 COPY /frontend/package.json .
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 WORKDIR /double-take/api
 COPY /api/server.js .

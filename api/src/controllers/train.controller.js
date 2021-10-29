@@ -55,12 +55,12 @@ module.exports.get = async (req, res) => {
       const { id, name, filename, results, createdAt } = obj;
 
       const key = `train/${name}/${filename}`;
-      const { width, height } = await sizeOf(fs.createReadStream(`${STORAGE.PATH}/${key}`)).catch(
-        (/* error */) => ({ width: 0, height: 0 })
-      );
-      const orientation = await getOrientation(fs.readFileSync(`${STORAGE.PATH}/${key}`)).catch(
-        (/* error */) => 0
-      );
+      const { width, height } = await sizeOf(
+        fs.createReadStream(`${STORAGE.MEDIA.PATH}/${key}`)
+      ).catch((/* error */) => ({ width: 0, height: 0 }));
+      const orientation = await getOrientation(
+        fs.readFileSync(`${STORAGE.MEDIA.PATH}/${key}`)
+      ).catch((/* error */) => 0);
 
       const output = {
         id,
@@ -106,7 +106,7 @@ module.exports.add = async (req, res) => {
         }
         const ext = `.${originalname.split('.').pop()}`;
         const filename = `${originalname.replace(ext, '')}-${time.unix()}${ext}`;
-        await filesystem.writer(`${STORAGE.PATH}/train/${name}/${filename}`, buffer);
+        await filesystem.writer(`${STORAGE.MEDIA.PATH}/train/${name}/${filename}`, buffer);
         files.push({ name, filename });
       })
     );
@@ -115,8 +115,8 @@ module.exports.add = async (req, res) => {
       const db = database.connect();
       const [match] = db.prepare('SELECT filename FROM match WHERE id = ?').bind(id).all();
       filesystem.copy(
-        `${STORAGE.PATH}/matches/${match.filename}`,
-        `${STORAGE.PATH}/train/${name}/${match.filename}`
+        `${STORAGE.MEDIA.PATH}/matches/${match.filename}`,
+        `${STORAGE.MEDIA.PATH}/train/${name}/${match.filename}`
       );
       files.push({ name, filename: match.filename });
     });
@@ -149,8 +149,8 @@ module.exports.patch = async (req, res) => {
   }
 
   filesystem.move(
-    `${STORAGE.PATH}/train/${currentFile.name}/${currentFile.filename}`,
-    `${STORAGE.PATH}/train/${name}/${currentFile.filename}`
+    `${STORAGE.MEDIA.PATH}/train/${currentFile.name}/${currentFile.filename}`,
+    `${STORAGE.MEDIA.PATH}/train/${name}/${currentFile.filename}`
   );
 
   train.add(name, { files: [{ name, filename: currentFile.filename }] });

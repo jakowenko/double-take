@@ -22,6 +22,7 @@ There's a lot of great open source software to perform facial recognition, but e
 - Publish results to MQTT topics
 - REST API can be invoked by other applications
 - Disable detection based on a schedule
+- [Home Assistant Add-on](https://github.com/jakowenko/double-take-hassio-addons)
 
 ### Supported Architecture
 

@@ -101,7 +101,10 @@ module.exports.polling = async (
 module.exports.save = async (event, results, filename, tmp) => {
   try {
     database.create.match({ filename, event, response: results });
-    await filesystem.writerStream(fs.createReadStream(tmp), `${STORAGE.PATH}/matches/${filename}`);
+    await filesystem.writerStream(
+      fs.createReadStream(tmp),
+      `${STORAGE.MEDIA.PATH}/matches/${filename}`
+    );
   } catch (error) {
     error.message = `save results error: ${error.message}`;
     console.error(error);

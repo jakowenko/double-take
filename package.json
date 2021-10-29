@@ -1,6 +1,6 @@
 {
   "name": "double-take",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "prepare": "husky install",
@@ -29,7 +29,7 @@
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-prettier": "^4.0.0",
-    "husky": "^7.0.2",
+    "husky": "^7.0.4",
     "nodemon": "^2.0.14",
     "prettier": "^2.4.1",
     "semantic-release": "^18.0.0"
