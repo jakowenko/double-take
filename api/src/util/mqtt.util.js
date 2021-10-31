@@ -85,9 +85,7 @@ const processMessage = ({ topic, message }) => {
 };
 
 module.exports.connect = () => {
-  if (!MQTT.HOST) {
-    return;
-  }
+  if (!MQTT || !MQTT.HOST) return;
   CLIENT = mqtt.connect(`mqtt://${MQTT.HOST}`, {
     reconnectPeriod: 10000,
     username: MQTT.USERNAME || MQTT.USER,

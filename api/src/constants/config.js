@@ -46,6 +46,8 @@ module.exports = () => {
   else CONFIG = { ...configData };
 
   if (!CONFIG.auth) delete DEFAULTS.token;
+  if (!CONFIG.frigate) delete DEFAULTS.frigate;
+  if (!CONFIG.mqtt) delete DEFAULTS.mqtt;
   CONFIG = _.isEmpty(CONFIG) ? DEFAULTS : _.mergeWith(DEFAULTS, CONFIG, customizer);
   if (CONFIG?.notify?.gotify)
     CONFIG.notify.gotify = _.mergeWith(NOTIFY.gotify, CONFIG.notify.gotify, customizer);
