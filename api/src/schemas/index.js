@@ -162,6 +162,7 @@ module.exports.config = {
     ui: {
       type: 'object',
       properties: {
+        path: { type: 'string' },
         pagination: {
           type: 'object',
           properties: {

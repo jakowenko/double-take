@@ -526,6 +526,9 @@ logs:
 ```yaml
 # ui settings (default: shown below)
 ui:
+  # base path of ui
+  path:
+
   pagination:
     # number of results per page
     limit: 50
