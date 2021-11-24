@@ -27,7 +27,7 @@ module.exports.test = async (req, res) => {
   for (const detector of DETECTORS) {
     promises.push(
       actions
-        .recognize({ detector, key: `${__dirname}/../static/img/lenna.jpg` })
+        .recognize({ test: true, detector, key: `${__dirname}/../static/img/lenna.jpg` })
         .catch((error) => {
           return { status: 500, data: error.message };
         })
