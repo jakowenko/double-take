@@ -59,7 +59,7 @@ module.exports = () => {
 
   if (typeof CONFIG.ui.path === 'string') {
     if (CONFIG.ui.path.slice(-1) === '/') CONFIG.ui.path = CONFIG.ui.path.slice(0, -1);
-    if (CONFIG.ui.path && CONFIG.ui.path.slice(0) !== '/') CONFIG.ui.path = `/${CONFIG.ui.path}`;
+    if (CONFIG.ui.path && CONFIG.ui.path.slice(0, 1) !== '/') CONFIG.ui.path = `/${CONFIG.ui.path}`;
   }
 
   CONFIG = _.mergeWith(CONFIG, SYSTEM_CORE);
