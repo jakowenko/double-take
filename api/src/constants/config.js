@@ -57,8 +57,10 @@ module.exports = () => {
       CONFIG.detectors[key] = _.mergeWith(DETECTORS[key], CONFIG.detectors[key], customizer);
     }
 
-  if (CONFIG?.ui?.path && typeof CONFIG.ui.path === 'string' && CONFIG.ui.path.slice(-1) === '/')
-    CONFIG.ui.path = CONFIG.ui.path.slice(0, -1);
+  if (typeof CONFIG.ui.path === 'string') {
+    if (CONFIG.ui.path.slice(-1) === '/') CONFIG.ui.path = CONFIG.ui.path.slice(0, -1);
+    if (CONFIG.ui.path && CONFIG.ui.path.slice(0) !== '/') CONFIG.ui.path = `/${CONFIG.ui.path}`;
+  }
 
   CONFIG = _.mergeWith(CONFIG, SYSTEM_CORE);
   CONFIG.version = version;

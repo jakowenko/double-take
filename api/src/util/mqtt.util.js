@@ -4,7 +4,7 @@ const mqtt = require('mqtt');
 const fs = require('./fs.util');
 const { contains } = require('./helpers.util');
 const { jwt } = require('./auth.util');
-const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE } = require('../constants')();
+const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE, UI } = require('../constants')();
 const config = require('../constants/config');
 
 let PREVIOUS_MQTT_LENGTHS = [];
@@ -51,10 +51,10 @@ const processMessage = ({ topic, message }) => {
     fs.writer(`${STORAGE.TMP.PATH}/${filename}`, buffer);
     await axios({
       method: 'get',
-      url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
+      url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/recognize`,
       headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       params: {
-        url: `http://0.0.0.0:${SERVER.PORT}/api/${STORAGE.TMP.PATH}/${filename}`,
+        url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/${STORAGE.TMP.PATH}/${filename}`,
         type: 'mqtt',
         camera,
       },
@@ -71,7 +71,7 @@ const processMessage = ({ topic, message }) => {
 
     await axios({
       method: 'post',
-      url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
+      url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/recognize`,
       headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       data: {
         ...payload,

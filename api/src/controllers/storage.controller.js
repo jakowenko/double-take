@@ -8,7 +8,7 @@ const filesystem = require('../util/fs.util');
 const database = require('../util/db.util');
 const { tryParseJSON } = require('../util/validators.util');
 const { BAD_REQUEST } = require('../constants/http-status');
-const { AUTH, SERVER } = require('../constants')();
+const { AUTH, SERVER, UI } = require('../constants')();
 const { PATH } = require('../constants')().STORAGE.MEDIA;
 const { QUALITY, WIDTH } = require('../constants')().UI.THUMBNAILS;
 
@@ -177,7 +177,7 @@ module.exports.latest = async (req, res) => {
 
   const request = await axios({
     method: 'get',
-    url: `http://0.0.0.0:${SERVER.PORT}/api/storage/matches/${originalFilename}?box=true`,
+    url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/storage/matches/${originalFilename}?box=true`,
     headers: AUTH ? { authorization: jwt.sign({ route: 'storage' }) } : null,
     responseType: 'arraybuffer',
   });
