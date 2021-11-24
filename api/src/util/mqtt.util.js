@@ -146,7 +146,8 @@ module.exports.subscribe = () => {
 module.exports.recognize = (data) => {
   try {
     if (!MQTT || !MQTT.HOST) return;
-    const { matches, misses, unknown, camera } = data;
+    const { matches, misses, unknown } = data;
+    const camera = data.camera.toLowerCase();
     const hasUnknown = unknown && Object.keys(unknown).length;
 
     const configData = JSON.parse(JSON.stringify(data));
