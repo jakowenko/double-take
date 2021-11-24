@@ -90,6 +90,7 @@ module.exports.connect = () => {
     reconnectPeriod: 10000,
     username: MQTT.USERNAME || MQTT.USER,
     password: MQTT.PASSWORD || MQTT.PASS,
+    clientId: MQTT.CLIENT_ID || `double-take-${Math.random().toString(16).substr(2, 8)}`,
   });
 
   CLIENT.on('connect', () => {

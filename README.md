@@ -276,6 +276,7 @@ mqtt:
   host:
   username:
   password:
+  client_id:
 
   topics:
     # mqtt topic for frigate message subscription
