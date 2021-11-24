@@ -114,7 +114,7 @@ module.exports.subscribe = () => {
 
   topics.push(...cameraTopics());
 
-  if (FRIGATE.URL && MQTT.TOPICS.FRIGATE) {
+  if (FRIGATE?.URL && MQTT.TOPICS.FRIGATE) {
     const isArray = Array.isArray(MQTT.TOPICS.FRIGATE);
 
     const frigateTopics = isArray ? MQTT.TOPICS.FRIGATE : [MQTT.TOPICS.FRIGATE];
