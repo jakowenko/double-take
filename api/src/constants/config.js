@@ -33,20 +33,21 @@ module.exports = () => {
   if (CONFIG) return CONFIG;
 
   CONFIG = {};
+  const extension = process.env.HA_ADDON ? 'yaml' : 'yml';
   setup(
     'config.yml',
     SYSTEM_CORE.storage.config.path,
     '# Double Take\n# Learn more at https://github.com/jakowenko/double-take/#configuration'
   );
   setup(
-    'secrets.yml',
+    `secrets.${extension}`,
     SYSTEM_CORE.storage.secrets.path,
     '# Use this file to store secrets like usernames and passwords\n# Learn more at https://github.com/jakowenko/double-take/#storing-secrets\nsome_password: welcome'
   );
 
   CONFIG = { ...loadYaml(`${SYSTEM_CORE.storage.config.path}/config.yml`) };
 
-  const secrets = { ...loadYaml(`${SYSTEM_CORE.storage.secrets.path}/secrets.yml`) };
+  const secrets = { ...loadYaml(`${SYSTEM_CORE.storage.secrets.path}/secrets.${extension}`) };
   // eslint-disable-next-line array-callback-return
   CONFIG = traverse(CONFIG).map(function secret(val) {
     if (typeof val === 'string' && val.includes('!secret ')) {
