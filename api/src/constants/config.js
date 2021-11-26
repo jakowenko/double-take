@@ -24,39 +24,36 @@ const loadYaml = (file) => {
   }
 };
 
-const setup = (file, message) => {
-  if (!fs.existsSync(SYSTEM_CORE.storage.config.path))
-    fs.mkdirSync(SYSTEM_CORE.storage.config.path, { recursive: true });
-  fs.writeFileSync(`${SYSTEM_CORE.storage.config.path}/${file}`, message);
+const setup = (file, path, message) => {
+  if (!fs.existsSync(path)) fs.mkdirSync(path, { recursive: true });
+  if (!fs.existsSync(`${path}/${file}`)) fs.writeFileSync(`${path}/${file}`, message);
 };
 
 module.exports = () => {
   if (CONFIG) return CONFIG;
 
   CONFIG = {};
-
-  const isLegacyPath = fs.existsSync('./config.yml');
-  if (isLegacyPath)
-    console.warn(
-      'config.yml file loaded from legacy path, this will be removed in a future update'
-    );
-
-  const configData = loadYaml(
-    isLegacyPath ? './config.yml' : `${SYSTEM_CORE.storage.config.path}/config.yml`
+  setup(
+    'config.yml',
+    SYSTEM_CORE.storage.config.path,
+    '# Double Take\n# Learn more at https://github.com/jakowenko/double-take/#configuration'
   );
-  if (configData && configData.code === 'ENOENT') setup('config.yml', '# Double Take');
-  else CONFIG = { ...configData };
+  setup(
+    'secrets.yml',
+    SYSTEM_CORE.storage.secrets.path,
+    '# Use this file to store secrets like usernames and passwords\n# Learn more at https://github.com/jakowenko/double-take/#storing-secrets\nsome_password: welcome'
+  );
 
-  const secrets = loadYaml(`${SYSTEM_CORE.storage.config.path}/secrets.yml`);
-  if (secrets instanceof Error === false) {
-    // eslint-disable-next-line array-callback-return
-    CONFIG = traverse(CONFIG).map(function secret(val) {
-      if (typeof val === 'string' && val.includes('!secret ')) {
-        const key = val.replace('!secret ', '').trim();
-        if (secrets[key]) this.update(secrets[key]);
-      }
-    });
-  }
+  CONFIG = { ...loadYaml(`${SYSTEM_CORE.storage.config.path}/config.yml`) };
+
+  const secrets = { ...loadYaml(`${SYSTEM_CORE.storage.secrets.path}/secrets.yml`) };
+  // eslint-disable-next-line array-callback-return
+  CONFIG = traverse(CONFIG).map(function secret(val) {
+    if (typeof val === 'string' && val.includes('!secret ')) {
+      const key = val.replace('!secret ', '').trim();
+      if (secrets[key]) this.update(secrets[key]);
+    }
+  });
 
   if (!CONFIG.auth) delete DEFAULTS.token;
   if (!CONFIG.frigate) delete DEFAULTS.frigate;
