@@ -9,13 +9,8 @@ const { STORAGE } = require('../constants')();
 
 module.exports.get = async (req, res) => {
   const { format } = req.query;
-  const isLegacyPath = fs.existsSync('./config.yml');
   let output = {};
-  if (format === 'yaml')
-    output = fs.readFileSync(
-      isLegacyPath ? './config.yml' : `${STORAGE.CONFIG.PATH}/config.yml`,
-      'utf8'
-    );
+  if (format === 'yaml') output = fs.readFileSync(`${STORAGE.CONFIG.PATH}/config.yml`, 'utf8');
   else if (format === 'yaml-with-defaults') output = yaml.dump(config());
   else if (req.query.redact === '') output = redact(config());
   else output = config();
@@ -37,10 +32,9 @@ module.exports.theme = {
 
 module.exports.patch = async (req, res) => {
   try {
-    const isLegacyPath = fs.existsSync('./config.yml');
     const { code } = req.body;
     yaml.load(code, { schema: yamlTypes() });
-    fs.writeFileSync(isLegacyPath ? './config.yml' : `${STORAGE.CONFIG.PATH}/config.yml`, code);
+    fs.writeFileSync(`${STORAGE.CONFIG.PATH}/config.yml`, code);
     res.send();
   } catch (error) {
     if (error.name === 'YAMLException') return res.status(BAD_REQUEST).send(error);
