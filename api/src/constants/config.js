@@ -33,7 +33,8 @@ module.exports = () => {
   if (CONFIG) return CONFIG;
 
   CONFIG = {};
-  const extension = process.env.HA_ADDON ? 'yaml' : 'yml';
+  const extension =
+    process.env.HA_ADDON === true || process.env.HA_ADDON === 'true' ? 'yaml' : 'yml';
   setup(
     'config.yml',
     SYSTEM_CORE.storage.config.path,
