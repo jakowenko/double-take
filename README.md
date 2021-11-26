@@ -544,6 +544,29 @@ ui:
     lines: 500
 ```
 
+## Storing Secrets
+
+Create a `secrets.yml` file in the `/config` directory to store private information outside of `config.yml`. Use `!secret` and an identifier.
+
+```yaml
+mqtt:
+  host: localhost
+  username: mqtt
+  password: !secret mqtt_password
+
+detectors:
+  compreface:
+    url: localhost:8000
+    key: !secret compreface_key
+```
+
+The `secrets.yaml` file contains the corresponding value assigned to the identifier.
+
+```yaml
+mqtt_password: <password>
+compreface_key: <api-key>
+```
+
 ## Development
 
 ### Run Local Containers
