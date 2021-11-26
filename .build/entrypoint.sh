@@ -17,4 +17,4 @@ then
 fi
 
 node -e 'require("./api/src/constants")()'
-exec nodemon -e yml $PATHS -q api/server.js
+exec nodemon -e yml,yaml $PATHS -q api/server.js
