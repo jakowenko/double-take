@@ -16,4 +16,5 @@ then
   PATHS="$PATHS --watch ./.storage/config";
 fi
 
+node -e 'require("./api/src/constants")()'
 exec nodemon -e yml $PATHS -q api/server.js
