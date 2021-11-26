@@ -457,16 +457,16 @@ export default {
     async save() {
       try {
         if (this.loading) return;
+        await ApiService.patch('config', { code: this.code });
         this.loading = true;
+        this.waitForRestart = true;
+        this.emitter.emit('toast', { message: 'Restarting to load changes' });
         clearInterval(this.statusInterval);
         delete this.mqtt.status;
         delete this.frigate.status;
-        this.emitter.emit('toast', { message: 'Restarting to load changes' });
         this.services.forEach((detector) => {
           delete detector.status;
         });
-        this.waitForRestart = true;
-        await ApiService.patch('config', { code: this.code });
         clearTimeout(this.restartTimeout);
         this.restartTimeout = setTimeout(() => {
           if (!this.socket.connected) {
