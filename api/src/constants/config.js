@@ -1,6 +1,8 @@
 const yaml = require('js-yaml');
 const fs = require('fs');
 const _ = require('lodash');
+const traverse = require('traverse');
+const yamlTypes = require('../util/yaml-types.util');
 const { objectKeysToUpperCase } = require('../util/object.util');
 const { detectors: DETECTORS, notify: NOTIFY, ...DEFAULTS } = require('./defaults');
 const { core: SYSTEM_CORE } = require('./system');
@@ -16,7 +18,7 @@ const customizer = (objValue, srcValue) => {
 
 const loadYaml = (file) => {
   try {
-    return yaml.load(fs.readFileSync(file, 'utf8'));
+    return yaml.load(fs.readFileSync(file, 'utf8'), { schema: yamlTypes() });
   } catch (error) {
     return error;
   }
@@ -44,6 +46,17 @@ module.exports = () => {
   );
   if (configData && configData.code === 'ENOENT') setup('config.yml', '# Double Take');
   else CONFIG = { ...configData };
+
+  const secrets = loadYaml(`${SYSTEM_CORE.storage.config.path}/secrets.yml`);
+  if (secrets instanceof Error === false) {
+    // eslint-disable-next-line array-callback-return
+    CONFIG = traverse(CONFIG).map(function secret(val) {
+      if (typeof val === 'string' && val.includes('!secret ')) {
+        const key = val.replace('!secret ', '').trim();
+        if (secrets[key]) this.update(secrets[key]);
+      }
+    });
+  }
 
   if (!CONFIG.auth) delete DEFAULTS.token;
   if (!CONFIG.frigate) delete DEFAULTS.frigate;

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
+const yamlTypes = require('../util/yaml-types.util');
 const redact = require('../util/redact-secrets.util');
 const config = require('../constants/config');
 const { ui } = require('../constants/ui');
@@ -38,7 +39,7 @@ module.exports.patch = async (req, res) => {
   try {
     const isLegacyPath = fs.existsSync('./config.yml');
     const { code } = req.body;
-    yaml.load(code);
+    yaml.load(code, { schema: yamlTypes() });
     fs.writeFileSync(isLegacyPath ? './config.yml' : `${STORAGE.CONFIG.PATH}/config.yml`, code);
     res.send();
   } catch (error) {
