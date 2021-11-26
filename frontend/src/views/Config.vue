@@ -58,22 +58,38 @@
           />
         </div>
       </div>
-      <div class="buttons p-mt-1">
-        <Button
-          icon="pi pi-refresh"
-          class="p-button-sm p-button-success p-mb-1"
-          @click="reload"
-          :disabled="loading"
-          v-tooltip.left="'Refresh Page'"
-        />
-        <br />
-        <Button
-          icon="fa fa-save"
-          class="p-button p-button-sm p-button-success"
-          @click="save"
-          :disabled="loading"
-          v-tooltip.left="'Save Config and Restart'"
-        />
+      <div class="buttons p-d-flex p-flex-column p-mt-1">
+        <div class="p-mb-1">
+          <Button
+            label="config.yml"
+            class="p-button-sm p-button-secondary file-button p-mr-1"
+            @click="changeFile('config')"
+            :disabled="loading"
+          />
+          <Button
+            label="secrets.yml"
+            class="p-button p-button-secondary p-button-sm file-button"
+            @click="changeFile('secrets')"
+            :disabled="loading"
+          />
+        </div>
+        <div class="p-ml-auto">
+          <Button
+            icon="pi pi-refresh"
+            class="p-button-sm p-button-success p-mb-1"
+            @click="reload"
+            :disabled="loading"
+            v-tooltip.left="'Refresh Page'"
+          />
+          <br />
+          <Button
+            icon="fa fa-save"
+            class="p-button p-button-sm p-button-success"
+            @click="save"
+            :disabled="loading"
+            v-tooltip.left="'Save Config and Restart'"
+          />
+        </div>
       </div>
     </div>
     <div class="editor-wrapper" :style="{ height, marginTop: this.getStatusHeight() + 'px' }">
@@ -123,6 +139,7 @@ export default {
     Dropdown,
   },
   data: () => ({
+    file: 'config',
     statusInterval: null,
     waitForRestart: false,
     restartTimeout: null,
@@ -245,23 +262,15 @@ export default {
     this.emitter.on('buildTag', (data) => {
       this.doubleTake.tooltip = `v${version}:${data}`;
     });
+    this.file = new URLSearchParams(window.location.search).get('file');
   },
   async mounted() {
     try {
       this.updateHeight();
-      this.loading = true;
-      await this.getThemes();
-      const { data } = await ApiService.get('config?format=yaml');
-      this.loading = false;
-      this.code = data;
-      this.editor.session.setValue(data);
-      this.editor.session.setTabSize(2);
+      await this.editorData();
+      this.checkStatus();
       this.checkDetectors();
       this.emitter.emit('getBuildTag');
-      window.addEventListener('keydown', this.saveListener);
-      window.addEventListener('resize', this.updateHeight);
-      this.updateHeight();
-      this.checkStatus();
 
       if (this.socket) {
         this.socket.on('connect', () => {
@@ -295,7 +304,6 @@ export default {
       this.emitter.emit('error', error);
     }
   },
-
   beforeUnmount() {
     const emitters = ['buildTag'];
     emitters.forEach((emitter) => {
@@ -316,6 +324,23 @@ export default {
     },
   },
   methods: {
+    async editorData() {
+      this.loading = true;
+      await this.getThemes();
+      const { data } = await ApiService.get(this.file === 'secrets' ? 'config/secrets' : 'config?format=yaml');
+      this.loading = false;
+      this.code = data;
+      this.editor.session.setValue(data);
+      this.editor.session.setTabSize(2);
+      window.addEventListener('keydown', this.saveListener);
+      window.addEventListener('resize', this.updateHeight);
+      this.updateHeight();
+    },
+    changeFile(value) {
+      this.file = value;
+      this.$router.push({ query: { file: value } });
+      this.editorData();
+    },
     checkStatus() {
       this.statusInterval = setInterval(this.checkDetectors, 30000);
     },
@@ -457,7 +482,7 @@ export default {
     async save() {
       try {
         if (this.loading) return;
-        await ApiService.patch('config', { code: this.code });
+        await ApiService.patch(this.file === 'secrets' ? 'config/secrets' : 'config', { code: this.code });
         this.loading = true;
         this.waitForRestart = true;
         this.emitter.emit('toast', { message: 'Restarting to load changes' });
@@ -586,6 +611,10 @@ label {
     position: absolute;
     right: 1rem;
     top: 100%;
+
+    .file-button {
+      font-size: 0.75rem;
+    }
   }
 }
 

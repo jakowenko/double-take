@@ -17,6 +17,27 @@ module.exports.get = async (req, res) => {
   res.send(output);
 };
 
+module.exports.secrets = {
+  get: async (req, res) => {
+    const output = fs.readFileSync(
+      `${STORAGE.SECRETS.PATH}/secrets.${STORAGE.SECRETS.EXTENSION}`,
+      'utf8'
+    );
+    res.send(output);
+  },
+  patch: (req, res) => {
+    try {
+      const { code } = req.body;
+      yaml.load(code, { schema: yamlTypes() });
+      fs.writeFileSync(`${STORAGE.SECRETS.PATH}/secrets.${STORAGE.SECRETS.EXTENSION}`, code);
+      res.send();
+    } catch (error) {
+      if (error.name === 'YAMLException') return res.status(BAD_REQUEST).send(error);
+      res.send(error);
+    }
+  },
+};
+
 module.exports.theme = {
   get: async (req, res) => {
     const settings = config();
