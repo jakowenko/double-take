@@ -38,17 +38,16 @@
         </div>
       </div>
       <div class="p-d-flex p-ai-center p-mt-2 theme-holder">
-        <div>
+        <div class="p-mr-2">
           <label class="p-d-block p-mb-1">UI Theme</label>
           <Dropdown
             v-model="themes.ui"
             :options="options.ui"
-            class="p-mr-2"
             @before-hide="updateThemes('hide', true)"
             @keyup.enter="updateThemes('enter', true)"
           />
         </div>
-        <div>
+        <div class="p-mr-2">
           <label class="p-d-block p-mb-1">Editor Theme</label>
           <Dropdown
             v-model="themes.editor"
@@ -57,22 +56,26 @@
             @keyup.enter="updateThemes('enter')"
           />
         </div>
-      </div>
-      <div class="buttons p-d-flex p-flex-column p-mt-1">
-        <div class="p-mb-1">
+        <div class="p-mr-2">
+          <label class="p-d-block p-mb-1">&nbsp;</label>
           <Button
             label="config.yml"
-            class="p-button-sm p-button-secondary file-button p-mr-1"
+            class="p-button-sm p-button-text file-button"
             @click="changeFile('config')"
             :disabled="loading"
           />
+        </div>
+        <div>
+          <label class="p-d-block p-mb-1">&nbsp;</label>
           <Button
             label="secrets.yml"
-            class="p-button p-button-secondary p-button-sm file-button"
+            class="p-button p-button-text p-button-sm file-button"
             @click="changeFile('secrets')"
             :disabled="loading"
           />
         </div>
+      </div>
+      <div class="buttons p-mt-1">
         <div class="p-ml-auto">
           <Button
             icon="pi pi-refresh"
@@ -551,11 +554,21 @@ export default {
 }
 
 @media only screen and (max-width: 576px) {
-  .theme-holder > div {
-    width: 50%;
+  .theme-holder > div:nth-child(3),
+  .theme-holder > div:nth-child(4) {
+    margin-right: 0.5rem !important;
+  }
+  .theme-holder > div:nth-child(1),
+  .theme-holder > div:nth-child(2) {
+    width: 30%;
+    margin-right: 0.5rem !important;
   }
   .theme-holder > div:last-child {
-    margin-left: 0.5rem;
+    margin-right: 0;
+  }
+  .theme-holder ::v-deep(.p-button) {
+    padding-left: 0.6rem !important;
+    padding-right: 0.6rem !important;
   }
 }
 
