@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const cors = require('cors');
+const { UI } = require('./constants')();
 require('express-async-errors');
 
 const app = express();
@@ -10,13 +11,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(require('./middlewares/respond'));
 
 app.use(
+  UI.PATH,
   express.static(`./frontend/${process.env.NODE_ENV === 'production' ? '' : 'dist/'}`, {
     index: false,
   })
 );
-app.use('/api', require('./routes'));
+app.use(`${UI.PATH}/api`, require('./routes'));
 
-app.use('/', (req, res) => {
+app.use(UI.PATH, (req, res) => {
   const html = fs.readFileSync(
     `${process.cwd()}/frontend/${process.env.NODE_ENV === 'production' ? '' : 'dist/'}index.html`,
     'utf8'
@@ -24,7 +26,11 @@ app.use('/', (req, res) => {
   res.send(
     html.replace(
       '</head>',
-      `<script>window.ingressUrl = '${req.headers['x-ingress-path'] || ''}'</script></head>`
+      `<script>
+        window.ingressUrl = '${req.headers['x-ingress-path'] || ''}';
+        window.publicPath = '${UI?.PATH || ''}';
+      </script>
+      </head>`
     )
   );
 });

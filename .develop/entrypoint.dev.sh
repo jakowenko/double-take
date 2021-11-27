@@ -1,5 +1,4 @@
 #!/bin/bash
 
-mkdir -p ./.storage/config
-[ -f ./.storage/config/config.yml ] || echo $'# Double Take' > ./.storage/config/config.yml
+node -e 'require("./api/src/constants")()'
 exec npm run api

@@ -54,6 +54,7 @@ module.exports = {
     level: 'info',
   },
   ui: {
+    path: '',
     theme: 'bootstrap4-dark-blue',
     editor: {
       theme: 'nord_dark',

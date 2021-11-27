@@ -1,13 +1,13 @@
 const axios = require('axios');
 const { oxfordComma } = require('../helpers.util');
-const { SERVER } = require('../../constants')();
+const { SERVER, UI } = require('../../constants')();
 const { GOTIFY } = require('../../constants')().NOTIFY || {};
 
 module.exports.send = async (output) => {
   const { filename, message } = this.normalize(output);
   const { data: buffer } = await axios({
     method: 'get',
-    url: `http://0.0.0.0:${SERVER.PORT}/api/storage/matches/${filename}?box=true`,
+    url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/storage/matches/${filename}?box=true`,
     responseType: 'arraybuffer',
   });
   return axios({

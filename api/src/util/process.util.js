@@ -8,7 +8,7 @@ const { parse, digest } = require('./auth.util');
 const mask = require('./mask-image.util');
 const sleep = require('./sleep.util');
 const { recognize, normalize } = require('./detectors/actions');
-const { SERVER, STORAGE } = require('../constants')();
+const { SERVER, STORAGE, UI } = require('../constants')();
 const DETECTORS = require('../constants/config').detectors();
 const config = require('../constants/config');
 
@@ -68,7 +68,7 @@ module.exports.polling = async (
             const base64 =
               (foundMatch && MATCH.BASE64 === 'box') || (totalFaces && UNKNOWN.BASE64 === 'box')
                 ? await this.stream(
-                    `http://0.0.0.0:${SERVER.PORT}/api/storage/matches/${filename}?box=true`
+                    `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/storage/matches/${filename}?box=true`
                   )
                 : stream;
             results.forEach((result) => (result.base64 = base64.toString('base64')));

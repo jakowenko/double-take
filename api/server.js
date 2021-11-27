@@ -8,11 +8,13 @@ const storage = require('./src/util/storage.util');
 const database = require('./src/util/db.util');
 const config = require('./src/constants/config');
 const shutdown = require('./src/util/shutdown.util');
+const validate = require('./src/schemas/validate');
 
 module.exports.start = async () => {
   config.setup();
   storage.setup();
   console.log(`Double Take v${version}`);
+  validate(config());
   console.verbose(config());
   await database.init();
   const server = http.Server(require('./src/app')).listen(SERVER.PORT);

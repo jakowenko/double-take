@@ -1,6 +1,8 @@
 const yaml = require('js-yaml');
 const fs = require('fs');
 const _ = require('lodash');
+const traverse = require('traverse');
+const yamlTypes = require('../util/yaml-types.util');
 const { objectKeysToUpperCase } = require('../util/object.util');
 const { detectors: DETECTORS, notify: NOTIFY, ...DEFAULTS } = require('./defaults');
 const { core: SYSTEM_CORE } = require('./system');
@@ -16,36 +18,50 @@ const customizer = (objValue, srcValue) => {
 
 const loadYaml = (file) => {
   try {
-    return yaml.load(fs.readFileSync(file, 'utf8'));
+    return yaml.load(fs.readFileSync(file, 'utf8'), { schema: yamlTypes() });
   } catch (error) {
     return error;
   }
 };
 
-const setup = (file, message) => {
-  if (!fs.existsSync(SYSTEM_CORE.storage.config.path))
-    fs.mkdirSync(SYSTEM_CORE.storage.config.path, { recursive: true });
-  fs.writeFileSync(`${SYSTEM_CORE.storage.config.path}/${file}`, message);
+const setup = (file, path, message) => {
+  if (!fs.existsSync(path)) fs.mkdirSync(path, { recursive: true });
+  if (!fs.existsSync(`${path}/${file}`)) fs.writeFileSync(`${path}/${file}`, message);
 };
 
 module.exports = () => {
   if (CONFIG) return CONFIG;
 
   CONFIG = {};
-
-  const isLegacyPath = fs.existsSync('./config.yml');
-  if (isLegacyPath)
-    console.warn(
-      'config.yml file loaded from legacy path, this will be removed in a future update'
-    );
-
-  const configData = loadYaml(
-    isLegacyPath ? './config.yml' : `${SYSTEM_CORE.storage.config.path}/config.yml`
+  setup(
+    'config.yml',
+    SYSTEM_CORE.storage.config.path,
+    '# Double Take\n# Learn more at https://github.com/jakowenko/double-take/#configuration'
   );
-  if (configData && configData.code === 'ENOENT') setup('config.yml', '# Double Take');
-  else CONFIG = { ...configData };
+  setup(
+    `secrets.${SYSTEM_CORE.storage.secrets.extension}`,
+    SYSTEM_CORE.storage.secrets.path,
+    '# Use this file to store secrets like usernames and passwords\n# Learn more at https://github.com/jakowenko/double-take/#storing-secrets\nsome_password: welcome'
+  );
+
+  CONFIG = { ...loadYaml(`${SYSTEM_CORE.storage.config.path}/config.yml`) };
+
+  const secrets = {
+    ...loadYaml(
+      `${SYSTEM_CORE.storage.secrets.path}/secrets.${SYSTEM_CORE.storage.secrets.extension}`
+    ),
+  };
+  // eslint-disable-next-line array-callback-return
+  CONFIG = traverse(CONFIG).map(function secret(val) {
+    if (typeof val === 'string' && val.includes('!secret ')) {
+      const key = val.replace('!secret ', '').trim();
+      if (secrets[key]) this.update(secrets[key]);
+    }
+  });
 
   if (!CONFIG.auth) delete DEFAULTS.token;
+  if (!CONFIG.frigate) delete DEFAULTS.frigate;
+  if (!CONFIG.mqtt) delete DEFAULTS.mqtt;
   CONFIG = _.isEmpty(CONFIG) ? DEFAULTS : _.mergeWith(DEFAULTS, CONFIG, customizer);
   if (CONFIG?.notify?.gotify)
     CONFIG.notify.gotify = _.mergeWith(NOTIFY.gotify, CONFIG.notify.gotify, customizer);
@@ -54,6 +70,11 @@ module.exports = () => {
     for (const [key] of Object.entries(CONFIG.detectors)) {
       CONFIG.detectors[key] = _.mergeWith(DETECTORS[key], CONFIG.detectors[key], customizer);
     }
+
+  if (typeof CONFIG.ui.path === 'string') {
+    if (CONFIG.ui.path.slice(-1) === '/') CONFIG.ui.path = CONFIG.ui.path.slice(0, -1);
+    if (CONFIG.ui.path && CONFIG.ui.path.slice(0, 1) !== '/') CONFIG.ui.path = `/${CONFIG.ui.path}`;
+  }
 
   CONFIG = _.mergeWith(CONFIG, SYSTEM_CORE);
   CONFIG.version = version;

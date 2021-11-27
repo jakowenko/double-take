@@ -38,17 +38,16 @@
         </div>
       </div>
       <div class="p-d-flex p-ai-center p-mt-2 theme-holder">
-        <div>
+        <div class="p-mr-2">
           <label class="p-d-block p-mb-1">UI Theme</label>
           <Dropdown
             v-model="themes.ui"
             :options="options.ui"
-            class="p-mr-2"
             @before-hide="updateThemes('hide', true)"
             @keyup.enter="updateThemes('enter', true)"
           />
         </div>
-        <div>
+        <div class="p-mr-2">
           <label class="p-d-block p-mb-1">Editor Theme</label>
           <Dropdown
             v-model="themes.editor"
@@ -57,23 +56,43 @@
             @keyup.enter="updateThemes('enter')"
           />
         </div>
+        <div class="p-mr-2">
+          <label class="p-d-block p-mb-1">&nbsp;</label>
+          <Button
+            label="config.yml"
+            class="p-button-sm p-button-text file-button"
+            @click="changeFile('config')"
+            :disabled="loading"
+          />
+        </div>
+        <div>
+          <label class="p-d-block p-mb-1">&nbsp;</label>
+          <Button
+            label="secrets.yml"
+            class="p-button p-button-text p-button-sm file-button"
+            @click="changeFile('secrets')"
+            :disabled="loading"
+          />
+        </div>
       </div>
       <div class="buttons p-mt-1">
-        <Button
-          icon="pi pi-refresh"
-          class="p-button-sm p-button-success p-mb-1"
-          @click="reload"
-          :disabled="loading"
-          v-tooltip.left="'Refresh Page'"
-        />
-        <br />
-        <Button
-          icon="fa fa-save"
-          class="p-button p-button-sm p-button-success"
-          @click="save"
-          :disabled="loading"
-          v-tooltip.left="'Save Config and Restart'"
-        />
+        <div class="p-ml-auto">
+          <Button
+            icon="pi pi-refresh"
+            class="p-button-sm p-button-success p-mb-1"
+            @click="reload"
+            :disabled="loading"
+            v-tooltip.left="'Refresh Page'"
+          />
+          <br />
+          <Button
+            icon="fa fa-save"
+            class="p-button p-button-sm p-button-success"
+            @click="save"
+            :disabled="loading"
+            v-tooltip.left="'Save Config and Restart'"
+          />
+        </div>
       </div>
     </div>
     <div class="editor-wrapper" :style="{ height, marginTop: this.getStatusHeight() + 'px' }">
@@ -123,6 +142,7 @@ export default {
     Dropdown,
   },
   data: () => ({
+    file: 'config',
     statusInterval: null,
     waitForRestart: false,
     restartTimeout: null,
@@ -245,23 +265,15 @@ export default {
     this.emitter.on('buildTag', (data) => {
       this.doubleTake.tooltip = `v${version}:${data}`;
     });
+    this.file = new URLSearchParams(window.location.search).get('file');
   },
   async mounted() {
     try {
       this.updateHeight();
-      this.loading = true;
-      await this.getThemes();
-      const { data } = await ApiService.get('config?format=yaml');
-      this.loading = false;
-      this.code = data;
-      this.editor.session.setValue(data);
-      this.editor.session.setTabSize(2);
+      await this.editorData();
+      this.checkStatus();
       this.checkDetectors();
       this.emitter.emit('getBuildTag');
-      window.addEventListener('keydown', this.saveListener);
-      window.addEventListener('resize', this.updateHeight);
-      this.updateHeight();
-      this.checkStatus();
 
       if (this.socket) {
         this.socket.on('connect', () => {
@@ -295,7 +307,6 @@ export default {
       this.emitter.emit('error', error);
     }
   },
-
   beforeUnmount() {
     const emitters = ['buildTag'];
     emitters.forEach((emitter) => {
@@ -316,6 +327,23 @@ export default {
     },
   },
   methods: {
+    async editorData() {
+      this.loading = true;
+      await this.getThemes();
+      const { data } = await ApiService.get(this.file === 'secrets' ? 'config/secrets' : 'config?format=yaml');
+      this.loading = false;
+      this.code = data;
+      this.editor.session.setValue(data);
+      this.editor.session.setTabSize(2);
+      window.addEventListener('keydown', this.saveListener);
+      window.addEventListener('resize', this.updateHeight);
+      this.updateHeight();
+    },
+    changeFile(value) {
+      this.file = value;
+      this.$router.push({ query: { file: value } });
+      this.editorData();
+    },
     checkStatus() {
       this.statusInterval = setInterval(this.checkDetectors, 30000);
     },
@@ -457,16 +485,16 @@ export default {
     async save() {
       try {
         if (this.loading) return;
+        await ApiService.patch(this.file === 'secrets' ? 'config/secrets' : 'config', { code: this.code });
         this.loading = true;
+        this.waitForRestart = true;
+        this.emitter.emit('toast', { message: 'Restarting to load changes' });
         clearInterval(this.statusInterval);
         delete this.mqtt.status;
         delete this.frigate.status;
-        this.emitter.emit('toast', { message: 'Restarting to load changes' });
         this.services.forEach((detector) => {
           delete detector.status;
         });
-        this.waitForRestart = true;
-        await ApiService.patch('config', { code: this.code });
         clearTimeout(this.restartTimeout);
         this.restartTimeout = setTimeout(() => {
           if (!this.socket.connected) {
@@ -526,11 +554,21 @@ export default {
 }
 
 @media only screen and (max-width: 576px) {
-  .theme-holder > div {
-    width: 50%;
+  .theme-holder > div:nth-child(3),
+  .theme-holder > div:nth-child(4) {
+    margin-right: 0.5rem !important;
+  }
+  .theme-holder > div:nth-child(1),
+  .theme-holder > div:nth-child(2) {
+    width: 30%;
+    margin-right: 0.5rem !important;
   }
   .theme-holder > div:last-child {
-    margin-left: 0.5rem;
+    margin-right: 0;
+  }
+  .theme-holder ::v-deep(.p-button) {
+    padding-left: 0.6rem !important;
+    padding-right: 0.6rem !important;
   }
 }
 
@@ -586,6 +624,10 @@ label {
     position: absolute;
     right: 1rem;
     top: 100%;
+
+    .file-button {
+      font-size: 0.75rem;
+    }
   }
 }
 

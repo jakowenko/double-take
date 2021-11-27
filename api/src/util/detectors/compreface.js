@@ -7,7 +7,7 @@ const config = require('../../constants/config');
 
 const { COMPREFACE } = DETECTORS || {};
 
-module.exports.recognize = async ({ key }) => {
+module.exports.recognize = async ({ key, test }) => {
   const { URL, KEY, DET_PROB_THRESHOLD, FACE_PLUGINS } = COMPREFACE;
   const formData = new FormData();
   formData.append('file', fs.createReadStream(key));
@@ -23,7 +23,7 @@ module.exports.recognize = async ({ key }) => {
       return true;
     },
     params: {
-      det_prob_threshold: DET_PROB_THRESHOLD,
+      det_prob_threshold: test ? 0 : DET_PROB_THRESHOLD,
     },
     data: formData,
   });

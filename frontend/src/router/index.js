@@ -57,7 +57,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(window.ingressUrl || ''),
+  history: createWebHistory(window.ingressUrl || window.publicPath || ''),
   routes,
   scrollBehavior() {
     // Scroll to the top of the page on route navigation

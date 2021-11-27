@@ -22,7 +22,7 @@ There's a lot of great open source software to perform facial recognition, but e
 - Publish results to MQTT topics
 - REST API can be invoked by other applications
 - Disable detection based on a schedule
-- [Home Assistant Add-on](https://github.com/jakowenko/double-take-hassio-addons)
+- [Home Assistant Add-ons](https://github.com/jakowenko/double-take-hassio-addons)
 
 ### Supported Architecture
 
@@ -276,6 +276,7 @@ mqtt:
   host:
   username:
   password:
+  client_id:
 
   topics:
     # mqtt topic for frigate message subscription
@@ -525,6 +526,9 @@ logs:
 ```yaml
 # ui settings (default: shown below)
 ui:
+  # base path of ui
+  path:
+
   pagination:
     # number of results per page
     limit: 50
@@ -538,6 +542,29 @@ ui:
   logs:
     # number of lines displayed
     lines: 500
+```
+
+## Storing Secrets
+
+**Note:** If using one of the [Home Assistant Add-ons](https://github.com/jakowenko/double-take-hassio-addons) then the default Home Assistant `/config/secrets.yaml` file is used.
+
+```yaml
+mqtt:
+  host: localhost
+  username: mqtt
+  password: !secret mqtt_password
+
+detectors:
+  compreface:
+    url: localhost:8000
+    key: !secret compreface_key
+```
+
+The `secrets.yml` file contains the corresponding value assigned to the identifier.
+
+```yaml
+mqtt_password: <password>
+compreface_key: <api-key>
 ```
 
 ## Development

@@ -4,7 +4,7 @@ const mqtt = require('mqtt');
 const fs = require('./fs.util');
 const { contains } = require('./helpers.util');
 const { jwt } = require('./auth.util');
-const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE } = require('../constants')();
+const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE, UI } = require('../constants')();
 const config = require('../constants/config');
 
 let PREVIOUS_MQTT_LENGTHS = [];
@@ -51,10 +51,10 @@ const processMessage = ({ topic, message }) => {
     fs.writer(`${STORAGE.TMP.PATH}/${filename}`, buffer);
     await axios({
       method: 'get',
-      url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
+      url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/recognize`,
       headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       params: {
-        url: `http://0.0.0.0:${SERVER.PORT}/api/${STORAGE.TMP.PATH}/${filename}`,
+        url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/${STORAGE.TMP.PATH}/${filename}`,
         type: 'mqtt',
         camera,
       },
@@ -71,7 +71,7 @@ const processMessage = ({ topic, message }) => {
 
     await axios({
       method: 'post',
-      url: `http://0.0.0.0:${SERVER.PORT}/api/recognize`,
+      url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/recognize`,
       headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       data: {
         ...payload,
@@ -85,13 +85,12 @@ const processMessage = ({ topic, message }) => {
 };
 
 module.exports.connect = () => {
-  if (!MQTT.HOST) {
-    return;
-  }
+  if (!MQTT || !MQTT.HOST) return;
   CLIENT = mqtt.connect(`mqtt://${MQTT.HOST}`, {
     reconnectPeriod: 10000,
     username: MQTT.USERNAME || MQTT.USER,
     password: MQTT.PASSWORD || MQTT.PASS,
+    clientId: MQTT.CLIENT_ID || `double-take-${Math.random().toString(16).substr(2, 8)}`,
   });
 
   CLIENT.on('connect', () => {
@@ -116,7 +115,7 @@ module.exports.subscribe = () => {
 
   topics.push(...cameraTopics());
 
-  if (FRIGATE.URL && MQTT.TOPICS.FRIGATE) {
+  if (FRIGATE?.URL && MQTT.TOPICS.FRIGATE) {
     const isArray = Array.isArray(MQTT.TOPICS.FRIGATE);
 
     const frigateTopics = isArray ? MQTT.TOPICS.FRIGATE : [MQTT.TOPICS.FRIGATE];
@@ -147,7 +146,8 @@ module.exports.subscribe = () => {
 module.exports.recognize = (data) => {
   try {
     if (!MQTT || !MQTT.HOST) return;
-    const { matches, misses, unknown, camera } = data;
+    const { matches, misses, unknown } = data;
+    const camera = data.camera.toLowerCase();
     const hasUnknown = unknown && Object.keys(unknown).length;
 
     const configData = JSON.parse(JSON.stringify(data));

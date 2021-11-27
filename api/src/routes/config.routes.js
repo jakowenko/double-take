@@ -15,6 +15,8 @@ router
   )
   .patch('/', jwt, controller.patch)
   .get('/theme', controller.theme.get)
-  .patch('/theme', jwt, controller.theme.patch);
+  .patch('/theme', jwt, controller.theme.patch)
+  .get('/secrets', jwt, controller.secrets.get)
+  .patch('/secrets', jwt, controller.secrets.patch);
 
 module.exports = router;
