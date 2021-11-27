@@ -548,8 +548,6 @@ ui:
 
 **Note:** If using one of the [Home Assistant Add-ons](https://github.com/jakowenko/double-take-hassio-addons) then the default Home Assistant `/config/secrets.yaml` file is used.
 
-Create a `secrets.yml` file in the `/config` directory to store private information outside of `config.yml`. Use `!secret` and an identifier.
-
 ```yaml
 mqtt:
   host: localhost
@@ -562,7 +560,7 @@ detectors:
     key: !secret compreface_key
 ```
 
-The `secrets.yaml` file contains the corresponding value assigned to the identifier.
+The `secrets.yml` file contains the corresponding value assigned to the identifier.
 
 ```yaml
 mqtt_password: <password>
