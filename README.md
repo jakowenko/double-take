@@ -328,6 +328,10 @@ detect:
 frigate:
   url:
 
+  # if double-take should send matches back to frigate as a sub label
+  # NOTE: requires frigate 0.11.0+ (default: shown below)
+  update_sub_labels: false
+
   # object labels that are allowed for facial recognition
   labels:
     - person
