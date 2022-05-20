@@ -23,9 +23,6 @@
   "devDependencies": {
     "@commitlint/cli": "^13.2.1",
     "@commitlint/config-conventional": "^13.2.0",
-    "@semantic-release/changelog": "^6.0.0",
-    "@semantic-release/exec": "^6.0.1",
-    "@semantic-release/git": "^10.0.0",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^8.1.0",
@@ -35,29 +32,5 @@
     "nodemon": "^2.0.14",
     "prettier": "^2.4.1",
     "semantic-release": "^18.0.0"
-  },
-  "release": {
-    "branches": [
-      "master"
-    ],
-    "plugins": [
-      "@semantic-release/commit-analyzer",
-      "@semantic-release/release-notes-generator",
-      "@semantic-release/changelog",
-      [
-        "@semantic-release/npm",
-        {
-          "npmPublish": false
-        }
-      ],
-      [
-        "@semantic-release/exec",
-        {
-          "prepareCmd": "VERSION=${nextRelease.version} npm run bump"
-        }
-      ],
-      "@semantic-release/git",
-      "@semantic-release/github"
-    ]
   }
 }
