@@ -53,6 +53,11 @@ module.exports = {
       },
     ],
     'vue/valid-v-slot': 'error',
+    'vuejs-accessibility/label-has-for': 'off',
+    'vuejs-accessibility/click-events-have-key-events': 'off',
+    'vuejs-accessibility/anchor-has-content': 'off',
+    'vuejs-accessibility/mouse-events-have-key-events': 'off',
+    'no-promise-executor-return': 'off',
 
     // No way to override these in Prettier, so change Airbnb rules
     'function-paren-newline': 'off',
