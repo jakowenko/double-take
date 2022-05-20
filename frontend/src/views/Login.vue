@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper p-text-center">
-    <img class="icon p-d-block" :src="require('@/assets/img/icon.svg')" />
+    <img class="icon p-d-block" :src="require('@/assets/img/icon.svg')" alt="Double Take" />
     <i v-if="loading" class="pi pi-spin pi-spinner" style="font-size: 3rem; margin-top: 25px"></i>
     <div v-else class="login-box">
       <div class="p-formgroup-inline p-d-inline-flex p-ai-center">

@@ -101,7 +101,7 @@ export default {
       }
     },
     updateHeight() {
-      this.height = `${window.innerHeight - this.toolbarHeight - this.$refs.buttons?.clientHeight}px`;
+      this.height = `${window.innerHeight - this.toolbarHeight - (this.$refs.buttons?.clientHeight || 0)}px`;
       this.wrapperHeight = `${window.innerHeight - this.toolbarHeight}px`;
     },
   },
