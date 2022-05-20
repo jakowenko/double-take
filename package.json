@@ -6,7 +6,9 @@
     "prepare": "husky install",
     "frontend": "cd ./frontend && npm run serve",
     "api": "exec nodemon -e yml,js --watch ./.storage/config --watch ./api -q api/server.js || true",
-    "bump": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version"
+    "bump": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version",
+    "lint:eslint": "eslint --fix",
+    "lint:prettier": "prettier --write --loglevel warn"
   },
   "repository": {
     "type": "git",
