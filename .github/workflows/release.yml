@@ -17,9 +17,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 16
       - name: Install dependencies
-        run: npm install --save-dev
+        run: npm i --no-save semantic-release @semantic-release/changelog @semantic-release/exec @semantic-release/git
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}

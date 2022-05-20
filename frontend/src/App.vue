@@ -1,7 +1,7 @@
 <template>
   <div id="app-wrapper">
     <div class="loading p-d-flex p-jc-center" :class="{ loaded, hidden, dark }">
-      <img class="p-d-block" :src="require('@/assets/img/icon.svg')" style="width: 100px" />
+      <img alt="Double Take" class="p-d-block" :src="require('@/assets/img/icon.svg')" style="width: 100px" />
     </div>
     <Toast position="bottom-left" />
     <ConfirmDialog />
