@@ -1,3 +1,22 @@
+# [1.7.0](https://github.com/jakowenko/double-take/compare/v1.6.0...v1.7.0) (2021-11-27)
+
+
+### Bug Fixes
+
+* better support of jpg images for thumbnails/box ([#156](https://github.com/jakowenko/double-take/issues/156)) ([04e7d83](https://github.com/jakowenko/double-take/commit/04e7d83b6317ac26cb58fb0636544f370adbf257))
+* lowercase camera name in mqtt topics ([#163](https://github.com/jakowenko/double-take/issues/163)) ([57e605b](https://github.com/jakowenko/double-take/commit/57e605bc911c96f169c3f524476b60e67710303d))
+* optional chaining for frigate url ([68a9032](https://github.com/jakowenko/double-take/commit/68a9032562e77f441e2986e2e931d912b969f4c2))
+* use lower compreface det_prob_threshold for /recognize/test ([#136](https://github.com/jakowenko/double-take/issues/136)) ([6a0c435](https://github.com/jakowenko/double-take/commit/6a0c43535e1871edfa8478fa64124a016550283f))
+
+
+### Features
+
+* ability to change mqtt client_id ([#168](https://github.com/jakowenko/double-take/issues/168)) ([98d7f2a](https://github.com/jakowenko/double-take/commit/98d7f2a89f8a242685fc205d8e5afec7e53e995d))
+* **api:** validate config with jsonschema ([ad23c7b](https://github.com/jakowenko/double-take/commit/ad23c7b30af61fdc9157f050de753438792d9028))
+* edit secrets.yml from ui ([963cacd](https://github.com/jakowenko/double-take/commit/963cacdf2074f6ccb56bbc9b3ffb0f3db38a53f4))
+* secrets.yml support ([#170](https://github.com/jakowenko/double-take/issues/170)) ([53b11c8](https://github.com/jakowenko/double-take/commit/53b11c816a769d6085e629ca3f7c0c4f9c975ea3))
+* support ui base path ([#166](https://github.com/jakowenko/double-take/issues/166)) ([b1d06aa](https://github.com/jakowenko/double-take/commit/b1d06aafb424bb05f5d0f3271910a6a2059b2cb8))
+
 # [1.6.0](https://github.com/jakowenko/double-take/compare/v1.5.2...v1.6.0) (2021-10-29)
 
 
