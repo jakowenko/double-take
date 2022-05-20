@@ -1,3 +1,15 @@
+## [1.8.0](https://github.com/jakowenko/double-take/compare/v1.7.0...v1.8.0) (2022-05-20)
+
+
+### Features
+
+* **api:** zip export of storage directory ([ccae0f9](https://github.com/jakowenko/double-take/commit/ccae0f987e39e7cad0a14fb0562a3bc4c84902fc))
+
+
+### Build
+
+* **deps:** update packages ([dc2b5e4](https://github.com/jakowenko/double-take/commit/dc2b5e48e5c9c52b1df6045fbef7090b9c627b7c))
+
 # [1.7.0](https://github.com/jakowenko/double-take/compare/v1.6.0...v1.7.0) (2021-11-27)
 
 
