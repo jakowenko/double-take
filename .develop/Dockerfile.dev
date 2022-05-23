@@ -11,7 +11,7 @@ RUN npm install --production
 
 WORKDIR /double-take/frontend
 COPY /frontend/package.json .
-RUN npm install --legacy-peer-deps
+RUN npm install
 
 WORKDIR /double-take/api
 COPY /api/server.js .
