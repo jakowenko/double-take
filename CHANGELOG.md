@@ -1,3 +1,16 @@
+## [1.9.0-beta.1](https://github.com/jakowenko/double-take/compare/v1.8.0...v1.9.0-beta.1) (2022-05-23)
+
+
+### Features
+
+* **api:** update frigate sub label ([ad40018](https://github.com/jakowenko/double-take/commit/ad40018ddc1319ccf6b3e0d2d98784d35931826d))
+
+
+### Build
+
+* **deps:** package updates ([f2936f6](https://github.com/jakowenko/double-take/commit/f2936f6beaac37fc5c788207c4e88fb3e98a7a06))
+* semantic versioning for beta builds ([cc617c9](https://github.com/jakowenko/double-take/commit/cc617c98fb4e1c25bdfec6667353dd1b10a953f1))
+
 ## [1.8.0](https://github.com/jakowenko/double-take/compare/v1.7.0...v1.8.0) (2022-05-20)
 
 
