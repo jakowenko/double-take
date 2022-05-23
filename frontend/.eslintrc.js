@@ -81,7 +81,7 @@ module.exports = {
     {
       files: ['src/**/*', 'tests/unit/**/*', 'tests/e2e/**/*'],
       parserOptions: {
-        parser: 'babel-eslint',
+        parser: '@babel/eslint-parser',
         sourceType: 'module',
       },
       env: {
