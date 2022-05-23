@@ -5,6 +5,16 @@ const { FRIGATE, MQTT } = require('../constants')();
 
 const frigate = this;
 
+module.exports.subLabel = async (topic, id, best) => {
+  if (!FRIGATE.URL || !FRIGATE.UPDATE_SUB_LABELS || !best.length) return;
+  const names = best.map(({ name }) => name).join(', ');
+  await axios({
+    method: 'post',
+    url: `${this.topicURL(topic)}/api/events/${id}/sub_label`,
+    data: { subLabel: names },
+  }).catch((error) => console.error(`sublabel error: ${error.message}`));
+};
+
 module.exports.checks = async ({
   id,
   frigateEventType: type,

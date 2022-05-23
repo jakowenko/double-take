@@ -180,6 +180,7 @@ module.exports.start = async (req, res) => {
     recognize.save.latest(camera, best, misses, unknown);
     mqtt.recognize(output);
     notify.publish(output, camera, results);
+    if (event.type === 'frigate') frigate.subLabel(event.topic, id, best);
     if (output.matches.length) IDS.push(id);
     if (results.length) emit('recognize', true);
   } catch (error) {

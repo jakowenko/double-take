@@ -24,6 +24,7 @@ module.exports = {
     attempts: { latest: 10, snapshot: 10, mqtt: true, delay: 0 },
     image: { height: 500 },
     labels: ['person'],
+    update_sub_labels: false,
   },
   mqtt: {
     topics: {
