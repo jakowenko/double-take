@@ -1,3 +1,10 @@
+### [1.9.1-beta.1](https://github.com/jakowenko/double-take/compare/v1.9.0...v1.9.1-beta.1) (2022-05-23)
+
+
+### Bug Fixes
+
+* delete tmp masked images ([#208](https://github.com/jakowenko/double-take/issues/208)) ([c6b40c5](https://github.com/jakowenko/double-take/commit/c6b40c5293b5805477ea6125e4d1496953c06559))
+
 ## [1.9.0](https://github.com/jakowenko/double-take/compare/v1.8.0...v1.9.0) (2022-05-23)
 
 
