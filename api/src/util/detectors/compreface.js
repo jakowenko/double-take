@@ -23,7 +23,7 @@ module.exports.recognize = async ({ key, test }) => {
       return true;
     },
     params: {
-      det_prob_threshold: test ? 0 : DET_PROB_THRESHOLD,
+      det_prob_threshold: test ? 0.8 : DET_PROB_THRESHOLD,
     },
     data: formData,
   });

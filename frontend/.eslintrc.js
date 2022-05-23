@@ -57,6 +57,7 @@ module.exports = {
     'vuejs-accessibility/click-events-have-key-events': 'off',
     'vuejs-accessibility/anchor-has-content': 'off',
     'vuejs-accessibility/mouse-events-have-key-events': 'off',
+    'vue/multi-word-component-names': 'off',
     'no-promise-executor-return': 'off',
 
     // No way to override these in Prettier, so change Airbnb rules
@@ -81,7 +82,7 @@ module.exports = {
     {
       files: ['src/**/*', 'tests/unit/**/*', 'tests/e2e/**/*'],
       parserOptions: {
-        parser: 'babel-eslint',
+        parser: '@babel/eslint-parser',
         sourceType: 'module',
       },
       env: {

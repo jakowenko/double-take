@@ -38,7 +38,7 @@ There's a lot of great open source software to perform facial recognition, but e
 
 ### Supported NVRs
 
-- [Frigate](https://github.com/blakeblackshear/frigate) v0.8.0-0.9.0
+- [Frigate](https://github.com/blakeblackshear/frigate) v0.8.0-0.11.0
 
 ## Integrations
 
@@ -327,6 +327,10 @@ detect:
 # frigate settings (default: shown below)
 frigate:
   url:
+
+  # if double take should send matches back to frigate as a sub label
+  # NOTE: requires frigate 0.11.0+
+  update_sub_labels: false
 
   # object labels that are allowed for facial recognition
   labels:

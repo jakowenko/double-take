@@ -1,9 +1,17 @@
 const axios = require('axios');
-const sleep = require('./sleep.util');
-
 const { FRIGATE, MQTT } = require('../constants')();
 
 const frigate = this;
+
+module.exports.subLabel = async (topic, id, best) => {
+  if (!FRIGATE.URL || !FRIGATE.UPDATE_SUB_LABELS || !best.length) return;
+  const names = best.map(({ name }) => name).join(', ');
+  await axios({
+    method: 'post',
+    url: `${this.topicURL(topic)}/api/events/${id}/sub_label`,
+    data: { subLabel: names },
+  }).catch((error) => console.error(`sublabel error: ${error.message}`));
+};
 
 module.exports.checks = async ({
   id,
@@ -85,31 +93,4 @@ module.exports.topicURL = (topic) => {
     error.message = `frigate topic url error: ${error.message}`;
     throw error;
   }
-};
-
-module.exports.snapshotReady = async (id) => {
-  let loop = true;
-  let ready = false;
-  setTimeout(() => {
-    loop = false;
-  }, 15000);
-
-  while (loop) {
-    try {
-      const request = await axios({
-        method: 'get',
-        url: `${FRIGATE.URL}/api/events/${id}`,
-      });
-      if (request.data.has_snapshot) {
-        ready = true;
-        break;
-      }
-      // eslint-disable-next-line no-empty
-    } catch (error) {}
-    await sleep(0.05);
-  }
-  if (!ready) {
-    console.error('frigate snapshot ready error');
-  }
-  return ready;
 };

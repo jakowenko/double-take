@@ -1,13 +1,11 @@
 name: build
 
 on:
-  push:
-    branches:
-      - beta
   release:
-    types: [released]
+    types: [released, prereleased]
     branches:
       - master
+      - beta
   workflow_dispatch:
 
 jobs:
@@ -24,12 +22,12 @@ jobs:
           path: ./package.json
           prop_path: version
       - name: Set ENV to beta
-        if: endsWith(github.ref, '/beta')
+        if: ${{ github.event.release.target_commitish == 'beta' }}
         run: |
           echo "ARCH=linux/amd64" >> $GITHUB_ENV
           echo "TAGS=jakowenko/double-take:beta" >> $GITHUB_ENV
       - name: Set ENV to latest
-        if: ${{ github.event_name == 'release' && github.event.action == 'released' || github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event.release.target_commitish == 'master' || github.event_name == 'workflow_dispatch' }}
         run: |
           echo "ARCH=linux/amd64,linux/arm/v7,linux/arm64" >> $GITHUB_ENV
           echo "TAGS=jakowenko/double-take:latest,jakowenko/double-take:${{steps.version.outputs.prop}}" >> $GITHUB_ENV
