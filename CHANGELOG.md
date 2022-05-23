@@ -1,3 +1,10 @@
+## [1.9.0-beta.2](https://github.com/jakowenko/double-take/compare/v1.9.0-beta.1...v1.9.0-beta.2) (2022-05-23)
+
+
+### Bug Fixes
+
+* det_prob_threshold in compreface detector test ([#185](https://github.com/jakowenko/double-take/issues/185)) ([439179a](https://github.com/jakowenko/double-take/commit/439179acd0e2c8f2c458de7604ff1eb817d08df2))
+
 ## [1.9.0-beta.1](https://github.com/jakowenko/double-take/compare/v1.8.0...v1.9.0-beta.1) (2022-05-23)
 
 
