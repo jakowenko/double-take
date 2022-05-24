@@ -1,3 +1,10 @@
+## [1.10.0-beta.1](https://github.com/jakowenko/double-take/compare/v1.9.1-beta.1...v1.10.0-beta.1) (2022-05-24)
+
+
+### Features
+
+* **config:** anonymous telemetry data used to help deliver new features ([3e35091](https://github.com/jakowenko/double-take/commit/3e3509115b9f250aee62387a6fc34e255e18be22))
+
 ### [1.9.1-beta.1](https://github.com/jakowenko/double-take/compare/v1.9.0...v1.9.1-beta.1) (2022-05-23)
 
 
