@@ -8,6 +8,7 @@ const storage = require('./src/util/storage.util');
 const database = require('./src/util/db.util');
 const config = require('./src/constants/config');
 const shutdown = require('./src/util/shutdown.util');
+const heartbeat = require('./src/util/heartbeat.util');
 const validate = require('./src/schemas/validate');
 
 module.exports.start = async () => {
@@ -21,6 +22,7 @@ module.exports.start = async () => {
   mqtt.connect();
   storage.purge();
   socket.connect(server);
+  heartbeat.cron();
 };
 
 try {

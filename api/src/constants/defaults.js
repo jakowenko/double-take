@@ -1,4 +1,5 @@
 module.exports = {
+  telemetry: true,
   auth: false,
   token: {
     image: '24h',

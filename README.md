@@ -548,6 +548,16 @@ ui:
     lines: 500
 ```
 
+### `telemetry`
+
+```yaml
+# telemetry settings (default: shown below)
+# self hosted version of plausible.io
+# 100% anonymous, used to help improve project
+# no cookies and fully compliant with GDPR, CCPA and PECR
+telemetry: true
+```
+
 ## Storing Secrets
 
 **Note:** If using one of the [Home Assistant Add-ons](https://github.com/jakowenko/double-take-hassio-addons) then the default Home Assistant `/config/secrets.yaml` file is used.

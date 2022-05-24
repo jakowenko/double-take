@@ -54,6 +54,7 @@ export default {
       this.hidden = !status;
       this.loaded = !status;
     });
+    this.addAnalytics();
   },
   mounted() {
     this.toolbarHeight = this.$refs.toolbar.getHeight();
@@ -160,6 +161,22 @@ export default {
         this.emitter.emit('error', error);
       }
       return runSetup;
+    },
+    async addAnalytics() {
+      if (process.env.NODE_ENV !== 'production') return;
+      ApiService.get('config')
+        .then(({ data }) => {
+          if (data.telemetry) {
+            const analytics = document.createElement('script');
+            analytics.type = 'text/javascript';
+            analytics.src = `${Constants().api}/analytics/analytics.js`;
+            analytics.defer = true;
+            analytics.setAttribute('data-domain', 'double-take-frontend');
+            analytics.setAttribute('data-api', 'https://analytics.jako.io/api/event');
+            document.head.appendChild(analytics);
+          }
+        })
+        .catch(() => {});
     },
   },
 };
