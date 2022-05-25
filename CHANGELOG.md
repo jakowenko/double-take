@@ -1,3 +1,10 @@
+### [1.10.1](https://github.com/jakowenko/double-take/compare/v1.10.0...v1.10.1) (2022-05-25)
+
+
+### Bug Fixes
+
+* **api:** catch heartbeat error ([f085dad](https://github.com/jakowenko/double-take/commit/f085dad9be4293e382875e06bb345d3c404cdff3))
+
 ### [1.10.1-beta.1](https://github.com/jakowenko/double-take/compare/v1.10.0...v1.10.1-beta.1) (2022-05-25)
 
 
