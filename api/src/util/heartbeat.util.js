@@ -11,18 +11,21 @@ module.exports.cron = async () => {
 };
 
 module.exports.track = async (type) => {
-  await axios({
-    method: 'post',
-    url: 'https://analytics.jako.io/api/event',
-    data: {
-      name: 'pageview',
-      url: `http://localhost/${type}`,
-      domain: 'double-take-api',
-      props: JSON.stringify({
-        version,
-        arch: os.arch(),
-      }),
-    },
-    validateStatus: () => true,
-  });
+  try {
+    await axios({
+      method: 'post',
+      url: 'https://analytics.jako.io/api/event',
+      data: {
+        name: 'pageview',
+        url: `http://localhost/${type}`,
+        domain: 'double-take-api',
+        props: JSON.stringify({
+          version,
+          arch: os.arch(),
+        }),
+      },
+      validateStatus: () => true,
+    });
+    // eslint-disable-next-line no-empty
+  } catch (error) {}
 };
