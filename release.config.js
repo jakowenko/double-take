@@ -66,7 +66,20 @@ module.exports = {
         prepareCmd: 'VERSION=${nextRelease.version} npm run bump',
       },
     ],
-    '@semantic-release/git',
+    [
+      '@semantic-release/git',
+      {
+        assets: [
+          'CHANGELOG.md',
+          'package.json',
+          'package-lock.json',
+          'api/package.json',
+          'api/package-lock.json',
+          'frontend/package.json',
+          'frontend/package-lock.json',
+        ],
+      },
+    ],
     '@semantic-release/github',
   ],
 };
