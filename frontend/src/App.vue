@@ -169,10 +169,10 @@ export default {
           if (data.telemetry) {
             const analytics = document.createElement('script');
             analytics.type = 'text/javascript';
-            analytics.src = `${Constants().api}/analytics/analytics.js`;
+            analytics.src = './js/plausible.min.js';
             analytics.defer = true;
             analytics.setAttribute('data-domain', 'double-take-frontend');
-            analytics.setAttribute('data-api', 'https://analytics.jako.io/api/event');
+            analytics.setAttribute('data-api', 'https://api.double-take.io/v1/plausible');
             document.head.appendChild(analytics);
           }
         })
