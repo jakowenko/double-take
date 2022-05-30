@@ -1,3 +1,17 @@
+## [1.11.0-beta.2](https://github.com/jakowenko/double-take/compare/v1.11.0-beta.1...v1.11.0-beta.2) (2022-05-30)
+
+
+### Bug Fixes
+
+* **ui:** update check logic ([b6e7ffc](https://github.com/jakowenko/double-take/commit/b6e7ffc86e9bf6d25307cb814a04a378dcd48998))
+
+## [1.11.0-beta.1](https://github.com/jakowenko/double-take/compare/v1.10.1...v1.11.0-beta.1) (2022-05-30)
+
+
+### Features
+
+* **ha addon:** ability to change STORAGE_PATH, CONFIG_PATH, SECRETS_PATH, MEDIA_PATH ([e5adba4](https://github.com/jakowenko/double-take/commit/e5adba4147e5e14fb6148d74270e2c55a8db99e4))
+
 ### [1.10.1](https://github.com/jakowenko/double-take/compare/v1.10.0...v1.10.1) (2022-05-25)
 
 

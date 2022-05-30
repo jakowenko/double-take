@@ -262,9 +262,6 @@ export default {
     socket: Object,
   },
   created() {
-    this.emitter.on('buildTag', (data) => {
-      this.doubleTake.tooltip = `v${version}:${data}`;
-    });
     this.file = new URLSearchParams(window.location.search).get('file');
   },
   async mounted() {
@@ -273,7 +270,6 @@ export default {
       await this.editorData();
       this.checkStatus();
       this.checkDetectors();
-      this.emitter.emit('getBuildTag');
 
       if (this.socket) {
         this.socket.on('connect', () => {
@@ -308,10 +304,6 @@ export default {
     }
   },
   beforeUnmount() {
-    const emitters = ['buildTag'];
-    emitters.forEach((emitter) => {
-      this.emitter.off(emitter);
-    });
     window.removeEventListener('keydown', this.saveListener);
     window.removeEventListener('resize', this.updateHeight);
     clearInterval(this.statusInterval);

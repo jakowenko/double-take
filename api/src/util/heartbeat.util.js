@@ -6,26 +6,19 @@ const { TELEMETRY } = require('../constants')();
 
 module.exports.cron = async () => {
   if (process.env.NODE_ENV !== 'production' || !TELEMETRY) return;
-  await this.track('start');
-  schedule.scheduleJob('*/15 * * * *', () => this.track('heartbeat'));
+  await this.track();
+  schedule.scheduleJob('*/15 * * * *', () => this.track());
 };
 
-module.exports.track = async (type) => {
-  try {
-    await axios({
-      method: 'post',
-      url: 'https://analytics.jako.io/api/event',
-      data: {
-        name: 'pageview',
-        url: `http://localhost/${type}`,
-        domain: 'double-take-api',
-        props: JSON.stringify({
-          version,
-          arch: os.arch(),
-        }),
-      },
-      validateStatus: () => true,
-    });
-    // eslint-disable-next-line no-empty
-  } catch (error) {}
-};
+module.exports.track = async () =>
+  axios({
+    method: 'post',
+    url: 'https://api.double-take.io/v1/telemetry',
+    timeout: 5 * 1000,
+    data: {
+      version,
+      arch: os.arch(),
+      ha_addon: !!process.env.HA_ADDON,
+    },
+    validateStatus: () => true,
+  }).catch((/* error */) => {});
