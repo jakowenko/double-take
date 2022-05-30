@@ -1,3 +1,10 @@
+## [1.11.0-beta.2](https://github.com/jakowenko/double-take/compare/v1.11.0-beta.1...v1.11.0-beta.2) (2022-05-30)
+
+
+### Bug Fixes
+
+* **ui:** update check logic ([b6e7ffc](https://github.com/jakowenko/double-take/commit/b6e7ffc86e9bf6d25307cb814a04a378dcd48998))
+
 ## [1.11.0-beta.1](https://github.com/jakowenko/double-take/compare/v1.10.1...v1.11.0-beta.1) (2022-05-30)
 
 
