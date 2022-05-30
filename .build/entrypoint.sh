@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [ "$HA_ADDON" == "true" ] && [ -f "/data/options.json" ]
+then
+  for s in $(echo $values | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" /data/options.json ); do
+    export $s;
+  done
+fi
+
 PATHS="";
 if [ "$CONFIG_PATH" ]
 then
