@@ -67,7 +67,6 @@ export default {
     version,
     showNavigation: false,
     updateAvailable: false,
-    buildTag: null,
     hasAuth: null,
     password: {
       show: false,
@@ -126,9 +125,6 @@ export default {
     this.emitter.on('hasAuth', (data) => {
       this.hasAuth = data;
     });
-    this.emitter.on('getBuildTag', () => {
-      this.emitter.emit('buildTag', this.buildTag);
-    });
   },
   async mounted() {
     try {
@@ -144,10 +140,6 @@ export default {
       this.authorizedMenu[0].items.unshift(obj);
       this.unauthorizedMenu[0].items.unshift(obj);
       await this.checkVersion();
-      if (this.buildTag) {
-        this.authorizedMenu[0].items[0].label = `v${this.version}:${this.buildTag}`;
-        this.unauthorizedMenu[0].items[0].label = `v${this.version}:${this.buildTag}`;
-      }
     } catch (error) {
       this.emitter.emit('error', error);
     }
