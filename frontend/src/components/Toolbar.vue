@@ -184,17 +184,20 @@ export default {
     async checkVersion() {
       if (this.version.includes('-')) {
         try {
-          const sha7 = this.version.split('-')[1];
+          const sha7 = this.version.split('-').pop();
           const { data: actions } = await ApiService.get(
             'https://api.github.com/repos/jakowenko/double-take/actions/runs',
           );
           const [currentBuild] = actions.workflow_runs.filter((run) => run.head_sha.includes(sha7));
           if (currentBuild) {
-            this.buildTag = currentBuild.head_branch === 'beta' ? 'beta' : 'latest';
+            const tag = currentBuild.head_branch.includes('beta') ? 'beta' : 'latest';
             const [lastBuild] = actions.workflow_runs.filter((run) =>
-              this.buildTag === 'latest'
-                ? run.event === 'release' && run.status === 'completed' && run.conclusion === 'success'
-                : run.head_branch === currentBuild.head_branch &&
+              tag === 'latest'
+                ? !run.head_branch.includes('beta') &&
+                  run.event === 'release' &&
+                  run.status === 'completed' &&
+                  run.conclusion === 'success'
+                : run.head_branch.includes('beta') &&
                   run.status === 'completed' &&
                   run.conclusion === 'success' &&
                   run.name !== 'CodeQL',
@@ -205,14 +208,10 @@ export default {
           this.emitter.emit('error', error);
         }
         if (!this.updateAvailable) setTimeout(this.checkVersion, 60000);
-      } else {
-        this.buildTag = 'dev';
       }
     },
     dockerHub() {
-      window.open(
-        `${'https://hub.docker.com/r/jakowenko/double-take/tags?page=1&ordering=last_updated&name='}${this.buildTag}`,
-      );
+      window.open('https://hub.docker.com/r/jakowenko/double-take/tags?page=1&ordering=last_updated');
     },
   },
   watch: {
