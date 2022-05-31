@@ -48,7 +48,7 @@ module.exports.checks = async ({
       }
     }
 
-    if (PROCESSING && type !== 'start') {
+    if (PROCESSING && type === 'update') {
       return `${id} - still processing previous request`;
     }
 
