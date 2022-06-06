@@ -1,3 +1,15 @@
+## [1.12.0-beta.1](https://github.com/jakowenko/double-take/compare/v1.11.0...v1.12.0-beta.1) (2022-06-06)
+
+
+### Features
+
+* **frigate:** sort sub labels alphabetically [#217](https://github.com/jakowenko/double-take/issues/217) ([82d8736](https://github.com/jakowenko/double-take/commit/82d8736825b428b2b74385975961233d167db294))
+
+
+### Build
+
+* **deps:** bump outdated packages ([0842d98](https://github.com/jakowenko/double-take/commit/0842d987de25c2a5495cafe73967d30bc96bbe8b))
+
 ## [1.11.0](https://github.com/jakowenko/double-take/compare/v1.10.1...v1.11.0) (2022-05-30)
 
 
