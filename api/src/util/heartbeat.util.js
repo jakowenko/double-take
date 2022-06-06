@@ -7,7 +7,7 @@ const { TELEMETRY } = require('../constants')();
 module.exports.cron = async () => {
   if (process.env.NODE_ENV !== 'production' || !TELEMETRY) return;
   await this.track();
-  schedule.scheduleJob('*/15 * * * *', () => this.track());
+  schedule.scheduleJob('*/30 * * * *', () => this.track());
 };
 
 module.exports.track = async () =>
