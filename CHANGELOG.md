@@ -1,3 +1,10 @@
+## [1.12.0-beta.3](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.2...v1.12.0-beta.3) (2022-06-12)
+
+
+### Features
+
+* aws rekognition support ([7904852](https://github.com/jakowenko/double-take/commit/79048520fd66cb9c4144db11488558b82c8ada19))
+
 ## [1.12.0-beta.2](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.1...v1.12.0-beta.2) (2022-06-12)
 
 
