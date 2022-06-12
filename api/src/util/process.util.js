@@ -31,7 +31,8 @@ module.exports.polling = async (
       if (breakMatch === true && MATCH_IDS.includes(id)) break;
 
       const stream = await this.stream(url);
-      if (stream && previousContentLength !== stream.length) {
+      const streamChanged = stream && previousContentLength !== stream.length;
+      if (streamChanged) {
         const tmp = {
           source: `${STORAGE.TMP.PATH}/${id}-${type}-${uuidv4()}.jpg`,
           mask: false,
@@ -85,7 +86,11 @@ module.exports.polling = async (
           if (breakMatch === true) break;
         }
       }
-      if (frigateEventType && delay > 0) await sleep(delay);
+
+      /* if the image hasn't changed or the user has a delay set, sleep before trying to find another image
+      to increase the changes it changed */
+      if ((frigateEventType && delay > 0) || !streamChanged)
+        await sleep(frigateEventType && delay > 0 ? delay : i * 0.5);
     }
   }
 
