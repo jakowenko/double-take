@@ -1,3 +1,10 @@
+## [1.12.0-beta.4](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.3...v1.12.0-beta.4) (2022-06-12)
+
+
+### Bug Fixes
+
+* better handling of update check ([6de1cf1](https://github.com/jakowenko/double-take/commit/6de1cf1dca9e7f244a4242c3c540ef464824bbc3))
+
 ## [1.12.0-beta.3](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.2...v1.12.0-beta.3) (2022-06-12)
 
 
