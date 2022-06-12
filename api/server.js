@@ -10,6 +10,7 @@ const config = require('./src/constants/config');
 const shutdown = require('./src/util/shutdown.util');
 const heartbeat = require('./src/util/heartbeat.util');
 const validate = require('./src/schemas/validate');
+const opencv = require('./src/util/opencv');
 
 module.exports.start = async () => {
   config.setup();
@@ -18,6 +19,7 @@ module.exports.start = async () => {
   validate(config());
   console.verbose(config());
   await database.init();
+  if (opencv.shouldLoad()) await opencv.load();
   const server = http.Server(require('./src/app')).listen(SERVER.PORT);
   mqtt.connect();
   storage.purge();

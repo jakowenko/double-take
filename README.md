@@ -443,6 +443,8 @@ detectors:
     # minimum required confidence that a recognized face is actually a face
     # value is between 0.0 and 1.0
     det_prob_threshold: 0.8
+    # require opencv to find a face before processing with detector
+    opencv_face_required: false
     # comma-separated slugs of face plugins
     # https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)
     # face_plugins: mask,gender,age
@@ -452,11 +454,15 @@ detectors:
     key:
     # number of seconds before the request times out and is aborted
     timeout: 15
+    # require opencv to find a face before processing with detector
+    opencv_face_required: false
 
   facebox:
     url:
     # number of seconds before the request times out and is aborted
     timeout: 15
+    # require opencv to find a face before processing with detector
+    opencv_face_required: false
 ```
 
 ### `schedule`

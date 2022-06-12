@@ -7,6 +7,7 @@ const database = require('./db.util');
 const { parse, digest } = require('./auth.util');
 const mask = require('./mask-image.util');
 const sleep = require('./sleep.util');
+const opencv = require('./opencv');
 const { recognize, normalize } = require('./detectors/actions');
 const { SERVER, STORAGE, UI } = require('../constants')();
 const DETECTORS = require('../constants/config').detectors();
@@ -119,9 +120,15 @@ module.exports.save = async (event, results, filename, tmp) => {
 
 module.exports.start = async ({ camera, filename, tmp, attempts = 1, errors = {} }) => {
   const promises = [];
+
+  const faceCount = opencv.shouldLoad() ? await opencv.faceCount(tmp) : null;
+
   for (const detector of DETECTORS) {
     if (!errors[detector]) errors[detector] = 0;
-    promises.push(this.process({ camera, detector, tmp, errors }));
+    const faceCountRequired = config()?.detectors?.[detector]?.opencv_face_required;
+    if ((faceCountRequired && faceCount > 0) || !faceCountRequired)
+      promises.push(this.process({ camera, detector, tmp, errors }));
+    else console.verbose(`processing skipped for ${detector}: no faces found`);
   }
   let results = await Promise.all(promises);
 

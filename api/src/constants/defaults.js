@@ -39,12 +39,15 @@ module.exports = {
     compreface: {
       det_prob_threshold: 0.8,
       timeout: 15,
+      opencv_face_required: false,
     },
     deepstack: {
       timeout: 15,
+      opencv_face_required: false,
     },
     facebox: {
       timeout: 15,
+      opencv_face_required: false,
     },
   },
   notify: {
