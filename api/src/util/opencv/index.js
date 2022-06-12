@@ -73,7 +73,12 @@ module.exports.faceCount = async (path) => {
     faceCascade.load('./api/src/util/opencv/haarcascade_frontalface_default.xml');
     const mSize = new cv.Size(0, 0);
     faceCascade.detectMultiScale(gray, faces, 1.1, 3, 0, mSize, mSize);
-    return faces.size();
+    const faceCount = faces.size();
+    src.delete();
+    gray.delete();
+    faceCascade.delete();
+    faces.delete();
+    return faceCount;
   } catch (error) {
     console.error(`opencv error`);
   }
