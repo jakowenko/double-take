@@ -17,7 +17,13 @@
             <div
               v-if="service.status"
               class="icon p-badge"
-              :class="service.status === 200 ? 'p-badge-success' : 'p-badge-danger'"
+              :class="
+                service.status === 200
+                  ? 'p-badge-success'
+                  : service.status === 'warn'
+                  ? 'p-badge-warning'
+                  : 'p-badge-danger'
+              "
             ></div>
             <div v-else class="icon pulse p-badge p-badge-secondary"></div>
           </div>
@@ -269,11 +275,13 @@ export default {
       this.updateHeight();
       await this.editorData();
       this.checkStatus();
+      this.checkForConfigErrors();
       this.checkDetectors();
 
       if (this.socket) {
         this.socket.on('connect', () => {
           if (this.waitForRestart) this.postRestart();
+          this.checkForConfigErrors();
           this.doubleTake.status = 200;
         });
         this.socket.on('disconnect', () => {
@@ -319,6 +327,13 @@ export default {
     },
   },
   methods: {
+    async checkForConfigErrors() {
+      ApiService.get('status/config').then(({ data: errors }) => {
+        if (errors.length) this.doubleTake.status = 'warn';
+        // eslint-disable-next-line no-restricted-syntax
+        for (const error of errors) this.emitter.emit('toast', { severity: 'warn', message: error, life: 5000 });
+      });
+    },
     async editorData() {
       this.loading = true;
       await this.getThemes();
