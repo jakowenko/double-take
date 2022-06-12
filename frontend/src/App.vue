@@ -149,7 +149,7 @@ export default {
       this.$toast.add({
         severity: opts.severity || 'success',
         detail: opts.message || 'Success',
-        life: 3000,
+        life: opts.life || 3000,
       });
     },
     async checkLoginState() {
