@@ -20,7 +20,9 @@ module.exports.start = async () => {
   console.verbose(config());
   await database.init();
   if (opencv.shouldLoad()) await opencv.load();
-  const server = http.Server(require('./src/app')).listen(SERVER.PORT);
+  const server = http.Server(require('./src/app')).listen(SERVER.PORT, () => {
+    console.verbose(`api listening on :${SERVER.PORT}`);
+  });
   mqtt.connect();
   storage.purge();
   socket.connect(server);
