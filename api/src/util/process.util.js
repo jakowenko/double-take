@@ -119,22 +119,31 @@ module.exports.save = async (event, results, filename, tmp) => {
 };
 
 module.exports.start = async ({ camera, filename, tmp, attempts = 1, errors = {} }) => {
+  const processed = [];
   const promises = [];
 
   const faceCount = opencv.shouldLoad() ? await opencv.faceCount(tmp) : null;
 
   for (const detector of DETECTORS) {
     if (!errors[detector]) errors[detector] = 0;
-    const faceCountRequired = config()?.detectors?.[detector]?.opencv_face_required;
-    if ((faceCountRequired && faceCount > 0) || !faceCountRequired)
-      promises.push(this.process({ camera, detector, tmp, errors }));
-    else console.verbose(`processing skipped for ${detector}: no faces found`);
+
+    const detectorConfig = config()?.detectors?.[detector];
+    const cameraAllowed =
+      (detectorConfig?.cameras || [camera]).includes(camera) || !detectorConfig?.cameras.length;
+    const faceCountRequired = detectorConfig?.opencv_face_required;
+
+    if (cameraAllowed) {
+      if ((faceCountRequired && faceCount > 0) || !faceCountRequired) {
+        promises.push(this.process({ camera, detector, tmp, errors }));
+        processed.push(detector);
+      } else console.verbose(`processing skipped for ${detector}: no faces found`);
+    } else console.verbose(`processing skipped for ${detector}: ${camera} not allowed`);
   }
   let results = await Promise.all(promises);
 
   results = results.map((array, j) => {
     return {
-      detector: DETECTORS[j],
+      detector: processed[j],
       duration: array ? array.duration : 0,
       attempt: attempts,
       results: array ? array.results : [],

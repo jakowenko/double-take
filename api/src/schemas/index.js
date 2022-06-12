@@ -115,6 +115,7 @@ module.exports.config = {
           properties: {
             url: { type: 'string' },
             opencv_face_required: { type: 'boolean' },
+            cameras: { type: 'array' },
           },
         },
         deepstack: {
@@ -123,6 +124,7 @@ module.exports.config = {
           properties: {
             url: { type: 'string' },
             opencv_face_required: { type: 'boolean' },
+            cameras: { type: 'array' },
           },
         },
         facebox: {
@@ -131,6 +133,7 @@ module.exports.config = {
           properties: {
             url: { type: 'string' },
             opencv_face_required: { type: 'boolean' },
+            cameras: { type: 'array' },
           },
         },
       },
