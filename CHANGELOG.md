@@ -1,3 +1,18 @@
+## [1.12.0-beta.2](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.1...v1.12.0-beta.2) (2022-06-12)
+
+
+### Features
+
+* **api:** opencv preprocess face check ([ed30ad1](https://github.com/jakowenko/double-take/commit/ed30ad10dfe9f6d104619fa134e2d54698b1c1ff))
+* **detectors:** process images from specific cameras ([5d39d0c](https://github.com/jakowenko/double-take/commit/5d39d0c2c18d0851eccd6a8f698638906b0c36b0))
+* **frigate:** stop_on_match config option to break process loop ([4b98990](https://github.com/jakowenko/double-take/commit/4b9899077c74da601fa5d497c929c264e8c03fa6))
+* **ui:** show config errors ([ddcaf89](https://github.com/jakowenko/double-take/commit/ddcaf897ba7f35ac65a6a86a71cbd56a1a9a2a46))
+
+
+### Bug Fixes
+
+* **api:** sleep if image hasn’t changed during retry loop ([78e9808](https://github.com/jakowenko/double-take/commit/78e98082d7e0e77d5c23465cc629b38d9b178a27))
+
 ## [1.12.0-beta.1](https://github.com/jakowenko/double-take/compare/v1.11.0...v1.12.0-beta.1) (2022-06-06)
 
 
