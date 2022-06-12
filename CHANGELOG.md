@@ -1,3 +1,15 @@
+## [1.12.0-beta.5](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.4...v1.12.0-beta.5) (2022-06-12)
+
+
+### Features
+
+* **opencv:** adjust classifier settings via config ([2e6c512](https://github.com/jakowenko/double-take/commit/2e6c5129b445b2eca8b884af8d95fc2ceb19733d))
+
+
+### Build
+
+* workflow dispatch [skip ci] ([a4f6e13](https://github.com/jakowenko/double-take/commit/a4f6e1393f807622d947635acef8b57b92caa6be))
+
 ## [1.12.0-beta.4](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.3...v1.12.0-beta.4) (2022-06-12)
 
 
