@@ -64,6 +64,9 @@ module.exports.get = async (req, res) => {
     return res.send({ total: total.count, limit, matches: await format(matches) });
   }
 
+  const confidenceQuery =
+    filters.confidence === 0 ? `OR json_extract(value, '$.confidence') IS NULL` : '';
+
   const filteredIds = db
     .prepare(
       `SELECT t.id, t.event, detector, value FROM (
@@ -74,7 +77,7 @@ module.exports.get = async (req, res) => {
         AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
         AND json_extract(t.event, '$.camera') IN (${database.params(filters.cameras)})
         AND json_extract(t.event, '$.type') IN (${database.params(filters.types)})
-        AND json_extract(value, '$.confidence') >= ?
+        AND (json_extract(value, '$.confidence') >= ? ${confidenceQuery})
         AND json_extract(value, '$.box.width') >= ?
         AND json_extract(value, '$.box.height') >= ?
         AND detector IN (${database.params(filters.detectors)})

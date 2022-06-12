@@ -3,7 +3,7 @@ const factory = require('../factory');
 module.exports.recognize = ({ detector, key, test }) =>
   factory.get(detector).recognize({ key, test });
 module.exports.train = ({ name, key, detector }) => factory.get(detector).train({ name, key });
-module.exports.remove = ({ name, detector }) => factory.get(detector).remove({ name });
+module.exports.remove = ({ name, ids, detector }) => factory.get(detector).remove({ name, ids });
 module.exports.normalize = ({ camera, detector, data }) =>
   factory.get(detector).normalize({ camera, data });
 module.exports.checks = ({ MATCH, UNKNOWN, name, confidence, box }) => {

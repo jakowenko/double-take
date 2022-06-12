@@ -32,8 +32,9 @@ There's a lot of great open source software to perform facial recognition, but e
 
 ### Supported Detectors
 
-- [DeepStack](https://deepstack.cc) v2021.02.1-2021.06.01
-- [CompreFace](https://github.com/exadel-inc/CompreFace) v0.5.0-0.6.0
+- [CompreFace](https://github.com/exadel-inc/CompreFace) v0.5.0-1.0.0
+- [Amazon Rekognition](https://aws.amazon.com/rekognition)
+- [DeepStack](https://deepstack.cc) v2021.02.1-2022.01.01
 - [Facebox](https://machinebox.io)
 
 ### Supported NVRs
@@ -452,6 +453,16 @@ detectors:
     # comma-separated slugs of face plugins
     # https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)
     # face_plugins: mask,gender,age
+    # only process images from specific cameras, if omitted then all cameras will be processed
+    cameras:
+      - front-door
+      - garage
+
+  rekognition:
+    aws_access_key_id: !secret aws_access_key_id
+    aws_secret_access_key: !secret aws_secret_access_key
+    aws_region: us-east-1
+    collection_id: double-take
     # only process images from specific cameras, if omitted then all cameras will be processed
     cameras:
       - front-door

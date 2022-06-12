@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/jakowenko/double-take#readme",
   "dependencies": {
+    "@aws-sdk/client-rekognition": "^3.105.0",
     "@mhoc/axios-digest-auth": "^0.8.0",
     "archiver": "^5.3.1",
     "axios": "^0.27.2",

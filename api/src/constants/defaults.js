@@ -50,6 +50,10 @@ module.exports = {
       timeout: 15,
       opencv_face_required: false,
     },
+    rekognition: {
+      collection_id: 'double-take',
+      opencv_face_required: true,
+    },
   },
   notify: {
     gotify: {

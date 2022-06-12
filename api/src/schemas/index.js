@@ -107,7 +107,12 @@ module.exports.config = {
     },
     detectors: {
       type: 'object',
-      anyOf: [{ required: ['compreface'] }, { required: ['deepstack'] }, { required: ['facebox'] }],
+      anyOf: [
+        { required: ['compreface'] },
+        { required: ['deepstack'] },
+        { required: ['facebox'] },
+        { required: ['rekognition'] },
+      ],
       properties: {
         compreface: {
           type: 'object',
@@ -132,6 +137,17 @@ module.exports.config = {
           required: ['url'],
           properties: {
             url: { type: 'string' },
+            opencv_face_required: { type: 'boolean' },
+            cameras: { type: 'array' },
+          },
+        },
+        rekognition: {
+          type: 'object',
+          required: ['aws_access_key_id', 'aws_secret_access_key', 'aws_region'],
+          properties: {
+            aws_access_key_id: { type: 'string' },
+            aws_secret_access_key: { type: 'string' },
+            aws_region: { type: 'string' },
             opencv_face_required: { type: 'boolean' },
             cameras: { type: 'array' },
           },

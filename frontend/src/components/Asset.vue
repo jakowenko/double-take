@@ -73,7 +73,7 @@
                 >
                   {{ slotProps.data.confidence }}
                 </div>
-                <div v-else>{{ slotProps.data.confidence }}</div>
+                <div v-else>{{ slotProps.data.confidence || '-' }}</div>
               </template>
             </Column>
             <Column header="Box">
