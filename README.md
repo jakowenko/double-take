@@ -454,9 +454,9 @@ detectors:
     # https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)
     # face_plugins: mask,gender,age
     # only process images from specific cameras, if omitted then all cameras will be processed
-    cameras:
-      - front-door
-      - garage
+    # cameras:
+    #   - front-door
+    #   - garage
 
   rekognition:
     aws_access_key_id: !secret aws_access_key_id
@@ -466,9 +466,9 @@ detectors:
     # require opencv to find a face before processing with detector
     opencv_face_required: true
     # only process images from specific cameras, if omitted then all cameras will be processed
-    cameras:
-      - front-door
-      - garage
+    # cameras:
+    #   - front-door
+    #   - garage
 
   deepstack:
     url:
@@ -478,9 +478,9 @@ detectors:
     # require opencv to find a face before processing with detector
     opencv_face_required: false
     # only process images from specific cameras, if omitted then all cameras will be processed
-    cameras:
-      - front-door
-      - garage
+    # cameras:
+    #   - front-door
+    #   - garage
 
   facebox:
     url:
@@ -489,9 +489,9 @@ detectors:
     # require opencv to find a face before processing with detector
     opencv_face_required: false
     # only process images from specific cameras, if omitted then all cameras will be processed
-    cameras:
-      - front-door
-      - garage
+    # cameras:
+    #   - front-door
+    #   - garage
 ```
 
 ### `schedule`
