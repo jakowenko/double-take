@@ -120,7 +120,6 @@ module.exports.start = async ({ camera, filename, tmp, attempts = 1, errors = {}
   }
   let results = await Promise.all(promises);
 
-  // eslint-disable-next-line no-loop-func
   results = results.map((array, j) => {
     return {
       detector: DETECTORS[j],
