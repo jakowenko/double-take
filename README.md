@@ -463,6 +463,8 @@ detectors:
     aws_secret_access_key: !secret aws_secret_access_key
     aws_region: us-east-1
     collection_id: double-take
+    # require opencv to find a face before processing with detector
+    opencv_face_required: true
     # only process images from specific cameras, if omitted then all cameras will be processed
     cameras:
       - front-door
