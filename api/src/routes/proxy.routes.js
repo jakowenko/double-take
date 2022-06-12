@@ -1,10 +1,9 @@
 const express = require('express');
-const { jwt, validate, expressValidator } = require('../middlewares');
+const { jwt, validate, Joi } = require('../middlewares');
 const controller = require('../controllers/proxy.controller');
 
-const { query } = expressValidator;
 const router = express.Router();
 
-router.get('/', validate([query('url').isLength({ min: 1 })]), jwt, controller.url);
+router.get('/', jwt, validate({ query: { url: Joi.string().uri().required() } }), controller.url);
 
 module.exports = router;

@@ -119,7 +119,7 @@ module.exports.get = async (req, res) => {
 };
 
 module.exports.delete = async (req, res) => {
-  const ids = req.body;
+  const { ids } = req.body;
   if (ids.length) {
     const db = database.connect();
     const files = db

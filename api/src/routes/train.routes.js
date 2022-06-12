@@ -1,14 +1,18 @@
 const express = require('express');
 const multer = require('multer');
-const { jwt, expressValidator, validate } = require('../middlewares');
+const { jwt, validate, Joi } = require('../middlewares');
 const controller = require('../controllers/train.controller');
 
-const { query } = expressValidator;
 const router = express.Router();
 
 router
-  .get('/', jwt, validate([query('page').default(1).isInt()]), controller.get)
-  .patch('/:id', jwt, controller.patch)
+  .get(
+    '/',
+    jwt,
+    validate({ query: { page: Joi.number().integer().default(1).min(1) } }),
+    controller.get
+  )
+  .patch('/:id', jwt, validate({ body: { name: Joi.string().required() } }), controller.patch)
   .get('/status', controller.status)
   .post('/add/:name', multer().array('files[]'), controller.add)
   .delete('/remove/:name', controller.delete)
