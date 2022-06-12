@@ -1,7 +1,5 @@
 const { Canvas, Image, ImageData, loadImage } = require('canvas');
 const { JSDOM } = require('jsdom');
-const config = require('../../constants/config');
-const DETECTORS = require('../../constants/config').detectors();
 const { OPENCV } = require('../../constants')();
 
 let isLoaded = false;
@@ -91,9 +89,4 @@ module.exports.faceCount = async (path) => {
   }
 };
 
-module.exports.shouldLoad = () => {
-  let shouldCountFaces = false;
-  for (const detector of DETECTORS)
-    if (config()?.detectors?.[detector]?.opencv_face_required) shouldCountFaces = true;
-  return shouldCountFaces;
-};
+module.exports.shouldLoad = () => OPENCV || false;
