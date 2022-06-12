@@ -21,6 +21,9 @@ module.exports = {
     // Disable prefer-destructuring for arrays only
     'prefer-destructuring': ['error', { object: true, array: false }],
 
+    'no-restricted-syntax': ['off', 'ForOfStatement'],
+    'no-await-in-loop': 'off',
+
     // Vue rules (mostly to enforce airbnb in <template>)
     'vue/no-unused-components': process.env.PRE_COMMIT ? 'error' : 'warn',
     'vue/array-bracket-spacing': 'error',
