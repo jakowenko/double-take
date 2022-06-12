@@ -16,12 +16,12 @@ module.exports.start = async () => {
   config.setup();
   storage.setup();
   console.log(`Double Take v${version}`);
-  validate(config());
   console.verbose(config());
+  validate(config());
   await database.init();
-  if (opencv.shouldLoad()) await opencv.load();
-  const server = http.Server(require('./src/app')).listen(SERVER.PORT, () => {
+  const server = http.Server(require('./src/app')).listen(SERVER.PORT, async () => {
     console.verbose(`api listening on :${SERVER.PORT}`);
+    if (opencv.shouldLoad()) await opencv.load();
   });
   mqtt.connect();
   storage.purge();
