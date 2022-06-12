@@ -2,6 +2,7 @@ const { Canvas, Image, ImageData, loadImage } = require('canvas');
 const { JSDOM } = require('jsdom');
 const config = require('../../constants/config');
 const DETECTORS = require('../../constants/config').detectors();
+const { OPENCV } = require('../../constants')();
 
 let isLoaded = false;
 
@@ -71,8 +72,14 @@ module.exports.faceCount = async (path) => {
     const faces = new cv.RectVector();
     const faceCascade = new cv.CascadeClassifier();
     faceCascade.load('./api/src/util/opencv/haarcascade_frontalface_default.xml');
-    const mSize = new cv.Size(0, 0);
-    faceCascade.detectMultiScale(gray, faces, 1.1, 3, 0, mSize, mSize);
+    faceCascade.detectMultiScale(
+      gray,
+      faces,
+      OPENCV.SCALE_FACTOR,
+      OPENCV.MIN_NEIGHBORS,
+      0,
+      new cv.Size(OPENCV.MIN_SIZE_WIDTH, OPENCV.MIN_SIZE_HEIGHT)
+    );
     const faceCount = faces.size();
     src.delete();
     gray.delete();
@@ -80,7 +87,7 @@ module.exports.faceCount = async (path) => {
     faces.delete();
     return faceCount;
   } catch (error) {
-    console.error(`opencv error`);
+    console.error(`opencv error: `, error.message || error);
   }
 };
 

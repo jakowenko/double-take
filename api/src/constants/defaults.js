@@ -36,6 +36,12 @@ module.exports = {
       homeassistant: 'homeassistant',
     },
   },
+  opencv: {
+    scale_factor: 1.05,
+    min_neighbors: 4.5,
+    min_size_width: 30,
+    min_size_height: 30,
+  },
   detectors: {
     compreface: {
       det_prob_threshold: 0.8,

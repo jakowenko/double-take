@@ -494,6 +494,18 @@ detectors:
     #   - garage
 ```
 
+### `opencv`
+
+```yaml
+# opencv settings (default: shown below)
+# docs: https://docs.opencv.org/4.6.0/d1/de5/classcv_1_1CascadeClassifier.html
+opencv:
+  scale_factor: 1.05
+  min_neighbors: 4.5
+  min_size_width: 30
+  min_size_height: 30
+```
+
 ### `schedule`
 
 ```yaml
