@@ -202,6 +202,7 @@ module.exports.detect = {
         confidence: { type: 'number' },
         purge: { type: 'number' },
         min_area: { type: 'number' },
+        stop_on_match: { type: 'boolean' },
       },
     },
     unknown: {

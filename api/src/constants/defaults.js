@@ -26,6 +26,7 @@ module.exports = {
     image: { height: 500 },
     labels: ['person'],
     update_sub_labels: false,
+    stop_on_match: true,
   },
   mqtt: {
     topics: {

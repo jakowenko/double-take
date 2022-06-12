@@ -332,6 +332,10 @@ frigate:
   # NOTE: requires frigate 0.11.0+
   update_sub_labels: false
 
+  # stop the processing loop if a match is found
+  # if set to false all image attempts will be processed before determining the best match
+  stop_on_match: true
+
   # object labels that are allowed for facial recognition
   labels:
     - person

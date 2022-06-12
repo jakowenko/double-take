@@ -107,6 +107,7 @@ module.exports.start = async (req, res) => {
             {
               id,
               MATCH_IDS,
+              breakMatch: FRIGATE.STOP_ON_MATCH,
               retries: FRIGATE.ATTEMPTS.LATEST,
               type: 'latest',
               url: FRIGATE.URL.LATEST,
@@ -121,6 +122,7 @@ module.exports.start = async (req, res) => {
             {
               id,
               MATCH_IDS,
+              breakMatch: FRIGATE.STOP_ON_MATCH,
               retries: FRIGATE.ATTEMPTS.SNAPSHOT,
               type: 'snapshot',
               url: FRIGATE.URL.SNAPSHOT,
