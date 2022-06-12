@@ -77,10 +77,18 @@ export default {
     async getTheme() {
       this.$nextTick(() => {
         this.setTheme();
-        ApiService.get('config/theme').then(({ data }) => {
-          localStorage.setItem('theme', data.theme);
-          this.setTheme();
-        });
+        ApiService.get('config/theme')
+          .then(({ data }) => {
+            localStorage.setItem('theme', data.theme);
+            this.setTheme();
+          })
+          .catch((error) => {
+            this.$toast.add({
+              severity: 'error',
+              detail: error.message,
+              life: 3000,
+            });
+          });
       });
     },
     setTheme(newTheme) {
@@ -130,7 +138,7 @@ export default {
       }
     },
     error(error) {
-      if (error.response && error.response.config.url !== 'auth' && error.response.status === 401) return;
+      if (error?.response?.config?.url !== 'auth' && error?.response?.status === 401) return;
       this.$toast.add({
         severity: 'error',
         detail: error.message,
