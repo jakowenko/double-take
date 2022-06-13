@@ -14,15 +14,16 @@ There's a lot of great open source software to perform facial recognition, but e
 
 ## Features
 
-- Responsive UI and API bundled into single Docker image
-- Ability to password protect UI and API
-- Support for multiple detectors
+- Responsive UI and API bundled into single [Docker image](https://hub.docker.com/r/jakowenko/double-take)
+- Ability to [password protect](#authentication) UI and API
+- Support for [multiple detectors](#supported-detectors)
 - Train and untrain images for subjects
-- Process images from NVRs
-- Publish results to MQTT topics
-- REST API can be invoked by other applications
-- Disable detection based on a schedule
+- Process images from [NVRs](#supported-nvrs)
+- Publish results to [MQTT topics](#mqtt-1)
+- [REST API](#api) can be invoked by other applications
+- Disable detection based on a [schedule](#schedule)
 - [Home Assistant Add-ons](https://github.com/jakowenko/double-take-hassio-addons)
+- Preprocess images with [OpenCV](https://docs.opencv.org/4.6.0/d1/de5/classcv_1_1CascadeClassifier.html)
 
 ### Supported Architecture
 
