@@ -1,4 +1,5 @@
 const express = require('express');
+const multer = require('multer');
 const { jwt, validate, Joi } = require('../middlewares');
 const controller = require('../controllers/recognize.controller');
 
@@ -31,6 +32,20 @@ router
       },
     }),
     controller.start
+  )
+  .post(
+    '/upload',
+    jwt,
+    multer().array('files[]'),
+    validate({
+      files: {
+        schema: Joi.array()
+          .min(1)
+          .items(Joi.object({ buffer: Joi.binary().encoding('utf8').required() })),
+        allowUnknown: true,
+      },
+    }),
+    controller.upload
   )
   .get('/test', jwt, controller.test);
 

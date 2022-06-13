@@ -1,4 +1,5 @@
 const perf = require('execution-time')();
+const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const { polling } = require('../util/process.util');
 const actions = require('../util/detectors/actions');
@@ -13,7 +14,8 @@ const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
 const config = require('../constants/config');
 const schedule = require('../util/schedule.util');
-const { AUTH, TOKEN } = require('../constants')();
+const { AUTH, TOKEN, SERVER, STORAGE, UI } = require('../constants')();
+const fs = require('../util/fs.util');
 
 const { IDS, MATCH_IDS } = {
   IDS: [],
@@ -188,5 +190,25 @@ module.exports.start = async (req, res) => {
   } catch (error) {
     PROCESSING = false;
     res.send(error);
+  }
+};
+
+module.exports.upload = async (req, res) => {
+  res.send({ success: true });
+  for (const file of req.files) {
+    const { buffer } = file;
+    const filename = `${uuidv4()}.jpg`;
+    fs.writer(`${STORAGE.TMP.PATH}/${filename}`, buffer);
+    await axios({
+      method: 'get',
+      url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/recognize`,
+      headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
+      params: {
+        url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/${STORAGE.TMP.PATH}/${filename}`,
+        camera: 'manual',
+      },
+      validateStatus: () => true,
+    });
+    fs.delete(`${STORAGE.TMP.PATH}/${filename}`, buffer);
   }
 };
