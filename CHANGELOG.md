@@ -1,3 +1,10 @@
+## [1.12.0-beta.6](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.5...v1.12.0-beta.6) (2022-06-13)
+
+
+### Features
+
+* **ui:** upload images to process with detectors ([f774406](https://github.com/jakowenko/double-take/commit/f774406b540df8ff0eec8b247fee4bd3e02579e1))
+
 ## [1.12.0-beta.5](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.4...v1.12.0-beta.5) (2022-06-12)
 
 
