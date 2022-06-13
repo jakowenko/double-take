@@ -26,6 +26,7 @@ module.exports = {
     image: { height: 500 },
     labels: ['person'],
     update_sub_labels: false,
+    stop_on_match: true,
   },
   mqtt: {
     topics: {
@@ -35,16 +36,29 @@ module.exports = {
       homeassistant: 'homeassistant',
     },
   },
+  opencv: {
+    scale_factor: 1.05,
+    min_neighbors: 4.5,
+    min_size_width: 30,
+    min_size_height: 30,
+  },
   detectors: {
     compreface: {
       det_prob_threshold: 0.8,
       timeout: 15,
+      opencv_face_required: false,
     },
     deepstack: {
       timeout: 15,
+      opencv_face_required: false,
     },
     facebox: {
       timeout: 15,
+      opencv_face_required: false,
+    },
+    rekognition: {
+      collection_id: 'double-take',
+      opencv_face_required: true,
     },
   },
   notify: {

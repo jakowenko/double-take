@@ -1,34 +1,51 @@
 const express = require('express');
-const { jwt, validate, expressValidator } = require('../middlewares');
+const multer = require('multer');
+const { jwt, validate, Joi } = require('../middlewares');
 const controller = require('../controllers/recognize.controller');
-
-const { query } = expressValidator;
 
 const router = express.Router();
 
 router
   .post(
     '/',
-    validate([
-      query('results').default('best').isIn(['best', 'all']).withMessage('not a valid result type'),
-      query('break').default(true).isIn([true, false]),
-      query('type').default('manual'),
-    ]),
     jwt,
+    validate({
+      query: {
+        results: Joi.string().valid('best', 'all').default('best'),
+        break: Joi.string().valid('true', 'false').default(true),
+        type: Joi.string().default('manual'),
+      },
+    }),
     controller.start
   )
   .get(
     '/',
-    validate([
-      query('results').default('best').isIn(['best', 'all']).withMessage('not a valid result type'),
-      query('break').default(true).isIn([true, false]),
-      query('type').default('manual'),
-      query('camera').default('manual'),
-      query('url').isLength({ min: 1 }),
-      query('attempts').default(1).isInt().withMessage('not a valid number'),
-    ]),
     jwt,
+    validate({
+      query: {
+        results: Joi.string().valid('best', 'all').default('best'),
+        break: Joi.string().valid('true', 'false').default(true),
+        type: Joi.string().default('manual'),
+        camera: Joi.string().default('manual'),
+        url: Joi.string().uri().required(),
+        attempts: Joi.number().integer().default(1).min(1),
+      },
+    }),
     controller.start
+  )
+  .post(
+    '/upload',
+    jwt,
+    multer().array('files[]'),
+    validate({
+      files: {
+        schema: Joi.array()
+          .min(1)
+          .items(Joi.object({ buffer: Joi.binary().encoding('utf8').required() })),
+        allowUnknown: true,
+      },
+    }),
+    controller.upload
   )
   .get('/test', jwt, controller.test);
 

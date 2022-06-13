@@ -1,3 +1,63 @@
+## [1.12.0-beta.6](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.5...v1.12.0-beta.6) (2022-06-13)
+
+
+### Features
+
+* **ui:** upload images to process with detectors ([f774406](https://github.com/jakowenko/double-take/commit/f774406b540df8ff0eec8b247fee4bd3e02579e1))
+
+## [1.12.0-beta.5](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.4...v1.12.0-beta.5) (2022-06-12)
+
+
+### Features
+
+* **opencv:** adjust classifier settings via config ([2e6c512](https://github.com/jakowenko/double-take/commit/2e6c5129b445b2eca8b884af8d95fc2ceb19733d))
+
+
+### Build
+
+* workflow dispatch [skip ci] ([a4f6e13](https://github.com/jakowenko/double-take/commit/a4f6e1393f807622d947635acef8b57b92caa6be))
+
+## [1.12.0-beta.4](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.3...v1.12.0-beta.4) (2022-06-12)
+
+
+### Bug Fixes
+
+* better handling of update check ([6de1cf1](https://github.com/jakowenko/double-take/commit/6de1cf1dca9e7f244a4242c3c540ef464824bbc3))
+
+## [1.12.0-beta.3](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.2...v1.12.0-beta.3) (2022-06-12)
+
+
+### Features
+
+* aws rekognition support ([7904852](https://github.com/jakowenko/double-take/commit/79048520fd66cb9c4144db11488558b82c8ada19))
+
+## [1.12.0-beta.2](https://github.com/jakowenko/double-take/compare/v1.12.0-beta.1...v1.12.0-beta.2) (2022-06-12)
+
+
+### Features
+
+* **api:** opencv preprocess face check ([ed30ad1](https://github.com/jakowenko/double-take/commit/ed30ad10dfe9f6d104619fa134e2d54698b1c1ff))
+* **detectors:** process images from specific cameras ([5d39d0c](https://github.com/jakowenko/double-take/commit/5d39d0c2c18d0851eccd6a8f698638906b0c36b0))
+* **frigate:** stop_on_match config option to break process loop ([4b98990](https://github.com/jakowenko/double-take/commit/4b9899077c74da601fa5d497c929c264e8c03fa6))
+* **ui:** show config errors ([ddcaf89](https://github.com/jakowenko/double-take/commit/ddcaf897ba7f35ac65a6a86a71cbd56a1a9a2a46))
+
+
+### Bug Fixes
+
+* **api:** sleep if image hasn’t changed during retry loop ([78e9808](https://github.com/jakowenko/double-take/commit/78e98082d7e0e77d5c23465cc629b38d9b178a27))
+
+## [1.12.0-beta.1](https://github.com/jakowenko/double-take/compare/v1.11.0...v1.12.0-beta.1) (2022-06-06)
+
+
+### Features
+
+* **frigate:** sort sub labels alphabetically [#217](https://github.com/jakowenko/double-take/issues/217) ([82d8736](https://github.com/jakowenko/double-take/commit/82d8736825b428b2b74385975961233d167db294))
+
+
+### Build
+
+* **deps:** bump outdated packages ([0842d98](https://github.com/jakowenko/double-take/commit/0842d987de25c2a5495cafe73967d30bc96bbe8b))
+
 ## [1.11.0](https://github.com/jakowenko/double-take/compare/v1.10.1...v1.11.0) (2022-05-30)
 
 

@@ -1,18 +1,22 @@
 const express = require('express');
-const { jwt, validate, expressValidator } = require('../middlewares');
+const { jwt, validate, Joi } = require('../middlewares');
 const controller = require('../controllers/storage.controller');
 
-const { query } = expressValidator;
 const router = express.Router();
 
 router
   .get(
     '/matches/:filename',
-    validate([query('box').default(false).isIn([true, false])]),
     jwt,
+    validate({ query: { box: Joi.string().valid('true', 'false').default(false) } }),
     controller.matches
   )
-  .delete('/train', jwt, controller.delete)
+  .delete(
+    '/train',
+    jwt,
+    validate({ body: { files: Joi.array().items(Joi.object()).required() } }),
+    controller.delete
+  )
   .get('/train/:name/:filename', jwt, controller.train)
   .get('/latest/:filename', jwt, controller.latest);
 

@@ -66,15 +66,18 @@ module.exports = () => {
   if (CONFIG?.notify?.gotify)
     CONFIG.notify.gotify = _.mergeWith(NOTIFY.gotify, CONFIG.notify.gotify, customizer);
 
+  let needsOpenCv = false;
   if (CONFIG.detectors)
     for (const [key] of Object.entries(CONFIG.detectors)) {
       CONFIG.detectors[key] = _.mergeWith(DETECTORS[key], CONFIG.detectors[key], customizer);
+      if (CONFIG.detectors[key].opencv_face_required) needsOpenCv = true;
     }
 
   if (typeof CONFIG.ui.path === 'string') {
     if (CONFIG.ui.path.slice(-1) === '/') CONFIG.ui.path = CONFIG.ui.path.slice(0, -1);
     if (CONFIG.ui.path && CONFIG.ui.path.slice(0, 1) !== '/') CONFIG.ui.path = `/${CONFIG.ui.path}`;
   }
+  if (!needsOpenCv) delete DEFAULTS.opencv;
 
   CONFIG = _.mergeWith(CONFIG, SYSTEM_CORE);
   CONFIG.version = version;
@@ -125,7 +128,13 @@ module.exports.notify = () => {
 
 module.exports.frigate = ({ id, camera, topic }) => {
   const { topicURL } = require('../util/frigate.util');
-  const { url, events, attempts, image } = JSON.parse(JSON.stringify(CONFIG.frigate));
+  const {
+    url,
+    events,
+    attempts,
+    image,
+    stop_on_match: stopOnMatch,
+  } = JSON.parse(JSON.stringify(CONFIG.frigate));
   const { masks } = module.exports;
 
   _.mergeWith(image, events?.[camera]?.image || {}, customizer);
@@ -142,5 +151,6 @@ module.exports.frigate = ({ id, camera, topic }) => {
   return objectKeysToUpperCase({
     url: { frigate: url, snapshot, latest },
     attempts,
+    stop_on_match: stopOnMatch,
   });
 };

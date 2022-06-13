@@ -4,22 +4,24 @@ const { train, remove } = require('./detectors/actions');
 const { STORAGE } = require('../constants')();
 const DETECTORS = require('../constants/config').detectors();
 
-module.exports.queue = async (files) => {
+module.exports.queue = async (files, skip = []) => {
   try {
     if (!files.length) return [];
 
     const records = [];
     files.forEach(({ id, name, filename }, i) =>
       DETECTORS.forEach((detector) => {
-        const record = {
-          number: i + 1,
-          id,
-          name,
-          filename,
-          detector,
-        };
-        database.create.train(record);
-        records.push(record);
+        if (!skip.includes(detector)) {
+          const record = {
+            number: i + 1,
+            id,
+            name,
+            filename,
+            detector,
+          };
+          database.create.train(record);
+          records.push(record);
+        }
       })
     );
 
@@ -76,7 +78,7 @@ module.exports.process = async ({ name, key, detector }) => {
 
 module.exports.add = async (name, opts = {}) => {
   perf.start();
-  const { ids, files } = opts;
+  const { ids, files, skip } = opts;
   await database.resync.files();
   const queue = files
     ? files.map((obj) => database.get.fileByFilename(obj.name, obj.filename)).filter((obj) => obj)
@@ -85,7 +87,7 @@ module.exports.add = async (name, opts = {}) => {
     : database.get.untrained(name);
 
   console.log(`${name}: queuing ${queue.length} file(s) for training`);
-  await this.queue(queue);
+  await this.queue(queue, skip);
   console.log(
     `${name}: training complete in ${parseFloat((perf.stop().time / 1000).toFixed(2))} sec`
   );
@@ -98,11 +100,13 @@ module.exports.remove = async (name, opts = {}) => {
   const db = database.connect();
 
   const promises = [];
-  DETECTORS.forEach((detector) => promises.push(remove({ detector, name })));
+  DETECTORS.forEach((detector) =>
+    promises.push(remove({ detector, ids: Array.isArray(ids) ? ids : [], name }))
+  );
 
   const results = (await Promise.all(promises)).map((result, i) => ({
     detector: DETECTORS[i],
-    results: result.data,
+    results: result?.data || result,
   }));
 
   if (ids && ids.length) {
@@ -116,7 +120,7 @@ module.exports.remove = async (name, opts = {}) => {
       .filter((obj) => DETECTORS.includes(obj.detector))
       .map((obj) => obj.fileId);
 
-    if (addIds.length) await this.add(name, { ids: addIds });
+    if (addIds.length) await this.add(name, { ids: addIds, skip: ['rekognition'] });
     return { success: true };
   }
 

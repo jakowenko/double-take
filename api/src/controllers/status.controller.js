@@ -1,4 +1,6 @@
 const axios = require('axios');
+const config = require('../constants/config');
+const validate = require('../schemas/validate');
 const { tryParseJSON } = require('../util/validators.util');
 const mqtt = require('../util/mqtt.util');
 const { auth, jwt } = require('../util/auth.util');
@@ -32,3 +34,5 @@ module.exports.frigate = async (req, res) => {
 
   res.send({ version, last: { time, camera } });
 };
+
+module.exports.config = (req, res) => res.send(validate(config()));

@@ -186,10 +186,12 @@ export default {
             const [lastBuild] = actions.workflow_runs.filter((run) =>
               tag === 'latest'
                 ? !run.head_branch.includes('beta') &&
-                  run.event === 'release' &&
+                  run.name === 'build' &&
                   run.status === 'completed' &&
-                  run.conclusion === 'success'
+                  run.conclusion === 'success' &&
+                  run.name !== 'CodeQL'
                 : run.head_branch.includes('beta') &&
+                  run.name === 'build' &&
                   run.status === 'completed' &&
                   run.conclusion === 'success' &&
                   run.name !== 'CodeQL',

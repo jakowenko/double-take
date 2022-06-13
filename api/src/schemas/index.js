@@ -107,13 +107,20 @@ module.exports.config = {
     },
     detectors: {
       type: 'object',
-      anyOf: [{ required: ['compreface'] }, { required: ['deepstack'] }, { required: ['facebox'] }],
+      anyOf: [
+        { required: ['compreface'] },
+        { required: ['deepstack'] },
+        { required: ['facebox'] },
+        { required: ['rekognition'] },
+      ],
       properties: {
         compreface: {
           type: 'object',
           required: ['url', 'key'],
           properties: {
             url: { type: 'string' },
+            opencv_face_required: { type: 'boolean' },
+            cameras: { type: 'array' },
           },
         },
         deepstack: {
@@ -121,6 +128,8 @@ module.exports.config = {
           required: ['url'],
           properties: {
             url: { type: 'string' },
+            opencv_face_required: { type: 'boolean' },
+            cameras: { type: 'array' },
           },
         },
         facebox: {
@@ -128,6 +137,19 @@ module.exports.config = {
           required: ['url'],
           properties: {
             url: { type: 'string' },
+            opencv_face_required: { type: 'boolean' },
+            cameras: { type: 'array' },
+          },
+        },
+        rekognition: {
+          type: 'object',
+          required: ['aws_access_key_id', 'aws_secret_access_key', 'aws_region'],
+          properties: {
+            aws_access_key_id: { type: 'string' },
+            aws_secret_access_key: { type: 'string' },
+            aws_region: { type: 'string' },
+            opencv_face_required: { type: 'boolean' },
+            cameras: { type: 'array' },
           },
         },
       },
@@ -199,6 +221,7 @@ module.exports.detect = {
         confidence: { type: 'number' },
         purge: { type: 'number' },
         min_area: { type: 'number' },
+        stop_on_match: { type: 'boolean' },
       },
     },
     unknown: {

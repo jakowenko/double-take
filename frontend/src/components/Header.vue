@@ -28,6 +28,22 @@
             :class="{ train: type === 'train' }"
           />
         </div>
+        <div v-if="type === 'match' && !folder">
+          <FileUpload
+            mode="basic"
+            name="files[]"
+            :url="uploadUrl.recognize"
+            accept="image/*"
+            :maxFileSize="10000000"
+            @upload="uploadMessage"
+            @before-send="beforeUpload"
+            :auto="true"
+            :multiple="true"
+            chooseLabel="Upload"
+            :disabled="loading.files || loading.status"
+            class="p-button-sm"
+          />
+        </div>
         <div v-if="folder">
           <div v-if="type === 'match'">
             <Button
@@ -43,10 +59,11 @@
               <FileUpload
                 mode="basic"
                 name="files[]"
-                :url="uploadUrl"
+                :url="uploadUrl.train"
                 accept="image/*"
                 :maxFileSize="10000000"
                 @upload="$parent.init()"
+                @before-send="beforeUpload"
                 :auto="true"
                 :multiple="true"
                 chooseLabel="Upload"
@@ -379,6 +396,17 @@ export default {
     }
   },
   methods: {
+    beforeUpload(request) {
+      request.xhr.setRequestHeader('Authorization', localStorage.getItem('token'));
+      return request;
+    },
+    uploadMessage() {
+      this.$toast.add({
+        severity: 'success',
+        detail: 'File(s) uploaded. Results will be available after processing.',
+        life: 3000,
+      });
+    },
     fixSelectPanel(value, index) {
       const sub = document.getElementsByClassName('p-multiselect')[index];
       const [panel] = document.getElementsByClassName('p-multiselect-panel');
@@ -526,7 +554,7 @@ export default {
   },
   computed: {
     uploadUrl() {
-      return `${Constants().api}/train/add/${this.folder}`;
+      return { recognize: `${Constants().api}/recognize/upload`, train: `${Constants().api}/train/add/${this.folder}` };
     },
     socketMessage() {
       if (this.filterSettings.socket.enabled) {

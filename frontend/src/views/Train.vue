@@ -231,7 +231,14 @@ export default {
           try {
             const trained = $this.matches.selected
               .map((id) => $this.matches.source.find((obj) => obj.id === id))
-              .filter((obj) => obj.results.filter(({ result }) => result.status.toString().charAt(0) === '2').length);
+              .filter(
+                (obj) =>
+                  obj.results.filter(
+                    ({ result }) =>
+                      result?.status?.toString().charAt(0) === '2' ||
+                      result?.$metadata?.httpStatusCode?.toString().charAt(0) === '2',
+                  ).length,
+              );
 
             const untrained = $this.matches.selected
               .map((id) => $this.matches.source.find((obj) => obj.id === id))
@@ -264,9 +271,12 @@ export default {
               position: 'top',
               accept: async () => {
                 try {
-                  names.forEach((name) => {
-                    ApiService.delete(`train/remove/${name}`, { data: $this.matches.selected });
-                  });
+                  const { selected } = $this.matches;
+                  $this.loading.files = true;
+                  $this.clear(['source', 'selected', 'disabled', 'loaded']);
+                  for (const name of names) {
+                    await ApiService.delete(`train/remove/${name}`, { data: selected });
+                  }
                   if (untrained.length) {
                     await ApiService.delete('storage/train', {
                       data: {

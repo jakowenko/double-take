@@ -14,15 +14,16 @@ There's a lot of great open source software to perform facial recognition, but e
 
 ## Features
 
-- Responsive UI and API bundled into single Docker image
-- Ability to password protect UI and API
-- Support for multiple detectors
+- Responsive UI and API bundled into single [Docker image](https://hub.docker.com/r/jakowenko/double-take)
+- Ability to [password protect](#authentication) UI and API
+- Support for [multiple detectors](#supported-detectors)
 - Train and untrain images for subjects
-- Process images from NVRs
-- Publish results to MQTT topics
-- REST API can be invoked by other applications
-- Disable detection based on a schedule
+- Process images from [NVRs](#supported-nvrs)
+- Publish results to [MQTT topics](#mqtt-1)
+- [REST API](#api) can be invoked by other applications
+- Disable detection based on a [schedule](#schedule)
 - [Home Assistant Add-ons](https://github.com/jakowenko/double-take-hassio-addons)
+- Preprocess images with [OpenCV](https://docs.opencv.org/4.6.0/d1/de5/classcv_1_1CascadeClassifier.html)
 
 ### Supported Architecture
 
@@ -32,8 +33,9 @@ There's a lot of great open source software to perform facial recognition, but e
 
 ### Supported Detectors
 
-- [DeepStack](https://deepstack.cc) v2021.02.1-2021.06.01
-- [CompreFace](https://github.com/exadel-inc/CompreFace) v0.5.0-0.6.0
+- [CompreFace](https://github.com/exadel-inc/CompreFace) v0.5.0-1.0.0
+- [Amazon Rekognition](https://aws.amazon.com/rekognition)
+- [DeepStack](https://deepstack.cc) v2021.02.1-2022.01.01
 - [Facebox](https://machinebox.io)
 
 ### Supported NVRs
@@ -332,6 +334,10 @@ frigate:
   # NOTE: requires frigate 0.11.0+
   update_sub_labels: false
 
+  # stop the processing loop if a match is found
+  # if set to false all image attempts will be processed before determining the best match
+  stop_on_match: true
+
   # object labels that are allowed for facial recognition
   labels:
     - person
@@ -443,20 +449,62 @@ detectors:
     # minimum required confidence that a recognized face is actually a face
     # value is between 0.0 and 1.0
     det_prob_threshold: 0.8
+    # require opencv to find a face before processing with detector
+    opencv_face_required: false
     # comma-separated slugs of face plugins
     # https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)
     # face_plugins: mask,gender,age
+    # only process images from specific cameras, if omitted then all cameras will be processed
+    # cameras:
+    #   - front-door
+    #   - garage
+
+  rekognition:
+    aws_access_key_id: !secret aws_access_key_id
+    aws_secret_access_key: !secret aws_secret_access_key
+    aws_region:
+    collection_id: double-take
+    # require opencv to find a face before processing with detector
+    opencv_face_required: true
+    # only process images from specific cameras, if omitted then all cameras will be processed
+    # cameras:
+    #   - front-door
+    #   - garage
 
   deepstack:
     url:
     key:
     # number of seconds before the request times out and is aborted
     timeout: 15
+    # require opencv to find a face before processing with detector
+    opencv_face_required: false
+    # only process images from specific cameras, if omitted then all cameras will be processed
+    # cameras:
+    #   - front-door
+    #   - garage
 
   facebox:
     url:
     # number of seconds before the request times out and is aborted
     timeout: 15
+    # require opencv to find a face before processing with detector
+    opencv_face_required: false
+    # only process images from specific cameras, if omitted then all cameras will be processed
+    # cameras:
+    #   - front-door
+    #   - garage
+```
+
+### `opencv`
+
+```yaml
+# opencv settings (default: shown below)
+# docs: https://docs.opencv.org/4.6.0/d1/de5/classcv_1_1CascadeClassifier.html
+opencv:
+  scale_factor: 1.05
+  min_neighbors: 4.5
+  min_size_width: 30
+  min_size_height: 30
 ```
 
 ### `schedule`

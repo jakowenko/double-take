@@ -7,6 +7,7 @@ const database = require('./db.util');
 const { parse, digest } = require('./auth.util');
 const mask = require('./mask-image.util');
 const sleep = require('./sleep.util');
+const opencv = require('./opencv');
 const { recognize, normalize } = require('./detectors/actions');
 const { SERVER, STORAGE, UI } = require('../constants')();
 const DETECTORS = require('../constants/config').detectors();
@@ -31,7 +32,8 @@ module.exports.polling = async (
       if (breakMatch === true && MATCH_IDS.includes(id)) break;
 
       const stream = await this.stream(url);
-      if (stream && previousContentLength !== stream.length) {
+      const streamChanged = stream && previousContentLength !== stream.length;
+      if (streamChanged) {
         const tmp = {
           source: `${STORAGE.TMP.PATH}/${id}-${type}-${uuidv4()}.jpg`,
           mask: false,
@@ -85,7 +87,11 @@ module.exports.polling = async (
           if (breakMatch === true) break;
         }
       }
-      if (frigateEventType && delay > 0) await sleep(delay);
+
+      /* if the image hasn't changed or the user has a delay set, sleep before trying to find another image
+      to increase the changes it changed */
+      if ((frigateEventType && delay > 0) || !streamChanged)
+        await sleep(frigateEventType && delay > 0 ? delay : i * 0.5);
     }
   }
 
@@ -113,17 +119,31 @@ module.exports.save = async (event, results, filename, tmp) => {
 };
 
 module.exports.start = async ({ camera, filename, tmp, attempts = 1, errors = {} }) => {
+  const processed = [];
   const promises = [];
+
+  const faceCount = opencv.shouldLoad() ? await opencv.faceCount(tmp) : null;
+
   for (const detector of DETECTORS) {
     if (!errors[detector]) errors[detector] = 0;
-    promises.push(this.process({ camera, detector, tmp, errors }));
+
+    const detectorConfig = config()?.detectors?.[detector];
+    const cameraAllowed =
+      (detectorConfig?.cameras || [camera]).includes(camera) || !detectorConfig?.cameras.length;
+    const faceCountRequired = detectorConfig?.opencv_face_required;
+
+    if (cameraAllowed) {
+      if ((faceCountRequired && faceCount > 0) || !faceCountRequired) {
+        promises.push(this.process({ camera, detector, tmp, errors }));
+        processed.push(detector);
+      } else console.verbose(`processing skipped for ${detector}: no faces found`);
+    } else console.verbose(`processing skipped for ${detector}: ${camera} not allowed`);
   }
   let results = await Promise.all(promises);
 
-  // eslint-disable-next-line no-loop-func
   results = results.map((array, j) => {
     return {
-      detector: DETECTORS[j],
+      detector: processed[j],
       duration: array ? array.duration : 0,
       attempt: attempts,
       results: array ? array.results : [],

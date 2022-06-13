@@ -5,7 +5,10 @@ const frigate = this;
 
 module.exports.subLabel = async (topic, id, best) => {
   if (!FRIGATE.URL || !FRIGATE.UPDATE_SUB_LABELS || !best.length) return;
-  const names = best.map(({ name }) => name).join(', ');
+  const names = best
+    .map(({ name }) => name)
+    .sort()
+    .join(', ');
   await axios({
     method: 'post',
     url: `${this.topicURL(topic)}/api/events/${id}/sub_label`,
@@ -48,7 +51,7 @@ module.exports.checks = async ({
       }
     }
 
-    if (PROCESSING && type !== 'start') {
+    if (PROCESSING && type === 'update') {
       return `${id} - still processing previous request`;
     }
 
