@@ -32,17 +32,22 @@ module.exports.setup = async (req, res, next) => {
 
 module.exports.validate = (schemas) => (req, res, next) => {
   const errors = [];
-  // eslint-disable-next-line no-restricted-syntax
-  for (const [key, tmpSchema] of Object.entries(schemas)) {
-    const { allowUnknown, ...schema } = tmpSchema;
-    const { error, value } = Joi.object(schema).validate(
-      { ...req[key] },
-      {
-        allowUnknown:
-          key === 'query' && allowUnknown === undefined ? true : allowUnknown !== undefined,
-        abortEarly: false,
-      }
-    );
+  for (const [key, joiSchema] of Object.entries(schemas)) {
+    const { allowUnknown, ...schema } = joiSchema;
+    const isArray = Array.isArray(req[key]);
+    const { error, value } = isArray
+      ? joiSchema.schema.validate([...req[key]], {
+          allowUnknown,
+          abortEarly: false,
+        })
+      : Joi.object(schema).validate(
+          { ...req[key] },
+          {
+            allowUnknown:
+              key === 'query' && allowUnknown === undefined ? true : allowUnknown !== undefined,
+            abortEarly: false,
+          }
+        );
     if (error?.details) {
       errors.push(
         ...error.details.map((obj) => ({
