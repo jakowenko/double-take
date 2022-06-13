@@ -14,6 +14,7 @@ router
   )
   .patch(
     '/password',
+    jwt,
     validate({
       body: {
         password: Joi.string().min(1).required(),

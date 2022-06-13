@@ -13,9 +13,9 @@ router
     controller.get
   )
   .patch('/:id', jwt, validate({ body: { name: Joi.string().required() } }), controller.patch)
-  .get('/status', controller.status)
-  .post('/add/:name', multer().array('files[]'), controller.add)
-  .delete('/remove/:name', controller.delete)
-  .get('/retrain/:name', controller.retrain);
+  .get('/status', jwt, controller.status)
+  .post('/add/:name', jwt, multer().array('files[]'), controller.add)
+  .delete('/remove/:name', jwt, controller.delete)
+  .get('/retrain/:name', jwt, controller.retrain);
 
 module.exports = router;
