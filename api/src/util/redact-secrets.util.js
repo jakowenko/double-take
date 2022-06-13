@@ -1,5 +1,3 @@
-const traverse = require('traverse');
-
 const KEYS = [
   // generic
   /passw(or)?d/i,
@@ -14,14 +12,15 @@ const KEYS = [
   /^connect\.sid$/, // https://github.com/expressjs/session
 ];
 
-const key = (str) =>
-  KEYS.some((regex) => {
-    return regex.test(str);
-  });
+const key = (str) => KEYS.some((regex) => regex.test(str));
 
-module.exports = (obj, value = '********') => {
-  // eslint-disable-next-line array-callback-return
-  return traverse(obj).map(function redact(val) {
-    if (key(this.key) && typeof val === 'string') this.update(value);
+const traverse = (obj, value) => {
+  const o = JSON.parse(JSON.stringify(obj));
+  Object.keys(o).forEach((k) => {
+    if (o[k] !== null && typeof o[k] === 'object') o[k] = traverse(o[k], value);
+    if (typeof o[k] === 'string') if (key(k)) o[k] = value;
   });
+  return o;
 };
+
+module.exports = (obj, value = '********') => traverse(obj, value);
