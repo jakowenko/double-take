@@ -462,7 +462,7 @@ detectors:
   rekognition:
     aws_access_key_id: !secret aws_access_key_id
     aws_secret_access_key: !secret aws_secret_access_key
-    aws_region: us-east-1
+    aws_region:
     collection_id: double-take
     # require opencv to find a face before processing with detector
     opencv_face_required: true
