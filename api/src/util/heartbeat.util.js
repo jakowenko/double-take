@@ -3,11 +3,12 @@ const schedule = require('node-schedule');
 const axios = require('axios');
 const { version } = require('../../package.json');
 const { TELEMETRY } = require('../constants')();
+const DETECTORS = require('../constants/config').detectors();
 
 module.exports.cron = async () => {
   if (process.env.NODE_ENV !== 'production' || !TELEMETRY) return;
   await this.track();
-  schedule.scheduleJob('*/30 * * * *', () => this.track());
+  schedule.scheduleJob('*/60 * * * *', () => this.track());
 };
 
 module.exports.track = async () =>
@@ -19,6 +20,7 @@ module.exports.track = async () =>
       version,
       arch: os.arch(),
       ha_addon: !!process.env.HA_ADDON,
+      detectors: DETECTORS,
     },
     validateStatus: () => true,
   }).catch((/* error */) => {});
