@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 const KEYS = [
   // generic
   /passw(or)?d/i,
@@ -15,6 +17,7 @@ const KEYS = [
 const key = (str) => KEYS.some((regex) => regex.test(str));
 
 const traverse = (obj, value) => {
+  if (!_.isObject(obj)) return obj;
   const o = JSON.parse(JSON.stringify(obj));
   Object.keys(o).forEach((k) => {
     if (o[k] !== null && typeof o[k] === 'object') o[k] = traverse(o[k], value);
