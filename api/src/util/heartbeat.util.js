@@ -8,7 +8,7 @@ const DETECTORS = require('../constants/config').detectors();
 module.exports.cron = async () => {
   if (process.env.NODE_ENV !== 'production' || !TELEMETRY) return;
   await this.track();
-  schedule.scheduleJob('*/60 * * * *', () => this.track());
+  schedule.scheduleJob(`${Math.floor(Math.random() * 60)} * * * *`, () => this.track());
 };
 
 module.exports.track = async () =>
