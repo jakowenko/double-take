@@ -1,4 +1,5 @@
 const os = require('os');
+const { DateTime } = require('luxon');
 const schedule = require('node-schedule');
 const axios = require('axios');
 const { version } = require('../../package.json');
@@ -8,7 +9,7 @@ const DETECTORS = require('../constants/config').detectors();
 module.exports.cron = async () => {
   if (process.env.NODE_ENV !== 'production' || !TELEMETRY) return;
   await this.track();
-  schedule.scheduleJob('*/60 * * * *', () => this.track());
+  schedule.scheduleJob(`${DateTime.now().toFormat('m')} * * * *`, () => this.track());
 };
 
 module.exports.track = async () =>

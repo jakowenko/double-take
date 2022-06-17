@@ -86,6 +86,7 @@ module.exports.faceCount = async (path) => {
     return faceCount;
   } catch (error) {
     console.error(`opencv error: `, error.message || error);
+    return 1;
   }
 };
 
