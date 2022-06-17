@@ -1,3 +1,10 @@
+## [1.12.1-beta.1](https://github.com/jakowenko/double-take/compare/v1.12.0...v1.12.1-beta.1) (2022-06-17)
+
+
+### Bug Fixes
+
+* **opencv:** gracefully fail on error ([84ac482](https://github.com/jakowenko/double-take/commit/84ac482a726012886a6658e5737ff748dce9abd3))
+
 ## [1.12.0](https://github.com/jakowenko/double-take/compare/v1.11.0...v1.12.0) (2022-06-13)
 
 
