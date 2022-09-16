@@ -280,6 +280,16 @@ mqtt:
   password:
   client_id:
 
+  tls:
+    #enable TLS
+    enabled: false
+    # certificate file for TLS comms (must be set if TLS enabled)
+    cert_file:
+    # key file for TLS comms (must be set if TLS enabled)
+    key_file:
+    # certificate authority file for TLS comms
+    ca_file:
+       
   topics:
     # mqtt topic for frigate message subscription
     frigate: frigate/events

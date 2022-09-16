@@ -86,12 +86,30 @@ const processMessage = ({ topic, message }) => {
 
 module.exports.connect = () => {
   if (!MQTT || !MQTT.HOST) return;
-  CLIENT = mqtt.connect(`mqtt://${MQTT.HOST}`, {
-    reconnectPeriod: 10000,
-    username: MQTT.USERNAME || MQTT.USER,
-    password: MQTT.PASSWORD || MQTT.PASS,
-    clientId: MQTT.CLIENT_ID || `double-take-${Math.random().toString(16).substr(2, 8)}`,
-  });
+  if (!MQTT.TLS.ENABLED) {
+    CLIENT = mqtt.connect(`mqtt://${MQTT.HOST}`, {
+      reconnectPeriod: 10000,
+      username: MQTT.USERNAME || MQTT.USER,
+      password: MQTT.PASSWORD || MQTT.PASS,
+      clientId: MQTT.CLIENT_ID || `double-take-${Math.random().toString(16).substr(2, 8)}`,
+    });
+  } else if (MQTT.TLS.ENABLED) {
+    if (!MQTT.TLS.KEY_FILE || !MQTT.TLS.CERT_FILE) {
+        console.error(`MQTT: error connecting to broker; the remaining TLS certificate parameters must be set`);
+        return;
+    }
+    CLIENT = mqtt.connect(`mqtts://${MQTT.HOST}`, {
+      reconnectPeriod: 10000,
+      port: 1883,
+      username: MQTT.USERNAME || MQTT.USER,
+      password: MQTT.PASSWORD || MQTT.PASS,
+      keyPath: MQTT.TLS.KEY_FILE,
+      certPath: MQTT.TLS.CERT_FILE,
+      ca: MQTT.TLS.CA_FILE ? MQTT.TLS.CA_FILE : null,
+      rejectUnauthorized : true,
+      clientId: MQTT.CLIENT_ID || `double-take-${Math.random().toString(16).substr(2, 8)}`,
+    });
+  }
 
   CLIENT.on('connect', () => {
     logStatus('connected', console.log);

@@ -29,6 +29,9 @@ module.exports = {
     stop_on_match: true,
   },
   mqtt: {
+    tls: {
+      enabled: "false",
+    },
     topics: {
       frigate: 'frigate/events',
       matches: 'double-take/matches',
