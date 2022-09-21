@@ -94,17 +94,13 @@ module.exports.connect = () => {
       clientId: MQTT.CLIENT_ID || `double-take-${Math.random().toString(16).substr(2, 8)}`,
     });
   } else if (MQTT.TLS.ENABLED) {
-    if (!MQTT.TLS.KEY_FILE || !MQTT.TLS.CERT_FILE) {
-        console.error(`MQTT: error connecting to broker; the remaining TLS certificate parameters must be set`);
-        return;
-    }
     CLIENT = mqtt.connect(`mqtts://${MQTT.HOST}`, {
       reconnectPeriod: 10000,
       port: 1883,
       username: MQTT.USERNAME || MQTT.USER,
       password: MQTT.PASSWORD || MQTT.PASS,
-      keyPath: MQTT.TLS.KEY_FILE,
-      certPath: MQTT.TLS.CERT_FILE,
+      key: MQTT.TLS.CLIENT_KEY_FILE ? MQTT.TLS.CLIENT_KEY_FILE : null,
+      cert: MQTT.TLS.CLIENT_CERT_FILE ? MQTT.TLS.CLIENT_CERT_FILE : null,
       ca: MQTT.TLS.CA_FILE ? MQTT.TLS.CA_FILE : null,
       rejectUnauthorized : true,
       clientId: MQTT.CLIENT_ID || `double-take-${Math.random().toString(16).substr(2, 8)}`,

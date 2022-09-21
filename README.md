@@ -283,10 +283,10 @@ mqtt:
   tls:
     #enable TLS
     enabled: false
-    # certificate file for TLS comms (must be set if TLS enabled)
-    cert_file:
-    # key file for TLS comms (must be set if TLS enabled)
-    key_file:
+    # client certificate file for TLS comms
+    client_cert_file:
+    # client key file for TLS comms
+    client_key_file:
     # certificate authority file for TLS comms
     ca_file:
        
