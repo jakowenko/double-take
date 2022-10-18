@@ -281,15 +281,15 @@ mqtt:
   client_id:
 
   tls:
-    #enable TLS
-    enabled: false
-    # client certificate file for TLS comms
-    client_cert_file:
-    # client key file for TLS comms
-    client_key_file:
-    # certificate authority file for TLS comms
-    ca_file:
-       
+    # cert chains in PEM format
+    cert:
+    # private keys in PEM format
+    key:
+    # optionally override the trusted CA certificates
+    ca:
+    # if not false the server will reject any connection which is not authorized with the list of supplied CAs
+    reject_unauthorized: false
+
   topics:
     # mqtt topic for frigate message subscription
     frigate: frigate/events
