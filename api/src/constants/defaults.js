@@ -30,7 +30,7 @@ module.exports = {
   },
   mqtt: {
     tls: {
-      enabled: "false",
+      reject_unauthorized: false,
     },
     topics: {
       frigate: 'frigate/events',
