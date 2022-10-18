@@ -1,3 +1,10 @@
+## [1.12.2-beta.1](https://github.com/jakowenko/double-take/compare/v1.12.1...v1.12.2-beta.1) (2022-10-18)
+
+
+### Build
+
+* **deps:** audit frontend packages ([cab7f64](https://github.com/jakowenko/double-take/commit/cab7f640e7eb2b9172080aaad6092db9292eac55))
+
 ## [1.12.1](https://github.com/jakowenko/double-take/compare/v1.12.0...v1.12.1) (2022-06-17)
 
 
