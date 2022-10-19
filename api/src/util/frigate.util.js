@@ -22,6 +22,7 @@ module.exports.checks = async ({
   topic,
   label,
   camera,
+  area,
   zones,
   PROCESSING,
   IDS,
@@ -65,6 +66,10 @@ module.exports.checks = async ({
 
     if (IDS.includes(id)) {
       return `already processed ${id}`;
+    }
+
+    if (FRIGATE.MIN_AREA > area) {
+      return `skipping object area smaller than ${FRIGATE.MIN_AREA} (${area})`;
     }
 
     await frigate.status(topic);
