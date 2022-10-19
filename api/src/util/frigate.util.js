@@ -64,12 +64,12 @@ module.exports.checks = async ({
       return `${id} - ${label} label not in (${FRIGATE.LABELS.join(', ')})`;
     }
 
-    if (IDS.includes(id)) {
-      return `already processed ${id}`;
-    }
-
     if (FRIGATE.MIN_AREA > area) {
       return `skipping object area smaller than ${FRIGATE.MIN_AREA} (${area})`;
+    }
+
+    if (IDS.includes(id)) {
+      return `already processed ${id}`;
     }
 
     await frigate.status(topic);
