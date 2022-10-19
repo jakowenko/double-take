@@ -1,3 +1,10 @@
+## [1.13.0-beta.1](https://github.com/jakowenko/double-take/compare/v1.12.1...v1.13.0-beta.1) (2022-10-19)
+
+
+### Features
+
+* frigate matches below an area target ([3365bc7](https://github.com/jakowenko/double-take/commit/3365bc78f893081fe69d784e3d6f968d3be561ce))
+
 ## [1.12.1](https://github.com/jakowenko/double-take/compare/v1.12.0...v1.12.1) (2022-06-17)
 
 
