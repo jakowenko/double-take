@@ -337,6 +337,11 @@ frigate:
   # stop the processing loop if a match is found
   # if set to false all image attempts will be processed before determining the best match
   stop_on_match: true
+  
+  # ignore detected areas so small that face recognition would be difficult
+  # quadrupling the min_area of the detector is a good start
+  # does not apply to MQTT events
+  min_area: 0
 
   # object labels that are allowed for facial recognition
   labels:

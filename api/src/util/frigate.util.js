@@ -22,6 +22,7 @@ module.exports.checks = async ({
   topic,
   label,
   camera,
+  area,
   zones,
   PROCESSING,
   IDS,
@@ -61,6 +62,10 @@ module.exports.checks = async ({
 
     if (!FRIGATE.LABELS.includes(label)) {
       return `${id} - ${label} label not in (${FRIGATE.LABELS.join(', ')})`;
+    }
+
+    if (FRIGATE.MIN_AREA > area) {
+      return `skipping object area smaller than ${FRIGATE.MIN_AREA} (${area})`;
     }
 
     if (IDS.includes(id)) {
