@@ -1,3 +1,10 @@
+## [1.13.0-beta.2](https://github.com/jakowenko/double-take/compare/v1.13.0-beta.1...v1.13.0-beta.2) (2022-10-20)
+
+
+### Features
+
+* support for MQTT TLS ([#241](https://github.com/jakowenko/double-take/issues/241)) ([7f37b78](https://github.com/jakowenko/double-take/commit/7f37b78d45f879d782d493595d76a14dbd31b7b5))
+
 ## [1.13.0-beta.1](https://github.com/jakowenko/double-take/compare/v1.12.1...v1.13.0-beta.1) (2022-10-19)
 
 
