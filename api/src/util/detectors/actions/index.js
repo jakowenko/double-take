@@ -9,9 +9,13 @@ module.exports.normalize = ({ camera, detector, data }) =>
 module.exports.checks = ({ MATCH, UNKNOWN, name, confidence, box }) => {
   const checks = [];
   if (name === 'unknown' && box.width * box.height < UNKNOWN.MIN_AREA) return false;
-  if (confidence < MATCH.CONFIDENCE)
-    checks.push(`confidence too low: ${confidence} < ${MATCH.CONFIDENCE}`);
-  if (box.width * box.height < MATCH.MIN_AREA)
-    checks.push(`box area too low: ${box.width * box.height} < ${MATCH.MIN_AREA}`);
+  if (name === 'unknown' && confidence < UNKNOWN.CONFIDENCE) {
+    checks.push(`confidence too low: ${confidence} < ${UNKNOWN.CONFIDENCE}`);
+  } else {
+    if (confidence < MATCH.CONFIDENCE)
+      checks.push(`confidence too low: ${confidence} < ${MATCH.CONFIDENCE}`);
+    if (box.width * box.height < MATCH.MIN_AREA)
+      checks.push(`box area too low: ${box.width * box.height} < ${MATCH.MIN_AREA}`);
+  }
   return checks;
 };
