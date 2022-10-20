@@ -287,7 +287,7 @@ mqtt:
     key:
     # optionally override the trusted CA certificates
     ca:
-    # if not false the server will reject any connection which is not authorized with the list of supplied CAs
+    # if true the server will reject any connection which is not authorized with the list of supplied CAs
     reject_unauthorized: false
 
   topics:
