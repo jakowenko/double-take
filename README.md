@@ -33,14 +33,14 @@ There's a lot of great open source software to perform facial recognition, but e
 
 ### Supported Detectors
 
-- [CompreFace](https://github.com/exadel-inc/CompreFace) v0.5.0-1.0.0
+- [CompreFace](https://github.com/exadel-inc/CompreFace)
 - [Amazon Rekognition](https://aws.amazon.com/rekognition)
-- [DeepStack](https://deepstack.cc) v2021.02.1-2022.01.01
+- [DeepStack](https://deepstack.cc)
 - [Facebox](https://machinebox.io)
 
 ### Supported NVRs
 
-- [Frigate](https://github.com/blakeblackshear/frigate) v0.8.0-0.11.0
+- [Frigate](https://github.com/blakeblackshear/frigate)
 
 ## Integrations
 
