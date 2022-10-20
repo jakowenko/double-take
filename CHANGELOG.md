@@ -1,3 +1,10 @@
+## [1.13.0-beta.3](https://github.com/jakowenko/double-take/compare/v1.13.0-beta.2...v1.13.0-beta.3) (2022-10-20)
+
+
+### Bug Fixes
+
+* remove non alphanumeric characters from MQTT topic names ([#239](https://github.com/jakowenko/double-take/issues/239)) ([885d8a1](https://github.com/jakowenko/double-take/commit/885d8a112ae34e0f5632f3012a4ed63851cfa2ac))
+
 ## [1.13.0-beta.2](https://github.com/jakowenko/double-take/compare/v1.13.0-beta.1...v1.13.0-beta.2) (2022-10-20)
 
 
