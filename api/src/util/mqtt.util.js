@@ -224,7 +224,7 @@ module.exports.recognize = (data) => {
     }
 
     matches.forEach((match) => {
-      const topic = match.name.replace(/\s+/g, '-');
+      const topic = match.name.replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, '');
       const name = match.name.replace(/\s+/g, '_');
 
       messages.push({
