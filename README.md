@@ -281,11 +281,11 @@ mqtt:
   client_id:
 
   tls:
-    # cert chains in PEM format
+    # cert chains in PEM format: /path/to/client.crt
     cert:
-    # private keys in PEM format
+    # private keys in PEM format: /path/to/client.key
     key:
-    # optionally override the trusted CA certificates
+    # optionally override the trusted CA certificates: /path/to/ca.crt
     ca:
     # if true the server will reject any connection which is not authorized with the list of supplied CAs
     reject_unauthorized: false
