@@ -1,3 +1,4 @@
+const filesystem = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const mqtt = require('mqtt');
@@ -86,24 +87,33 @@ const processMessage = ({ topic, message }) => {
 
 module.exports.connect = () => {
   if (!MQTT || !MQTT.HOST) return;
-  CLIENT = mqtt.connect(`mqtt://${MQTT.HOST}`, {
-    reconnectPeriod: 10000,
-    username: MQTT.USERNAME || MQTT.USER,
-    password: MQTT.PASSWORD || MQTT.PASS,
-    clientId: MQTT.CLIENT_ID || `double-take-${Math.random().toString(16).substr(2, 8)}`,
-  });
 
-  CLIENT.on('connect', () => {
-    logStatus('connected', console.log);
-    this.publish({ topic: 'double-take/errors' });
-    this.available('online');
-    this.subscribe();
-  })
-    .on('error', (err) => logStatus(err.message, console.error))
-    .on('offline', () => logStatus('offline', console.error))
-    .on('disconnect', () => logStatus('disconnected', console.error))
-    .on('reconnect', () => logStatus('reconnecting', console.warn))
-    .on('message', async (topic, message) => processMessage({ topic, message }).init());
+  try {
+    CLIENT = mqtt.connect(`mqtt://${MQTT.HOST}`, {
+      reconnectPeriod: 10000,
+      username: MQTT.USERNAME || MQTT.USER,
+      password: MQTT.PASSWORD || MQTT.PASS,
+      clientId: MQTT.CLIENT_ID || `double-take-${Math.random().toString(16).substr(2, 8)}`,
+      key: MQTT.TLS.KEY ? filesystem.readFileSync(MQTT.TLS.KEY) : null,
+      cert: MQTT.TLS.CERT ? filesystem.readFileSync(MQTT.TLS.CERT) : null,
+      ca: MQTT.TLS.CA ? filesystem.readFileSync(MQTT.TLS.CA) : null,
+      rejectUnauthorized: MQTT.TLS.REJECT_UNAUTHORIZED === true,
+    });
+
+    CLIENT.on('connect', () => {
+      logStatus('connected', console.log);
+      this.publish({ topic: 'double-take/errors' });
+      this.available('online');
+      this.subscribe();
+    })
+      .on('error', (err) => logStatus(err.message, console.error))
+      .on('offline', () => logStatus('offline', console.error))
+      .on('disconnect', () => logStatus('disconnected', console.error))
+      .on('reconnect', () => logStatus('reconnecting', console.warn))
+      .on('message', async (topic, message) => processMessage({ topic, message }).init());
+  } catch (error) {
+    logStatus(error.message, console.error);
+  }
 };
 
 module.exports.available = async (state) => {
