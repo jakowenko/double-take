@@ -177,10 +177,12 @@ module.exports.recognize = (data) => {
       matches,
       misses,
       unknowns,
+      personCount: counts.person,
       counts,
     };
     payload.cameraReset = {
       ...payload.camera,
+      personCount: 0,
       counts: {
         person: 0,
         match: 0,
