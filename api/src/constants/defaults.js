@@ -27,8 +27,12 @@ module.exports = {
     labels: ['person'],
     update_sub_labels: false,
     stop_on_match: true,
+    min_area: 0,
   },
   mqtt: {
+    tls: {
+      reject_unauthorized: false,
+    },
     topics: {
       frigate: 'frigate/events',
       matches: 'double-take/matches',

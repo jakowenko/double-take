@@ -33,14 +33,14 @@ There's a lot of great open source software to perform facial recognition, but e
 
 ### Supported Detectors
 
-- [CompreFace](https://github.com/exadel-inc/CompreFace) v0.5.0-1.0.0
+- [CompreFace](https://github.com/exadel-inc/CompreFace)
 - [Amazon Rekognition](https://aws.amazon.com/rekognition)
-- [DeepStack](https://deepstack.cc) v2021.02.1-2022.01.01
+- [DeepStack](https://deepstack.cc)
 - [Facebox](https://machinebox.io)
 
 ### Supported NVRs
 
-- [Frigate](https://github.com/blakeblackshear/frigate) v0.8.0-0.11.0
+- [Frigate](https://github.com/blakeblackshear/frigate)
 
 ## Integrations
 
@@ -152,7 +152,8 @@ mqtt:
     "type": "latest",
     "duration": 0.28,
     "detector": "compreface",
-    "filename": "2f07d1ad-9252-43fd-9233-2786a36a15a9.jpg"
+    "filename": "2f07d1ad-9252-43fd-9233-2786a36a15a9.jpg",
+    "base64": null
   }
 }
 ```
@@ -176,9 +177,13 @@ mqtt:
       "type": "manual",
       "duration": 0.8,
       "detector": "compreface",
-      "filename": "4d8a14a9-96c5-4691-979b-0f2325311453.jpg"
+      "filename": "dcb772de-d8e8-4074-9bce-15dbba5955c5.jpg",
+      "base64": null
     }
-  ]
+  ],
+  "misses": [],
+  "unknowns": [],
+  "counts": { "person": 1, "match": 1, "miss": 0, "unknown": 0 }
 }
 ```
 
@@ -280,6 +285,16 @@ mqtt:
   password:
   client_id:
 
+  tls:
+    # cert chains in PEM format: /path/to/client.crt
+    cert:
+    # private keys in PEM format: /path/to/client.key
+    key:
+    # optionally override the trusted CA certificates: /path/to/ca.crt
+    ca:
+    # if true the server will reject any connection which is not authorized with the list of supplied CAs
+    reject_unauthorized: false
+
   topics:
     # mqtt topic for frigate message subscription
     frigate: frigate/events
@@ -337,6 +352,11 @@ frigate:
   # stop the processing loop if a match is found
   # if set to false all image attempts will be processed before determining the best match
   stop_on_match: true
+
+  # ignore detected areas so small that face recognition would be difficult
+  # quadrupling the min_area of the detector is a good start
+  # does not apply to MQTT events
+  min_area: 0
 
   # object labels that are allowed for facial recognition
   labels:

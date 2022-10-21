@@ -1,8 +1,8 @@
+const filesystem = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const mqtt = require('mqtt');
 const fs = require('./fs.util');
-const { contains } = require('./helpers.util');
 const { jwt } = require('./auth.util');
 const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE, UI } = require('../constants')();
 const config = require('../constants/config');
@@ -86,24 +86,33 @@ const processMessage = ({ topic, message }) => {
 
 module.exports.connect = () => {
   if (!MQTT || !MQTT.HOST) return;
-  CLIENT = mqtt.connect(`mqtt://${MQTT.HOST}`, {
-    reconnectPeriod: 10000,
-    username: MQTT.USERNAME || MQTT.USER,
-    password: MQTT.PASSWORD || MQTT.PASS,
-    clientId: MQTT.CLIENT_ID || `double-take-${Math.random().toString(16).substr(2, 8)}`,
-  });
 
-  CLIENT.on('connect', () => {
-    logStatus('connected', console.log);
-    this.publish({ topic: 'double-take/errors' });
-    this.available('online');
-    this.subscribe();
-  })
-    .on('error', (err) => logStatus(err.message, console.error))
-    .on('offline', () => logStatus('offline', console.error))
-    .on('disconnect', () => logStatus('disconnected', console.error))
-    .on('reconnect', () => logStatus('reconnecting', console.warn))
-    .on('message', async (topic, message) => processMessage({ topic, message }).init());
+  try {
+    CLIENT = mqtt.connect(`mqtt://${MQTT.HOST}`, {
+      reconnectPeriod: 10000,
+      username: MQTT.USERNAME || MQTT.USER,
+      password: MQTT.PASSWORD || MQTT.PASS,
+      clientId: MQTT.CLIENT_ID || `double-take-${Math.random().toString(16).substr(2, 8)}`,
+      key: MQTT.TLS.KEY ? filesystem.readFileSync(MQTT.TLS.KEY) : null,
+      cert: MQTT.TLS.CERT ? filesystem.readFileSync(MQTT.TLS.CERT) : null,
+      ca: MQTT.TLS.CA ? filesystem.readFileSync(MQTT.TLS.CA) : null,
+      rejectUnauthorized: MQTT.TLS.REJECT_UNAUTHORIZED === true,
+    });
+
+    CLIENT.on('connect', () => {
+      logStatus('connected', console.log);
+      this.publish({ topic: 'double-take/errors' });
+      this.available('online');
+      this.subscribe();
+    })
+      .on('error', (err) => logStatus(err.message, console.error))
+      .on('offline', () => logStatus('offline', console.error))
+      .on('disconnect', () => logStatus('disconnected', console.error))
+      .on('reconnect', () => logStatus('reconnecting', console.warn))
+      .on('message', async (topic, message) => processMessage({ topic, message }).init());
+  } catch (error) {
+    logStatus(error.message, console.error);
+  }
 };
 
 module.exports.available = async (state) => {
@@ -146,47 +155,54 @@ module.exports.subscribe = () => {
 module.exports.recognize = (data) => {
   try {
     if (!MQTT || !MQTT.HOST) return;
-    const { matches, misses, unknown } = data;
-    const camera = data.camera.toLowerCase();
-    const hasUnknown = unknown && Object.keys(unknown).length;
+    const baseData = JSON.parse(JSON.stringify(data));
+    const { id, duration, timestamp, attempts, zones, matches, misses, unknowns, counts, token } =
+      baseData;
+    const camera = baseData.camera.toLowerCase();
 
-    const configData = JSON.parse(JSON.stringify(data));
-    delete configData.matches;
-    delete configData.unknown;
-    delete configData.results;
+    const payload = {
+      base: {
+        id,
+        duration,
+        timestamp,
+        attempts,
+        camera,
+        zones,
+        token,
+      },
+    };
+    payload.unknown = { ...payload.base, unknown: unknowns[0], unknowns };
+    payload.match = { ...payload.base };
+    payload.camera = {
+      ...payload.base,
+      matches,
+      misses,
+      unknowns,
+      personCount: counts.person,
+      counts,
+    };
+    payload.cameraReset = {
+      ...payload.camera,
+      personCount: 0,
+      counts: {
+        person: 0,
+        match: 0,
+        miss: 0,
+        unknown: 0,
+      },
+    };
 
     const messages = [];
-    const persons = [...new Set([...matches, ...misses].map(({ name }) => name))];
-    let personCount = persons.length ? persons.length : hasUnknown ? 1 : 0;
-    // check to see if unknown bounding box is contained within or contains any of the match bounding boxes
-    // if false, then add 1 to the person count
-    if (persons.length && hasUnknown) {
-      let unknownFoundInMatch = false;
-      matches.forEach((match) => {
-        if (contains(match.box, unknown.box) || contains(unknown.box, match.box))
-          unknownFoundInMatch = true;
-      });
-
-      let unknownFoundInMiss = false;
-      misses.forEach((miss) => {
-        if (contains(miss.box, unknown.box) || contains(unknown.box, miss.box))
-          unknownFoundInMiss = true;
-      });
-      if (!unknownFoundInMatch && !unknownFoundInMiss) personCount += 1;
-    }
 
     messages.push({
       topic: `${MQTT.TOPICS.CAMERAS}/${camera}/person`,
-      message: personCount.toString(),
+      message: counts.person.toString(),
     });
 
-    if (hasUnknown) {
+    if (unknowns.length) {
       messages.push({
         topic: `${MQTT.TOPICS.MATCHES}/unknown`,
-        message: JSON.stringify({
-          ...configData,
-          unknown,
-        }),
+        message: JSON.stringify(payload.unknown),
       });
 
       if (MQTT.TOPICS.HOMEASSISTANT) {
@@ -205,22 +221,19 @@ module.exports.recognize = (data) => {
 
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/unknown/state`,
-          message: JSON.stringify({
-            ...configData,
-            unknown,
-          }),
+          message: JSON.stringify(payload.unknown),
         });
       }
     }
 
     matches.forEach((match) => {
-      const topic = match.name.replace(/\s+/g, '-');
+      const topic = match.name.replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, '');
       const name = match.name.replace(/\s+/g, '_');
 
       messages.push({
         topic: `${MQTT.TOPICS.MATCHES}/${topic}`,
         message: JSON.stringify({
-          ...configData,
+          ...payload.match,
           match,
         }),
       });
@@ -242,22 +255,17 @@ module.exports.recognize = (data) => {
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/state`,
           message: JSON.stringify({
-            ...configData,
+            ...payload.match,
             match,
           }),
         });
       }
     });
 
-    if (matches.length || misses.length || hasUnknown) {
+    if (matches.length || misses.length || unknowns.length) {
       messages.push({
         topic: `${MQTT.TOPICS.CAMERAS}/${camera}`,
-        message: JSON.stringify({
-          ...configData,
-          matches,
-          misses,
-          unknown,
-        }),
+        message: JSON.stringify(payload.camera),
       });
 
       if (MQTT.TOPICS.HOMEASSISTANT) {
@@ -266,7 +274,7 @@ module.exports.recognize = (data) => {
           message: JSON.stringify({
             name: `double_take_${camera}`,
             icon: 'mdi:camera',
-            value_template: '{{ value_json.personCount }}',
+            value_template: '{{ value_json.counts.person }}',
             state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
             json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
             availability_topic: 'double-take/available',
@@ -276,13 +284,7 @@ module.exports.recognize = (data) => {
 
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
-          message: JSON.stringify({
-            ...configData,
-            matches,
-            misses,
-            unknown,
-            personCount,
-          }),
+          message: JSON.stringify(payload.camera),
         });
       }
     }
@@ -295,12 +297,7 @@ module.exports.recognize = (data) => {
       if (MQTT.TOPICS.HOMEASSISTANT) {
         this.publish({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
-          message: JSON.stringify({
-            ...configData,
-            matches,
-            unknown,
-            personCount: 0,
-          }),
+          message: JSON.stringify(payload.cameraReset),
         });
       }
     }, 30000);

@@ -134,6 +134,7 @@ module.exports.frigate = ({ id, camera, topic }) => {
     attempts,
     image,
     stop_on_match: stopOnMatch,
+    min_area: minArea,
   } = JSON.parse(JSON.stringify(CONFIG.frigate));
   const { masks } = module.exports;
 
@@ -152,5 +153,6 @@ module.exports.frigate = ({ id, camera, topic }) => {
     url: { frigate: url, snapshot, latest },
     attempts,
     stop_on_match: stopOnMatch,
+    min_area: minArea,
   });
 };

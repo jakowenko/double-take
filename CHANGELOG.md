@@ -1,3 +1,31 @@
+## [1.13.0-beta.4](https://github.com/jakowenko/double-take/compare/v1.13.0-beta.3...v1.13.0-beta.4) (2022-10-21)
+
+
+### Features
+
+* **mqtt & api:** total count for person, match, miss, and unknown ([#223](https://github.com/jakowenko/double-take/issues/223)) ([2bf4406](https://github.com/jakowenko/double-take/commit/2bf4406aa7e92b1b255e95475b5393d7345207e4))
+
+## [1.13.0-beta.3](https://github.com/jakowenko/double-take/compare/v1.13.0-beta.2...v1.13.0-beta.3) (2022-10-20)
+
+
+### Bug Fixes
+
+* remove non alphanumeric characters from MQTT topic names ([#239](https://github.com/jakowenko/double-take/issues/239)) ([885d8a1](https://github.com/jakowenko/double-take/commit/885d8a112ae34e0f5632f3012a4ed63851cfa2ac))
+
+## [1.13.0-beta.2](https://github.com/jakowenko/double-take/compare/v1.13.0-beta.1...v1.13.0-beta.2) (2022-10-20)
+
+
+### Features
+
+* support for MQTT TLS ([#241](https://github.com/jakowenko/double-take/issues/241)) ([7f37b78](https://github.com/jakowenko/double-take/commit/7f37b78d45f879d782d493595d76a14dbd31b7b5))
+
+## [1.13.0-beta.1](https://github.com/jakowenko/double-take/compare/v1.12.1...v1.13.0-beta.1) (2022-10-19)
+
+
+### Features
+
+* frigate matches below an area target ([3365bc7](https://github.com/jakowenko/double-take/commit/3365bc78f893081fe69d784e3d6f968d3be561ce))
+
 ## [1.12.1](https://github.com/jakowenko/double-take/compare/v1.12.0...v1.12.1) (2022-06-17)
 
 
