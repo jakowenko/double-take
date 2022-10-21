@@ -271,7 +271,7 @@ module.exports.recognize = (data) => {
           message: JSON.stringify({
             name: `double_take_${camera}`,
             icon: 'mdi:camera',
-            value_template: '{{ value_json.personCount }}',
+            value_template: '{{ value_json.counts.person }}',
             state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
             json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
             availability_topic: 'double-take/available',
