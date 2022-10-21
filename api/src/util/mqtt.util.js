@@ -3,7 +3,6 @@ const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const mqtt = require('mqtt');
 const fs = require('./fs.util');
-const { contains } = require('./helpers.util');
 const { jwt } = require('./auth.util');
 const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE, UI } = require('../constants')();
 const config = require('../constants/config');
@@ -156,47 +155,51 @@ module.exports.subscribe = () => {
 module.exports.recognize = (data) => {
   try {
     if (!MQTT || !MQTT.HOST) return;
-    const { matches, misses, unknown } = data;
-    const camera = data.camera.toLowerCase();
-    const hasUnknown = unknown && Object.keys(unknown).length;
+    const baseData = JSON.parse(JSON.stringify(data));
+    const { id, duration, timestamp, attempts, zones, matches, misses, unknowns, counts } =
+      baseData;
+    const camera = baseData.camera.toLowerCase();
 
-    const configData = JSON.parse(JSON.stringify(data));
-    delete configData.matches;
-    delete configData.unknown;
-    delete configData.results;
+    const payload = {
+      base: {
+        id,
+        duration,
+        timestamp,
+        attempts,
+        camera,
+        zones,
+      },
+    };
+    payload.unknown = { ...payload.base, unknown: unknowns[0], unknowns };
+    payload.match = { ...payload.base };
+    payload.camera = {
+      ...payload.base,
+      matches,
+      misses,
+      unknowns,
+      counts,
+    };
+    payload.cameraReset = {
+      ...payload.camera,
+      counts: {
+        person: 0,
+        match: 0,
+        miss: 0,
+        unknown: 0,
+      },
+    };
 
     const messages = [];
-    const persons = [...new Set([...matches, ...misses].map(({ name }) => name))];
-    let personCount = persons.length ? persons.length : hasUnknown ? 1 : 0;
-    // check to see if unknown bounding box is contained within or contains any of the match bounding boxes
-    // if false, then add 1 to the person count
-    if (persons.length && hasUnknown) {
-      let unknownFoundInMatch = false;
-      matches.forEach((match) => {
-        if (contains(match.box, unknown.box) || contains(unknown.box, match.box))
-          unknownFoundInMatch = true;
-      });
-
-      let unknownFoundInMiss = false;
-      misses.forEach((miss) => {
-        if (contains(miss.box, unknown.box) || contains(unknown.box, miss.box))
-          unknownFoundInMiss = true;
-      });
-      if (!unknownFoundInMatch && !unknownFoundInMiss) personCount += 1;
-    }
 
     messages.push({
       topic: `${MQTT.TOPICS.CAMERAS}/${camera}/person`,
-      message: personCount.toString(),
+      message: counts.person.toString(),
     });
 
-    if (hasUnknown) {
+    if (unknowns.length) {
       messages.push({
         topic: `${MQTT.TOPICS.MATCHES}/unknown`,
-        message: JSON.stringify({
-          ...configData,
-          unknown,
-        }),
+        message: JSON.stringify(payload.unknown),
       });
 
       if (MQTT.TOPICS.HOMEASSISTANT) {
@@ -215,10 +218,7 @@ module.exports.recognize = (data) => {
 
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/unknown/state`,
-          message: JSON.stringify({
-            ...configData,
-            unknown,
-          }),
+          message: JSON.stringify(payload.unknown),
         });
       }
     }
@@ -230,7 +230,7 @@ module.exports.recognize = (data) => {
       messages.push({
         topic: `${MQTT.TOPICS.MATCHES}/${topic}`,
         message: JSON.stringify({
-          ...configData,
+          ...payload.match,
           match,
         }),
       });
@@ -252,22 +252,17 @@ module.exports.recognize = (data) => {
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/state`,
           message: JSON.stringify({
-            ...configData,
+            ...payload.match,
             match,
           }),
         });
       }
     });
 
-    if (matches.length || misses.length || hasUnknown) {
+    if (matches.length || misses.length || unknowns.length) {
       messages.push({
         topic: `${MQTT.TOPICS.CAMERAS}/${camera}`,
-        message: JSON.stringify({
-          ...configData,
-          matches,
-          misses,
-          unknown,
-        }),
+        message: JSON.stringify(payload.camera),
       });
 
       if (MQTT.TOPICS.HOMEASSISTANT) {
@@ -286,13 +281,7 @@ module.exports.recognize = (data) => {
 
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
-          message: JSON.stringify({
-            ...configData,
-            matches,
-            misses,
-            unknown,
-            personCount,
-          }),
+          message: JSON.stringify(payload.camera),
         });
       }
     }
@@ -305,12 +294,7 @@ module.exports.recognize = (data) => {
       if (MQTT.TOPICS.HOMEASSISTANT) {
         this.publish({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
-          message: JSON.stringify({
-            ...configData,
-            matches,
-            unknown,
-            personCount: 0,
-          }),
+          message: JSON.stringify(payload.cameraReset),
         });
       }
     }, 30000);

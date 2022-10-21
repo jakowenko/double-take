@@ -148,7 +148,7 @@ module.exports.start = async (req, res) => {
       );
     }
 
-    const { best, misses, unknown, results, attempts } = recognize.normalize(
+    const { best, misses, unknowns, results, attempts, counts } = recognize.normalize(
       await Promise.all(promises)
     );
 
@@ -160,10 +160,11 @@ module.exports.start = async (req, res) => {
       attempts,
       camera,
       zones,
+      counts,
       matches: best,
       misses,
+      unknowns,
     };
-    if (unknown && Object.keys(unknown).length) output.unknown = unknown;
     if (AUTH) output.token = jwt.sign({ route: 'storage', expiresIn: TOKEN.IMAGE });
 
     if (resultsOutput === 'all') output.results = results;
@@ -171,17 +172,16 @@ module.exports.start = async (req, res) => {
     console.log(`done processing ${camera}: ${id} in ${duration} sec`);
 
     const loggedOutput = JSON.parse(JSON.stringify(output));
-    ['matches', 'misses'].forEach((type) =>
+    ['matches', 'misses', 'unknowns'].forEach((type) =>
       loggedOutput[type].forEach((result) => delete result.base64)
     );
-    if (loggedOutput.unknown) delete loggedOutput.unknown.base64;
     console.log(loggedOutput);
 
     PROCESSING = false;
 
     res.send(output);
 
-    recognize.save.latest(camera, best, misses, unknown);
+    recognize.save.latest(camera, best, misses, unknowns[0]);
     mqtt.recognize(output);
     notify.publish(output, camera, results);
     if (event.type === 'frigate') frigate.subLabel(event.topic, id, best);
