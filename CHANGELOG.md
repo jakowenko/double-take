@@ -1,3 +1,10 @@
+## [1.13.0-beta.4](https://github.com/jakowenko/double-take/compare/v1.13.0-beta.3...v1.13.0-beta.4) (2022-10-21)
+
+
+### Features
+
+* **mqtt & api:** total count for person, match, miss, and unknown ([#223](https://github.com/jakowenko/double-take/issues/223)) ([2bf4406](https://github.com/jakowenko/double-take/commit/2bf4406aa7e92b1b255e95475b5393d7345207e4))
+
 ## [1.13.0-beta.3](https://github.com/jakowenko/double-take/compare/v1.13.0-beta.2...v1.13.0-beta.3) (2022-10-20)
 
 
