@@ -156,7 +156,7 @@ module.exports.recognize = (data) => {
   try {
     if (!MQTT || !MQTT.HOST) return;
     const baseData = JSON.parse(JSON.stringify(data));
-    const { id, duration, timestamp, attempts, zones, matches, misses, unknowns, counts } =
+    const { id, duration, timestamp, attempts, zones, matches, misses, unknowns, counts, token } =
       baseData;
     const camera = baseData.camera.toLowerCase();
 
@@ -168,6 +168,7 @@ module.exports.recognize = (data) => {
         attempts,
         camera,
         zones,
+        token,
       },
     };
     payload.unknown = { ...payload.base, unknown: unknowns[0], unknowns };
