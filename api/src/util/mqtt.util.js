@@ -2,6 +2,7 @@ const filesystem = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const mqtt = require('mqtt');
+const romanize = require('romanization');
 const fs = require('./fs.util');
 const { jwt } = require('./auth.util');
 const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE, UI } = require('../constants')();
@@ -227,7 +228,7 @@ module.exports.recognize = (data) => {
     }
 
     matches.forEach((match) => {
-      const topic = match.name.replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, '');
+      const topic = romanize(match.name.replace(/\s+/g, '-')).replace(/[^a-z0-9-]/gi, '');
       const name = match.name.replace(/\s+/g, '_');
 
       messages.push({
