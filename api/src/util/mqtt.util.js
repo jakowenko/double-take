@@ -116,7 +116,7 @@ module.exports.connect = () => {
 };
 
 module.exports.available = async (state) => {
-  if (CLIENT) this.publish({ topic: 'double-take/available', message: state });
+  if (CLIENT) this.publish({ topic: 'double-take/available', retain: true, message: state });
 };
 
 module.exports.subscribe = () => {
@@ -196,18 +196,21 @@ module.exports.recognize = (data) => {
 
     messages.push({
       topic: `${MQTT.TOPICS.CAMERAS}/${camera}/person`,
+      retain: true,
       message: counts.person.toString(),
     });
 
     if (unknowns.length) {
       messages.push({
         topic: `${MQTT.TOPICS.MATCHES}/unknown`,
+        retain: false,
         message: JSON.stringify(payload.unknown),
       });
 
       if (MQTT.TOPICS.HOMEASSISTANT) {
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/unknown/config`,
+          retain: true,
           message: JSON.stringify({
             name: 'double_take_unknown',
             icon: 'mdi:account',
@@ -221,6 +224,7 @@ module.exports.recognize = (data) => {
 
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/unknown/state`,
+          retain: true,
           message: JSON.stringify(payload.unknown),
         });
       }
@@ -232,6 +236,7 @@ module.exports.recognize = (data) => {
 
       messages.push({
         topic: `${MQTT.TOPICS.MATCHES}/${topic}`,
+        retain: false,
         message: JSON.stringify({
           ...payload.match,
           match,
@@ -241,6 +246,7 @@ module.exports.recognize = (data) => {
       if (MQTT.TOPICS.HOMEASSISTANT) {
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/config`,
+          retain: true,
           message: JSON.stringify({
             name: `double_take_${name}`,
             icon: 'mdi:account',
@@ -254,6 +260,7 @@ module.exports.recognize = (data) => {
 
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/state`,
+          retain: true,
           message: JSON.stringify({
             ...payload.match,
             match,
@@ -265,12 +272,14 @@ module.exports.recognize = (data) => {
     if (matches.length || misses.length || unknowns.length) {
       messages.push({
         topic: `${MQTT.TOPICS.CAMERAS}/${camera}`,
+        retain: false,
         message: JSON.stringify(payload.camera),
       });
 
       if (MQTT.TOPICS.HOMEASSISTANT) {
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/config`,
+          retain: true,
           message: JSON.stringify({
             name: `double_take_${camera}`,
             icon: 'mdi:camera',
@@ -284,6 +293,7 @@ module.exports.recognize = (data) => {
 
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
+          retain: true,
           message: JSON.stringify(payload.camera),
         });
       }
@@ -293,10 +303,11 @@ module.exports.recognize = (data) => {
 
     clearTimeout(PERSON_RESET_TIMEOUT[camera]);
     PERSON_RESET_TIMEOUT[camera] = setTimeout(() => {
-      this.publish({ topic: `${MQTT.TOPICS.CAMERAS}/${camera}/person`, message: '0' });
+      this.publish({ topic: `${MQTT.TOPICS.CAMERAS}/${camera}/person`, retain: true, message: '0' });
       if (MQTT.TOPICS.HOMEASSISTANT) {
         this.publish({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${camera}/state`,
+          retain: true,
           message: JSON.stringify(payload.cameraReset),
         });
       }
@@ -315,7 +326,7 @@ module.exports.publish = (data) => {
   if (!single && !multiple) console.error('MQTT: publish error');
 
   const messages = single ? [{ ...data }] : data;
-  messages.forEach((message) => CLIENT.publish(message.topic, message.message, { retain: true }));
+  messages.forEach((message) => CLIENT.publish(message.topic, message.message, { retain: message.retain === true }));
 };
 
 module.exports.status = () => ({
