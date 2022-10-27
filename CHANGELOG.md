@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/jakowenko/double-take/compare/v1.13.0...v1.13.1) (2022-10-27)
+
+
+### Bug Fixes
+
+* **mqtt:** only retain state and configuration, not events. ([#249](https://github.com/jakowenko/double-take/issues/249)) ([d5de0ee](https://github.com/jakowenko/double-take/commit/d5de0ee8fb60229aa1cf0d4ad974e72009afbff7))
+
 ## [1.13.1-beta.1](https://github.com/jakowenko/double-take/compare/v1.13.0...v1.13.1-beta.1) (2022-10-27)
 
 
