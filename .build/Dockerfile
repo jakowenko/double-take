@@ -1,7 +1,8 @@
 FROM node:16-bullseye-slim as build
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y curl bash
+RUN apt update
+RUN apt install -y curl bash
 
 WORKDIR /double-take/api
 COPY /api/package.json .
@@ -23,20 +24,23 @@ COPY /frontend/.env.production /frontend/vue.config.js /frontend/babel.config.js
 RUN npm run build
 RUN mv dist /tmp/dist && rm -r * && mv /tmp/dist/* .
 
-WORKDIR /
-RUN mkdir /.storage
-RUN ln -s /.storage /double-take/.storage
+RUN apt install -y binutils
+RUN find /double-take/ -type f -size +10M -name '*.so.*' | xargs -L1 strip -p -S 
+
+FROM node:16-slim
+
+COPY --from=build /double-take /double-take
 
 WORKDIR /double-take
 RUN npm install nodemon -g
 COPY /.build/entrypoint.sh .
 
-RUN npm cache clean -f
-RUN apt install -y binutils
-RUN find /double-take/ -type f -size +10M -name '*.so.*' | xargs -L1 strip -p -S 
-
-FROM scratch
-COPY --from=build . .
 ENV NODE_ENV=production
+
+WORKDIR /
+RUN mkdir /.storage
+RUN ln -s /.storage /double-take/.storage
+
 WORKDIR /double-take
-ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
+
+ENTRYPOINT ["/bin/sh", "./entrypoint.sh"]

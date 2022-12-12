@@ -49,7 +49,7 @@ module.exports.remove = ({ name }) => {
   return axios({
     method: 'delete',
     timeout: FACEBOX.TIMEOUT * 1000,
-    url: `${URL}/facebox/teach/${name}`,
+    url: `${URL}/facebox/teach/${encodeURIComponent(name)}`,
     validateStatus() {
       return true;
     },
