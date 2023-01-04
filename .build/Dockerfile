@@ -2,23 +2,28 @@
 FROM ubuntu:20.04 as build
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y curl bash
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt-get install -y nodejs gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg8-dev libgif-dev jq
-
-WORKDIR /src/sqlite
-ADD https://github.com/WiseLibs/better-sqlite3/raw/v7.5.3/deps/sqlite3/sqlite3.c .
-ADD https://github.com/WiseLibs/better-sqlite3/raw/v7.5.3/deps/sqlite3/sqlite3.h .
-ADD https://github.com/WiseLibs/better-sqlite3/raw/v7.5.3/deps/sqlite3/sqlite3ext.h .
-
-RUN <<EOT
+RUN --mount=type=tmpfs,target=/var/cache/apt <<EOT
 #!/bin/bash
-echo -e "#define SQLITE_MAX_VARIABLE_NUMBER 65532\n$(cat sqlite3.c)" > sqlite3.c
+apt-get update && apt-get install -y curl bash
+curl -sL https://deb.nodesource.com/setup_16.x | bash -
+apt-get install -y nodejs gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg8-dev libgif-dev jq unzip wget
 EOT
 WORKDIR /double-take/api
 COPY /api/package.json .
-RUN npm install --production
-RUN curl -L https://gobinaries.com/tj/node-prune | /bin/sh && node-prune
+RUN --mount=type=tmpfs,target=/src <<EOT
+#!/bin/bash
+mkdir -p /src
+cd /src
+wget https://sqlite.org/2022/sqlite-amalgamation-3380500.zip
+unzip sqlite-amalgamation-3380500.zip && rm sqlite-amalgamation-3380500.zip
+mv sqlite* sqlite
+cd sqlite
+sed  -i '1i #define SQLITE_MAX_VARIABLE_NUMBER 65532' sqlite3.c
+
+cd /double-take/api
+npm install --production
+curl -L https://gobinaries.com/tj/node-prune | /bin/sh && node-prune
+EOT
 
 WORKDIR /double-take/frontend
 COPY /frontend/package.json .
@@ -34,7 +39,7 @@ COPY /frontend/public ./public
 COPY /frontend/.env.production /frontend/vue.config.js /frontend/babel.config.js /frontend/.eslintrc.js ./
 
 RUN npm run build
-RUN mv dist /tmp/dist && rm -r * && mv /tmp/dist/* .
+RUN --mount=type=tmpfs,target=/tmp mv dist /tmp/dist && rm -r * && mv /tmp/dist/* .
 
 WORKDIR /
 RUN mkdir /.storage
