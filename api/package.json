@@ -45,6 +45,7 @@
     "socket.io": "^4.5.1",
     "traverse": "^0.6.6",
     "uuid": "^8.3.2",
-    "winston": "^3.7.2"
+    "winston": "^3.7.2",
+    "romanization": "^0.0.1"
   }
 }

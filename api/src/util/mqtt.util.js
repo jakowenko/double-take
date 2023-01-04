@@ -2,6 +2,7 @@ const filesystem = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const mqtt = require('mqtt');
+const romanize = require('romanization');
 const fs = require('./fs.util');
 const { jwt } = require('./auth.util');
 const { AUTH, SERVER, MQTT, FRIGATE, CAMERAS, STORAGE, UI } = require('../constants')();
@@ -231,8 +232,8 @@ module.exports.recognize = (data) => {
     }
 
     matches.forEach((match) => {
-      const topic = match.name.replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, '');
-      const name = match.name.replace(/\s+/g, '_');
+      const topic = romanize(match.name.replace(/\s+/g, '-')).replace(/[^a-z0-9-]/gi, '');
+      const name = romanize(match.name.replace(/\s+/g, '_'));
 
       messages.push({
         topic: `${MQTT.TOPICS.MATCHES}/${topic}`,
@@ -248,7 +249,8 @@ module.exports.recognize = (data) => {
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/config`,
           retain: true,
           message: JSON.stringify({
-            name: `double_take_${name}`,
+            name: `${match.name}`,
+            object_id: `double_take_${name}`,
             icon: 'mdi:account',
             value_template: '{{ value_json.camera }}',
             state_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/state`,
