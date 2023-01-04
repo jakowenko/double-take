@@ -1,8 +1,9 @@
-FROM node:16-bullseye-slim as build
+FROM ubuntu:20.04 as build
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt update
-RUN apt install -y curl bash
+RUN apt-get update && apt-get install -y curl bash
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get install -y nodejs gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg8-dev libgif-dev jq
 
 WORKDIR /double-take/api
 COPY /api/package.json .
@@ -24,23 +25,16 @@ COPY /frontend/.env.production /frontend/vue.config.js /frontend/babel.config.js
 RUN npm run build
 RUN mv dist /tmp/dist && rm -r * && mv /tmp/dist/* .
 
-RUN apt install -y binutils
-RUN find /double-take/ -type f -size +10M -name '*.so.*' | xargs -L1 strip -p -S 
-
-FROM node:16-slim
-
-COPY --from=build /double-take /double-take
-
-WORKDIR /double-take
-RUN npm install nodemon -g
-COPY /.build/entrypoint.sh .
-
-ENV NODE_ENV=production
-
 WORKDIR /
 RUN mkdir /.storage
 RUN ln -s /.storage /double-take/.storage
 
 WORKDIR /double-take
+RUN npm install nodemon -g
+COPY /.build/entrypoint.sh .
 
-ENTRYPOINT ["/bin/sh", "./entrypoint.sh"]
+FROM ubuntu:20.04
+COPY --from=build . .
+ENV NODE_ENV=production
+WORKDIR /double-take
+ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
