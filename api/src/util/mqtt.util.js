@@ -220,6 +220,7 @@ module.exports.recognize = (data) => {
             json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/unknown/state`,
             availability_topic: 'double-take/available',
             unique_id: `double_take_unknown`,
+            expire_after: 600
           }),
         });
 
@@ -257,6 +258,7 @@ module.exports.recognize = (data) => {
             json_attributes_topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/state`,
             availability_topic: 'double-take/available',
             unique_id: `double_take_${name}`,
+            expire_after: 600
           }),
         });
 
