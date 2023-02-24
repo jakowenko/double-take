@@ -30,7 +30,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "^8.0.1",
     "nodemon": "^2.0.16",
-    "prettier": "^2.6.2"
+    "prettier": "^2.8.4"
   },
   "dependencies": {
     "axios": "^1.2.1",
