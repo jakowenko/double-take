@@ -33,7 +33,7 @@
     "js-yaml": "^4.1.0",
     "jsdom": "^19.0.0",
     "jsonschema": "^1.4.1",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
     "luxon": "^2.4.0",
     "mqtt": "^4.3.7",
