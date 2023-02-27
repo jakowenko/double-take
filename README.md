@@ -280,20 +280,27 @@ token:
 ```yaml
 # enable mqtt subscribing and publishing (default: shown below)
 mqtt:
+  protocol: mqtt
   host:
+  port: 1883
   username:
   password:
   client_id:
 
+  # only used when secure protocols such as mqtts (uses port 8883 by default) are used
   tls:
-    # cert chains in PEM format: /path/to/client.crt
-    cert:
-    # private keys in PEM format: /path/to/client.key
-    key:
-    # optionally override the trusted CA certificates: /path/to/ca.crt
+    # list of trusted CA certificates: /path/to/ca.crt
     ca:
-    # if true the server will reject any connection which is not authorized with the list of supplied CAs
+    # double-take will reject any connection to a server which is 
+    # identified with a certificate not found on the supplied CAs list.
+    # set this to disable it, MitM risk, use only for testing.
     reject_unauthorized: false
+
+    # only needed for tls client authentication, cert chain in PEM format: /path/to/client.crt
+    cert:
+    # only needed for tls client authentication, private key in PEM format: /path/to/client.key
+    key:
+
 
   topics:
     # mqtt topic for frigate message subscription
