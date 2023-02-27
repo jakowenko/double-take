@@ -30,6 +30,8 @@ module.exports = {
     min_area: 0,
   },
   mqtt: {
+    protocol: 'mqtt',
+    port: 1883,
     tls: {
       reject_unauthorized: false,
     },
