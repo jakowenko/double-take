@@ -88,15 +88,19 @@ module.exports.connect = () => {
   if (!MQTT || !MQTT.HOST) return;
 
   try {
-    CLIENT = mqtt.connect(`mqtt://${MQTT.HOST}`, {
+    CLIENT = mqtt.connect({
       reconnectPeriod: 10000,
+      protocol: MQTT.PROTOCOL,
+      host: MQTT.HOST,
+      port: MQTT.PORT,
       username: MQTT.USERNAME || MQTT.USER,
       password: MQTT.PASSWORD || MQTT.PASS,
       clientId: MQTT.CLIENT_ID || `double-take-${Math.random().toString(16).substr(2, 8)}`,
       key: MQTT.TLS.KEY ? filesystem.readFileSync(MQTT.TLS.KEY) : null,
       cert: MQTT.TLS.CERT ? filesystem.readFileSync(MQTT.TLS.CERT) : null,
-      ca: MQTT.TLS.CA ? filesystem.readFileSync(MQTT.TLS.CA) : null,
       rejectUnauthorized: MQTT.TLS.REJECT_UNAUTHORIZED === true,
+      // The CA list will be used to determine if server is authorized
+      ca: MQTT.TLS.CA ? filesystem.readFileSync(MQTT.TLS.CA) : null,
     });
 
     CLIENT.on('connect', () => {
