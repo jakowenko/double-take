@@ -183,10 +183,10 @@ export default {
       const index = this.matches.source.findIndex((obj) => obj.id === data.id);
       if (index !== -1) this.matches.source[index] = data;
     });
-    this.emitter.on('paginate', (value) => {
+    this.emitter.on('paginate', async (value) => {
       this.pagination.temp = value;
       this.clear(['source', 'selected', 'disabled', 'loaded']);
-      this.get().matches();
+      await this.get().matches({ filters: false });
     });
   },
   methods: {
