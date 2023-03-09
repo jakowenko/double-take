@@ -134,7 +134,7 @@ export default {
       this.headerHeight = this.$refs.header.getHeight();
       if (this.socket) {
         this.socket.on('recognize', (/* message */) => {
-          if (this.socketEnabled) this.get().matches();
+          if (this.socketEnabled) this.get().matches({ filters: false });
         });
       }
       this.get().matches();
