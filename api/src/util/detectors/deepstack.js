@@ -68,6 +68,10 @@ module.exports.normalize = ({ camera, data }) => {
     return [];
   }
   const { MATCH, UNKNOWN } = config.detect(camera);
+  if (!data.predictions) {
+    console.warn('unexpected deepstack predictions data');
+    return [];
+  }
   const normalized = data.predictions.flatMap((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
     const output = {

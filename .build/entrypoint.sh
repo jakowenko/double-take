@@ -22,6 +22,6 @@ elif [ "$CONFIG_PATH" ]
 then
   PATHS="$PATHS --watch ./.storage/config";
 fi
-
+#/usr/local/bin/sqlite_web -p 8888 -H 0.0.0.0 -x -r /.storage/database.db &
 node -e 'require("./api/src/constants")()'
 exec nodemon -e yml,yaml $PATHS -q api/server.js

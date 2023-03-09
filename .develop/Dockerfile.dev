@@ -1,10 +1,21 @@
+# syntax = docker/dockerfile-upstream:master-labs
 FROM ubuntu:20.04 as build
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y curl bash
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt-get install -y nodejs gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg8-dev libgif-dev
+RUN apt-get install -y nodejs gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg8-dev libgif-dev unzip wget
 
+ADD https://sqlite.org/2023/sqlite-amalgamation-3410000.zip /tmp/
+RUN <<EOT
+#!/bin/bash
+mkdir -p /src
+cd /src
+unzip /tmp/sqlite-amalgamation-3410000.zip && rm /tmp/sqlite-amalgamation-3410000.zip
+mv sqlite* sqlite
+cd sqlite
+sed  -i '1i #define SQLITE_MAX_VARIABLE_NUMBER 65532' sqlite3.c
+EOT
 WORKDIR /double-take/api
 COPY /api/package.json .
 RUN npm install --production

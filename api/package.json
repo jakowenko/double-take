@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "debug": "nodemon server.js",
-    "preinstall": "npm install better-sqlite3@'^7.5.3' --no-save --build-from-source --sqlite3=\"/src/sqlite\""
+    "preinstall": "npm install --build-from-source better-sqlite3@'^8.2.0' --sqlite3=\"/src/sqlite\" && npm install --build-from-source canvas"
   },
   "repository": {
     "type": "git",
@@ -22,7 +22,6 @@
     "@mhoc/axios-digest-auth": "^0.8.0",
     "archiver": "^5.3.1",
     "axios": "^0.27.2",
-    "canvas": "^2.9.1",
     "cors": "^2.8.5",
     "execution-time": "^1.4.1",
     "express": "^4.18.1",
