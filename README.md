@@ -506,7 +506,6 @@ detectors:
 
   aiserver:
     url:
-    key:
     # number of seconds before the request times out and is aborted
     timeout: 15
     # require opencv to find a face before processing with detector

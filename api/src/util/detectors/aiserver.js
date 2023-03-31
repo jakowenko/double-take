@@ -11,7 +11,7 @@ module.exports.recognize = async ({ key }) => {
   const { URL, KEY } = AISERVER;
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
-  if (KEY) formData.append('api_key', KEY);
+  //if (KEY) formData.append('api_key', KEY);
   return axios({
     method: 'post',
     timeout: AISERVER.TIMEOUT * 1000,
