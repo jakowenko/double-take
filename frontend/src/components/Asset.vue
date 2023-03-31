@@ -340,6 +340,9 @@ export default {
   .icon.deepstack {
     background: var(--orange-600);
   }
+  .icon.aiserver {
+    background: var(--orange-600);
+  }
   .icon.facebox {
     background: var(--indigo-600);
   }
@@ -456,6 +459,9 @@ img.thumbnail {
   border-color: var(--blue-600);
 }
 .box.deepstack {
+  border-color: var(--orange-600);
+}
+.box.aiserver {
   border-color: var(--orange-600);
 }
 .box.facebox {

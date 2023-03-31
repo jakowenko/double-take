@@ -56,6 +56,10 @@ module.exports = {
       timeout: 15,
       opencv_face_required: false,
     },
+    aiserver: {
+      timeout: 15,
+      opencv_face_required: false,
+    },
     facebox: {
       timeout: 15,
       opencv_face_required: false,

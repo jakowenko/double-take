@@ -395,6 +395,7 @@ export default {
     formatName(name) {
       if (name === 'compreface') return 'CompreFace';
       if (name === 'deepstack') return 'DeepStack';
+      if (name === 'aiserver') return 'AI.Server';
       if (name === 'facebox') return 'Facebox';
       if (name === 'rekognition') return 'Rekognition';
       return name;
