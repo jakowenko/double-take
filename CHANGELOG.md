@@ -1,3 +1,9 @@
+## [1.13.2](https://github.com/skrashevich/double-take/compare/v1.13.1...v1.13.2)
+
+Migrate from vue to vite
+add ai.server detector
+bug fixes
+
 ## [1.13.1](https://github.com/jakowenko/double-take/compare/v1.13.0...v1.13.1) (2022-10-27)
 
 

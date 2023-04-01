@@ -1,27 +1,29 @@
 {
   "name": "double-take-api",
-  "version": "1.13.1",
+  "version": "1.13.2",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "start": "node server.js",
     "debug": "nodemon server.js",
-    "preinstall": "npm install --build-from-source better-sqlite3@'^8.2.0' --sqlite3=\"/src/sqlite\" && npm install --build-from-source canvas"
+    "preinstall": ""
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jakowenko/double-take.git"
+    "url": "https://github.com/skrashevich/double-take.git"
   },
   "author": "David Jakowenko",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jakowenko/double-take/issues"
+    "url": "https://github.com/skrashevich/double-take/issues"
   },
-  "homepage": "https://github.com/jakowenko/double-take#readme",
+  "homepage": "https://github.com/skrashevich/double-take#readme",
   "dependencies": {
     "@aws-sdk/client-rekognition": "^3.105.0",
     "@mhoc/axios-digest-auth": "^0.8.0",
     "archiver": "^5.3.1",
     "axios": "^0.27.2",
+    "better-sqlite3": "^8.2.0",
+    "canvas": "^2.11.0",
     "cors": "^2.8.5",
     "execution-time": "^1.4.1",
     "express": "^4.18.1",
@@ -40,11 +42,11 @@
     "node-schedule": "^2.1.0",
     "probe-image-size": "^7.2.3",
     "read-last-lines": "^1.8.0",
+    "romanization": "^0.0.1",
     "sharp": "^0.30.4",
     "socket.io": "^4.5.1",
     "traverse": "^0.6.6",
     "uuid": "^8.3.2",
-    "winston": "^3.7.2",
-    "romanization": "^0.0.1"
+    "winston": "^3.7.2"
   }
 }
