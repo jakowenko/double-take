@@ -1,4 +1,4 @@
-[![Double Take](https://badgen.net/github/release/jakowenko/double-take/stable)](https://github.com/jakowenko/double-take) [![Double Take](https://badgen.net/github/stars/jakowenko/double-take)](https://github.com/jakowenko/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/jakowenko/double-take)](https://hub.docker.com/r/jakowenko/double-take) [![Discord](https://flat.badgen.net/discord/members/3pumsskdN5?label=Discord)](https://discord.gg/3pumsskdN5)
+[![Double Take](https://badgen.net/github/release/skrashevich/double-take/stable)](https://github.com/skrashevich/double-take) [![Double Take](https://badgen.net/github/stars/skrashevich/double-take)](https://github.com/skrashevich/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/skrashevich/double-take)](https://hub.docker.com/r/skrashevich/double-take) [![Discord](https://flat.badgen.net/discord/members/3pumsskdN5?label=Discord)](https://discord.gg/3pumsskdN5)
 
 # Double Take
 
@@ -14,7 +14,7 @@ There's a lot of great open source software to perform facial recognition, but e
 
 ## Features
 
-- Responsive UI and API bundled into single [Docker image](https://hub.docker.com/r/jakowenko/double-take)
+- Responsive UI and API bundled into single [Docker image](https://hub.docker.com/r/skrashevich/double-take)
 - Ability to [password protect](#authentication) UI and API
 - Support for [multiple detectors](#supported-detectors)
 - Train and untrain images for subjects
@@ -29,7 +29,6 @@ There's a lot of great open source software to perform facial recognition, but e
 
 - amd64
 - arm64
-- arm/v7
 
 ### Supported Detectors
 
@@ -246,7 +245,7 @@ volumes:
 services:
   double-take:
     container_name: double-take
-    image: jakowenko/double-take
+    image: skrashevich/double-take
     restart: unless-stopped
     volumes:
       - double-take:/.storage

@@ -6,7 +6,7 @@ volumes:
 services:
   double-take:
     container_name: double-take
-    image: jakowenko/double-take
+    image: skrashevich/double-take
     restart: unless-stopped
     volumes:
       - double-take:/.storage

@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jakowenko/double-take.git"
+    "url": "git+https://github.com/skrashevich/double-take.git"
   },
   "author": "David Jakowenko",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jakowenko/double-take/issues"
+    "url": "https://github.com/skrashevich/double-take/issues"
   },
-  "homepage": "https://github.com/jakowenko/double-take#readme",
+  "homepage": "https://github.com/skrashevich/double-take#readme",
   "devDependencies": {
     "@commitlint/cli": "^17.0.2",
     "@commitlint/config-conventional": "^17.4.4",

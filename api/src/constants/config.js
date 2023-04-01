@@ -36,12 +36,12 @@ module.exports = () => {
   setup(
     'config.yml',
     SYSTEM_CORE.storage.config.path,
-    '# Double Take\n# Learn more at https://github.com/jakowenko/double-take/#configuration'
+    '# Double Take\n# Learn more at https://github.com/skrashevich/double-take/#configuration'
   );
   setup(
     `secrets.${SYSTEM_CORE.storage.secrets.extension}`,
     SYSTEM_CORE.storage.secrets.path,
-    '# Use this file to store secrets like usernames and passwords\n# Learn more at https://github.com/jakowenko/double-take/#storing-secrets\nsome_password: welcome'
+    '# Use this file to store secrets like usernames and passwords\n# Learn more at https://github.com/skrashevich/double-take/#storing-secrets\nsome_password: welcome'
   );
 
   CONFIG = { ...loadYaml(`${SYSTEM_CORE.storage.config.path}/config.yml`) };
