@@ -3,6 +3,9 @@ module.exports = {
   parserOptions: {
     sourceType: 'module',
   },
+  env: {
+    es2022: true
+  },
   extends: ['plugin:vue/vue3-essential', '@vue/prettier', '@vue/airbnb'],
   rules: {
     // Only allow debugger in development
@@ -11,6 +14,7 @@ module.exports = {
     'no-console': process.env.PRE_COMMIT
       ? ['error', { allow: ['warn', 'error'] }]
       : ['warn', { allow: ['warn', 'error'] }],
+    "vue/multi-word-component-names" : "off",
     'max-len': 0,
     // Allow object properties to be reassigned.
     'no-param-reassign': ['error', { props: false }],
@@ -60,6 +64,7 @@ module.exports = {
     'vuejs-accessibility/click-events-have-key-events': 'off',
     'vuejs-accessibility/anchor-has-content': 'off',
     'vuejs-accessibility/mouse-events-have-key-events': 'off',
+    'vuejs-accessibility/no-static-element-interactions': 'off',
     'vue/multi-word-component-names': 'off',
     'no-promise-executor-return': 'off',
 
@@ -85,7 +90,7 @@ module.exports = {
     {
       files: ['src/**/*', 'tests/unit/**/*', 'tests/e2e/**/*'],
       parserOptions: {
-        parser: '@babel/eslint-parser',
+
         sourceType: 'module',
       },
       env: {

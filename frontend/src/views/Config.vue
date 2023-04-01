@@ -124,12 +124,10 @@
 import PullToRefresh from 'pulltorefreshjs';
 import copy from 'copy-to-clipboard';
 
-import 'ace-builds';
-import 'ace-builds/webpack-resolver';
-
 import { VAceEditor } from 'vue3-ace-editor';
+import 'ace-builds/src-noconflict/theme-nord_dark';
+import 'ace-builds/src-noconflict/theme-monokai';
 import 'ace-builds/src-noconflict/mode-yaml';
-
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import { highlight, languages } from 'prismjs/components/prism-core';
@@ -203,44 +201,8 @@ export default {
         'viva-dark',
       ],
       editor: [
-        'ambiance',
-        'chaos',
-        'chrome',
-        'clouds_midnight',
-        'clouds',
-        'cobalt',
-        'crimson_editor',
-        'dawn',
-        'dracula',
-        'dreamweaver',
-        'eclipse',
-        'github',
-        'gob',
-        'gruvbox',
-        'idle_fingers',
-        'iplastic',
-        'katzenmilch',
-        'kr_theme',
-        'kuroir',
-        'merbivore_soft',
-        'merbivore',
-        'mono_industrial',
         'monokai',
         'nord_dark',
-        'pastel_on_dark',
-        'solarized_dark',
-        'solarized_light',
-        'sqlserver',
-        'terminal',
-        'textmate',
-        'tomorrow_night_blue',
-        'tomorrow_night_bright',
-        'tomorrow_night_eighties',
-        'tomorrow_night',
-        'tomorrow',
-        'twilight',
-        'vibrant_ink',
-        'xcode',
       ],
     },
     doubleTake: {
