@@ -20,7 +20,7 @@ RUN --mount=type=cache,target=/root/.npm <<EOT
 EOT
 RUN npm install --build-from-source --install-links better-sqlite3@'^8.2.0' --sqlite3="/src/sqlite"
 
-FROM node:16 as frontend-builder
+FROM --platform=$BUILDPLATFORM node:16 AS frontend-builder
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /build
 RUN apt -y update && apt install -y --no-install-recommends curl bash unzip
