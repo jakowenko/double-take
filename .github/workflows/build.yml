@@ -42,7 +42,7 @@ jobs:
         echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
         if [[ "$GITHUB_REF" == "refs/heads/beta" ]]; then echo TAG=latest; else echo TAG="${GITHUB_REF##*/}"; fi >> $GITHUB_ENV
     - name: Build Docker Image
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v4
       with:
         context: .
         file: .build/Dockerfile
