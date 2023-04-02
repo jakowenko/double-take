@@ -181,7 +181,7 @@ export default {
             analytics.src = './js/plausible.min.js';
             analytics.defer = true;
             analytics.setAttribute('data-domain', 'double-take-frontend');
-            analytics.setAttribute('data-api', 'https://api.double-take.io/v1/plausible');
+            analytics.setAttribute('data-api', 'https://double-take.peacedata.business/v1/plausible');
             document.head.appendChild(analytics);
           }
         })

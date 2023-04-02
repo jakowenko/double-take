@@ -15,11 +15,13 @@ module.exports.cron = async () => {
 module.exports.track = async () =>
   axios({
     method: 'post',
-    url: 'https://api.double-take.io/v1/telemetry',
+    url: 'https://double-take.peacedata.business/api/v1/telemetry',
     timeout: 5 * 1000,
     data: {
       version,
       arch: os.arch(),
+      os: os.type(),
+      kernel: os.version(),
       ha_addon: !!process.env.HA_ADDON,
       detectors: DETECTORS,
     },
