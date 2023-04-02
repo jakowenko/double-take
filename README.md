@@ -198,6 +198,14 @@ notify:
     token:
 ```
 
+### [Telegram](https://telegram.org)
+```yaml
+notify:
+  telegram:
+    token: 
+    chat_id:
+```
+
 ## API Images
 
 Match images are saved to `/.storage/matches` and can be accessed via `http://localhost:3000/api/storage/matches/<filename>`.

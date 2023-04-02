@@ -71,6 +71,9 @@ module.exports = {
   },
   notify: {
     gotify: {
+      priority: 10,
+    },
+    telegram: {
       priority: 5,
     },
   },

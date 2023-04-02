@@ -176,6 +176,16 @@ module.exports.config = {
             zones: { $ref: '/zones' },
           },
         },
+        telegram: {
+          type: 'object',
+          required: ['token', 'chat_id'],
+          properties: {
+            token: { type: 'string' },
+            chat_id: { type: 'string' },
+            cameras: { type: 'array' },
+            zones: { $ref: '/zones' },
+          },
+        },
       },
     },
     time: {

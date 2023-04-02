@@ -65,6 +65,8 @@ module.exports = () => {
   CONFIG = _.isEmpty(CONFIG) ? DEFAULTS : _.mergeWith(DEFAULTS, CONFIG, customizer);
   if (CONFIG?.notify?.gotify)
     CONFIG.notify.gotify = _.mergeWith(NOTIFY.gotify, CONFIG.notify.gotify, customizer);
+  if (CONFIG?.notify?.telegram)
+    CONFIG.notify.telegram = _.mergeWith(NOTIFY.telegram, CONFIG.notify.telegram, customizer);
 
   let needsOpenCv = false;
   if (CONFIG.detectors)
