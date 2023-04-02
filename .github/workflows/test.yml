@@ -27,7 +27,7 @@ jobs:
         mkdir -p /tmp/config
         echo -e "detectors:\n  deepstack:\n    url: http://localhost:5000" > /tmp/config/config.yml
     - name: Build Docker Image
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v4
       with:
         context: .
         file: .build/Dockerfile
