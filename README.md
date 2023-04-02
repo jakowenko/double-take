@@ -1,4 +1,4 @@
-[![Double Take](https://badgen.net/github/release/skrashevich/double-take/stable)](https://github.com/skrashevich/double-take) [![Double Take](https://badgen.net/github/stars/skrashevich/double-take)](https://github.com/skrashevich/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/skrashevich/double-take)](https://hub.docker.com/r/skrashevich/double-take) [![Discord](https://flat.badgen.net/discord/members/3pumsskdN5?label=Discord)](https://discord.gg/3pumsskdN5)
+[![Double Take](https://badgen.net/github/release/skrashevich/double-take/stable)](https://github.com/skrashevich/double-take) [![Double Take](https://badgen.net/github/stars/skrashevich/double-take)](https://github.com/skrashevich/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/skrashevich/double-take)](https://hub.docker.com/r/skrashevich/double-take)
 
 # Double Take
 
