@@ -110,7 +110,7 @@ module.exports.config = {
       anyOf: [
         { required: ['compreface'] },
         { required: ['deepstack'] },
-        { required: ['aiseerver'] },
+        { required: ['aiserver'] },
         { required: ['facebox'] },
         { required: ['rekognition'] },
       ],
