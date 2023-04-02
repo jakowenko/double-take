@@ -50,8 +50,8 @@ jobs:
         tags: |
           ghcr.io/${{ steps.lowercaseRepo.outputs.lowercase }}:${{ env.SHORT_SHA }}
           ghcr.io/${{ steps.lowercaseRepo.outputs.lowercase }}:${{ env.TAG }}
-          ${{ secrets.DOCKER_USERNAME }}:${{ env.SHORT_SHA }}
-          ${{ secrets.DOCKER_USERNAME }}:${{ env.TAG }}
+          ${{ steps.lowercaseRepo.outputs.lowercase }}:${{ env.SHORT_SHA }}
+          ${{ steps.lowercaseRepo.outputs.lowercase }}:${{ env.TAG }}
         platforms: ${{ matrix.platform }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
