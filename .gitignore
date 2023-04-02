@@ -11,3 +11,4 @@ frontend/dist
 .env
 .env.*.local
 config.yml
+package-lock.json
