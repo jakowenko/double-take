@@ -30,9 +30,8 @@ module.exports = {
     min_area: 0,
   },
   mqtt: {
-    tls: {
-      reject_unauthorized: false,
-    },
+    protocol: 'mqtt',
+    tls: {},
     topics: {
       frigate: 'frigate/events',
       matches: 'double-take/matches',
