@@ -63,13 +63,15 @@ WORKDIR /double-take
 COPY --link --from=frontend-builder /build/dist ./frontend
 RUN --mount=type=cache,target=/root/.npm npm install nodemon -g
 RUN cp /lib/`uname -m`-linux-gnu/libuuid.so.1.3.0 /lib/
+RUN cp /lib/`uname -m`-linux-gnu/libpixman-1.so.0.36.0 /lib/
 #COPY /.build/entrypoint.sh .
 
 #COPY --from=sqlite-web /src/dist/sqlite_web /usr/local/bin/sqlite_web
 
 FROM gcr.io/distroless/nodejs16-debian11
 COPY --link --from=build /double-take /double-take
-COPY --from=build /lib/libuuid.so.1.3.0 /lib/libuuid.so.1
+COPY --link --from=build /lib/libuuid.so.1.3.0 /lib/libuuid.so.1
+COPY --link --from=build /lib/libpixman-1.so.0.36.0 /lib/libpixman-1.so.0
 ENV NODE_ENV=production
 WORKDIR /double-take
 EXPOSE 3000
