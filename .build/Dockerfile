@@ -7,13 +7,6 @@ RUN pyinstaller --clean --onefile sqlite_web/sqlite_web.py
 
 FROM node:16 as better-sqlite3-builder
 ARG DEBIAN_FRONTEND=noninteractive
-# Prepare apt for buildkit cache
-RUN rm -f /etc/apt/apt.conf.d/docker-clean \
-  && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
-apt -y update
-apt install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev
-EOT
 ADD https://sqlite.org/2023/sqlite-amalgamation-3410000.zip /tmp/
 WORKDIR /build
 RUN --mount=type=cache,target=/root/.npm <<EOT
@@ -51,7 +44,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,t
 apt -y update
 apt install -y curl bash jq unzip wget
  #curl -sL https://deb.nodesource.com/setup_16.x | bash -
- #apt install -y gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg8-dev libgif-dev
+ apt install -y gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev
 EOT
 WORKDIR /double-take/api
 COPY /api/package.json .
