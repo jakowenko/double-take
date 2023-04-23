@@ -98,8 +98,8 @@ module.exports.connect = () => {
       key: MQTT.TLS.KEY ? filesystem.readFileSync(MQTT.TLS.KEY) : null,
       cert: MQTT.TLS.CERT ? filesystem.readFileSync(MQTT.TLS.CERT) : null,
       ca: MQTT.TLS.CA ? filesystem.readFileSync(MQTT.TLS.CA) : null,
-      rejectUnauthorized: MQTT.TLS.REJECT_UNAUTHORIZED === true,
-      protocol: MQTT.TLS ? 'mqtts' : 'mqtt',
+      rejectUnauthorized: MQTT.TLS.REJECT_UNAUTHORIZED ? MQTT.TLS.REJECT_UNAUTHORIZED : true,
+      protocol: MQTT.PROTOCOL ? MQTT.PROTOCOL : 'mqtt',
     });
 
     CLIENT.on('connect', () => {
