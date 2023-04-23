@@ -85,7 +85,7 @@ COPY --link --from=frontend-builder /build/dist ./frontend
 RUN --mount=type=cache,target=/root/.npm npm install nodemon -g
 RUN mkdir -p /opt/lib
 COPY --link --from=canvas-builder /opt/* /opt/lib/
-RUN cp /lib/`uname -m`-linux-gnu/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
+RUN cp /lib/*-linux-gnu*/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
 
 #COPY /.build/entrypoint.sh .
 
