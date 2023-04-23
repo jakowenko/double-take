@@ -86,6 +86,7 @@ RUN --mount=type=cache,target=/root/.npm npm install nodemon -g
 RUN mkdir -p /opt/lib
 RUN cp /lib/`uname -m`-linux-gnu/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
 RUN cp /lib/`uname -m`-linux-gnu/libz.so.1.2.11 /opt/lib/libz.so.1
+RUN cp /usr/lib/`uname -m`-linux-gnu/libfontconfig.so.1.12.0 /opt/lib/libfontconfig.so.1
 #COPY /.build/entrypoint.sh .
 
 #COPY --from=sqlite-web /src/dist/sqlite_web /usr/local/bin/sqlite_web
