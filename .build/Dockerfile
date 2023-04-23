@@ -49,7 +49,7 @@ EOT
 WORKDIR /double-take/api
 COPY /api/package.json .
 
-RUN --mount=type=cache,target=/root/.npm npm --install-links install
+RUN --mount=type=cache,target=/root/.npm npm install
 COPY --link --from=better-sqlite3-builder /build/node_modules/better-sqlite3 ./node_modules/better-sqlite3
 
 WORKDIR /double-take/api
@@ -62,6 +62,9 @@ RUN mkdir /.storage && ln -s /.storage /double-take/.storage
 WORKDIR /double-take
 COPY --link --from=frontend-builder /build/dist ./frontend
 RUN --mount=type=cache,target=/root/.npm npm install nodemon -g
+RUN mkdir -p /opt/lib
+RUN cp /lib/`uname -m`-linux-gnu/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
+RUN if [ `uname -m` == "aarch64" ]; then cp /lib/`uname -m`-linux-gnu/* /opt/lib/; cp /usr/lib/`uname -m`-linux-gnu/* /opt/lib/; fi
 
 #COPY /.build/entrypoint.sh .
 
@@ -69,6 +72,7 @@ RUN --mount=type=cache,target=/root/.npm npm install nodemon -g
 
 FROM gcr.io/distroless/nodejs16-debian11
 COPY --link --from=build /double-take /double-take
+COPY --from=build /opt/lib/* /lib/
 
 ENV NODE_ENV=production
 WORKDIR /double-take
