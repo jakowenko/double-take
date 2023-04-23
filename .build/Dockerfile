@@ -91,7 +91,7 @@ RUN cp /lib/`uname -m`-linux-gnu/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
 
 #COPY --from=sqlite-web /src/dist/sqlite_web /usr/local/bin/sqlite_web
 
-FROM gcr.io/distroless/nodejs16-debian11
+FROM node:16-slim
 COPY --link --from=build /double-take /double-take
 COPY --from=build /opt/lib/* /lib/
 
