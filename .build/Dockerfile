@@ -38,7 +38,7 @@ WORKDIR /src
 RUN npm install --ignore-scripts
 RUN cp ./prebuild/Linux/binding.gyp ./binding.gyp
 RUN node-gyp rebuild -j $(nproc)
-RUN cd build/Release && cp `lddtree -l canvas.node | grep -v 'canvas.node'` ./ 
+RUN cd build/Release && cp `lddtree -l canvas.node | grep -v 'canvas.node'` /opt/
 
 FROM --platform=$BUILDPLATFORM node:16 AS frontend-builder
 ARG DEBIAN_FRONTEND=noninteractive
@@ -84,6 +84,7 @@ WORKDIR /double-take
 COPY --link --from=frontend-builder /build/dist ./frontend
 RUN --mount=type=cache,target=/root/.npm npm install nodemon -g
 RUN mkdir -p /opt/lib
+COPY --link --from=canvas-builder /opt/* /opt/lib/
 RUN cp /lib/`uname -m`-linux-gnu/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
 
 #COPY /.build/entrypoint.sh .
