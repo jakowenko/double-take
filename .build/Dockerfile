@@ -20,6 +20,26 @@ RUN --mount=type=cache,target=/root/.npm <<EOT
 EOT
 RUN npm install --build-from-source --install-links better-sqlite3@'^8.2.0' --sqlite3="/src/sqlite"
 
+
+FROM node:16 as canvas-builder
+ARG DEBIAN_FRONTEND=noninteractive
+# Prepare apt for buildkit cache
+RUN rm -f /etc/apt/apt.conf.d/docker-clean \
+  && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
+apt -y update
+apt install -y build-essential libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev pax-utils
+ln -s /usr/bin/lddtree /usr/bin/lddtree.sh
+EOT
+RUN npm install -g node-gyp
+ADD https://github.com/Automattic/node-canvas.git#v2.11.2 /src
+WORKDIR /src
+RUN npm install --ignore-scripts
+RUN cp ./prebuild/Linux/binding.gyp ./binding.gyp
+RUN node-gyp rebuild -j $(nproc)
+RUN bash ./prebuild/Linux/bundle.sh
+
 FROM --platform=$BUILDPLATFORM node:16 AS frontend-builder
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /build
@@ -51,6 +71,7 @@ COPY /api/package.json .
 
 RUN --mount=type=cache,target=/root/.npm npm install
 COPY --link --from=better-sqlite3-builder /build/node_modules/better-sqlite3 ./node_modules/better-sqlite3
+COPY --link --from=canvas-builder /src ./node_modules/canvas
 
 WORKDIR /double-take/api
 COPY /api/server.js .
@@ -64,8 +85,6 @@ COPY --link --from=frontend-builder /build/dist ./frontend
 RUN --mount=type=cache,target=/root/.npm npm install nodemon -g
 RUN mkdir -p /opt/lib
 RUN cp /lib/`uname -m`-linux-gnu/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
-RUN if [ `uname -m` == "aarch64" ]; then cp /lib/`uname -m`-linux-gnu/* /opt/lib/; cp /usr/lib/`uname -m`-linux-gnu/* /opt/lib/; fi
-
 #COPY /.build/entrypoint.sh .
 
 #COPY --from=sqlite-web /src/dist/sqlite_web /usr/local/bin/sqlite_web
