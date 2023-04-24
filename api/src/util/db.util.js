@@ -118,7 +118,7 @@ function getUntrained(name) {
     const db = connect();
     return db
       .prepare(
-        `SELECT * FROM file WHERE id NOT IN (SELECT fileId FROM train WHERE meta IS NOT NULL AND detector IN (${database.params(
+        `SELECT * FROM file WHERE id NOT IN (SELECT fileId FROM train WHERE meta IS NOT NULL AND detector IN (${params(
           DETECTORS
         )})) AND name = ? AND isActive = 1`
       )
@@ -195,6 +195,10 @@ function updateMatch({ id, event, response }) {
     });
 };
 
+function params(array) {
+  return '?,'.repeat(array.length).slice(0, -1);
+};
+
 module.exports = {
   init,
   connect,
@@ -215,6 +219,6 @@ module.exports = {
   resync: {
     files: resync,
   },
+  params: params,
 }
 
-module.exports.params = (array) => '?,'.repeat(array.length).slice(0, -1);
