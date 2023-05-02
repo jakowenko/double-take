@@ -1,3 +1,7 @@
+## [1.13.5](https://github.com/skrashevich/double-take/compare/v1.13.4...v1.13.5)
+
+added device_tracker object to mqtt for each recognized person
+
 ## [1.13.4](https://github.com/skrashevich/double-take/compare/v1.13.3...v1.13.4)
 
 Return support of arm(64) architectures
