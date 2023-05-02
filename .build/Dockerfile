@@ -91,6 +91,24 @@ RUN cp /lib/*-linux-gnu*/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
 
 #COPY --from=sqlite-web /src/dist/sqlite_web /usr/local/bin/sqlite_web
 
+FROM node:16 as debug
+ARG DEBIAN_FRONTEND=noninteractive
+# Prepare apt for buildkit cache
+RUN rm -f /etc/apt/apt.conf.d/docker-clean \
+  && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
+COPY --link --from=build /double-take /double-take
+COPY --from=build /opt/lib/* /lib/
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
+apt update
+apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl
+EOT
+
+ENV NODE_ENV=production
+WORKDIR /double-take
+EXPOSE 3000
+CMD ["api/server.js"]
+
 FROM node:16-slim
 COPY --link --from=build /double-take /double-take
 COPY --from=build /opt/lib/* /lib/

@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: ['linux/amd64,linux/arm64,linux/arm/v7']
+        target: ['','debug']
       fail-fast: false
     steps:
     - id: lowercaseRepo
@@ -46,13 +46,14 @@ jobs:
       with:
         context: .
         file: .build/Dockerfile
+        target: ${{ matrix.target }}
         push: true
         tags: |
           ghcr.io/${{ steps.lowercaseRepo.outputs.lowercase }}:${{ env.SHORT_SHA }}
-          ghcr.io/${{ steps.lowercaseRepo.outputs.lowercase }}:${{ env.TAG }}
+          ghcr.io/${{ steps.lowercaseRepo.outputs.lowercase }}:${{ env.TAG }}${{ matrix.target }}
           ${{ steps.lowercaseRepo.outputs.lowercase }}:${{ env.SHORT_SHA }}
-          ${{ steps.lowercaseRepo.outputs.lowercase }}:${{ env.TAG }}
-        platforms: ${{ matrix.platform }}
+          ${{ steps.lowercaseRepo.outputs.lowercase }}:${{ env.TAG }}${{ matrix.target }}
+        platforms: linux/amd64,linux/arm64,linux/arm/v7
         cache-from: type=gha
         cache-to: type=gha,mode=max
     - name: Sync
