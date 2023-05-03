@@ -120,6 +120,7 @@ module.exports.config = {
           required: ['url', 'key'],
           properties: {
             url: { type: 'string' },
+            key: { type: 'string' },
             opencv_face_required: { type: 'boolean' },
             cameras: { type: 'array' },
           },
@@ -129,6 +130,7 @@ module.exports.config = {
           required: ['url'],
           properties: {
             url: { type: 'string' },
+            key: { type: 'string' },
             opencv_face_required: { type: 'boolean' },
             cameras: { type: 'array' },
           },

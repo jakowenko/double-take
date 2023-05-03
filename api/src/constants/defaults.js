@@ -1,5 +1,5 @@
 module.exports = {
-  telemetry: true,
+  telemetry: false,
   auth: false,
   token: {
     image: '24h',

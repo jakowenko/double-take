@@ -8,10 +8,10 @@ const config = require('../../constants/config');
 const { AISERVER } = DETECTORS || {};
 
 module.exports.recognize = async ({ key }) => {
-  const { URL, KEY } = AISERVER;
+  const { URL } = AISERVER;
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
-  //if (KEY) formData.append('api_key', KEY);
+
   return axios({
     method: 'post',
     timeout: AISERVER.TIMEOUT * 1000,
@@ -27,11 +27,11 @@ module.exports.recognize = async ({ key }) => {
 };
 
 module.exports.train = ({ name, key }) => {
-  const { URL, KEY } = AISERVER;
+  const { URL } = AISERVER;
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
   formData.append('userid', name);
-  if (KEY) formData.append('api_key', KEY);
+
   return axios({
     method: 'post',
     timeout: AISERVER.TIMEOUT * 1000,
@@ -44,10 +44,10 @@ module.exports.train = ({ name, key }) => {
 };
 
 module.exports.remove = ({ name }) => {
-  const { URL, KEY } = AISERVER;
+  const { URL } = AISERVER;
   const formData = new FormData();
   formData.append('userid', name);
-  if (KEY) formData.append('api_key', KEY);
+
   return axios({
     method: 'post',
     timeout: AISERVER.TIMEOUT * 1000,

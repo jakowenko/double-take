@@ -104,16 +104,22 @@ apt update
 apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl
 EOT
 
+RUN npm install nodemon -g
+
 ENV NODE_ENV=production
 WORKDIR /double-take
 EXPOSE 3000
-CMD ["api/server.js"]
+COPY .build/entrypoint.sh ./
+ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
 
 FROM node:16-slim
 COPY --link --from=build /double-take /double-take
 COPY --from=build /opt/lib/* /lib/
 
+RUN npm install nodemon -g
+
 ENV NODE_ENV=production
 WORKDIR /double-take
+COPY .build/entrypoint.sh ./
 EXPOSE 3000
-CMD ["api/server.js"]
+ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
