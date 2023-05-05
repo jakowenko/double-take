@@ -1,3 +1,7 @@
+## [1.13.6](https://github.com/skrashevich/double-take/compare/v1.13.5...v1.13.6)
+
+bugfixes
+
 ## [1.13.5](https://github.com/skrashevich/double-take/compare/v1.13.4...v1.13.5)
 
 added device_tracker object to mqtt for each recognized person
