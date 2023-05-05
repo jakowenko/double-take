@@ -44,10 +44,9 @@ FROM --platform=$BUILDPLATFORM node:16 AS frontend-builder
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /build
 RUN apt -y update && apt install -y --no-install-recommends curl bash unzip
-ENV BUN_INSTALL /usr/local/
-RUN curl -fsSL https://bun.sh/install | bash
+
 COPY /frontend/package.json .
-RUN --mount=type=cache,target=/root/.npm bun install --cache-dir=/root/.npm/_buncache
+RUN --mount=type=cache,target=/root/.npm npm install
 COPY /frontend/src ./src
 COPY /frontend/public ./public
 COPY /frontend/.env.production /frontend/vue.config.js /frontend/vite.config.js /frontend/.eslintrc.js /frontend/index.html ./
