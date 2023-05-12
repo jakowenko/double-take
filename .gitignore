@@ -6,9 +6,14 @@ frontend/dist
 
 # api
 .storage
+models
 
 # local env files
 .env
 .env.*.local
 config.yml
 package-lock.json
+
+*.log
+*.pid
+*.db
