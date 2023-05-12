@@ -119,7 +119,7 @@ COPY --from=build /opt/lib/* /lib/
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
 apt update
-apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl libblas3 libdlib-data libdlib19 libgfortran5 liblapack3
+apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl libblas3 libdlib-data libdlib19 libgfortran5 liblapack3 libatlas-base-dev
 EOT
 
 COPY --from=recognizer-builder /src/recognizer /usr/local/bin/recognizer
