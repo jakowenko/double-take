@@ -39,6 +39,11 @@ const (
 	//storageDir = "./.storage"
 )
 
+type DummyResponse struct {
+	Success bool `json:"success"`
+	Code    uint `json:"code"`
+}
+
 type Response struct {
 	Success bool   `json:"success"`
 	Faces   []Face `json:"faces"`
@@ -51,6 +56,12 @@ type Face struct {
 	Y          float64 `json:"y"`
 	W          float64 `json:"w"`
 	H          float64 `json:"h"`
+}
+
+type FaceListResponse struct {
+	Success bool     `json:"success"`
+	Faces   []string `json:"faces"`
+	Code    uint     `json:"code"`
 }
 
 func respondJSON(w http.ResponseWriter, data interface{}) {
@@ -173,6 +184,7 @@ func worker() {
 	}
 	defer rows.Close()
 
+	faceList := map[string]uint{}
 	for rows.Next() {
 		var id, filename, name string
 		if err := rows.Scan(&id, &filename, &name); err != nil {
@@ -180,6 +192,7 @@ func worker() {
 			return
 		}
 		addFile(&rec, filepath.Join(*storageDir, "train", name, filename), name)
+		faceList[name] += 1
 	}
 
 	rec.SetSamples()
@@ -241,6 +254,49 @@ func worker() {
 
 	// Serve a simple HTML form for file uploads
 	http.HandleFunc("/", staticHandler)
+
+	http.HandleFunc("/v1/vision/face/list", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+			return
+		}
+		var faces []string
+		for name, _ := range faceList {
+			faces = append(faces, name)
+		}
+
+		res := FaceListResponse{
+			Success: true,
+			Faces:   faces,
+			Code:    200,
+		}
+		json.NewEncoder(w).Encode(res)
+	})
+
+	http.HandleFunc("/v1/vision/face/register", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+			return
+		}
+
+		res := DummyResponse{
+			Success: true,
+			Code:    200,
+		}
+		json.NewEncoder(w).Encode(res)
+	})
+	http.HandleFunc("/v1/vision/face/delete", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+			return
+		}
+
+		res := DummyResponse{
+			Success: true,
+			Code:    200,
+		}
+		json.NewEncoder(w).Encode(res)
+	})
 
 	log.Printf("Start listenion on port %s\n\n", ":"+strconv.Itoa(int(*port)))
 	http.ListenAndServe(":"+strconv.Itoa(int(*port)), nil)
