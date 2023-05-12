@@ -17,23 +17,13 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,t
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked apt install -y libdlib-dev libblas-dev libatlas-base-dev liblapack-dev libjpeg62-turbo-dev wget bzip2 gfortran libquadmath0
 
 ADD ./recognizer /src
-WORKDIR /src
 
 ADD --link https://github.com/davisking/dlib-models/raw/master/shape_predictor_5_face_landmarks.dat.bz2 /src/models/
 ADD --link https://github.com/davisking/dlib-models/raw/master/dlib_face_recognition_resnet_model_v1.dat.bz2 /src/models/
 ADD --link https://github.com/davisking/dlib-models/raw/master/mmod_human_face_detector.dat.bz2 /src/models/
 ADD --link https://github.com/Kagami/go-face-testdata/raw/master/models/shape_predictor_68_face_landmarks.dat /src/models/
-RUN <<EOT
-mkdir -p /src/models && cd /src/models
-
-bunzip2 shape_predictor_5_face_landmarks.dat.bz2
-
-bunzip2 dlib_face_recognition_resnet_model_v1.dat.bz2
-
-bunzip2 mmod_human_face_detector.dat.bz2
-
-rm -rf *.bz2
-EOT
+WORKDIR /src/models
+RUN bunzip2 *.bz2 && rm -rf *.bz2
 WORKDIR /src
 
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod/cache/download go build -trimpath -ldflags "-s -w -extldflags -static" -o recognizer
@@ -135,7 +125,7 @@ apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-tracero
 EOT
 
 COPY --from=recognizer-builder /src/recognizer /usr/local/bin/recognizer
-COPY --from=recognizer-builder /src/models /opt/recognizer/models
+COPY --from=recognizer-builder /src/models/* /opt/recognizer/models/
 
 RUN npm install nodemon -g
 

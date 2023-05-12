@@ -39,13 +39,18 @@ const (
 	//storageDir = "./.storage"
 )
 
+type Response struct {
+	Success bool   `json:"success"`
+	Faces   []Face `json:"faces"`
+}
+
 type Face struct {
 	Name       string  `json:"name"`
 	Confidence float32 `json:"confidence"`
-	x          float64 `json: "x"`
-	y          float64 `json: "y"`
-	w          float64 `json: "w"`
-	h          float64 `json: "h"`
+	X          float64 `json:"x"`
+	Y          float64 `json:"y"`
+	W          float64 `json:"w"`
+	H          float64 `json:"h"`
 }
 
 func respondJSON(w http.ResponseWriter, data interface{}) {
@@ -179,7 +184,7 @@ func worker() {
 
 	rec.SetSamples()
 
-	http.HandleFunc("/recognize", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/v1/vision/face/recognize", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 			return
@@ -208,21 +213,30 @@ func worker() {
 			http.Error(w, "Error recognizing faces", http.StatusInternalServerError)
 			return
 		}
-
+		var resFaces []Face
 		// Respond with the first recognized face and its confidence level
 		if len(faces) > 0 {
 			for _, f := range faces {
 				//log.Printf("Response: %s", f)
-				respondJSON(w, Face{Name: f.Id, Confidence: 1 - f.Distance, x: float64(f.Rectangle.Min.X),
-					y: float64(f.Rectangle.Min.Y),
-					w: float64(f.Rectangle.Dx()),
-					h: float64(f.Rectangle.Dy())})
+				resFaces = append(resFaces, Face{
+					Name:       f.Id,
+					Confidence: 1 - f.Distance,
+					X:          float64(f.Rectangle.Min.X),
+					Y:          float64(f.Rectangle.Min.Y),
+					W:          float64(f.Rectangle.Dx()),
+					H:          float64(f.Rectangle.Dy()),
+				})
 			}
+
 		} else {
-			response := map[string]string{"message": "No known faces recognized."}
-			respondJSON(w, response)
 			log.Println("No known faces recognized.")
 		}
+
+		res := Response{
+			Success: len(resFaces) > 0,
+			Faces:   resFaces,
+		}
+		json.NewEncoder(w).Encode(res)
 	})
 
 	// Serve a simple HTML form for file uploads
