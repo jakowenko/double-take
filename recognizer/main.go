@@ -22,7 +22,8 @@ import (
 var daemonize = flag.Bool("d", false, `Run in background`)
 var port = flag.Uint("port", 5000, "Listening port")
 var storageDir = flag.String("storage", ".storage", "Directory with database file and images folders")
-var numTrainImages = flag.Uint("trainlimit", 0, "Number of images for each person to train. 0 -- no limit")
+var modelsDir = flag.String("models", "models", "Directory with models files")
+var numTrainImages = flag.Uint("trainlimit", 0, "Number of images for each person to train. default: no limit")
 var signal = flag.String("s", "", `Send signal to the daemon:
   quit — graceful shutdown
   stop — fast shutdown
@@ -34,7 +35,6 @@ var (
 )
 
 const (
-	dataDir    = "models"
 	dbFilename = "database.db"
 	//storageDir = "./.storage"
 )
@@ -135,7 +135,7 @@ LOOP:
 func worker() {
 
 	rec := recognizer.Recognizer{}
-	err := rec.Init(dataDir)
+	err := rec.Init(*modelsDir)
 
 	if err != nil {
 		log.Println(err)
@@ -254,6 +254,6 @@ func termHandler(sig os.Signal) error {
 }
 
 func reloadHandler(sig os.Signal) error {
-	log.Println("configuration reloaded")
+	log.Println("Not implemented yet :)")
 	return nil
 }

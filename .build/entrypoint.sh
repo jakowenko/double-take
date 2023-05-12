@@ -22,6 +22,12 @@ elif [ "$CONFIG_PATH" ]
 then
   PATHS="$PATHS --watch ./.storage/config";
 fi
+
+if [ -f /usr/local/bin/recognizer ]
+then
+  /usr/local/bin/recognizer -port 8888 -models /opt/recognizer/models -storage /.storage -d
+fi
+
 #/usr/local/bin/sqlite_web -p 8888 -H 0.0.0.0 -x -r /.storage/database.db &
 node -e 'require("./api/src/constants")()'
 exec nodemon -e yml,yaml $PATHS -q api/server.js

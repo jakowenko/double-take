@@ -1,20 +1,29 @@
 # syntax = docker/dockerfile-upstream:master-labs
 FROM golang:1.20 as recognizer-builder
+ARG DEBIAN_FRONTEND=noninteractive
+# Prepare apt for buildkit cache
+RUN rm -f /etc/apt/apt.conf.d/docker-clean \
+  && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
 ADD ./recognizer /src
 WORKDIR /src
 RUN apt update
-RUN apt install -y libdlib-dev libblas-dev libatlas-base-dev liblapack-dev libjpeg-turbo8-dev wget
+RUN apt install -y libdlib-dev libblas-dev libatlas-base-dev liblapack-dev libjpeg62-turbo-dev wget bzip2
+ADD --link https://github.com/davisking/dlib-models/raw/master/shape_predictor_5_face_landmarks.dat.bz2 /src/models/
+ADD --link https://github.com/davisking/dlib-models/raw/master/dlib_face_recognition_resnet_model_v1.dat.bz2 /src/models/
+ADD --link https://github.com/davisking/dlib-models/raw/master/mmod_human_face_detector.dat.bz2 /src/models/
+ADD --link https://github.com/Kagami/go-face-testdata/raw/master/models/shape_predictor_68_face_landmarks.dat /src/models/
 RUN <<EOT
-mkdir models && cd models
-wget https://github.com/davisking/dlib-models/raw/master/shape_predictor_5_face_landmarks.dat.bz2
+mkdir -p /src/models && cd /src/models
+
 bunzip2 shape_predictor_5_face_landmarks.dat.bz2
-wget https://github.com/davisking/dlib-models/raw/master/dlib_face_recognition_resnet_model_v1.dat.bz2
+
 bunzip2 dlib_face_recognition_resnet_model_v1.dat.bz2
-wget https://github.com/davisking/dlib-models/raw/master/mmod_human_face_detector.dat.bz2
+
 bunzip2 mmod_human_face_detector.dat.bz2
-wget https://github.com/Kagami/go-face-testdata/raw/master/models/shape_predictor_68_face_landmarks.dat
+
 rm -rf *.bz2
 EOT
+WORKDIR /src
 RUN go build -trimpath -o recognizer
 
 FROM node:16 as better-sqlite3-builder
@@ -100,8 +109,6 @@ RUN cp /lib/*-linux-gnu*/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
 
 #COPY /.build/entrypoint.sh .
 
-#COPY --from=sqlite-web /src/dist/sqlite_web /usr/local/bin/sqlite_web
-
 FROM node:16 as debug
 ARG DEBIAN_FRONTEND=noninteractive
 # Prepare apt for buildkit cache
@@ -114,6 +121,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,t
 apt update
 apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl
 EOT
+
+COPY --from=recognizer-builder /src/recognizer /usr/local/bin/recognizer
+COPY --from=recognizer-builder /src/models /opt/recognizer/models
 
 RUN npm install nodemon -g
 
