@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"io/ioutil"
 	"log"
@@ -44,18 +45,21 @@ type DummyResponse struct {
 	Code    uint `json:"code"`
 }
 
-type Response struct {
+type FaceRecognitionResponse struct {
 	Success bool   `json:"success"`
-	Faces   []Face `json:"faces"`
+	Faces   []Face `json:"predictions"`
+	Count   int    `json:"count"`
+	Message string `json:"messge"`
+	Code    uint   `json:"code"`
 }
 
 type Face struct {
-	Name       string  `json:"name"`
+	Name       string  `json:"userid"`
 	Confidence float32 `json:"confidence"`
-	X          float64 `json:"x"`
-	Y          float64 `json:"y"`
-	W          float64 `json:"w"`
-	H          float64 `json:"h"`
+	XMin       float64 `json:"x_min"`
+	YMin       float64 `json:"y_min"`
+	XMax       float64 `json:"x_max"`
+	YMax       float64 `json:"y_max"`
 }
 
 type FaceListResponse struct {
@@ -169,14 +173,14 @@ func worker() {
 
 	var rows *sql.Rows
 	if *numTrainImages > 0 {
-		rows, err = db.Query(`SELECT id, filename, name
+		rows, err = db.Query(`SELECT id, filename, name, createdAt
 			FROM (
-			SELECT id, filename, name, ROW_NUMBER() OVER (PARTITION BY name ORDER BY id DESC) AS rn
-			FROM train WHERE json_extract(meta, '$.success') = 1
+			SELECT id, filename, name, createdAt, ROW_NUMBER() OVER (PARTITION BY name ORDER BY id DESC) AS rn
+			FROM train WHERE json_extract(meta, '$.status') < 300 AND json_extract(meta, '$.status') >= 200
 			) AS t
-			WHERE rn <= ` + strconv.Itoa(int(*numTrainImages)))
+			WHERE rn <= ` + strconv.Itoa(int(*numTrainImages)) + ` GROUP BY filename`)
 	} else {
-		rows, err = db.Query(`SELECT id, filename, name FROM train WHERE json_extract(meta, '$.success') = 1 ORDER BY name ASC`)
+		rows, err = db.Query(`SELECT id, filename, name, createdAt FROM train WHERE json_extract(meta, '$.status') < 300 AND json_extract(meta, '$.status') >= 200 GROUP BY filename ORDER BY name ASC`)
 	}
 	if err != nil {
 		log.Println(err)
@@ -185,14 +189,19 @@ func worker() {
 	defer rows.Close()
 
 	faceList := map[string]uint{}
+	latestUpdate := time.Unix(0, 0)
 	for rows.Next() {
 		var id, filename, name string
-		if err := rows.Scan(&id, &filename, &name); err != nil {
+		var createdAt time.Time
+		if err := rows.Scan(&id, &filename, &name, &createdAt); err != nil {
 			log.Println(err)
 			return
 		}
 		addFile(&rec, filepath.Join(*storageDir, "train", name, filename), name)
 		faceList[name] += 1
+		if createdAt.After(latestUpdate) {
+			latestUpdate = createdAt
+		}
 	}
 
 	rec.SetSamples()
@@ -227,6 +236,7 @@ func worker() {
 			return
 		}
 		var resFaces []Face
+		message := ""
 		// Respond with the first recognized face and its confidence level
 		if len(faces) > 0 {
 			for _, f := range faces {
@@ -234,20 +244,25 @@ func worker() {
 				resFaces = append(resFaces, Face{
 					Name:       f.Id,
 					Confidence: 1 - f.Distance,
-					X:          float64(f.Rectangle.Min.X),
-					Y:          float64(f.Rectangle.Min.Y),
-					W:          float64(f.Rectangle.Dx()),
-					H:          float64(f.Rectangle.Dy()),
+					XMin:       float64(f.Rectangle.Min.X),
+					YMin:       float64(f.Rectangle.Min.Y),
+					XMax:       float64(f.Rectangle.Dx() + f.Rectangle.Min.X),
+					YMax:       float64(f.Rectangle.Dy() + f.Rectangle.Min.Y),
 				})
 			}
+			message = "A face was recognised"
 
 		} else {
-			log.Println("No known faces recognized.")
+			message = "No known faces recognized."
+			log.Println(message)
 		}
 
-		res := Response{
+		res := FaceRecognitionResponse{
 			Success: len(resFaces) > 0,
 			Faces:   resFaces,
+			Count:   len(resFaces),
+			Message: message,
+			Code:    200,
 		}
 		json.NewEncoder(w).Encode(res)
 	})
@@ -303,10 +318,43 @@ func worker() {
 
 }
 
+/*
+func inBackgroundUpdate(latest time.Time, db *sql.DB) {
+	ticker := time.NewTicker(5 * time.Minute)
+	var rows *sql.Rows
+	for _ = range ticker.C {
+		fmt.Println("Ticking..")
+		stmt, err := db.Prepare("SELECT id, filename, name, createdAt FROM train WHERE json_extract(meta, '$.success') = 1 AND createdAt > ? ORDER BY name ASC")
+		if err != nil {
+			log.Print(err)
+		}
+		defer stmt.Close()
+
+		rows, err = stmt.Query(latest)
+		if err != nil {
+			log.Print(err)
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var id, filename, name string
+			var createdAt time.Time
+			if err := rows.Scan(&id, &filename, &name, &createdAt); err != nil {
+				log.Println(err)
+				return
+			}
+			if createdAt.After(latest) {
+				latest = createdAt
+				addFile(&rec, filepath.Join(*storageDir, "train", name, filename), name)
+				faceList[name] += 1
+			}
+		}
+	}
+}*/
+
 func staticHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `<html>
 		<body>
-			<form action="/recognize" method="post" enctype="multipart/form-data">
+			<form action="/v1/vision/face/recognize" method="post" enctype="multipart/form-data">
 				<input type="file" name="image">
 				<input type="submit" value="Recognize">
 			</form>
