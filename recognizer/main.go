@@ -264,6 +264,7 @@ func worker() {
 			Message: message,
 			Code:    200,
 		}
+		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(res)
 	})
 
@@ -285,6 +286,7 @@ func worker() {
 			Faces:   faces,
 			Code:    200,
 		}
+		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(res)
 	})
 
