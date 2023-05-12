@@ -25,6 +25,7 @@ var port = flag.Uint("port", 5000, "Listening port")
 var storageDir = flag.String("storage", ".storage", "Directory with database file and images folders")
 var modelsDir = flag.String("models", "models", "Directory with models files")
 var numTrainImages = flag.Uint("trainlimit", 0, "Number of images for each person to train. default: no limit")
+var cnn = flag.Bool("cnn", false, `Use CNN`)
 var signal = flag.String("s", "", `Send signal to the daemon:
   quit — graceful shutdown
   stop — fast shutdown
@@ -46,11 +47,12 @@ type DummyResponse struct {
 }
 
 type FaceRecognitionResponse struct {
-	Success bool   `json:"success"`
-	Faces   []Face `json:"predictions"`
-	Count   int    `json:"count"`
-	Message string `json:"messge"`
-	Code    uint   `json:"code"`
+	Success     bool   `json:"success"`
+	Faces       []Face `json:"predictions"`
+	Count       int    `json:"count"`
+	Message     string `json:"messge"`
+	Code        uint   `json:"code"`
+	InferenceMs int    `json:"inferenceMs"`
 }
 
 type Face struct {
@@ -79,12 +81,14 @@ func respondJSON(w http.ResponseWriter, data interface{}) {
 }
 
 func addFile(rec *recognizer.Recognizer, path, id string) {
+	startTime := time.Now()
 	err := rec.AddImageToDataset(path, id)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	log.Printf("Trained image %s for %s\n", path, id)
+	elapsedTime := time.Since(startTime)
+	log.Printf("[%s] Trained image %s for %s\n", elapsedTime, path, id)
 }
 
 func main() {
@@ -162,6 +166,7 @@ func worker() {
 		return
 	}
 	//rec.Tolerance = 0.4
+	rec.UseCNN = *cnn
 	defer rec.Close()
 
 	db, err := sql.Open("sqlite3", filepath.Join(*storageDir, dbFilename)+"?mode=ro")
@@ -211,7 +216,7 @@ func worker() {
 			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 			return
 		}
-
+		startTime := time.Now()
 		file, _, err := r.FormFile("image")
 		if err != nil {
 			http.Error(w, "Invalid file", http.StatusBadRequest)
@@ -256,13 +261,14 @@ func worker() {
 			message = "No known faces recognized."
 			log.Println(message)
 		}
-
+		elapsedTime := time.Since(startTime)
 		res := FaceRecognitionResponse{
-			Success: len(resFaces) > 0,
-			Faces:   resFaces,
-			Count:   len(resFaces),
-			Message: message,
-			Code:    200,
+			Success:     len(resFaces) > 0,
+			Faces:       resFaces,
+			Count:       len(resFaces),
+			Message:     message,
+			Code:        200,
+			InferenceMs: int(elapsedTime.Milliseconds()),
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(res)
