@@ -1,13 +1,23 @@
 # syntax = docker/dockerfile-upstream:master-labs
 FROM golang:1.20-buster as recognizer-builder
 ARG DEBIAN_FRONTEND=noninteractive
+
+ENV CGO_LDFLAGS="-lcblas -llapack_atlas -lgfortran -lquadmath -lblas -latlas"
+ENV CGO_ENABLED=1
+# Cache dependencies
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod/cache/download go mod download
+
 # Prepare apt for buildkit cache
 RUN rm -f /etc/apt/apt.conf.d/docker-clean \
   && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked apt update
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked apt install -y libdlib-dev libblas-dev libatlas-base-dev liblapack-dev libjpeg62-turbo-dev wget bzip2 gfortran libquadmath0
+
 ADD ./recognizer /src
 WORKDIR /src
-RUN apt update
-RUN apt install -y libdlib-dev libblas-dev libatlas-base-dev liblapack-dev libjpeg62-turbo-dev wget bzip2 gfortran libquadmath0
+
 ADD --link https://github.com/davisking/dlib-models/raw/master/shape_predictor_5_face_landmarks.dat.bz2 /src/models/
 ADD --link https://github.com/davisking/dlib-models/raw/master/dlib_face_recognition_resnet_model_v1.dat.bz2 /src/models/
 ADD --link https://github.com/davisking/dlib-models/raw/master/mmod_human_face_detector.dat.bz2 /src/models/
@@ -24,9 +34,8 @@ bunzip2 mmod_human_face_detector.dat.bz2
 rm -rf *.bz2
 EOT
 WORKDIR /src
-ENV CGO_LDFLAGS="-lcblas -llapack_atlas -lgfortran -lquadmath -lblas -latlas"
-ENV CGO_ENABLED=1
-RUN go build -trimpath -ldflags "-s -w -extldflags -static" -o recognizer
+
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod/cache/download go build -trimpath -ldflags "-s -w -extldflags -static" -o recognizer
 
 FROM node:16 as better-sqlite3-builder
 ARG DEBIAN_FRONTEND=noninteractive
