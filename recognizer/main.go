@@ -95,9 +95,9 @@ func main() {
 	if *daemonize == true {
 
 		cntxt := &daemon.Context{
-			PidFileName: "recognizer.pid",
+			PidFileName: filepath.Join(*storageDir, "recognizer.pid"),
 			PidFilePerm: 0644,
-			LogFileName: "recognizer.log",
+			LogFileName: filepath.Join(*storageDir, "recognizer.log"),
 			LogFilePerm: 0640,
 			WorkDir:     "./",
 			Umask:       027,
