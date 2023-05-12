@@ -1,4 +1,14 @@
 # syntax = docker/dockerfile-upstream:master-labs
+FROM --platform=${BUILDPLATFORM} alpine:latest as recognizer-models
+RUN apk add wget bzip2
+WORKDIR /src/models
+RUN wget https://github.com/davisking/dlib-models/raw/master/shape_predictor_5_face_landmarks.dat.bz2
+RUN wget https://github.com/davisking/dlib-models/raw/master/dlib_face_recognition_resnet_model_v1.dat.bz2
+RUN wget https://github.com/davisking/dlib-models/raw/master/mmod_human_face_detector.dat.bz2
+RUN wget https://github.com/Kagami/go-face-testdata/raw/master/models/shape_predictor_68_face_landmarks.dat
+RUN bunzip2 *.bz2 && rm -rf *.bz2
+
+
 FROM golang:1.20-buster as recognizer-builder
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
@@ -17,12 +27,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,t
 
 ADD ./recognizer /src
 
-WORKDIR /src/models
-RUN wget https://github.com/davisking/dlib-models/raw/master/shape_predictor_5_face_landmarks.dat.bz2
-RUN wget https://github.com/davisking/dlib-models/raw/master/dlib_face_recognition_resnet_model_v1.dat.bz2
-RUN wget https://github.com/davisking/dlib-models/raw/master/mmod_human_face_detector.dat.bz2
-RUN wget https://github.com/Kagami/go-face-testdata/raw/master/models/shape_predictor_68_face_landmarks.dat
-RUN bunzip2 *.bz2 && rm -rf *.bz2
 WORKDIR /src
 
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod/cache/download \
@@ -133,8 +137,8 @@ apt update
 apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl
 EOT
 
-COPY --from=recognizer-builder /src/recognizer /usr/local/bin/recognizer
-COPY --from=recognizer-builder /src/models/* /opt/recognizer/models/
+COPY --link --from=recognizer-builder /src/recognizer /usr/local/bin/recognizer
+COPY --link --from=recognizer-models /src/models/* /opt/recognizer/models/
 
 RUN npm install nodemon -g
 
