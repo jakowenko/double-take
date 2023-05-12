@@ -7,7 +7,7 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean \
 ADD ./recognizer /src
 WORKDIR /src
 RUN apt update
-RUN apt install -y libdlib-dev libblas-dev libatlas-base-dev liblapack-dev libjpeg62-turbo-dev wget bzip2
+RUN apt install -y libdlib-dev libblas-dev libatlas-base-dev liblapack-dev libjpeg62-turbo-dev wget bzip2 gfortran
 ADD --link https://github.com/davisking/dlib-models/raw/master/shape_predictor_5_face_landmarks.dat.bz2 /src/models/
 ADD --link https://github.com/davisking/dlib-models/raw/master/dlib_face_recognition_resnet_model_v1.dat.bz2 /src/models/
 ADD --link https://github.com/davisking/dlib-models/raw/master/mmod_human_face_detector.dat.bz2 /src/models/
@@ -24,7 +24,9 @@ bunzip2 mmod_human_face_detector.dat.bz2
 rm -rf *.bz2
 EOT
 WORKDIR /src
-RUN go build -trimpath -o recognizer
+ENV CGO_LDFLAGS="-lcblas -llapack_atlas -lgfortran -lquadmath -lblas -latlas"
+ENV CGO_ENABLED=1
+RUN go build -trimpath -ldflags "-s -w -extldflags -static" -o recognizer
 
 FROM node:16 as better-sqlite3-builder
 ARG DEBIAN_FRONTEND=noninteractive
@@ -119,7 +121,7 @@ COPY --from=build /opt/lib/* /lib/
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
 apt update
-apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl libblas3 libdlib-data libdlib19 libgfortran5 liblapack3 libatlas-base-dev
+apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl
 EOT
 
 COPY --from=recognizer-builder /src/recognizer /usr/local/bin/recognizer
