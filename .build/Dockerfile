@@ -1,9 +1,8 @@
 # syntax = docker/dockerfile-upstream:master-labs
 FROM golang:1.20-buster as recognizer-builder
 ARG DEBIAN_FRONTEND=noninteractive
+ARG TARGETARCH
 
-ENV CGO_LDFLAGS="-lcblas -llapack_atlas -lgfortran -lquadmath -lblas -latlas"
-ENV CGO_ENABLED=1
 # Cache dependencies
 WORKDIR /src
 COPY ./recognizer/go.mod ./recognizer/go.sum ./recognizer/pkg/go-recognizer/go.mod ./
@@ -14,7 +13,7 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean \
   && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked apt update
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked apt install -y libdlib-dev libblas-dev libatlas-base-dev liblapack-dev libjpeg62-turbo-dev wget bzip2 gfortran libquadmath0
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked apt install -y libdlib-dev libblas-dev libatlas-base-dev liblapack-dev libjpeg62-turbo-dev wget bzip2 gfortran 
 
 ADD ./recognizer /src
 
@@ -26,7 +25,17 @@ RUN wget https://github.com/Kagami/go-face-testdata/raw/master/models/shape_pred
 RUN bunzip2 *.bz2 && rm -rf *.bz2
 WORKDIR /src
 
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod/cache/download go build -trimpath -ldflags "-s -w -extldflags -static" -o recognizer
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod/cache/download \
+  --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
+if [ "${TARGETARCH}" = "amd64" ]; then
+  apt install -y libquadmath0;
+  export CGO_LDFLAGS="-lcblas -llapack_atlas -lgfortran -lquadmath -lblas -latlas"
+else
+  export CGO_LDFLAGS="-lcblas -llapack_atlas -lgfortran -lblas -latlas"
+fi
+CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -extldflags -static" -o recognizer
+EOT
+
 
 FROM node:16 as better-sqlite3-builder
 ARG DEBIAN_FRONTEND=noninteractive
