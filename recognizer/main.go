@@ -164,7 +164,7 @@ func worker() {
 	//rec.Tolerance = 0.4
 	defer rec.Close()
 
-	db, err := sql.Open("sqlite3", filepath.Join(*storageDir, dbFilename))
+	db, err := sql.Open("sqlite3", filepath.Join(*storageDir, dbFilename)+"?mode=ro")
 	if err != nil {
 		log.Println(err)
 		return

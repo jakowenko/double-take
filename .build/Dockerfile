@@ -15,8 +15,9 @@ ARG TARGETARCH
 
 # Cache dependencies
 WORKDIR /src
-COPY ./recognizer/go.mod ./recognizer/go.sum ./recognizer/pkg/go-recognizer/go.mod ./
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod/cache/download go mod download
+COPY ./recognizer/go.mod ./recognizer/go.sum  ./
+COPY ./recognizer/pkg/go-recognizer/go.mod ./pkg/go-recognizer/go.mod 
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod go mod download
 
 # Prepare apt for buildkit cache
 RUN rm -f /etc/apt/apt.conf.d/docker-clean \
