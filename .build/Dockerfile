@@ -5,7 +5,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV CGO_LDFLAGS="-lcblas -llapack_atlas -lgfortran -lquadmath -lblas -latlas"
 ENV CGO_ENABLED=1
 # Cache dependencies
-COPY go.mod go.sum ./
+WORKDIR /src
+COPY ./recognizer/go.mod ./recognizer/go.sum ./recognizer/pkg/go-recognizer/go.mod ./
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod/cache/download go mod download
 
 # Prepare apt for buildkit cache
