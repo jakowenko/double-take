@@ -23,11 +23,16 @@ then
   PATHS="$PATHS --watch ./.storage/config";
 fi
 
+ldconfig -p | grep cuffda >/dev/null && CUDA=true || CUDA=false
+
 if [ -f /usr/local/bin/recognizer ]
 then
-  /usr/local/bin/recognizer -port 8888 -models /opt/recognizer/models -storage /.storage -d
+  if [ "$CUDA" = true ] && [ "$HA_ADDON" == "false" ]
+    /usr/local/bin/recognizer -cnn -port 8888 -models /opt/recognizer/models -storage /.storage -d
+  else
+    /usr/local/bin/recognizer -port 8888 -models /opt/recognizer/models -storage /.storage -d
+  fi
 fi
 
-#/usr/local/bin/sqlite_web -p 8888 -H 0.0.0.0 -x -r /.storage/database.db &
 node -e 'require("./api/src/constants")()'
 exec nodemon -e yml,yaml $PATHS -q api/server.js
