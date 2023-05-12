@@ -18,11 +18,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,t
 
 ADD ./recognizer /src
 
-ADD --link https://github.com/davisking/dlib-models/raw/master/shape_predictor_5_face_landmarks.dat.bz2 /src/models/
-ADD --link https://github.com/davisking/dlib-models/raw/master/dlib_face_recognition_resnet_model_v1.dat.bz2 /src/models/
-ADD --link https://github.com/davisking/dlib-models/raw/master/mmod_human_face_detector.dat.bz2 /src/models/
-ADD --link https://github.com/Kagami/go-face-testdata/raw/master/models/shape_predictor_68_face_landmarks.dat /src/models/
 WORKDIR /src/models
+RUN wget https://github.com/davisking/dlib-models/raw/master/shape_predictor_5_face_landmarks.dat.bz2
+RUN wget https://github.com/davisking/dlib-models/raw/master/dlib_face_recognition_resnet_model_v1.dat.bz2
+RUN wget https://github.com/davisking/dlib-models/raw/master/mmod_human_face_detector.dat.bz2
+RUN wget https://github.com/Kagami/go-face-testdata/raw/master/models/shape_predictor_68_face_landmarks.dat
 RUN bunzip2 *.bz2 && rm -rf *.bz2
 WORKDIR /src
 
