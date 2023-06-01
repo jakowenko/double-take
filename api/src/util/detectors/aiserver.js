@@ -64,8 +64,15 @@ module.exports.remove = ({ name }) => {
 
 module.exports.normalize = ({ camera, data }) => {
   if (!data.success) {
-    console.warn('unexpected ai.server data');
-    return [];
+    // compare with CoderProjectAI sources
+    // https://github.com/codeproject/CodeProject.AI-Server/blob/main/src/modules/FaceProcessing/intelligencelayer/face.py#L528
+    if (data.code === 500 && data.error === 'No face found in image') {
+      console.log('ai.server found no face in image');
+      return [];
+    } else {
+      console.warn('unexpected ai.server data');
+      return [];
+    }
   }
   const { MATCH, UNKNOWN } = config.detect(camera);
   if (!data.predictions) {
