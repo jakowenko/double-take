@@ -1,3 +1,7 @@
+## [1.13.7](https://github.com/skrashevich/double-take/compare/v1.13.6...v1.13.7)
+
+AI.Server: Log "no face found" as info #53 (@marq24)
+
 ## [1.13.6](https://github.com/skrashevich/double-take/compare/v1.13.5...v1.13.6)
 
 bugfixes
