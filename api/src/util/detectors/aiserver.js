@@ -55,9 +55,6 @@ module.exports.remove = ({ name }) => {
     headers: {
       ...formData.getHeaders(),
     },
-    validateStatus() {
-      return true;
-    },
     data: formData,
   });
 };
