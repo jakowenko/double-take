@@ -135,7 +135,7 @@ COPY --from=build /opt/lib/* /lib/
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
 apt update
-apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl
+apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl jq
 EOT
 
 COPY --link --from=recognizer-builder /src/recognizer /usr/local/bin/recognizer
@@ -150,6 +150,15 @@ COPY .build/entrypoint.sh ./
 ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
 
 FROM node:16-slim
+ARG DEBIAN_FRONTEND=noninteractive
+# Prepare apt for buildkit cache
+RUN rm -f /etc/apt/apt.conf.d/docker-clean \
+  && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
+apt update
+apt install -y --no-install-recommends jq
+EOT
+
 COPY --link --from=build /double-take /double-take
 COPY --from=build /opt/lib/* /lib/
 
