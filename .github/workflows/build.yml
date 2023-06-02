@@ -55,9 +55,9 @@ jobs:
           type=pep440,pattern={{version}}
           type=pep440,pattern={{major}}.{{minor}}
           type=pep440,pattern={{major}}
-          type=sha,enable=true,prefix=,format=short
+          type=sha,enable=true,prefix=,suffix=-${{ matrix.target }},format=short
         flavor: |
-          latest=${{ matrix.target == '' && github.ref == 'refs/heads/beta' }}
+          latest=${{ github.ref == 'refs/heads/beta' }}
           suffix=${{ matrix.target }}
     - name: Build Docker Image
       uses: docker/build-push-action@v4
