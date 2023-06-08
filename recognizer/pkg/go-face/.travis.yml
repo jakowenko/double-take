@@ -1,0 +1,15 @@
+dist: focal
+language: go
+go:
+  - "stable"
+addons:
+  apt:
+    packages:
+      - libdlib-dev
+      - libblas-dev
+      - libatlas-base-dev
+      - liblapack-dev
+      - libjpeg-turbo8-dev
+notifications:
+  email:
+    on_success: never

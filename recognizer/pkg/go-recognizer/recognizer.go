@@ -104,7 +104,7 @@ func (_this *Recognizer) AddImageToDataset(Path string, Id string) error {
 	}
 
 	if len(faces) > 1 {
-		return errors.New(fmt.Sprintf("%s: Not a single face on the image (%s)", Path, Id))
+		return errors.New(fmt.Sprintf("%s: Not a single face (found %d) on the image (%s)", Path, len(faces), Id))
 	}
 
 	f := Data{}

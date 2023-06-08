@@ -1,12 +1,16 @@
 package main
 
 import (
+	"compress/bzip2"
 	"database/sql"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
+
 	"strconv"
+	"strings"
 	"time"
 
 	"io/ioutil"
@@ -16,8 +20,8 @@ import (
 	"syscall"
 
 	recognizer "github.com/leandroveronezi/go-recognizer"
-	_ "github.com/mattn/go-sqlite3"
 	daemon "github.com/sevlyar/go-daemon"
+	_ "modernc.org/sqlite"
 )
 
 var daemonize = flag.Bool("d", false, `Run in background`)
@@ -80,15 +84,16 @@ func respondJSON(w http.ResponseWriter, data interface{}) {
 	fmt.Fprint(w, string(jsonData))
 }
 
-func addFile(rec *recognizer.Recognizer, path, id string) {
+func addFile(rec *recognizer.Recognizer, path, id string) error {
 	startTime := time.Now()
 	err := rec.AddImageToDataset(path, id)
 	if err != nil {
-		log.Println(err)
-		return
+		fmt.Fprintln(os.Stderr, err)
+		return err
 	}
 	elapsedTime := time.Since(startTime)
-	log.Printf("[%s] Trained image %s for %s\n", elapsedTime, path, id)
+	fmt.Fprintf(os.Stderr, "[%s] Trained image %s for %s\n", elapsedTime, path, id)
+	return nil
 }
 
 func main() {
@@ -158,8 +163,13 @@ LOOP:
 
 func worker() {
 
+	err := downloadModels()
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	rec := recognizer.Recognizer{}
-	err := rec.Init(*modelsDir)
+	err = rec.Init(*modelsDir)
 
 	if err != nil {
 		log.Println(err)
@@ -169,7 +179,7 @@ func worker() {
 	rec.UseCNN = *cnn
 	defer rec.Close()
 
-	db, err := sql.Open("sqlite3", filepath.Join(*storageDir, dbFilename)+"?mode=ro")
+	db, err := sql.Open("sqlite", filepath.Join(*storageDir, dbFilename)+"?mode=ro")
 	if err != nil {
 		log.Println(err)
 		return
@@ -381,5 +391,79 @@ func termHandler(sig os.Signal) error {
 
 func reloadHandler(sig os.Signal) error {
 	log.Println("Not implemented yet :)")
+	return nil
+}
+func downloadModels() error {
+	modelsDir := "models"
+	modelsDir, _ = filepath.Abs(modelsDir)
+	files := []string{
+		"shape_predictor_5_face_landmarks.dat.bz2",
+		"dlib_face_recognition_resnet_model_v1.dat.bz2",
+		"mmod_human_face_detector.dat.bz2",
+		"shape_predictor_68_face_landmarks.dat.bz2",
+	}
+
+	// create models directory
+	if err := os.MkdirAll(modelsDir, os.ModePerm); err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	// download and extract files
+	for _, file := range files {
+		if err := downloadAndExtract(file, modelsDir); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func downloadAndExtract(fileName string, dir string) error {
+	url := "https://github.com/davisking/dlib-models/raw/master/" + fileName
+	filePath := dir + "/" + fileName
+	extractedFilePath := dir + "/" + strings.TrimSuffix(fileName, ".bz2")
+	// check if extracted file already exists
+	if _, err := os.Stat(extractedFilePath); os.IsNotExist(err) {
+
+		// check if file already exists
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			// download file
+			resp, err := http.Get(url)
+			if err != nil {
+				return err
+			}
+			defer resp.Body.Close()
+			out, err := os.Create(filePath)
+			if err != nil {
+				return err
+			}
+			defer out.Close()
+			_, err = io.Copy(out, resp.Body)
+			if err != nil {
+				return err
+			}
+		}
+		// extract file
+		bz2file, err := os.Open(filePath)
+		if err != nil {
+			return err
+		}
+		defer bz2file.Close()
+		r := bzip2.NewReader(bz2file)
+		extractedFile, err := os.Create(extractedFilePath)
+		if err != nil {
+			return err
+		}
+		defer extractedFile.Close()
+		_, err = io.Copy(extractedFile, r)
+		if err != nil {
+			return err
+		}
+
+		// delete the bz2 file
+		err = os.Remove(filePath)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
