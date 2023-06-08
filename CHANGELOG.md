@@ -1,3 +1,7 @@
+## [1.13.8](https://github.com/skrashevich/double-take/compare/v1.13.7...v1.13.8)
+
+Bugfix: load and execute openCV only if necessary
+
 ## [1.13.7](https://github.com/skrashevich/double-take/compare/v1.13.6...v1.13.7)
 
 AI.Server: Log "no face found" as info #53 (@marq24)
