@@ -1,3 +1,7 @@
+## [1.13.8.1](https://github.com/skrashevich/double-take/compare/v1.13.8...v1.13.8.1)
+
+Bugfix: Refactor logger.controller.js to check for existence of log files before reading them
+
 ## [1.13.8](https://github.com/skrashevich/double-take/compare/v1.13.7...v1.13.8)
 
 Bugfix: load and execute openCV only if necessary
