@@ -1,4 +1,4 @@
-## [1.13.8.1](https://github.com/skrashevich/double-take/compare/v1.13.8...v1.13.8.1)
+## [1.13.9](https://github.com/skrashevich/double-take/compare/v1.13.8...v1.13.9)
 
 Bugfix: Refactor logger.controller.js to check for existence of log files before reading them
 

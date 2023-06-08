@@ -17,6 +17,7 @@ ARG TARGETARCH
 WORKDIR /src
 COPY ./recognizer/go.mod ./recognizer/go.sum  ./
 COPY ./recognizer/pkg/go-recognizer/go.mod ./pkg/go-recognizer/go.mod 
+COPY ./recognizer/pkg/go-face/go.mod ./pkg/go-face/go.mod 
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod go mod download
 
 # Prepare apt for buildkit cache
