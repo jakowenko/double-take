@@ -42,6 +42,33 @@ There's a lot of great open source software to perform facial recognition, but e
 
 - [Frigate](https://github.com/blakeblackshear/frigate)
 
+
+## Installation
+
+### Docker
+```shell
+docker run -d -v $(pwd)/.double-take:/.storage -p 3000:3000 skrashevich/double-take:latest
+```
+
+### Docker Compose
+
+```yaml
+version: '3.7'
+
+volumes:
+  double-take:
+
+services:
+  double-take:
+    container_name: double-take
+    image: skrashevich/double-take
+    restart: unless-stopped
+    volumes:
+      - double-take:/.storage
+    ports:
+      - 3000:3000
+```
+
 ## Integrations
 
 ### [Frigate](https://github.com/blakeblackshear/frigate)
@@ -239,27 +266,6 @@ auth: true
 ## API
 
 Documentation can be viewed on [Postman](https://documenter.getpostman.com/view/1013188/TzsWuAa8).
-
-## Usage
-
-### Docker Compose
-
-```yaml
-version: '3.7'
-
-volumes:
-  double-take:
-
-services:
-  double-take:
-    container_name: double-take
-    image: skrashevich/double-take
-    restart: unless-stopped
-    volumes:
-      - double-take:/.storage
-    ports:
-      - 3000:3000
-```
 
 ## Configuration
 
