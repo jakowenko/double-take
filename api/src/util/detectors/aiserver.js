@@ -78,6 +78,7 @@ module.exports.normalize = ({ camera, data }) => {
   }
   const normalized = data.predictions.flatMap((obj) => {
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
+    obj.userid = obj.userid ? obj.userid : obj.plate ? obj.plate : 'unknown';
     const output = {
       name: confidence >= UNKNOWN.CONFIDENCE ? obj.userid.toLowerCase() : 'unknown',
       confidence,
