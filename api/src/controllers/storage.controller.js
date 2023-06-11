@@ -1,6 +1,5 @@
 const fs = require('fs');
 const axios = require('axios');
-const sharp = require('sharp');
 const sizeOf = require('probe-image-size');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const { jwt } = require('../util/auth.util');
@@ -88,15 +87,19 @@ module.exports.matches = async (req, res) => {
     res.set('Content-Type', 'image/jpeg');
     return res.end(buffer);
   }
+  const image = await loadImage(source);
+  let buffer;
+  if (req.query.thumb === '') {
+    const canvas = createCanvas(WIDTH, image.height * (WIDTH / image.width));
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-  const buffer =
-    req.query.thumb === ''
-      ? await sharp(source, { failOnError: false })
-          .jpeg({ quality: QUALITY })
-          .resize(WIDTH)
-          .withMetadata()
-          .toBuffer()
-      : fs.readFileSync(source);
+    // Note: The quality of the JPEG can't be set using Node.js canvas, it will always be maximum quality.
+    // This might cause the output image to be larger than expected.
+    buffer = canvas.toBuffer('image/jpeg', QUALITY);
+  } else {
+    buffer = fs.readFileSync(source);
+  }
   res.set('Content-Type', 'image/jpeg');
   return res.end(buffer);
 };
@@ -107,11 +110,19 @@ module.exports.train = async (req, res) => {
 
   if (!fs.existsSync(source)) return res.status(BAD_REQUEST).error(`${source} does not exist`);
 
-  const buffer =
-    req.query.thumb === ''
-      ? await sharp(source).jpeg({ quality: QUALITY }).resize(WIDTH).withMetadata().toBuffer()
-      : fs.readFileSync(source);
-  res.set('Content-Type', 'image/jpeg');
+  const image = await loadImage(source);
+  let buffer;
+  if (req.query.thumb === '') {
+    const canvas = createCanvas(WIDTH, image.height * (WIDTH / image.width));
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    // Note: The quality of the JPEG can't be set using Node.js canvas, it will always be maximum quality.
+    // This might cause the output image to be larger than expected.
+    buffer = canvas.toBuffer('image/jpeg');
+  } else {
+    buffer = fs.readFileSync(source);
+  }
 
   res.set('Content-Type', 'image/jpeg');
   return res.end(buffer);

@@ -96,4 +96,7 @@ module.exports = {
       width: 500,
     },
   },
+  server: {
+    port: 3000,
+  },
 };
