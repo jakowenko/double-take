@@ -19,9 +19,7 @@
   "homepage": "https://github.com/skrashevich/double-take#readme",
   "dependencies": {
     "@aws-sdk/client-rekognition": "^3.105.0",
-    "@honeycombio/opentelemetry-node": "^0.4.0",
     "@mhoc/axios-digest-auth": "^0.8.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.37.1",
     "archiver": "^5.3.1",
     "axios": "^0.27.2",
     "better-sqlite3": "^8.2.0",
