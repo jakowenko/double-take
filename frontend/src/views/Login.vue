@@ -113,12 +113,12 @@ export default {
 
 .icon {
   width: 100px;
-  margin: 25px auto 0 auto;
+  margin: 25px auto 0;
 }
 
 .login-box {
   display: inline-block;
-  margin: 25px auto 0 auto;
+  margin: 25px auto 0;
   background: var(--surface-a);
   padding: 2rem;
   border-radius: 5px;

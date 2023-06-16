@@ -2,7 +2,7 @@ const axios = require('axios');
 const { oxfordComma } = require('../helpers.util');
 const { SERVER, UI } = require('../../constants')();
 const { TELEGRAM } = require('../../constants')().NOTIFY || {};
-const FormData = require('form-data'); 
+const FormData = require('form-data');
 
 module.exports.send = async (output) => {
   const { filename, message } = this.normalize(output);

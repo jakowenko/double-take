@@ -310,7 +310,7 @@ a.update.visible {
   background: none;
   border: none;
   @media only screen and (max-width: 576px) {
-    padding: 0.55rem 0.55rem;
+    padding: 0.55rem;
   }
 }
 
