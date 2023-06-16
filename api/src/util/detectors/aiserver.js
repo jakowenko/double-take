@@ -66,10 +66,9 @@ module.exports.normalize = ({ camera, data }) => {
     if (data.code === 500 && data.error === 'No face found in image') {
       console.log('ai.server found no face in image');
       return [];
-    } else {
-      console.warn('unexpected ai.server data');
-      return [];
     }
+    console.warn('unexpected ai.server data');
+    return [];
   }
   const { MATCH, UNKNOWN } = config.detect(camera);
   if (!data.predictions) {
