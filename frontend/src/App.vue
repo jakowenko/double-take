@@ -11,6 +11,7 @@
 </template>
 
 <script>
+import '@/util/tracing.util';
 import { io } from 'socket.io-client';
 import Toast from 'primevue/toast';
 import ConfirmDialog from 'primevue/confirmdialog';
