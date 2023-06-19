@@ -1,4 +1,3 @@
-require('./src/util/tracing.util');
 require('./src/util/logger.util').init();
 const http = require('http');
 const socket = require('./src/util/socket.util');
