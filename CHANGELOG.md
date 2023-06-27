@@ -1,3 +1,8 @@
+## [1.13.10](https://github.com/skrashevich/double-take/compare/v1.13.9...v1.13.10)
+
+Bugfix: correct handle timezones
+Refactor: a lot of small invisible improvements
+
 ## [1.13.9](https://github.com/skrashevich/double-take/compare/v1.13.8...v1.13.9)
 
 Bugfix: Refactor logger.controller.js to check for existence of log files before reading them
