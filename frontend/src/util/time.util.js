@@ -6,7 +6,9 @@ export default {
       const time = localStorage.getItem('time');
       if (time) {
         const { timezone, format } = JSON.parse(time);
-        return format ? DateTime.fromISO(ISO).setZone(timezone.toUpperCase()).toFormat(format) : ISO;
+        return format
+          ? DateTime.fromISO(ISO).setZone(timezone.toUpperCase()).toFormat(format)
+          : DateTime.fromISO(ISO).setZone(timezone.toUpperCase()).toISO({ includeOffset: true });
       }
       return ISO;
     } catch (error) {

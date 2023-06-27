@@ -27,3 +27,7 @@ module.exports.ago = (date) => {
   });
   return relativeFormatter.format(Math.trunc(diff.as(unit)), unit);
 };
+
+module.exports.localtime = (ISO) => {
+  return DateTime.fromISO(ISO).setZone(TIMEZONE.toUpperCase()).toISOString();
+};

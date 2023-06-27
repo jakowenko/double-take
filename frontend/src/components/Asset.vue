@@ -22,7 +22,7 @@
             ></div>
           </div>
           <div v-if="selectedDetector" class="asset-result p-p-2">
-            <pre>{{ { ...selectedDetector.result, createdAt: asset.createdAt, updatedAt: asset.updatedAt } }}</pre>
+            <pre>{{ { ...selectedDetector.result, createdAt: formatTime(asset.createdAt), updatedAt: asset.updatedAt ? formatTime(asset.updatedAt) : asset.updatedAt} }}</pre>
           </div>
 
           <div class="ratio" :style="{ paddingTop: (asset.file.height / asset.file.width) * 100 + '%' }">
