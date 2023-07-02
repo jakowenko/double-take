@@ -31,6 +31,7 @@ module.exports = {
   },
   mqtt: {
     protocol: 'mqtt',
+    port: -1,
     tls: {},
     topics: {
       frigate: 'frigate/events',
