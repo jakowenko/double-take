@@ -20,7 +20,7 @@
   "homepage": "https://github.com/skrashevich/double-take#readme",
   "dependencies": {
     "ace-code": "^1.16.0",
-    "ace-linters": "^0.7.0",
+    "ace-linters": "^0.11.3",
     "axios": "^0.27.2",
     "copy-to-clipboard": "^3.3.1",
     "dgram": "^1.0.1",
@@ -28,7 +28,7 @@
     "luxon": "^2.5.2",
     "mitt": "^3.0.0",
     "primeflex": "^2.0.0",
-    "primeicons": "^5.0.0",
+    "primeicons": "^6.0.1",
     "primevue": "^3.13.0",
     "prismjs": "^1.28.0",
     "pulltorefreshjs": "^0.1.22",

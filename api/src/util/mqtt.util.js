@@ -92,6 +92,7 @@ module.exports.connect = () => {
   try {
     CLIENT = mqtt.connect({
       host: MQTT.HOST,
+      port: MQTT.PORT === -1 ? (MQTT.PROTOCOL === 'mqtts' ? 8883 : 1883) : MQTT.PORT,
       reconnectPeriod: 10000,
       username: MQTT.USERNAME || MQTT.USER,
       password: MQTT.PASSWORD || MQTT.PASS,
