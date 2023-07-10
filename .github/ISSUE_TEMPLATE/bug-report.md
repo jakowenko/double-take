@@ -20,8 +20,10 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Hardware**
+ - Architecture or platform: [e.g. amd64, arm64, raspberry3, etc]
  - OS: [e.g. Ubuntu, macOS, Windows]
  - Browser (if applicable) [e.g. Chrome, Safari]
+ - Docker image (if applicable) [e.g. skrashevich/double-take:latest]
 
 **Additional context**
 Add any other context about the problem here.
