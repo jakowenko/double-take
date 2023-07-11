@@ -9,11 +9,16 @@ module.exports.subLabel = async (topic, id, best) => {
     .map(({ name }) => name)
     .sort()
     .join(', ');
-  const confidences = Math.max(...best.map(({ confidence }) => confidence));
+  const confidences = Math.max(...best.map(({ confidence }) => confidence)) / 100;
+  if (confidences < 0 || confidences > 1) {
+    throw new Error(
+      `Confidences must be greater than 0 and smaller than 1, but now it's ${confidences}`
+    );
+  }
   await axios({
     method: 'post',
     url: `${this.topicURL(topic)}/api/events/${id}/sub_label`,
-    data: { subLabel: names, subLabelScore: confidences / 100 },
+    data: { subLabel: names, subLabelScore: confidences },
   }).catch((error) => console.error(`sublabel error: ${error.message}`));
 };
 
