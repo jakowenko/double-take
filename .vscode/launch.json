@@ -7,7 +7,6 @@
     {
       "type": "node",
       "request": "launch",
-      "runtimeExecutable": "nodemon",
       "name": "API",
       "skipFiles": [
         "<node_internals>/**"
