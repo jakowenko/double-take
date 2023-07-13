@@ -147,8 +147,8 @@ RUN npm install nodemon -g
 ENV NODE_ENV=production
 WORKDIR /double-take
 EXPOSE 3000
-COPY .build/entrypoint.sh ./
-ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
+COPY .develop/entrypoint.dev.sh ./
+ENTRYPOINT ["/bin/bash", "./entrypoint.dev.sh"]
 
 FROM node:16-slim
 ARG DEBIAN_FRONTEND=noninteractive
@@ -167,6 +167,6 @@ RUN npm install nodemon -g
 
 ENV NODE_ENV=production
 WORKDIR /double-take
-COPY .build/entrypoint.sh ./
+COPY .develop/entrypoint.dev.sh ./
 EXPOSE 3000
-ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "./entrypoint.dev.sh"]
