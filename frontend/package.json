@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/skrashevich/double-take#readme",
   "dependencies": {
-    "ace-code": "^1.16.0",
+    "ace-code": "^1.23.4",
     "ace-linters": "^0.11.3",
     "axios": "^0.27.2",
     "copy-to-clipboard": "^3.3.1",
@@ -32,22 +32,22 @@
     "primevue": "^3.13.0",
     "prismjs": "^1.28.0",
     "pulltorefreshjs": "^0.1.22",
-    "socket.io-client": "^4.5.1",
+    "socket.io-client": "^4.7.1",
     "v-lazy-image": "^2.1.1",
     "v-pagination-3": "^0.1.7",
     "vue": "^3.2.37",
-    "vue-router": "^4.0.15",
-    "vue3-ace-editor": "^2.2.2"
+    "vue-router": "^4.2.4",
+    "vue3-ace-editor": "^2.2.3"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^4.1.0",
+    "@vitejs/plugin-vue": "^4.2.3",
     "@vue/compiler-sfc": "^3.2.37",
     "@vue/eslint-config-airbnb": "^7.0.0",
     "@vue/eslint-config-prettier": "^7.0.0",
     "eslint": "^8.37.0",
     "eslint-plugin-vue": "^9.10.0",
     "sass": "^1.60.0",
-    "vite": "^4.2.1",
+    "vite": "^4.4.7",
     "vite-plugin-commonjs-externals": "^0.1.1",
     "vite-svg-loader": "^4.0.0"
   },
