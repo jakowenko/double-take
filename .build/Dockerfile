@@ -87,7 +87,8 @@ COPY /frontend/package.json .
 RUN bun install
 COPY /frontend/src ./src
 COPY /frontend/public ./public
-COPY /frontend/.env.production /frontend/vue.config.js /frontend/vite.config.js /frontend/.eslintrc.js /frontend/index.html ./
+COPY /frontend/.env.production /frontend/vue.config.js /frontend/vite.config.js /frontend/.eslintrc.js /frontend/index.html /frontend/jsconfig.json ./
+RUN bun upgrade --canary
 RUN bun run -b build
 
 
