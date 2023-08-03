@@ -70,6 +70,7 @@ module.exports = {
     },
   },
   notify: {
+    only_unknown: false,
     gotify: {
       priority: 10,
     },

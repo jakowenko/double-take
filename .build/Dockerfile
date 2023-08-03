@@ -78,17 +78,17 @@ RUN cp ./prebuild/Linux/binding.gyp ./binding.gyp
 RUN node-gyp rebuild -j $(nproc)
 RUN cd build/Release && cp `lddtree -l canvas.node | grep -v 'canvas.node'` /opt/
 
-FROM --platform=$BUILDPLATFORM node:16 AS frontend-builder
+FROM --platform=$BUILDPLATFORM oven/bun AS frontend-builder
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /build
 RUN apt -y update && apt install -y --no-install-recommends curl bash unzip
 
 COPY /frontend/package.json .
-RUN --mount=type=cache,target=/root/.npm npm install
+RUN bun install
 COPY /frontend/src ./src
 COPY /frontend/public ./public
 COPY /frontend/.env.production /frontend/vue.config.js /frontend/vite.config.js /frontend/.eslintrc.js /frontend/index.html ./
-RUN --mount=type=cache,target=/root/.npm npm run build
+RUN bun run -b build
 
 
 FROM node:16 as build

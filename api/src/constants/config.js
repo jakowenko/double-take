@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 const yaml = require('js-yaml');
 const fs = require('fs');
 const _ = require('lodash');
@@ -122,10 +123,25 @@ module.exports.masks = (camera) => {
   return masks;
 };
 
-module.exports.notify = () => {
+module.exports.notify_services = () => {
   const results = [];
-  if (CONFIG.notify) for (const [notify] of Object.entries(CONFIG.notify)) results.push(notify);
+  if (CONFIG.notify) {
+    // Iterate over each key-value pair in the 'notify' object
+    for (const [notify, value] of Object.entries(CONFIG.notify)) {
+      // Check if the value associated with the key is not a boolean
+      if (typeof value !== 'boolean') {
+        // Push the key (notify) into the results array
+        results.push(notify);
+      }
+    }
+  }
   return results;
+};
+
+module.exports.notify_unknown = () => {
+  let only_unknown = true;
+  only_unknown = CONFIG.notify?.only_unknown ?? true;
+  return only_unknown;
 };
 
 module.exports.frigate = ({ id, camera, topic }) => {

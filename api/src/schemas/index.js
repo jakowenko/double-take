@@ -169,6 +169,7 @@ module.exports.config = {
     notify: {
       type: 'object',
       properties: {
+        only_unknown: { type: 'boolean' },
         gotify: {
           type: 'object',
           required: ['url'],
