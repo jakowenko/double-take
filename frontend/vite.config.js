@@ -27,8 +27,6 @@ export default defineConfig(({ command }) => ({
         },
         build: {
     outDir: 'dist',
-    rollupOptions: {
-      external: [/ace-builds\/src-noconflict/, 'ace-builds'],
-    },
+
   },
 }));
