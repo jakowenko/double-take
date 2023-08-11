@@ -122,11 +122,12 @@ module.exports.masks = (camera) => {
   if (CONFIG.cameras?.[camera]?.masks?.coordinates) masks = CONFIG.cameras[camera].masks;
   return masks;
 };
-module.exports.crop_snapshot = (camera) => {
+const crop_snapshot = (camera) => {
   let crop = true;
   if (CONFIG.cameras?.[camera]?.snapshot?.crop) crop = CONFIG.cameras[camera].snapshot.crop;
   return crop;
 };
+module.exports.crop_snapshot = crop_snapshot;
 module.exports.notify_services = () => {
   const results = [];
   if (CONFIG.notify) {
@@ -163,7 +164,7 @@ module.exports.frigate = ({ id, camera, topic }) => {
   _.mergeWith(image, events?.[camera]?.image || {}, customizer);
   _.mergeWith(attempts, events?.[camera]?.attempts || {}, customizer);
 
-  const useCrop = masks(camera) || this.crop_snapshot(camera) ? '' : '&crop=1';
+  const useCrop = masks(camera) || crop_snapshot(camera) ? '' : '&crop=1';
   const snapshot = `${topicURL(topic)}/api/events/${id}/snapshot.jpg?h=${image.height}${useCrop}`;
 
   const latest = image.latest || `${topicURL(topic)}/api/${camera}/latest.jpg?h=${image.height}`;

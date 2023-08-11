@@ -1,7 +1,8 @@
 const fs = require('fs');
 const axios = require('axios');
 const sizeOf = require('probe-image-size');
-const { createCanvas, loadImage, registerFont } = require('@napi-rs/canvas');;
+const { createCanvas, loadImage } = require('@napi-rs/canvas');
+
 const { jwt } = require('../util/auth.util');
 const filesystem = require('../util/fs.util');
 const database = require('../util/db.util');
@@ -45,9 +46,10 @@ module.exports.matches = async (req, res) => {
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
     const image = await loadImage(source);
+    /* TODO: implement it
     registerFont(`${__dirname}/../static/fonts/Roboto/Roboto-Medium.ttf`, {
       family: 'Roboto-Medium',
-    });
+    }); */
     ctx.drawImage(image, 0, 0);
     ctx.font = `${fontSize}px Roboto-Medium`;
     ctx.textBaseline = 'top';
