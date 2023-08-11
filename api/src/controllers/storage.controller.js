@@ -39,6 +39,9 @@ module.exports.matches = async (req, res) => {
       width: 0,
       height: 0,
     }));
+    if (width <= 0 || height <= 0) {
+      return res.status(BAD_REQUEST).error(`Invalid image dimensions for ${source}`);
+    }
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
     const image = await loadImage(source);
@@ -132,10 +135,8 @@ module.exports.delete = async (req, res) => {
   const { files } = req.body;
   if (files && files.length) {
     const db = database.connect();
-    db.prepare(
-      `DELETE FROM file WHERE id IN (${files.map((obj) => `'${obj.id}'`).join(',')})`
-    ).run();
-    db.prepare(
+    db.query(`DELETE FROM file WHERE id IN (${files.map((obj) => `'${obj.id}'`).join(',')})`).run();
+    db.query(
       `DELETE FROM train WHERE fileId IN (${files.map((obj) => `'${obj.id}'`).join(',')})`
     ).run();
     files.forEach((obj) => {
