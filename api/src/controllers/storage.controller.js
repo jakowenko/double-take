@@ -93,6 +93,9 @@ module.exports.matches = async (req, res) => {
   const image = await loadImage(source);
   let buffer;
   if (req.query.thumb === '') {
+    if (WIDTH <= 0 || image.height * (WIDTH / image.width) <= 0) {
+      return res.status(BAD_REQUEST).error(`Invalid image dimensions for ${source}`);
+    }
     const canvas = createCanvas(WIDTH, image.height * (WIDTH / image.width));
     const ctx = canvas.getContext('2d');
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
@@ -116,6 +119,9 @@ module.exports.train = async (req, res) => {
   const image = await loadImage(source);
   let buffer;
   if (req.query.thumb === '') {
+    if (WIDTH <= 0 || image.height * (WIDTH / image.width) <= 0) {
+      return res.status(BAD_REQUEST).error(`Invalid image dimensions for ${source}`);
+    }
     const canvas = createCanvas(WIDTH, image.height * (WIDTH / image.width));
     const ctx = canvas.getContext('2d');
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
