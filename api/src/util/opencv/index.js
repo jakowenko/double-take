@@ -1,4 +1,5 @@
-const { Canvas, Image, ImageData, loadImage } = require('@napi-rs/canvas');;
+const { Canvas, Image, ImageData, loadImage } = require('@napi-rs/canvas');
+
 const { JSDOM } = require('jsdom');
 const { OPENCV } = require('../../constants')();
 

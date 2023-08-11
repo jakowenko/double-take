@@ -1,5 +1,6 @@
 const fs = require('fs');
-const { createCanvas, loadImage } = require('@napi-rs/canvas');;
+const { createCanvas, loadImage } = require('@napi-rs/canvas');
+
 const sizeOf = require('probe-image-size');
 
 const config = require('../constants/config');
