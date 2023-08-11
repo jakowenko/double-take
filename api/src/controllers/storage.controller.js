@@ -1,7 +1,7 @@
 const fs = require('fs');
 const axios = require('axios');
 const sizeOf = require('probe-image-size');
-const { createCanvas, loadImage, registerFont } = require('canvas');
+const { createCanvas, loadImage, registerFont } = require('@napi-rs/canvas');;
 const { jwt } = require('../util/auth.util');
 const filesystem = require('../util/fs.util');
 const database = require('../util/db.util');

@@ -45,18 +45,18 @@ EOT
 
 FROM node:16 as better-sqlite3-builder
 ARG DEBIAN_FRONTEND=noninteractive
-ADD https://sqlite.org/2023/sqlite-amalgamation-3410000.zip /tmp/
+ADD https://sqlite.org/2023/sqlite-amalgamation-3420000.zip /tmp/
 WORKDIR /build
 RUN --mount=type=cache,target=/root/.npm <<EOT
   #!/bin/bash
   mkdir -p /src
   cd /src
-  unzip /tmp/sqlite-amalgamation-3410000.zip && rm /tmp/sqlite-amalgamation-3410000.zip
+  unzip /tmp/sqlite-amalgamation-3420000.zip && rm /tmp/sqlite-amalgamation-3420000.zip
   mv sqlite* sqlite
   cd sqlite
   sed  -i '1i #define SQLITE_MAX_VARIABLE_NUMBER 65532' sqlite3.c
 EOT
-RUN npm install --build-from-source --install-links better-sqlite3@'^8.2.0' --sqlite3="/src/sqlite"
+RUN npm install --build-from-source --install-links better-sqlite3@'^8.4.0' --sqlite3="/src/sqlite"
 
 
 FROM node:16 as canvas-builder
@@ -109,7 +109,7 @@ COPY /api/package.json .
 
 RUN --mount=type=cache,target=/root/.npm npm install
 COPY --link --from=better-sqlite3-builder /build/node_modules/better-sqlite3 ./node_modules/better-sqlite3
-COPY --link --from=canvas-builder /src ./node_modules/canvas
+#COPY --link --from=canvas-builder /src ./node_modules/canvas
 
 WORKDIR /double-take/api
 COPY /api/server.js .
@@ -122,7 +122,7 @@ WORKDIR /double-take
 COPY --link --from=frontend-builder /build/dist ./frontend
 RUN --mount=type=cache,target=/root/.npm npm install nodemon -g
 RUN mkdir -p /opt/lib
-COPY --link --from=canvas-builder /opt/* /opt/lib/
+#COPY --link --from=canvas-builder /opt/* /opt/lib/
 RUN cp /lib/*-linux-gnu*/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
 
 #COPY /.build/entrypoint.sh .
