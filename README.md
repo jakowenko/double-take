@@ -1,5 +1,11 @@
 [![Double Take](https://badgen.net/github/release/skrashevich/double-take/stable)](https://github.com/skrashevich/double-take) [![Double Take](https://badgen.net/github/stars/skrashevich/double-take)](https://github.com/skrashevich/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/skrashevich/double-take)](https://hub.docker.com/r/skrashevich/double-take)
 
+Community-owned resources:
+
+[WorldWide discord server](https://discord.gg/gAajTQda)
+
+[Frigate/DoubleTake CIS Region Telegram chat](https://t.me/FrigateNVR) 🇺🇦🇰🇿🇧🇾🇷🇺🇺🇳 ~~make love, not war~~
+
 # Double Take
 
 Unified UI and API for processing and training images for facial recognition.
