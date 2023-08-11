@@ -56,6 +56,9 @@ RUN --mount=type=cache,target=/root/.npm <<EOT
   cd sqlite
   sed  -i '1i #define SQLITE_MAX_VARIABLE_NUMBER 65532' sqlite3.c
 EOT
+RUN apt update && apt install ccache
+ENV CC="ccache gcc"
+ENV CXX="ccache g++"
 RUN npm install --build-from-source --install-links better-sqlite3@'^8.4.0' --sqlite3="/src/sqlite"
 
 
@@ -67,9 +70,11 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean \
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
 apt -y update
-apt install -y build-essential libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev pax-utils
+apt install -y build-essential libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev pax-utils ccache
 ln -s /usr/bin/lddtree /usr/bin/lddtree.sh
 EOT
+ENV CC="ccache gcc"
+ENV CXX="ccache g++"
 RUN npm install -g node-gyp
 ADD https://github.com/Automattic/node-canvas.git#v2.11.2 /src
 WORKDIR /src
@@ -102,11 +107,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,t
 apt -y update
 apt install -y curl bash jq unzip wget
  #curl -sL https://deb.nodesource.com/setup_16.x | bash -
- apt install -y gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev
+ apt install -y gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev ccache
 EOT
 WORKDIR /double-take/api
 COPY /api/package.json .
-
+ENV CC="ccache gcc"
+ENV CXX="ccache g++"
 RUN --mount=type=cache,target=/root/.npm npm install
 COPY --link --from=better-sqlite3-builder /build/node_modules/better-sqlite3 ./node_modules/better-sqlite3
 #COPY --link --from=canvas-builder /src ./node_modules/canvas
