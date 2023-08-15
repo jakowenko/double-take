@@ -42,10 +42,10 @@ const format = async (matches) => {
   return matches;
 };
 
-module.exports.get = async (req, res) => {
+module.exports.post = async (req, res) => {
   const limit = UI.PAGINATION.LIMIT;
-  const { sinceId, page } = req.query;
-  const filters = tryParseJSON(req.query.filters);
+  const { sinceId, page } = req.body;
+  const filters = tryParseJSON(req.body.filters);
 
   const db = database.connect();
 
@@ -70,17 +70,17 @@ module.exports.get = async (req, res) => {
   const filteredIds = db
     .prepare(
       `SELECT t.id, t.event, detector, value FROM (
-          SELECT match.id, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results
-          FROM match, json_each( match.response)
-          ) t, json_each(t.results)
-        WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
-        AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
-        AND json_extract(t.event, '$.camera') IN (${database.params(filters.cameras)})
-        AND json_extract(t.event, '$.type') IN (${database.params(filters.types)})
-        AND (json_extract(value, '$.confidence') >= ? ${confidenceQuery})
-        AND json_extract(value, '$.box.width') >= ?
-        AND json_extract(value, '$.box.height') >= ?
-        AND detector IN (${database.params(filters.detectors)})
+    SELECT match.id, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results
+    FROM match, json_each( match.response)
+    ) t, json_each(t.results)
+  WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
+  AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
+  AND json_extract(t.event, '$.camera') IN (${database.params(filters.cameras)})
+  AND json_extract(t.event, '$.type') IN (${database.params(filters.types)})
+  AND (json_extract(value, '$.confidence') >= ? ${confidenceQuery})
+  AND json_extract(value, '$.box.width') >= ?
+  AND json_extract(value, '$.box.height') >= ?
+  AND detector IN (${database.params(filters.detectors)})
         GROUP BY t.id`
     )
     .bind(
