@@ -210,8 +210,9 @@ export default {
             const sinceId =
               // eslint-disable-next-line no-nested-ternary
               $this.pagination.temp > 1 ? 0 : $this.matches.source.length ? $this.matches.source[0].id : 0;
-            const { data } = await ApiService.get('match', {
-              params: { page: $this.pagination.temp, sinceId, filters: $this.filters },
+            const { data } = await ApiService.post(`match?page=${this.pagination.temp}`, {
+              sinceId,
+              filters: $this.filters,
             });
             $this.pagination.limit = data.limit;
             $this.pagination.total = sinceId === 0 ? data.total : $this.pagination.total + data.matches.length;
