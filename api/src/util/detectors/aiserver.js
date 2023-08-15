@@ -7,26 +7,23 @@ const config = require('../../constants/config');
 
 const { AISERVER } = DETECTORS || {};
 
-module.exports.recognize = async ({ key }) => {
+const recognize = async ({ key }) => {
   const { URL } = AISERVER;
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
-
-  return axios({
+  const reqconfig = {
     method: 'post',
     timeout: AISERVER.TIMEOUT * 1000,
-    headers: {
-      ...formData.getHeaders(),
-    },
+    headers: formData.getHeaders(),
     url: `${URL}/v1/vision/face/recognize`,
-    validateStatus() {
-      return true;
-    },
     data: formData,
-  });
+    maxContentLength: 100000000,
+    maxBodyLength: 1000000000,
+  };
+  return axios(reqconfig);
 };
 
-module.exports.train = ({ name, key }) => {
+const train = ({ name, key }) => {
   const { URL } = AISERVER;
   const formData = new FormData();
   formData.append('image', fs.createReadStream(key));
@@ -35,15 +32,15 @@ module.exports.train = ({ name, key }) => {
   return axios({
     method: 'post',
     timeout: AISERVER.TIMEOUT * 1000,
-    headers: {
-      ...formData.getHeaders(),
-    },
+    headers: formData.getHeaders(),
     url: `${URL}/v1/vision/face/register`,
     data: formData,
+    maxContentLength: 100000000,
+    maxBodyLength: 1000000000,
   });
 };
 
-module.exports.remove = ({ name }) => {
+const remove = ({ name }) => {
   const { URL } = AISERVER;
   const formData = new FormData();
   formData.append('userid', name);
@@ -59,7 +56,7 @@ module.exports.remove = ({ name }) => {
   });
 };
 
-module.exports.normalize = ({ camera, data }) => {
+const normalize = ({ camera, data }) => {
   if (!data.success) {
     // compare with CoderProjectAI sources
     // https://github.com/codeproject/CodeProject.AI-Server/blob/main/src/modules/FaceProcessing/intelligencelayer/face.py#L528
@@ -98,3 +95,4 @@ module.exports.normalize = ({ camera, data }) => {
   });
   return normalized;
 };
+module.exports = { recognize, train, remove, normalize };
