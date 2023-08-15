@@ -22,7 +22,7 @@
     "@mhoc/axios-digest-auth": "^0.8.0",
     "@napi-rs/canvas": "^0.1.43",
     "archiver": "^5.3.1",
-    "axios": "^1.4.0",
+    "axios": "^0.27.2",
     "better-sqlite3": "^8.2.0",
     "cors": "^2.8.5",
     "execution-time": "^1.4.1",
