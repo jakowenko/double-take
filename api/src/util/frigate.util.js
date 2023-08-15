@@ -19,7 +19,9 @@ module.exports.subLabel = async (topic, id, best) => {
     method: 'post',
     url: `${this.topicURL(topic)}/api/events/${id}/sub_label`,
     data: { subLabel: names, subLabelScore: confidences },
-  }).catch((error) => console.error(`sublabel error: ${error.message}`));
+  }).catch((error) =>
+    console.error(`post sublabel to frigate for event ${id} error: ${error.message}`)
+  );
 };
 
 module.exports.checks = async ({
