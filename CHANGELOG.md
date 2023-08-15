@@ -1,14 +1,14 @@
 ## [1.13.11](https://github.com/skrashevich/double-take/compare/v1.13.10...v1.13.11)
 
-Some improves for arm64 arch (probably fixed a "timeout" error in ai.server detector)
-Refactor: a lot of invisible improvements
-Add sublabel score to sublabel API endpoint for frigate
-Bump depends versions 
+* Some improves for arm64 arch (probably fixed a "timeout" error in ai.server detector)
+* Refactor: a lot of invisible improvements
+* Add sublabel score to sublabel API endpoint for frigate
+* Bump depends versions 
 
 ## [1.13.10](https://github.com/skrashevich/double-take/compare/v1.13.9...v1.13.10)
 
-Bugfix: correct handle timezones
-Refactor: a lot of small invisible improvements
+* Bugfix: correct handle timezones
+* Refactor: a lot of small invisible improvements
 
 ## [1.13.9](https://github.com/skrashevich/double-take/compare/v1.13.8...v1.13.9)
 
@@ -32,19 +32,19 @@ added device_tracker object to mqtt for each recognized person
 
 ## [1.13.4](https://github.com/skrashevich/double-take/compare/v1.13.3...v1.13.4)
 
-Return support of arm(64) architectures
-bug fixes (again)
+* Return support of arm(64) architectures
+* bug fixes (again)
 
 ## [1.13.3](https://github.com/skrashevich/double-take/compare/v1.13.2...v1.13.3)
 
-Add telegram notifications
-bug fixes
+vAdd telegram notifications
+* bug fixes
 
 ## [1.13.2](https://github.com/skrashevich/double-take/compare/v1.13.1...v1.13.2)
 
-Migrate from vue to vite
-add ai.server detector
-bug fixes
+* Migrate from vue to vite
+* add ai.server detector
+* bug fixes
 
 ## [1.13.1](https://github.com/jakowenko/double-take/compare/v1.13.0...v1.13.1) (2022-10-27)
 
