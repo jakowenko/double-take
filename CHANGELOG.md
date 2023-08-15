@@ -1,3 +1,10 @@
+## [1.13.11](https://github.com/skrashevich/double-take/compare/v1.13.10...v1.13.11)
+
+Some improves for arm64 arch (probably fixed a "timeout" error in ai.server detector)
+Refactor: a lot of invisible improvements
+Add sublabel score to sublabel API endpoint for frigate
+Bump depends versions 
+
 ## [1.13.10](https://github.com/skrashevich/double-take/compare/v1.13.9...v1.13.10)
 
 Bugfix: correct handle timezones
