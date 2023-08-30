@@ -1,3 +1,7 @@
+## [1.13.11](https://github.com/skrashevich/double-take/compare/v1.13.11...v1.13.11.1)
+
+* Bug fixes
+
 ## [1.13.11](https://github.com/skrashevich/double-take/compare/v1.13.10...v1.13.11)
 
 * Some improves for arm64 arch (probably fixed a "timeout" error in ai.server detector)
