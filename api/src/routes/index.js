@@ -1,6 +1,5 @@
 const express = require('express');
 const { STORAGE } = require('../constants')();
-const { NOT_FOUND } = require('../constants/http-status');
 
 const router = express.Router();
 
@@ -18,6 +17,8 @@ router.use('/status', require('./status.routes'));
 router.use('/export', require('./export.routes'));
 
 router.use(STORAGE.TMP.PATH, express.static(STORAGE.TMP.PATH));
-router.all('*', (req, res) => res.status(NOT_FOUND).error(`${req.originalUrl} not found`));
+router.use((req, res) => {
+  res.status(404).send({ error: `${req.originalUrl} not found` });
+});
 
 module.exports = router;
