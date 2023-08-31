@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(require('./middlewares/respond'));
 
 if (process.env.HA_ADDON) {
-  const ips = ['172.30.32.2', '127.0.0.1'];
+  const ips = ['172.30.32.2', '127.0.0.1', '::ffff:172.30.32.2', '::ffff:127.0.0.1'];
   app.use(ipfilter(ips, { mode: 'allow' }));
 }
 app.use(
