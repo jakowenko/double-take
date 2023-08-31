@@ -1,4 +1,8 @@
-## [1.13.11](https://github.com/skrashevich/double-take/compare/v1.13.11...v1.13.11.1)
+## [1.13.11.2](https://github.com/skrashevich/double-take/compare/v1.13.11.1...v1.13.11.2)
+
+* Fix Home-Assistant add-on
+
+## [1.13.11.1](https://github.com/skrashevich/double-take/compare/v1.13.11...v1.13.11.1)
 
 * Bug fixes
 
