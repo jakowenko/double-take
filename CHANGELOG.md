@@ -1,3 +1,9 @@
+## [1.13.11.3](https://github.com/skrashevich/double-take/compare/v1.13.11.2...v1.13.11.3)
+
+### Bug Fixes
+
+* [BUG] Unable to delete images from Train Menu #102
+
 ## [1.13.11.2](https://github.com/skrashevich/double-take/compare/v1.13.11.1...v1.13.11.2)
 
 * Fix Home-Assistant add-on
