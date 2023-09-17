@@ -168,6 +168,7 @@ module.exports.config = {
     },
     notify: {
       type: 'object',
+      types: { type: 'array' },
       properties: {
         only_unknown: { type: 'boolean' },
         gotify: {

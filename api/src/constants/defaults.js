@@ -71,6 +71,7 @@ module.exports = {
   },
   notify: {
     only_unknown: false,
+    types: ['snapshot', 'latest', 'mqtt', 'frigate', 'manual'],
     gotify: {
       priority: 10,
     },

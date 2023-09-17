@@ -15,6 +15,12 @@ module.exports.send = (service, output) => factory.get(service).send(output);
  */
 module.exports.publish = (output, camera, zones) => {
   if (ONLY_UNKNOWN && !output.unknown) {
+    // console.debug(`sendings only unknown enabled`);
+    return;
+  }
+
+  if (!NOTIFY.TYPES.includes(output.matches[0].type)) {
+    console.debug(`${output.type} not in NOTIFY.TYPES`);
     return;
   }
 
