@@ -144,8 +144,8 @@ module.exports.notify_services = () => {
 };
 
 module.exports.notify_unknown = () => {
-  let only_unknown = true;
-  only_unknown = CONFIG.notify?.only_unknown ?? true;
+  let only_unknown = false;
+  only_unknown = CONFIG.notify?.only_unknown ?? false;
   return only_unknown;
 };
 
