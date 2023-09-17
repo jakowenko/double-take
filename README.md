@@ -236,8 +236,9 @@ notify:
 notify:
   telegram:
     token: 
-    chat_id:
+    chat_id: "12345678"
 ```
+`chat_id` must be in quotes
 
 ## API Images
 
