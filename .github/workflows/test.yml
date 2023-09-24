@@ -43,7 +43,7 @@ jobs:
       run: |
         for i in {1..10}; do
           sleep 10
-          curl --silent --show-error --fail http://localhost:3000/api/config > /dev/null
+          curl --show-error http://localhost:3000/api/config
           if [[ $? -eq 0 ]]; then
             exit 0
           fi
