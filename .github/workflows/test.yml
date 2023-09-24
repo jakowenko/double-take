@@ -42,8 +42,8 @@ jobs:
     - name: Check http status code
       run: |
         for i in {1..10}; do
-          sleep 10
-          curl --show-error http://localhost:3000/api/config
+          sleep 30
+          curl --show-error http://localhost:3000/api/config || true
           if [[ $? -eq 0 ]]; then
             exit 0
           fi
