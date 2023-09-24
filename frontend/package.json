@@ -21,7 +21,7 @@
   "dependencies": {
     "ace-builds": "^1.23.4",
     "ace-code": "^1.23.4",
-    "ace-linters": "^0.12.1",
+    "ace-linters": "^0.13.2",
     "axios": "^0.27.2",
     "copy-to-clipboard": "^3.3.1",
     "dgram": "^1.0.1",
