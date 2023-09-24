@@ -45,13 +45,13 @@ EOT
 
 FROM node:16 as better-sqlite3-builder
 ARG DEBIAN_FRONTEND=noninteractive
-ADD https://sqlite.org/2023/sqlite-amalgamation-3420000.zip /tmp/
+ADD https://sqlite.org/2023/sqlite-amalgamation-3430000.zip /tmp/
 WORKDIR /build
 RUN --mount=type=cache,target=/root/.npm <<EOT
   #!/bin/bash
   mkdir -p /src
   cd /src
-  unzip /tmp/sqlite-amalgamation-3420000.zip && rm /tmp/sqlite-amalgamation-3420000.zip
+  unzip /tmp/sqlite-amalgamation-3430000.zip && rm /tmp/sqlite-amalgamation-3430000.zip
   mv sqlite* sqlite
   cd sqlite
   sed  -i '1i #define SQLITE_MAX_VARIABLE_NUMBER 65532' sqlite3.c
@@ -59,7 +59,7 @@ EOT
 RUN apt update && apt install ccache
 ENV CC="ccache gcc"
 ENV CXX="ccache g++"
-RUN npm install --build-from-source --install-links better-sqlite3@'^8.4.0' --sqlite3="/src/sqlite"
+RUN npm install --build-from-source --install-links better-sqlite3@'^8.6.0' --sqlite3="/src/sqlite"
 
 
 FROM node:16 as canvas-builder
