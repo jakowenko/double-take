@@ -43,7 +43,7 @@ jobs:
         if [[ "$GITHUB_REF" == "refs/heads/beta" ]]; then echo TAG=latest; else echo TAG="${GITHUB_REF##*/}"; fi >> $GITHUB_ENV
     - name: Docker meta
       id: meta
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@v5
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         images: |
