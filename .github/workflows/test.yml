@@ -41,11 +41,5 @@ jobs:
         docker run --platform ${{ matrix.platform }} -d --rm -v /tmp/config:/.storage/config -p 3000:3000 doubletake:latest
     - name: Check http status code
       run: |
-        for i in {1..10}; do
-          sleep 30
-          curl --show-error http://localhost:3000/api/config || true
-          if [[ $? -eq 0 ]]; then
-            exit 0
-          fi
-        done
-        exit 1
+        sleep 30
+        curl --show-error --connect-timeout 60 --max-time 120 --retry 20 --retry-all-errors http://localhost:3000/api/config
