@@ -46,7 +46,7 @@ module.exports.post = async (req, res) => {
   const limit = UI.PAGINATION.LIMIT;
   const { sinceId } = req.body;
   const { page } = req.query;
-  const filters = req.body.filters;
+  const { filters } = req.body;
 
   const db = database.connect();
 
