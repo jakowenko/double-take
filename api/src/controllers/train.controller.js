@@ -1,6 +1,8 @@
+const piexif = require('piexifjs');
 const fs = require('fs');
 const sizeOf = require('probe-image-size');
 const { getOrientation } = require('get-orientation');
+const jo = require('jpeg-autorotate');
 const time = require('../util/time.util');
 const database = require('../util/db.util');
 const train = require('../util/train.util');
@@ -10,6 +12,14 @@ const { BAD_REQUEST } = require('../constants/http-status');
 const { AUTH, STORAGE, UI } = require('../constants')();
 const { tryParseJSON } = require('../util/validators.util');
 
+function deleteThumbnailFromExif(imageBuffer) {
+  const imageString = imageBuffer.toString('binary');
+  const exifObj = piexif.load(imageString);
+  delete exifObj['thumbnail'];
+  delete exifObj['1st'];
+  const exifBytes = piexif.dump(exifObj);
+  return Buffer.from(piexif.insert(exifBytes, imageString), 'binary');
+}
 module.exports.get = async (req, res) => {
   const limit = UI.PAGINATION.LIMIT;
   const { page } = req.query;
@@ -106,7 +116,22 @@ module.exports.add = async (req, res) => {
         }
         const ext = `.${originalname.split('.').pop()}`;
         const filename = `${originalname.replace(ext, '')}-${time.unix()}${ext}`;
-        await filesystem.writer(`${STORAGE.MEDIA.PATH}/train/${name}/${filename}`, buffer);
+
+        try {
+          const rotateResult = await jo.rotate(deleteThumbnailFromExif(buffer));
+
+          console.debug(`Orientation was ${rotateResult.orientation}`);
+          // console.debug(
+          //  `Dimensions after rotation: ${rotateResult.dimensions.width}x${rotateResult.dimensions.height}`
+          // );
+          // console.debug(`Quality: ${rotateResult.quality}`);
+
+          filesystem.writer(`${STORAGE.MEDIA.PATH}/train/${name}/${filename}`, rotateResult.buffer);
+        } catch (error) {
+          console.error(`An error occurred when rotating the file: ${error.message}`);
+          filesystem.writer(`${STORAGE.MEDIA.PATH}/train/${name}/${filename}`, buffer);
+        }
+
         files.push({ name, filename });
       })
     );
