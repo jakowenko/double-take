@@ -19,9 +19,9 @@ jobs:
       with:
         string: ${{ github.repository }}
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v2
+      uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     - name: Write dummy config
@@ -29,7 +29,7 @@ jobs:
         mkdir -p /tmp/config
         echo -e "detectors:\n  deepstack:\n    url: http://localhost:5000" > /tmp/config/config.yml
     - name: Build Docker Image
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v5
       with:
         context: .
         file: .build/Dockerfile

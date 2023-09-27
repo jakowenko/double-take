@@ -68,7 +68,7 @@ const processMessage = ({ topic, message }) => {
 
   const frigate = async () => {
     const payload = JSON.parse(message.toString());
-    console.verbose(`Incominng event from frigate: ${message.toString()}`);
+    console.verbose(`Incoming event from frigate: ${message.toString()}`);
     if (payload.type === 'end') return;
 
     await axios({
@@ -269,13 +269,16 @@ module.exports.recognize = (data) => {
           message: 'home',
         });
         clearTimeout(PERSON_RESET_TIMEOUT[topic]);
-        PERSON_RESET_TIMEOUT[topic] = setTimeout(() => {
-          this.publish({
-            topic: `${MQTT.TOPICS.HOMEASSISTANT}/device_tracker/double-take/${topic}/state`,
-            retain: true,
-            message: 'not_home',
-          });
-        }, 1000 * 60 * 30); // 30 min
+        PERSON_RESET_TIMEOUT[topic] = setTimeout(
+          () => {
+            this.publish({
+              topic: `${MQTT.TOPICS.HOMEASSISTANT}/device_tracker/double-take/${topic}/state`,
+              retain: true,
+              message: 'not_home',
+            });
+          },
+          1000 * 60 * 30
+        ); // 30 min
 
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/config`,
