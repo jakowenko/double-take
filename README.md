@@ -75,6 +75,32 @@ services:
       - 3000:3000
 ```
 
+### Docker (Windows)
+
+To run the Double Take application in Docker on Windows, follow the below instructions:
+
+1. Install Docker Desktop on Windows system if not already installed.
+
+2. Open Command Prompt logged in as an administrator.
+
+3. Pull the Double Take Docker image with the command:
+   ```
+   docker pull skrashevich/double-take:latest
+   ```
+4. Determine the location you wish to use for the configuration folder. For example:  C:\Users\YourUsername\double-take-config .        
+
+5. Run the Docker command to start the Double Take container, replacing the 
+  default configuration folder location with your new location:    
+   ```
+   docker run -d -v C:\Users\YourUsername\double-take-config:/.storage -p 3000:3000 skrashevich/double-take:latest 
+   ```
+
+  Make sure that the  C:\Users\YourUsername\double-take-config  directory
+  exists and you have the necessary permissions for that folder. If the folder
+  does not exist, create it before running the Docker command.   
+
+6. If all went well, your NodeJS app should now be up and running inside a Docker container. You can check your application by visiting `http://localhost:3000`.
+
 ## Integrations
 
 ### [Frigate](https://github.com/blakeblackshear/frigate)
