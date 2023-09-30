@@ -1,0 +1,734 @@
+openapi: 3.0.3
+info:
+  title: Double Take
+  version: 1.0.0
+  contact: {}
+servers:
+  - url: http://localhost:3000/api
+paths:
+  /auth:
+    post:
+      tags:
+        - /auth
+      summary: /auth
+      description: /auth
+      operationId: auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  example: mypassword
+            examples:
+              /auth:
+                value:
+                  password: mypassword
+      responses:
+        '200':
+          description: ''
+  /auth/password:
+    post:
+      tags:
+        - /auth
+      summary: /auth/password
+      description: /auth/password
+      operationId: authPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  example: mypassword
+            examples:
+              /auth/password:
+                value:
+                  password: mypassword
+      responses:
+        '200':
+          description: ''
+    patch:
+      tags:
+        - /auth
+      summary: /auth/password
+      description: /auth/password
+      operationId: authPassword1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newPassword:
+                  type: string
+                  example: newpassword
+                password:
+                  type: string
+                  example: mypassword
+            examples:
+              /auth/password:
+                value:
+                  newPassword: newpassword
+                  password: mypassword
+      responses:
+        '200':
+          description: ''
+  /auth/tokens:
+    get:
+      tags:
+        - /auth
+      summary: /auth/tokens
+      description: /auth/tokens
+      operationId: authTokens
+      responses:
+        '200':
+          description: ''
+    post:
+      tags:
+        - /auth
+      summary: /auth/tokens
+      description: /auth/tokens
+      operationId: authTokens1
+      responses:
+        '200':
+          description: ''
+  /auth/tokens/{tokenId}:
+    delete:
+      tags:
+        - /auth
+      summary: /auth/tokens
+      description: /auth/tokens
+      operationId: authTokens2
+      responses:
+        '200':
+          description: ''
+    parameters:
+      - name: tokenId
+        in: path
+        required: true
+        schema:
+          type: string
+          example: 845b806c-c196-49d4-ab2d-f87c5dda3969
+  /config:
+    get:
+      tags:
+        - /config
+      summary: /config
+      description: Output configuration.
+      operationId: config
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            example: json
+          description: json, yaml, yaml-with-defaults
+      responses:
+        '200':
+          description: ''
+    patch:
+      tags:
+        - /config
+      summary: /config
+      description: Output configuration.
+      operationId: config1
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            example: json
+          description: json, yaml, yaml-with-defaults
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: ''
+            examples:
+              /config:
+                value:
+                  code: ''
+      responses:
+        '200':
+          description: ''
+  /config/theme:
+    get:
+      tags:
+        - /config
+      summary: /config/theme
+      description: Output configuration.
+      operationId: configTheme
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            example: json
+          description: json, yaml, yaml-with-defaults
+      responses:
+        '200':
+          description: ''
+    patch:
+      tags:
+        - /config
+      summary: /config/theme
+      description: Output configuration.
+      operationId: configTheme1
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            example: json
+          description: json, yaml, yaml-with-defaults
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                editor:
+                  type: string
+                  example: nord_dark
+                ui:
+                  type: string
+                  example: bootstrap4-dark-blue
+            examples:
+              /config/theme:
+                value:
+                  editor: nord_dark
+                  ui: bootstrap4-dark-blue
+      responses:
+        '200':
+          description: ''
+  /config/secrets:
+    get:
+      tags:
+        - /config
+      summary: /config/secrets
+      description: Output configuration.
+      operationId: configSecrets
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            example: json
+          description: json, yaml, yaml-with-defaults
+      responses:
+        '200':
+          description: ''
+    patch:
+      tags:
+        - /config
+      summary: /config/secrets
+      description: Output configuration.
+      operationId: configSecrets1
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            example: json
+          description: json, yaml, yaml-with-defaults
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: ''
+            examples:
+              /config/secrets:
+                value:
+                  code: ''
+      responses:
+        '200':
+          description: ''
+  /camera/{camera}:
+    get:
+      tags:
+        - /camera
+      summary: /camera/:camera
+      description: |-
+        Process images via HTTP or MQTT for configured cameras.
+
+        ```yaml
+        cameras:
+          driveway:
+            snapshot:
+              topic: driveway/snapshot
+              url: http://192.168.1.1/latest.jpg
+        ```
+      operationId: cameraCamera
+      parameters:
+        - name: attempts
+          in: query
+          schema:
+            type: string
+            example: '2'
+          description: Number of attempts before stopping without a match
+        - name: break
+          in: query
+          schema:
+            type: string
+            example: 'true'
+          description: Break attempt loop if a match is found
+      responses:
+        '200':
+          description: ''
+    parameters:
+      - name: camera
+        in: path
+        required: true
+        schema:
+          type: string
+          example: office
+  /recognize:
+    get:
+      tags:
+        - /recognize
+      summary: /recognize
+      description: Process image for recognition.
+      operationId: recognize
+      parameters:
+        - name: url
+          in: query
+          schema:
+            type: string
+            example: https://jakowenko.com/img/david.92f395c6.jpg
+          description: URL of image to pass to facial recognition detectors
+        - name: attempts
+          in: query
+          schema:
+            type: string
+            example: '1'
+          description: Number of attempts before stopping without a match
+        - name: results
+          in: query
+          schema:
+            type: string
+            example: best
+          description: 'Options: `best`, `all`'
+        - name: break
+          in: query
+          schema:
+            type: string
+            example: 'true'
+          description: Break attempt loop if a match is found
+        - name: camera
+          in: query
+          schema:
+            type: string
+            example: manual
+          description: 'Camera name used in output results    '
+      responses:
+        '200':
+          description: ''
+  /recognize/upload:
+    post:
+      tags:
+        - /recognize
+      summary: /recognize/upload
+      description: Process image for recognition.
+      operationId: recognizeUpload
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files[]:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: ''
+  /recognize/test:
+    get:
+      tags:
+        - /recognize
+      summary: /recognize/test
+      description: >-
+        Process test image for recognition and output the configured detectors
+        raw response.
+      operationId: recognizeTest
+      responses:
+        '200':
+          description: ''
+  /match:
+    get:
+      tags:
+        - /match
+      summary: /match
+      description: /match
+      operationId: match
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: string
+            example: '1'
+      responses:
+        '200':
+          description: ''
+    delete:
+      tags:
+        - /match
+      summary: /match
+      description: /match
+      operationId: match1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: number
+                    example: 1
+                  example:
+                    - 1
+            examples:
+              /match:
+                value:
+                  ids:
+                    - 1
+      responses:
+        '200':
+          description: ''
+  /filesystem/folders:
+    get:
+      tags:
+        - /filesystem
+      summary: /filesystem/folders
+      description: /filesystem/folders
+      operationId: filesystemFolders
+      responses:
+        '200':
+          description: ''
+  /filesystem/folders/{name}:
+    post:
+      tags:
+        - /filesystem
+      summary: /filesystem/folders/:name
+      description: /filesystem/folders/:name
+      operationId: filesystemFoldersName
+      responses:
+        '200':
+          description: ''
+    delete:
+      tags:
+        - /filesystem
+      summary: /filesystem/folders/:name
+      description: /filesystem/folders/:name
+      operationId: filesystemFoldersName1
+      responses:
+        '200':
+          description: ''
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+          example: david
+  /train:
+    get:
+      tags:
+        - /train
+      summary: /train
+      description: /train
+      operationId: train
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: string
+            example: '1'
+      responses:
+        '200':
+          description: ''
+  /train/{id}:
+    patch:
+      tags:
+        - /train
+      summary: /train/:id
+      description: /train/:id
+      operationId: trainId
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: string
+            example: '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: david
+            examples:
+              /train/:id:
+                value:
+                  name: david
+      responses:
+        '200':
+          description: ''
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          example: '83'
+  /train/status:
+    get:
+      tags:
+        - /train
+      summary: /train/status
+      description: /train/status
+      operationId: trainStatus
+      responses:
+        '200':
+          description: ''
+  /train/add/{name}:
+    post:
+      tags:
+        - /train
+      summary: /train/add/:name
+      description: >-
+        Train detectors with images from `./.storage/train/${name}`. Once an
+        image is trained, it will not be reprocessed unless it is removed via
+        the API.
+      operationId: trainAddName
+      responses:
+        '200':
+          description: ''
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+          example: david
+  /train/remove/{name}:
+    delete:
+      tags:
+        - /train
+      summary: /train/remove/:name
+      description: >-
+        Remove all images for the specific name from detectors. This does not
+        delete the files from the training folder.
+      operationId: trainRemoveName
+      responses:
+        '200':
+          description: ''
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+          example: david
+  /train/retrain/{name}:
+    get:
+      tags:
+        - /train
+      summary: /train/retrain/:name
+      description: >-
+        Remove all images for the specific name from detectors. This does not
+        delete the files from the training folder.
+      operationId: trainRetrainName
+      responses:
+        '200':
+          description: ''
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+          example: david
+  /storage/matches/{filename}:
+    get:
+      tags:
+        - /storage
+      summary: /storage/matches/:filename
+      description: Render match image.
+      operationId: storageMatchesFilename
+      parameters:
+        - name: box
+          in: query
+          schema:
+            type: string
+            example: 'true'
+          description: Draw bounding box around face with name and confidence
+      responses:
+        '200':
+          description: ''
+    parameters:
+      - name: filename
+        in: path
+        required: true
+        schema:
+          type: string
+          example: 12383c25-f64b-426e-b960-46294957d6ca.jpg
+  /storage/train:
+    delete:
+      tags:
+        - /storage
+      summary: /storage/train
+      description: Render match image.
+      operationId: storageTrain
+      parameters:
+        - name: box
+          in: query
+          schema:
+            type: string
+            example: 'true'
+          description: Draw bounding box around face with name and confidence
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items: {}
+                  example: []
+            examples:
+              /storage/train:
+                value:
+                  files: []
+      responses:
+        '200':
+          description: ''
+  /storage/train/{name}/{filename}:
+    get:
+      tags:
+        - /storage
+      summary: /storage/train/:name/:filename
+      description: Render training image.
+      operationId: storageTrainNameFilename
+      parameters:
+        - name: box
+          in: query
+          schema:
+            type: string
+            example: 'true'
+          description: Draw bounding box around face with name and confidence
+      responses:
+        '200':
+          description: ''
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+          example: david
+      - name: filename
+        in: path
+        required: true
+        schema:
+          type: string
+          example: filename.jpg
+  /storage/latest/{filename}:
+    get:
+      tags:
+        - /storage
+      summary: /storage/latest/:filename
+      description: Render training image.
+      operationId: storageLatestFilename
+      parameters:
+        - name: box
+          in: query
+          schema:
+            type: string
+            example: 'true'
+          description: Draw bounding box around face with name and confidence
+      responses:
+        '200':
+          description: ''
+    parameters:
+      - name: filename
+        in: path
+        required: true
+        schema:
+          type: string
+          example: camera.jpg
+  /proxy:
+    get:
+      tags:
+        - /proxy
+      summary: /proxy
+      description: /proxy
+      operationId: proxy
+      parameters:
+        - name: url
+          in: query
+          schema:
+            type: string
+            example: http://localhost:3000/api/status
+      responses:
+        '200':
+          description: ''
+  /logger:
+    get:
+      tags:
+        - /logger
+      summary: /logger
+      description: /logger
+      operationId: logger
+      responses:
+        '200':
+          description: ''
+    delete:
+      tags:
+        - /logger
+      summary: /logger
+      description: /logger
+      operationId: logger1
+      responses:
+        '200':
+          description: ''
+  /status/config:
+    get:
+      tags:
+        - /status
+      summary: /status/config
+      description: /status/config
+      operationId: statusConfig
+      responses:
+        '200':
+          description: ''
+tags:
+  - name: /auth
+  - name: /config
+  - name: /camera
+  - name: /recognize
+  - name: /match
+  - name: /filesystem
+  - name: /train
+  - name: /storage
+  - name: /proxy
+  - name: /logger
+  - name: /status
