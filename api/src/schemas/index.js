@@ -77,6 +77,7 @@ module.exports.config = {
             },
           },
         },
+        device_tracker_timeout: { type: 'number' },
       },
     },
     cameras: {

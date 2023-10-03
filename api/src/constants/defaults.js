@@ -28,6 +28,7 @@ module.exports = {
     update_sub_labels: false,
     stop_on_match: true,
     min_area: 0,
+    device_tracker_timeout: 30,
   },
   mqtt: {
     protocol: 'mqtt',

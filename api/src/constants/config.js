@@ -158,6 +158,7 @@ module.exports.frigate = ({ id, camera, topic }) => {
     image,
     stop_on_match: stopOnMatch,
     min_area: minArea,
+    device_tracker_timeout: deviceTrackerTimeout,
   } = JSON.parse(JSON.stringify(CONFIG.frigate));
   const { masks } = module.exports;
 
@@ -174,5 +175,6 @@ module.exports.frigate = ({ id, camera, topic }) => {
     attempts,
     stop_on_match: stopOnMatch,
     min_area: minArea,
+    device_tracker_timeout: deviceTrackerTimeout,
   });
 };
