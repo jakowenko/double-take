@@ -1,3 +1,17 @@
+## [1.13.11.4](https://github.com/skrashevich/double-take/compare/v1.13.11.3...v1.13.11.4)
+
+
+1. `[PATCH 01/30] Apply fixes`: Changes made in the 'storage.controller.js' file to format the 'db.prepare' method.             
+2. `[PATCH 02/30] Update README.md`: Added a comment about quotes in the `chat_id` field in `README.md`.                                             
+3. `[PATCH 03/30] Change default value for 'only_unknown' to false`: The default value `true` was changed to `false` in 'config.js'.                 
+4. `[PATCH 04/30] Add event type to notification system`: Changes were made across several files adding 'event type' to the notification system.   
+5. `[PATCH 05/30] Update test.yml`: Change made to the curl command in 'test.yml'.                                                                 
+6. `[PATCH 06/30] Update SQLite and better-sqlite3 versions`: SQLite and better-sqlite3 versions were updated in both the Dockerfile and package.json.
+7. `[PATCH 07/30] Increase sleep time and allow curl failure`: Sleep time in the test workflow was increased from 10 to 30 seconds.                   
+8. `[PATCH 08/30] Optimize HTTP status check in test workflow`: HTTP status check in the GitHub Actions test workflow was optimized.             
+9. `[PATCH 09/30] Upgrade docker/metadata-action from version 4 to 5`     
+10. `[PATCH 10/30] Upgrade docker/setup-buildx-action from version 2 to 3`
+
 ## [1.13.11.3](https://github.com/skrashevich/double-take/compare/v1.13.11.2...v1.13.11.3)
 
 ### Bug Fixes
