@@ -298,7 +298,7 @@ auth: true
 
 ## API
 
-Documentation can be viewed on [Postman](https://documenter.getpostman.com/view/1013188/TzsWuAa8).
+Documentation can be viewed on [Here](http://double-take.site).
 
 ## Configuration
 
