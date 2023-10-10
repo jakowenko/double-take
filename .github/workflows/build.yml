@@ -58,7 +58,7 @@ jobs:
           type=sha,enable=${{ matrix.target != '' }},prefix=,suffix=-${{ matrix.target }},format=short
           type=sha,enable=${{ matrix.target == '' }},prefix=sha-,suffix=,format=short
         flavor: |
-          latest=${{ matrix.target == '' && github.ref == 'refs/heads/beta' }}
+          latest=${{ matrix.target == '' && github.ref == 'refs/heads/main' }}
           suffix=${{ matrix.target }}
     - name: Build Docker Image
       uses: docker/build-push-action@v5
