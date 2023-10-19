@@ -1,5 +1,4 @@
 const express = require('express');
-const expressOasGenerator = require('express-oas-generator');
 const fs = require('fs');
 const cors = require('cors');
 const { UI } = require('./constants')();
@@ -42,7 +41,5 @@ app.use(UI.PATH, (req, res) => {
     )
   );
 });
-
-app.use((err, req, res, next) => res.send(err));
 
 module.exports = app;
