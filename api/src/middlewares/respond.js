@@ -28,7 +28,7 @@ module.exports = (req, res, next) => {
       ? { status: res.statusCode, body: input }
       : respond(res, input);
 
-    res.status(status);
+    res.statusCode = status;
 
     if (input instanceof Error && res.statusCode === SERVER_ERROR) console.error(input);
 
