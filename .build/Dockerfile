@@ -43,7 +43,7 @@ CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -extldflags -static" -o recogni
 EOT
 
 
-FROM node:16 as better-sqlite3-builder
+FROM node:18 as better-sqlite3-builder
 ARG DEBIAN_FRONTEND=noninteractive
 ADD https://sqlite.org/2023/sqlite-amalgamation-3430000.zip /tmp/
 WORKDIR /build
@@ -56,13 +56,13 @@ RUN --mount=type=cache,target=/root/.npm <<EOT
   cd sqlite
   sed  -i '1i #define SQLITE_MAX_VARIABLE_NUMBER 65532' sqlite3.c
 EOT
-RUN apt update && apt install ccache
+RUN apt update && apt install -y ccache
 ENV CC="ccache gcc"
 ENV CXX="ccache g++"
 RUN npm install --build-from-source --install-links better-sqlite3@'^8.6.0' --sqlite3="/src/sqlite"
 
 
-FROM node:16 as canvas-builder
+FROM node:18 as canvas-builder
 ARG DEBIAN_FRONTEND=noninteractive
 # Prepare apt for buildkit cache
 RUN rm -f /etc/apt/apt.conf.d/docker-clean \
@@ -97,7 +97,7 @@ RUN bun upgrade --canary
 RUN bun run -b build
 
 
-FROM node:16 as build
+FROM node:18 as build
 ARG DEBIAN_FRONTEND=noninteractive
 # Prepare apt for buildkit cache
 RUN rm -f /etc/apt/apt.conf.d/docker-clean \
@@ -133,7 +133,7 @@ RUN cp /lib/*-linux-gnu*/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
 
 #COPY /.build/entrypoint.sh .
 
-FROM node:16 as debug
+FROM node:18 as debug
 ARG DEBIAN_FRONTEND=noninteractive
 # Prepare apt for buildkit cache
 RUN rm -f /etc/apt/apt.conf.d/docker-clean \
@@ -157,7 +157,7 @@ EXPOSE 3000
 COPY .build/entrypoint.sh ./
 ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
 
-FROM node:16-slim
+FROM node:18-slim
 ARG DEBIAN_FRONTEND=noninteractive
 # Prepare apt for buildkit cache
 RUN rm -f /etc/apt/apt.conf.d/docker-clean \
