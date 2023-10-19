@@ -7,7 +7,7 @@ const ipfilter = require('express-ipfilter').IpFilter;
 require('express-async-errors');
 
 const app = express();
-expressOasGenerator.init(app, {});
+
 app.use('*', cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false }));
