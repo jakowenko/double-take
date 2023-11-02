@@ -190,7 +190,7 @@ module.exports.start = async (req, res) => {
   } catch (error) {
     PROCESSING = false;
     console.log(error);
-    res.send(error);
+    // res.send(error);
   }
 };
 
