@@ -78,6 +78,7 @@ export default {
       { label: 'Matches', icon: 'pi pi-fw fa fa-portrait', to: '/' },
       { label: 'Train', icon: 'pi pi-fw fa fa-images', to: '/train' },
       { label: 'Config', icon: 'pi pi-fw pi-cog', to: '/config' },
+      { label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' },
     ],
     menu: [],
     unauthorizedMenu: [
