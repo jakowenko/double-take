@@ -189,6 +189,7 @@ module.exports.start = async (req, res) => {
     if (results.length) emit('recognize', true);
   } catch (error) {
     PROCESSING = false;
+    console.log(error);
     res.send(error);
   }
 };
