@@ -1,10 +1,11 @@
 {
   "name": "double-take",
-  "version": "2",
+  "version": "1.13.11.5",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "prepare": "husky install",
     "frontend": "cd ./frontend && npm run serve",
+    "frontend-build": "cd ./frontend && npm run build",
     "api": "exec node api/server.js || true",
     "bump": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version",
     "lint:eslint": "eslint --fix",
@@ -17,7 +18,7 @@
   "engines": {
     "node": ">=18.0.0 <19.0.0"
   },
-  "author": "David Jakowenko",
+  "author": "Sergei Krashevich",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/skrashevich/double-take/issues"
