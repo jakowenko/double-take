@@ -45,13 +45,13 @@ EOT
 
 FROM node:18 as better-sqlite3-builder
 ARG DEBIAN_FRONTEND=noninteractive
-ADD https://sqlite.org/2023/sqlite-amalgamation-3430000.zip /tmp/
+ADD https://sqlite.org/2023/sqlite-amalgamation-3440000.zip /tmp/
 WORKDIR /build
 RUN --mount=type=cache,target=/root/.npm <<EOT
   #!/bin/bash
   mkdir -p /src
   cd /src
-  unzip /tmp/sqlite-amalgamation-3430000.zip && rm /tmp/sqlite-amalgamation-3430000.zip
+  unzip /tmp/sqlite-amalgamation-3440000.zip && rm /tmp/sqlite-amalgamation-3440000.zip
   mv sqlite* sqlite
   cd sqlite
   sed  -i '1i #define SQLITE_MAX_VARIABLE_NUMBER 65532' sqlite3.c
@@ -59,7 +59,7 @@ EOT
 RUN apt update && apt install -y ccache
 ENV CC="ccache gcc"
 ENV CXX="ccache g++"
-RUN npm install --build-from-source --install-links better-sqlite3@'^8.6.0' --sqlite3="/src/sqlite"
+RUN npm install --build-from-source --install-links better-sqlite3@'^9.0.0' --sqlite3="/src/sqlite"
 
 
 FROM node:18 as canvas-builder
@@ -106,7 +106,7 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean \
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
 apt -y update
 apt install -y curl bash jq unzip wget
- #curl -sL https://deb.nodesource.com/setup_16.x | bash -
+ #curl -sL https://deb.nodesource.com/setup_18.x | bash -
  apt install -y gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev ccache
 EOT
 WORKDIR /double-take/api
