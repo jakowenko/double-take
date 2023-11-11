@@ -13,7 +13,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false }));
 app.use(require('./middlewares/respond'));
 
-if (process.env.HA_ADDON) {
+if (process.env.HA_ADDON === 'true' && process.env.IPFILTER === 'true') {
   const ips = ['172.30.32.2', '127.0.0.1', '::ffff:172.30.32.2', '::ffff:127.0.0.1'];
   app.use(ipfilter(ips, { mode: 'allow' }));
 }
