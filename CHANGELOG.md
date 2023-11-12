@@ -1,3 +1,19 @@
+## [1.13.11.6](https://github.com/skrashevich/double-take/compare/v1.13.11.5...v1.13.11.6)
+
+### Changes
+
+* [BUG/Feature] added ability to disable ip checks in double-take hassio addon
+
+## [1.13.11.5](https://github.com/skrashevich/double-take/compare/v1.13.11.4...v1.13.11.5)
+
+### Bug Fixes
+
+* [BUG] fix error "Cannot set headers after they are sent to the client"
+
+### Others
+* Migrate to NodeJS 18
+* Logs button in top menu bar
+
 ## [1.13.11.4](https://github.com/skrashevich/double-take/compare/v1.13.11.3...v1.13.11.4)
 
 

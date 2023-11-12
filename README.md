@@ -740,6 +740,6 @@ compreface_key: <api-key>
 ./.develop/build
 ```
 
-## Donations
+## Star History
 
-If you would like to make a donation to support development, please use [GitHub Sponsors](https://github.com/sponsors/jakowenko).
+[![Star History Chart](https://api.star-history.com/svg?repos=skrashevich/double-take&type=Timeline)](https://star-history.com/#skrashevich/double-take&Timeline)
