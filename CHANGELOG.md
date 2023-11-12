@@ -1,3 +1,9 @@
+## [1.13.11.6](https://github.com/skrashevich/double-take/compare/v1.13.11.5...v1.13.11.6)
+
+### Changes
+
+* [BUG/Feature] added ability to disable ip checks in double-take hassio addon
+
 ## [1.13.11.5](https://github.com/skrashevich/double-take/compare/v1.13.11.4...v1.13.11.5)
 
 ### Bug Fixes
