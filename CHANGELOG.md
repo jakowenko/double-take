@@ -1,3 +1,9 @@
+## [1.13.11.6.1](https://github.com/skrashevich/double-take/compare/v1.13.11.6...v1.13.11.6.1)
+
+### Bug Fixes
+
+* [BUG] fix top menu
+
 ## [1.13.11.6](https://github.com/skrashevich/double-take/compare/v1.13.11.5...v1.13.11.6)
 
 ### Changes
