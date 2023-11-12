@@ -105,9 +105,17 @@ module.exports.polling = async (
   };
 };
 
+/**
+ * Saves the results of an event to a file and creates a match in the database.
+ *
+ * @param {string} event - The name of the event.
+ * @param {object} results - The results of the event.
+ * @param {string} filename - The name of the file to save the results to.
+ * @param {string} tmp - The temporary directory where the file is stored.
+ * @return {Promise} A promise that resolves when the results are saved and the match is created.
+ */
 module.exports.save = async (event, results, filename, tmp) => {
   try {
-    database.create.match({ filename, event, response: results });
     await filesystem.writerStream(
       fs.createReadStream(tmp),
       `${STORAGE.MEDIA.PATH}/matches/${filename}`
@@ -115,6 +123,15 @@ module.exports.save = async (event, results, filename, tmp) => {
   } catch (error) {
     error.message = `save results error: ${error.message}`;
     console.error(error);
+    return;
+  }
+
+  try {
+    await database.create.match({ filename, event, response: results });
+  } catch (error) {
+    error.message = `create match error: ${error.message}`;
+    console.error(error);
+    return;
   }
 };
 
