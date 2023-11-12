@@ -59,7 +59,7 @@ EOT
 RUN apt update && apt install -y ccache
 ENV CC="ccache gcc"
 ENV CXX="ccache g++"
-RUN npm install --build-from-source --install-links better-sqlite3@'^9.0.0' --sqlite3="/src/sqlite"
+RUN npm install --build-from-source --install-links better-sqlite3@'^9.1.1' --sqlite3="/src/sqlite"
 
 
 FROM node:18 as canvas-builder
