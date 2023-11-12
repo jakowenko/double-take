@@ -83,7 +83,7 @@ RUN cp ./prebuild/Linux/binding.gyp ./binding.gyp
 RUN node-gyp rebuild -j $(nproc)
 RUN cd build/Release && cp `lddtree -l canvas.node | grep -v 'canvas.node'` /opt/
 
-FROM --platform=$BUILDPLATFORM oven/bun AS frontend-builder
+FROM --platform=$BUILDPLATFORM oven/bun:1.0.7 AS frontend-builder
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /build
 RUN apt -y update && apt install -y --no-install-recommends curl bash unzip
