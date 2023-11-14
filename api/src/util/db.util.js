@@ -68,6 +68,14 @@ async function init() {
 function migrations() {
   try {
     const db = connect();
+
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_file_createdAt ON file(createdAt)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_match_createdAt ON match(createdAt)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_match_filename ON match(filename)`);
+    db.exec(
+      `CREATE INDEX IF NOT EXISTS idx_match_response_match ON match(json_extract(response, '$.match'))`
+    );
+
     if (
       !db
         .prepare('PRAGMA table_info(match)')
@@ -102,13 +110,6 @@ function migrations() {
           DROP TABLE file_backup;
           COMMIT;
       `
-      );
-
-      db.exec(`CREATE INDEX IF NOT EXISTS idx_file_createdAt ON file(createdAt)`);
-      db.exec(`CREATE INDEX IF NOT EXISTS idx_match_createdAt ON match(createdAt)`);
-      db.exec(`CREATE INDEX IF NOT EXISTS idx_match_filename ON match(filename)`);
-      db.exec(
-        `CREATE INDEX IF NOT EXISTS idx_match_response_match ON match(json_extract(response, '$.match'))`
       );
     }
   } catch (error) {
