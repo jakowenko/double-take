@@ -82,7 +82,7 @@ module.exports = {
   },
   logs: {
     level: 'info',
-    sql: true,
+    sql: false,
   },
   ui: {
     path: '',
