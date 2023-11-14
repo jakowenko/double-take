@@ -103,6 +103,13 @@ function migrations() {
           COMMIT;
       `
       );
+
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_file_createdAt ON file(createdAt)`);
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_match_createdAt ON match(createdAt)`);
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_match_filename ON match(filename)`);
+      db.exec(
+        `CREATE INDEX IF NOT EXISTS idx_match_response_match ON match(json_extract(response, '$.match'))`
+      );
     }
   } catch (error) {
     error.message = `db migrations error: ${error.message}`;
