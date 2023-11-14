@@ -74,7 +74,7 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean \
   && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
 apt update
-apt install -y --no-install-recommends jq
+apt install -y --no-install-recommends jq libcairo2 libpangocairo-1.0-0 'libjpeg*turbo' libgif7 librsvg2-2
 EOT
 
 COPY --link --from=build /double-take /double-take
