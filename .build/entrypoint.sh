@@ -1,5 +1,5 @@
 #!/bin/bash
-
+cd /double-take
 if [ "$HA_ADDON" == "true" ] && [ -f "/data/options.json" ]
 then
   for s in $(echo $values | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" /data/options.json ); do
