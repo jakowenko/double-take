@@ -1,14 +1,17 @@
 const Database = require('better-sqlite3');
 const time = require('./time.util');
 const filesystem = require('./fs.util');
-const { STORAGE } = require('../constants')();
+const { STORAGE, LOGS } = require('../constants')();
 const DETECTORS = require('../constants/config').detectors();
 
 const database = this;
 let connection = false;
 
 function connect() {
-  if (!connection) connection = new Database(`${STORAGE.PATH}/database.db`);
+  if (!connection)
+    connection = new Database(`${STORAGE.PATH}/database.db`, {
+      verbose: LOGS.SQL ? console.verbose : null,
+    });
   return connection;
 }
 
