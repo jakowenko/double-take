@@ -56,6 +56,13 @@ async function init() {
     )`
     ).run();
 
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_file_createdAt ON file(createdAt)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_match_createdAt ON match(createdAt)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_match_filename ON match(filename)`);
+    db.exec(
+      `CREATE INDEX IF NOT EXISTS idx_match_response_match ON match(json_extract(response, '$.match'))`
+    );
+
     db.prepare(`DELETE FROM train WHERE meta IS NULL`).run();
 
     await resync();
@@ -68,13 +75,6 @@ async function init() {
 function migrations() {
   try {
     const db = connect();
-
-    db.exec(`CREATE INDEX IF NOT EXISTS idx_file_createdAt ON file(createdAt)`);
-    db.exec(`CREATE INDEX IF NOT EXISTS idx_match_createdAt ON match(createdAt)`);
-    db.exec(`CREATE INDEX IF NOT EXISTS idx_match_filename ON match(filename)`);
-    db.exec(
-      `CREATE INDEX IF NOT EXISTS idx_match_response_match ON match(json_extract(response, '$.match'))`
-    );
 
     if (
       !db
