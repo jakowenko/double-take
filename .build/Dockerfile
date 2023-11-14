@@ -1,89 +1,6 @@
-# syntax = docker/dockerfile-upstream:master-labs
-FROM --platform=${BUILDPLATFORM} alpine:latest as recognizer-models
-RUN apk add wget bzip2
-WORKDIR /src/models
-RUN wget https://github.com/davisking/dlib-models/raw/master/shape_predictor_5_face_landmarks.dat.bz2
-RUN wget https://github.com/davisking/dlib-models/raw/master/dlib_face_recognition_resnet_model_v1.dat.bz2
-RUN wget https://github.com/davisking/dlib-models/raw/master/mmod_human_face_detector.dat.bz2
-RUN wget https://github.com/Kagami/go-face-testdata/raw/master/models/shape_predictor_68_face_landmarks.dat
-RUN bunzip2 *.bz2 && rm -rf *.bz2
+# syntax = docker/dockerfile:1.4
 
-
-FROM golang:1.20-buster as recognizer-builder
-ARG DEBIAN_FRONTEND=noninteractive
-ARG TARGETARCH
-
-# Cache dependencies
-WORKDIR /src
-COPY ./recognizer/go.mod ./recognizer/go.sum  ./
-COPY ./recognizer/pkg/go-recognizer/go.mod ./pkg/go-recognizer/go.mod 
-COPY ./recognizer/pkg/go-face/go.mod ./pkg/go-face/go.mod 
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod go mod download
-
-# Prepare apt for buildkit cache
-RUN rm -f /etc/apt/apt.conf.d/docker-clean \
-  && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
-
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked apt update
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked apt install -y libdlib-dev libblas-dev libatlas-base-dev liblapack-dev libjpeg62-turbo-dev wget bzip2 gfortran 
-
-ADD ./recognizer /src
-
-WORKDIR /src
-
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod/cache/download \
-  --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
-if [ "${TARGETARCH}" = "amd64" ]; then
-  apt install -y libquadmath0;
-  export CGO_LDFLAGS="-lcblas -llapack_atlas -lgfortran -lquadmath -lblas -latlas"
-else
-  export CGO_LDFLAGS="-lcblas -llapack_atlas -lgfortran -lblas -latlas"
-fi
-CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -extldflags -static" -o recognizer
-EOT
-
-
-FROM node:18 as better-sqlite3-builder
-ARG DEBIAN_FRONTEND=noninteractive
-ADD https://sqlite.org/2023/sqlite-amalgamation-3440000.zip /tmp/
-WORKDIR /build
-RUN --mount=type=cache,target=/root/.npm <<EOT
-  #!/bin/bash
-  mkdir -p /src
-  cd /src
-  unzip /tmp/sqlite-amalgamation-3440000.zip && rm /tmp/sqlite-amalgamation-3440000.zip
-  mv sqlite* sqlite
-  cd sqlite
-  sed  -i '1i #define SQLITE_MAX_VARIABLE_NUMBER 65532' sqlite3.c
-EOT
-RUN apt update && apt install -y ccache
-ENV CC="ccache gcc"
-ENV CXX="ccache g++"
-RUN npm install --build-from-source --install-links better-sqlite3@'^9.1.1' --sqlite3="/src/sqlite"
-
-
-FROM node:18 as canvas-builder
-ARG DEBIAN_FRONTEND=noninteractive
-# Prepare apt for buildkit cache
-RUN rm -f /etc/apt/apt.conf.d/docker-clean \
-  && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
-
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
-apt -y update
-apt install -y build-essential libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev pax-utils ccache
-ln -s /usr/bin/lddtree /usr/bin/lddtree.sh
-EOT
-ENV CC="ccache gcc"
-ENV CXX="ccache g++"
-RUN npm install -g node-gyp
-ADD https://github.com/Automattic/node-canvas.git#v2.11.2 /src
-WORKDIR /src
-RUN npm install --ignore-scripts
-RUN cp ./prebuild/Linux/binding.gyp ./binding.gyp
-RUN node-gyp rebuild -j $(nproc)
-RUN cd build/Release && cp `lddtree -l canvas.node | grep -v 'canvas.node'` /opt/
-
-FROM --platform=$BUILDPLATFORM oven/bun:1.0.7 AS frontend-builder
+FROM --platform=$BUILDPLATFORM oven/bun:1.0.11 AS frontend-builder
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /build
 RUN apt -y update && apt install -y --no-install-recommends curl bash unzip
@@ -93,7 +10,6 @@ RUN bun install
 COPY /frontend/src ./src
 COPY /frontend/public ./public
 COPY /frontend/.env.production /frontend/vue.config.js /frontend/vite.config.js /frontend/.eslintrc.js /frontend/index.html /frontend/jsconfig.json ./
-RUN bun upgrade --canary
 RUN bun run -b build
 
 
@@ -114,8 +30,6 @@ COPY /api/package.json .
 ENV CC="ccache gcc"
 ENV CXX="ccache g++"
 RUN --mount=type=cache,target=/root/.npm npm install
-COPY --link --from=better-sqlite3-builder /build/node_modules/better-sqlite3 ./node_modules/better-sqlite3
-COPY --link --from=canvas-builder /src ./node_modules/canvas
 
 WORKDIR /double-take/api
 COPY /api/server.js .
@@ -128,7 +42,6 @@ WORKDIR /double-take
 COPY --link --from=frontend-builder /build/dist ./frontend
 RUN --mount=type=cache,target=/root/.npm npm install nodemon -g
 RUN mkdir -p /opt/lib
-COPY --link --from=canvas-builder /opt/* /opt/lib/
 RUN cp /lib/*-linux-gnu*/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
 
 #COPY /.build/entrypoint.sh .
@@ -145,9 +58,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,t
 apt update
 apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl jq
 EOT
-
-COPY --link --from=recognizer-builder /src/recognizer /usr/local/bin/recognizer
-COPY --link --from=recognizer-models /src/models/* /opt/recognizer/models/
 
 RUN npm install nodemon -g
 

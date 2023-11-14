@@ -14,16 +14,10 @@ module.exports.get = async (req, res) => {
   let logs = '';
 
   const messageLogPath = `${STORAGE.PATH}/messages.log`;
-  const recognizerLogPath = `${STORAGE.PATH}/recognizer.log`;
 
   if (fs.existsSync(messageLogPath)) {
     size += fs.statSync(messageLogPath).size;
     logs += await readLastLines.read(messageLogPath, UI.LOGS.LINES);
-  }
-
-  if (fs.existsSync(recognizerLogPath)) {
-    size += fs.statSync(recognizerLogPath).size;
-    logs += await readLastLines.read(recognizerLogPath, UI.LOGS.LINES);
   }
 
   res.send({
@@ -34,6 +28,5 @@ module.exports.get = async (req, res) => {
 
 module.exports.remove = async (req, res) => {
   fs.writeFileSync(`${STORAGE.PATH}/messages.log`, '');
-  fs.writeFileSync(`${STORAGE.PATH}/recognizer.log`, '');
   res.send();
 };

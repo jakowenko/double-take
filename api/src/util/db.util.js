@@ -1,14 +1,17 @@
 const Database = require('better-sqlite3');
 const time = require('./time.util');
 const filesystem = require('./fs.util');
-const { STORAGE } = require('../constants')();
+const { STORAGE, LOGS } = require('../constants')();
 const DETECTORS = require('../constants/config').detectors();
 
 const database = this;
 let connection = false;
 
 function connect() {
-  if (!connection) connection = new Database(`${STORAGE.PATH}/database.db`);
+  if (!connection)
+    connection = new Database(`${STORAGE.PATH}/database.db`, {
+      verbose: LOGS.SQL ? console.verbose : null,
+    });
   return connection;
 }
 
@@ -65,6 +68,14 @@ async function init() {
 function migrations() {
   try {
     const db = connect();
+
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_file_createdAt ON file(createdAt)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_match_createdAt ON match(createdAt)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_match_filename ON match(filename)`);
+    db.exec(
+      `CREATE INDEX IF NOT EXISTS idx_match_response_match ON match(json_extract(response, '$.match'))`
+    );
+
     if (
       !db
         .prepare('PRAGMA table_info(match)')
