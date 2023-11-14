@@ -54,7 +54,7 @@ RUN --mount=type=cache,target=/root/.npm <<EOT
   unzip /tmp/sqlite-amalgamation-3440000.zip && rm /tmp/sqlite-amalgamation-3440000.zip
   mv sqlite* sqlite
   cd sqlite
-  sed  -i '1i #define SQLITE_MAX_VARIABLE_NUMBER 65532' sqlite3.c
+  sed  -i '1i #define SQLITE_MAX_VARIABLE_NUMBER 131070' sqlite3.c
 EOT
 RUN apt update && apt install -y ccache
 ENV CC="ccache gcc"
