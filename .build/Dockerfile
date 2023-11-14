@@ -1,66 +1,4 @@
-# syntax = docker/dockerfile-upstream:master-labs
-FROM --platform=${BUILDPLATFORM} alpine:latest as recognizer-models
-RUN apk add wget bzip2
-WORKDIR /src/models
-RUN wget https://github.com/davisking/dlib-models/raw/master/shape_predictor_5_face_landmarks.dat.bz2
-RUN wget https://github.com/davisking/dlib-models/raw/master/dlib_face_recognition_resnet_model_v1.dat.bz2
-RUN wget https://github.com/davisking/dlib-models/raw/master/mmod_human_face_detector.dat.bz2
-RUN wget https://github.com/Kagami/go-face-testdata/raw/master/models/shape_predictor_68_face_landmarks.dat
-RUN bunzip2 *.bz2 && rm -rf *.bz2
-
-
-FROM golang:1.20-buster as recognizer-builder
-ARG DEBIAN_FRONTEND=noninteractive
-ARG TARGETARCH
-
-# Cache dependencies
-WORKDIR /src
-COPY ./recognizer/go.mod ./recognizer/go.sum  ./
-COPY ./recognizer/pkg/go-recognizer/go.mod ./pkg/go-recognizer/go.mod 
-COPY ./recognizer/pkg/go-face/go.mod ./pkg/go-face/go.mod 
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod go mod download
-
-# Prepare apt for buildkit cache
-RUN rm -f /etc/apt/apt.conf.d/docker-clean \
-  && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
-
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked apt update
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked apt install -y libdlib-dev libblas-dev libatlas-base-dev liblapack-dev libjpeg62-turbo-dev wget bzip2 gfortran 
-
-ADD ./recognizer /src
-
-WORKDIR /src
-
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod/cache/download \
-  --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
-if [ "${TARGETARCH}" = "amd64" ]; then
-  apt install -y libquadmath0;
-  export CGO_LDFLAGS="-lcblas -llapack_atlas -lgfortran -lquadmath -lblas -latlas"
-else
-  export CGO_LDFLAGS="-lcblas -llapack_atlas -lgfortran -lblas -latlas"
-fi
-CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -extldflags -static" -o recognizer
-EOT
-
-
-FROM node:18 as better-sqlite3-builder
-ARG DEBIAN_FRONTEND=noninteractive
-ADD https://sqlite.org/2023/sqlite-amalgamation-3440000.zip /tmp/
-WORKDIR /build
-RUN --mount=type=cache,target=/root/.npm <<EOT
-  #!/bin/bash
-  mkdir -p /src
-  cd /src
-  unzip /tmp/sqlite-amalgamation-3440000.zip && rm /tmp/sqlite-amalgamation-3440000.zip
-  mv sqlite* sqlite
-  cd sqlite
-  sed  -i '1i #define SQLITE_MAX_VARIABLE_NUMBER 131070' sqlite3.c
-EOT
-RUN apt update && apt install -y ccache
-ENV CC="ccache gcc"
-ENV CXX="ccache g++"
-RUN npm install --build-from-source --install-links better-sqlite3@'^9.1.1' --sqlite3="/src/sqlite"
-
+# syntax = docker/dockerfile:1.4
 
 FROM node:18 as canvas-builder
 ARG DEBIAN_FRONTEND=noninteractive
@@ -113,7 +51,6 @@ COPY /api/package.json .
 ENV CC="ccache gcc"
 ENV CXX="ccache g++"
 RUN --mount=type=cache,target=/root/.npm npm install
-COPY --link --from=better-sqlite3-builder /build/node_modules/better-sqlite3 ./node_modules/better-sqlite3
 COPY --link --from=canvas-builder /src ./node_modules/canvas
 
 WORKDIR /double-take/api
@@ -144,9 +81,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,t
 apt update
 apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl jq
 EOT
-
-COPY --link --from=recognizer-builder /src/recognizer /usr/local/bin/recognizer
-COPY --link --from=recognizer-models /src/models/* /opt/recognizer/models/
 
 RUN npm install nodemon -g
 
