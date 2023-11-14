@@ -1,3 +1,10 @@
+## [1.13.11.7](https://github.com/skrashevich/double-take/compare/v1.13.11.6.1...v1.13.11.7)
+
+1. Reintroduces support for the arm/v7 architecture
+2. Removes unused code. Reduce docker container size
+3. Performance optimizations have been implemented for better efficiency
+4. Option to trace SQL queries has been added for better debugging and tracking.
+
 ## [1.13.11.6.1](https://github.com/skrashevich/double-take/compare/v1.13.11.6...v1.13.11.6.1)
 
 ### Bug Fixes

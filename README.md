@@ -658,6 +658,7 @@ time:
 # options: silent, error, warn, info, http, verbose, debug, silly
 logs:
   level: info
+  sql: false # trace sql queries
 ```
 
 ### `ui`

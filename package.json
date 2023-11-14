@@ -1,6 +1,6 @@
 {
   "name": "double-take",
-  "version": "1.13.11.6.1",
+  "version": "1.13.11.7",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "prepare": "husky install",

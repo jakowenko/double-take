@@ -1,6 +1,6 @@
 {
   "name": "double-take-frontend",
-  "version": "1.13.11.6",
+  "version": "1.13.11.7",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "dev": "vite",
@@ -15,7 +15,7 @@
   "engines": {
     "node": ">=18.0.0 <19.0.0"
   },
-  "author": "David Jakowenko",
+  "author": "Sergei Krashevich",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/skrashevich/double-take/issues"
