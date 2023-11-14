@@ -68,7 +68,7 @@ jobs:
         target: ${{ matrix.target }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/amd64,linux/arm64,linux/arm/v7
         cache-from: type=gha
         cache-to: type=gha,mode=max
     - name: Sync
