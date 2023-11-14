@@ -1,5 +1,6 @@
 const fs = require('fs');
 const sizeOf = require('probe-image-size');
+const crypto = require('crypto');
 const database = require('../util/db.util');
 const filesystem = require('../util/fs.util');
 const { tryParseJSON } = require('../util/validators.util');
@@ -47,6 +48,7 @@ module.exports.post = async (req, res) => {
   const { sinceId } = req.body;
   const { page } = req.query;
   const { filters } = req.body;
+  const tmptable = crypto.createHash('md5').digest('hex').toString();
 
   const db = database.connect();
 
@@ -68,10 +70,9 @@ module.exports.post = async (req, res) => {
   const confidenceQuery =
     filters.confidence === 0 ? `OR json_extract(value, '$.confidence') IS NULL` : '';
 
-  const filteredIds = db
-    .prepare(
-      `SELECT t.id, t.event, detector, value FROM (
-    SELECT match.id, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results
+  db.prepare(
+    `CREATE TEMPORARY TABLE IF NOT EXISTS ${tmptable} AS SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value FROM (
+    SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results, match.response
     FROM match, json_each( match.response)
     ) t, json_each(t.results)
   WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
@@ -83,41 +84,42 @@ module.exports.post = async (req, res) => {
   AND json_extract(value, '$.box.height') >= ?
   AND detector IN (${database.params(filters.detectors)})
         GROUP BY t.id`
-    )
-    .bind(
-      filters.names,
-      filters.matches.map((obj) => (obj === 'match' ? 1 : 0)),
-      filters.cameras,
-      filters.types,
-      filters.confidence,
-      filters.width,
-      filters.height,
-      filters.detectors
-    )
+  ).run(
+    filters.names,
+    filters.matches.map((obj) => (obj === 'match' ? 1 : 0)),
+    filters.cameras,
+    filters.types,
+    filters.confidence,
+    filters.width,
+    filters.height,
+    filters.detectors
+  );
+
+  db.prepare(`SELECT * FROM ${tmptable}`)
     .all()
     .map((obj) => obj.id);
 
   const [total] = db
     .prepare(
-      `SELECT COUNT(*) count FROM match
-      WHERE id IN (${database.params(filteredIds)})
-      AND id > ?
+      `SELECT COUNT(*) count FROM ${tmptable}
+      WHERE id > ?
       ORDER BY createdAt DESC`
     )
-    .bind(filteredIds, sinceId || 0)
+    .bind(sinceId || 0)
     .all();
 
   const matches = db
     .prepare(
-      `SELECT * FROM match
-        LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = match.filename
-        WHERE id IN (${database.params(filteredIds)})
-        AND id > ?
+      `SELECT * FROM ${tmptable}
+    LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = ${tmptable}.filename
+        WHERE id > ?
         ORDER BY createdAt DESC
         LIMIT ?,?`
     )
-    .bind(filteredIds, sinceId || 0, limit * (page - 1), limit)
+    .bind(sinceId || 0, limit * (page - 1), limit)
     .all();
+
+  db.exec(`DROP TABLE ${tmptable}`);
 
   res.send({ total: total.count, limit, matches: await format(matches) });
 };
