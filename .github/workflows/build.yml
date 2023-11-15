@@ -40,7 +40,7 @@ jobs:
       shell: bash
       run: |
         echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
-        if [[ "$GITHUB_REF" == "refs/heads/beta" ]]; then echo TAG=latest; else echo TAG="${GITHUB_REF##*/}"; fi >> $GITHUB_ENV
+        if [[ "$GITHUB_REF" == "refs/heads/beta" ]]; then echo TAG=beta; else echo TAG="latest"; fi >> $GITHUB_ENV
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@v5
@@ -80,3 +80,43 @@ jobs:
         repository:  ${{ steps.lowercaseRepo.outputs.lowercase }}
         readme: "./README.md"
       
+    - name: poco
+      run: |
+        cd .build/bundle
+        rm -rf assets*
+        docker create --platform linux/arm/v7 --name double-take-armv7 ${{ github.actor }}/double-take:$TAG
+        docker export double-take-armv7 | xz > assets.tar.xz
+        docker rm double-take-armv7
+
+        go mod tidy
+        GOARCH="arm" GOARM=7 CGO_ENABLED=0 go build -ldflags "-s -w" -trimpath -o double-take-armv7
+
+        rm -rf assets*
+        docker create --platform linux/arm64 --name double-take-arm64 ${{ github.actor }}/double-take:$TAG
+        docker export double-take-arm64 | xz > assets.tar.xz
+        docker rm double-take-arm64
+
+        GOARCH="arm64" CGO_ENABLED=0 go build -ldflags "-s -w" -trimpath -o double-take-arm64
+        
+        rm -rf assets*
+        docker create --platform linux/amd64 --name double-take-amd64 ${{ github.actor }}/double-take:${{ env.TAG }}
+        docker export double-take-amd64 | xz > assets.tar.xz
+        docker rm double-take-amd64
+
+        GOARCH="amd64" CGO_ENABLED=0 go build -ldflags "-s -w" -trimpath -o double-take-amd64
+        
+    - name: Upload Artifacts armv7
+      uses: actions/upload-artifact@v3
+      with:
+        name: double-take-armv7
+        path: .build/bundle/double-take-armv7
+    - name: Upload Artifacts arm64
+      uses: actions/upload-artifact@v3
+      with:
+        name: double-take-arm64
+        path: .build/bundle/double-take-arm64
+    - name: Upload Artifacts amd64
+      uses: actions/upload-artifact@v3
+      with:
+        name: double-take-amd64
+        path: .build/bundle/double-take-amd64
