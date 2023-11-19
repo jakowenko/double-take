@@ -17,3 +17,11 @@ package-lock.json
 *.log
 *.pid
 *.db
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

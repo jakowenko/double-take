@@ -9,7 +9,8 @@
     "api": "exec node api/server.js || true",
     "bump": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version",
     "lint:eslint": "eslint --fix",
-    "lint:prettier": "prettier --write --loglevel warn"
+    "lint:prettier": "prettier --write --loglevel warn",
+    "start": "cd ./frontend && npm run build && cd .. && NODE_ENV=\"development\" node api/server.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,8 @@
   },
   "homepage": "https://github.com/skrashevich/double-take#readme",
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^18.18.0",
     "eslint": "^8.34.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.5.0",
