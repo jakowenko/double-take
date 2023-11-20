@@ -238,7 +238,7 @@ func uninstall(c *cli.Context) error {
 func execute(c *cli.Context) error {
 	store := c.String("store")
 	store = filepath.Join(store, "bundle")
-	fmt.Println("Starting double-take 1.13.11-beta with store at", store)
+	fmt.Println("Starting double-take 1.13.11.8 with store at", store)
 	if err := mountProc(store); err != nil {
 		fmt.Println("failed mounting /proc")
 	}
@@ -324,8 +324,8 @@ func start(c *cli.Context) error {
 		version = string(d)
 	}
 
-	if version != "1.13.11-beta" {
-		fmt.Printf("Extracting double-take 1.13.11-beta bundle data (xz) into %s ...\n", store)
+	if version != "1.13.11.8" {
+		fmt.Printf("Extracting double-take 1.13.11.8 bundle data (xz) into %s ...\n", store)
 		os.RemoveAll(path.Join(store, "bundle"))
 		err := copyBinary(store, c.Bool("continue-on-error"))
 		if err != nil {
@@ -334,7 +334,7 @@ func start(c *cli.Context) error {
 			}
 			fmt.Println("Failed copying binaries:", err.Error())
 		}
-		must(ioutil.WriteFile(path.Join(store, "VERSION"), []byte("1.13.11-beta"), os.ModePerm))
+		must(ioutil.WriteFile(path.Join(store, "VERSION"), []byte("1.13.11.8"), os.ModePerm))
 	}
 
 	var mounts []string
