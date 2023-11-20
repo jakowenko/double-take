@@ -29,6 +29,7 @@ module.exports = {
     stop_on_match: true,
     min_area: 0,
     device_tracker_timeout: 30,
+    cameras: [],
   },
   mqtt: {
     protocol: 'mqtt',

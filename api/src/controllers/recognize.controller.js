@@ -179,17 +179,18 @@ module.exports.start = async (req, res) => {
 
     PROCESSING = false;
 
-    res.send(output);
-
+    console.verbose(`Event type: ${event.type}`);
     recognize.save.latest(camera, best, misses, unknowns[0]);
     mqtt.recognize(output);
     notify.publish(output, camera, results);
     if (event.type === 'frigate') frigate.subLabel(event.topic, id, best);
     if (output.matches.length) IDS.push(id);
     if (results.length) emit('recognize', true);
+    res.send(output);
   } catch (error) {
     PROCESSING = false;
-    console.debug(error);
+    console.error(`An error occurred at ${error.stack}`);
+    console.error(`An error occurred when recogniting file: ${error.message}`);
     // res.send(error);
   }
 };

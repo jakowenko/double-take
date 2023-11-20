@@ -19,11 +19,12 @@ module.exports.publish = (output, camera, zones) => {
     return;
   }
 
+  /*
   if (!NOTIFY.TYPES.includes(output.matches[0].type)) {
     console.debug(`${output.type} not in NOTIFY.TYPES`);
     return;
   }
-
+  */
   if (!output.unknown && !output.matches.length) {
     return;
   }

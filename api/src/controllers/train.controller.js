@@ -15,7 +15,7 @@ const { tryParseJSON } = require('../util/validators.util');
 function deleteThumbnailFromExif(imageBuffer) {
   const imageString = imageBuffer.toString('binary');
   const exifObj = piexif.load(imageString);
-  delete exifObj['thumbnail'];
+  delete exifObj.thumbnail;
   delete exifObj['1st'];
   const exifBytes = piexif.dump(exifObj);
   return Buffer.from(piexif.insert(exifBytes, imageString), 'binary');

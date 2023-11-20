@@ -4,6 +4,9 @@ const { FRIGATE, MQTT } = require('../constants')();
 const frigate = this;
 
 module.exports.subLabel = async (topic, id, best) => {
+  console.verbose(
+    `FRIGATE.URL: ${FRIGATE.URL}; FRIGATE.UPDATE_SUB_LABELS: ${FRIGATE.UPDATE_SUB_LABELS}; best.length: ${best.length}`
+  );
   if (!FRIGATE.URL || !FRIGATE.UPDATE_SUB_LABELS || !best.length) return;
   const names = best
     .map(({ name }) => name)
@@ -44,7 +47,7 @@ module.exports.checks = async ({
         : false
       : false;
 
-    if (FRIGATE.CAMERAS && !FRIGATE.CAMERAS.includes(camera) && !cameraMatch) {
+    if (FRIGATE.CAMERAS.length > 0 && !FRIGATE.CAMERAS.includes(camera) && !cameraMatch) {
       return `${id} - ${camera} not on approved list`;
     }
 
