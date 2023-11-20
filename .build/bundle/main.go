@@ -80,7 +80,7 @@ func main() {
 
 	app := &cli.App{
 		Name:        "double-take",
-		Version:     "1.13.11.7",
+		Version:     "1.13.11.8",
 		Author:      "skrashevich",
 		Usage:       "double-take",
 		Description: "double-take",

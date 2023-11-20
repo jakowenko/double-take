@@ -1,3 +1,15 @@
+## [1.13.11.8](https://github.com/skrashevich/double-take/compare/v1.13.11.7...v1.13.11.8)
+
+### Bug Fixes
+
+* [BUG] Frigate sublabels
+
+### Others
+* bump deps versions
+* ui-tests by playwright
+* multi-arch static binaries for linux
+
+
 ## [1.13.11.7](https://github.com/skrashevich/double-take/compare/v1.13.11.6.1...v1.13.11.7)
 
 1. Reintroduces support for the arm/v7 architecture
