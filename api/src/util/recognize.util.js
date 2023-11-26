@@ -1,5 +1,5 @@
 const fs = require('fs');
-import { copyFileSync } from './fs.util';
+const { copyFileSync } = require('./fs.util');
 const { STORAGE } = require('../constants')();
 
 module.exports.save = {
