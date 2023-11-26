@@ -156,3 +156,19 @@ module.exports.saveURLs = async (urls, path) => {
   }
   return files;
 };
+
+/**
+ * Copies a file synchronously from a source path to a destination path.
+ *
+ * @param {string} source - The path of the file to be copied.
+ * @param {string} destination - The path where the file will be copied to.
+ * @return {undefined} - This function does not return a value.
+ */
+module.exports.copyFileSync = (source, destination) => {
+  try {
+    fs.copyFileSync(source, destination);
+  } catch (error) {
+    error.message = `copyFileSync file error: ${error.message}`;
+    console.error(error);
+  }
+};

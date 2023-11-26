@@ -1,4 +1,5 @@
 const fs = require('fs');
+import { copyFileSync } from './fs.util';
 const { STORAGE } = require('../constants')();
 
 module.exports.save = {
@@ -8,7 +9,7 @@ module.exports.save = {
 
     [...best, ...misses].forEach(({ name, filename }) => {
       if (!names.includes(name)) {
-        fs.copyFileSync(
+        copyFileSync(
           `${STORAGE.MEDIA.PATH}/matches/${filename}`,
           `${STORAGE.MEDIA.PATH}/latest/${name}.jpg`
         );
@@ -16,7 +17,7 @@ module.exports.save = {
       }
 
       if (!cameras.includes(camera)) {
-        fs.copyFileSync(
+        copyFileSync(
           `${STORAGE.MEDIA.PATH}/matches/${filename}`,
           `${STORAGE.MEDIA.PATH}/latest/${camera}.jpg`
         );
@@ -24,12 +25,12 @@ module.exports.save = {
       }
     });
     if (unknown.filename) {
-      fs.copyFileSync(
+      copyFileSync(
         `${STORAGE.MEDIA.PATH}/matches/${unknown.filename}`,
         `${STORAGE.MEDIA.PATH}/latest/unknown.jpg`
       );
       if (!best.length && !misses.length)
-        fs.copyFileSync(
+        copyFileSync(
           `${STORAGE.MEDIA.PATH}/matches/${unknown.filename}`,
           `${STORAGE.MEDIA.PATH}/latest/${camera}.jpg`
         );
