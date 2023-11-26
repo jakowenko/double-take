@@ -139,7 +139,7 @@ export default {
     },
     error(error) {
       if (error?.response?.config?.url !== 'auth' && error?.response?.status === 401) return;
-      if (process.env.NODE_ENV === 'development') console.error(error);
+      // if (process.env.NODE_ENV === 'development') console.error(error);
       this.$toast.add({
         severity: 'error',
         detail: error.message,
@@ -172,7 +172,8 @@ export default {
       return runSetup;
     },
     async addAnalytics() {
-      if (process.env.NODE_ENV !== 'production') return;
+
+      /*
       ApiService.get('config')
         .then(({ data }) => {
           if (data.telemetry) {
@@ -185,7 +186,7 @@ export default {
             document.head.appendChild(analytics);
           }
         })
-        .catch(() => {});
+        .catch(() => {}); */
     },
   },
 };

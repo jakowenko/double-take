@@ -9,7 +9,7 @@ COPY /frontend/package.json .
 RUN bun install
 COPY /frontend/src ./src
 COPY /frontend/public ./public
-COPY /frontend/.env.production /frontend/vue.config.js /frontend/vite.config.js /frontend/.eslintrc.js /frontend/index.html /frontend/jsconfig.json ./
+COPY /frontend/vue.config.js /frontend/vite.config.js /frontend/.eslintrc.js /frontend/index.html /frontend/jsconfig.json ./
 RUN bun run -b build
 
 
@@ -61,7 +61,6 @@ EOT
 
 RUN npm install nodemon -g
 
-ENV NODE_ENV=production
 WORKDIR /double-take
 EXPOSE 3000
 COPY .build/entrypoint.sh ./
@@ -82,7 +81,6 @@ COPY --from=build /opt/lib/* /lib/
 
 RUN npm install nodemon -g
 
-ENV NODE_ENV=production
 WORKDIR /double-take
 COPY .build/entrypoint.sh ./
 EXPOSE 3000

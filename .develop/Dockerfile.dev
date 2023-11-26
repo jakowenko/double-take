@@ -87,7 +87,7 @@ COPY /frontend/package.json .
 RUN --mount=type=cache,target=/root/.npm npm install
 COPY /frontend/src ./src
 COPY /frontend/public ./public
-COPY /frontend/.env.production /frontend/vue.config.js /frontend/vite.config.js /frontend/.eslintrc.js /frontend/index.html ./
+COPY /frontend/vue.config.js /frontend/vite.config.js /frontend/.eslintrc.js /frontend/index.html ./
 RUN --mount=type=cache,target=/root/.npm npm run build
 
 
