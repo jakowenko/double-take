@@ -3,6 +3,7 @@ const fs = require('fs');
 const cors = require('cors');
 const { UI } = require('./constants')();
 const ipfilter = require('express-ipfilter').IpFilter;
+const path = require('path');
 
 require('express-async-errors');
 
@@ -17,19 +18,19 @@ if (process.env.HA_ADDON === 'true' && process.env.IPFILTER === 'true') {
   const ips = ['172.30.32.2', '127.0.0.1', '::ffff:172.30.32.2', '::ffff:127.0.0.1'];
   app.use(ipfilter(ips, { mode: 'allow' }));
 }
+
+const frontendPath = process.env.FRONTEND || path.join(process.cwd(), 'frontend');
+
 app.use(
   UI.PATH,
-  express.static(`${!process.env.FRONTEND ? './frontend/' : process.env.FRONTEND}`, {
+  express.static(frontendPath, {
     index: false,
   })
 );
 app.use(`${UI.PATH}/api`, require('./routes'));
 
 app.use(UI.PATH, (req, res) => {
-  const html = fs.readFileSync(
-    `${!process.env.FRONTEND ? `${process.cwd()}/frontend/` : process.env.FRONTEND}index.html`,
-    'utf8'
-  );
+  const html = fs.readFileSync(`${frontendPath}index.html`, 'utf8');
   res.send(
     html.replace(
       '</head>',
