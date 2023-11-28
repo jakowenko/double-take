@@ -134,13 +134,14 @@ module.exports.subscribe = () => {
 
     const frigateTopics = isArray ? MQTT.TOPICS.FRIGATE : [MQTT.TOPICS.FRIGATE];
     topics.push(...frigateTopics);
-    frigateTopics.forEach((topic) => {
+        frigateTopics.forEach((topic) => {
       const [prefix] = topic.split('/');
-      topics.push(
-        ...(FRIGATE.CAMERAS
+            topics.push(
+        ...(FRIGATE.CAMERAS.length > 0
           ? FRIGATE.CAMERAS.map((camera) => `${prefix}/${camera}/person/snapshot`)
           : [`${prefix}/+/person/snapshot`])
       );
+      console.verbose(`MQTT: subscribed to ${topics.join(', ')}`);
     });
   }
 
@@ -150,7 +151,7 @@ module.exports.subscribe = () => {
         console.error(`MQTT: error subscribing to ${topics.join(', ')}`);
         return;
       }
-      console.log(`MQTT: subscribed to ${topics.join(', ')}`);
+      console.debug(`MQTT: subscribed to ${topics.join(', ')}`);
       JUST_SUBSCRIBED = true;
       setTimeout(() => (JUST_SUBSCRIBED = false), 5000);
     });
