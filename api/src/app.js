@@ -19,7 +19,7 @@ if (process.env.HA_ADDON === 'true' && process.env.IPFILTER === 'true') {
 }
 app.use(
   UI.PATH,
-  express.static(`./frontend/${process.env.NODE_ENV === 'development' ? 'dist/' : ''}`, {
+  express.static(`${!process.env.FRONTEND ? './frontend/' : process.env.FRONTEND}`, {
     index: false,
   })
 );
@@ -27,7 +27,7 @@ app.use(`${UI.PATH}/api`, require('./routes'));
 
 app.use(UI.PATH, (req, res) => {
   const html = fs.readFileSync(
-    `${process.cwd()}/frontend/${process.env.NODE_ENV === 'development' ? 'dist/' : ''}index.html`,
+    `${!process.env.FRONTEND ? `${process.cwd()}/frontend/` : process.env.FRONTEND}index.html`,
     'utf8'
   );
   res.send(
