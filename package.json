@@ -10,7 +10,7 @@
     "bump": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version",
     "lint:eslint": "eslint --fix",
     "lint:prettier": "prettier --write --loglevel warn",
-    "start": "cd ./frontend && npm run build && cd .. && node api/server.js"
+    "start": "cd ./frontend && npm run build && cd .. && FRONTEND=frontend/dist/ node api/server.js"
   },
   "repository": {
     "type": "git",
