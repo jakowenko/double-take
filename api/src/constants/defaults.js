@@ -41,6 +41,7 @@ module.exports = {
       cameras: 'double-take/cameras',
       homeassistant: 'homeassistant',
     },
+    expire_after: 600,
   },
   opencv: {
     scale_factor: 1.05,
