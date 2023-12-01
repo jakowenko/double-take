@@ -331,8 +331,10 @@ mqtt:
   username:
   password:
   client_id:
+  protocol: mqtt # set to mqtts to enables TLS
+  port: -1 # default value, expands to 1883 for mqtt or 8883 for mqtts
 
-  tls:
+  tls: # don't forget to set protocol: mqtts if you need secure connection
     # cert chains in PEM format: /path/to/client.crt
     cert:
     # private keys in PEM format: /path/to/client.key
