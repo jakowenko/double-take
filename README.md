@@ -703,6 +703,7 @@ mqtt:
   host: localhost
   username: mqtt
   password: !secret mqtt_password
+  expire_after: 600 # timeout of home-assistant "recognised" state
 
 detectors:
   compreface:

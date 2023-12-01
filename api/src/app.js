@@ -19,7 +19,7 @@ if (process.env.HA_ADDON === 'true' && process.env.IPFILTER === 'true') {
   app.use(ipfilter(ips, { mode: 'allow' }));
 }
 
-const frontendPath = process.env.FRONTEND || path.join(process.cwd(), 'frontend');
+const frontendPath = process.env.FRONTEND || `${path.join(process.cwd(), 'frontend')}/`;
 
 app.use(
   UI.PATH,
