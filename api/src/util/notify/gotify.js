@@ -7,7 +7,7 @@ module.exports.send = async (output) => {
   const { filename, message } = this.normalize(output);
   const { data: buffer } = await axios({
     method: 'get',
-    url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/storage/matches/${filename}?box=true`,
+    url: `http://${SERVER.HOST}:${SERVER.PORT}${UI.PATH}/api/storage/matches/${filename}?box=true`,
     responseType: 'arraybuffer',
   });
   return axios({
