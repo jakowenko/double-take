@@ -7,7 +7,7 @@ test('pages', async ({ page }) => {
   await page.getByLabel('Train').click();
   await expect(page.locator('.train-wrapper')).toBeVisible();
   await page.getByLabel('Config').click();
-  await expect(page.locator('.ace_content')).toBeVisible({timeout: 15000});
+  await expect(page.locator('.ace_content')).toBeVisible({ timeout: 15000 });
   await page.getByLabel('Logs').click();
   await expect(page.locator('pre')).toBeVisible();
 });
