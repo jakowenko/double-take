@@ -11,7 +11,7 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **Version of Double Take**
-`X.X.X-SHA7`
+`X.X.X`
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
@@ -24,6 +24,9 @@ If applicable, add screenshots to help explain your problem.
  - OS: [e.g. Ubuntu, macOS, Windows]
  - Browser (if applicable) [e.g. Chrome, Safari]
  - Docker image (if applicable) [e.g. skrashevich/double-take:latest]
+
+**Configuration**
+You configuration files, related to problem
 
 **Additional context**
 Add any other context about the problem here.
