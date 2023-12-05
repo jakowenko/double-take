@@ -10,10 +10,11 @@ const { BAD_REQUEST } = require('../constants/http-status');
 const { AUTH, SERVER, UI } = require('../constants')();
 const { PATH } = require('../constants')().STORAGE.MEDIA;
 const { QUALITY, WIDTH } = require('../constants')().UI.THUMBNAILS;
+const sanitize = require('sanitize-filename-truncate');
 
 module.exports.matches = async (req, res) => {
   const { box: showBox } = req.query;
-  const { filename } = req.params;
+  const { filename } = sanitize(req.params);
   const source = `${PATH}/matches/${filename}`;
 
   if (!fs.existsSync(source)) {
