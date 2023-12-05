@@ -52,10 +52,10 @@ const processMessage = ({ topic, message }) => {
     fs.writer(`${STORAGE.TMP.PATH}/${filename}`, buffer);
     await axios({
       method: 'get',
-      url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/recognize`,
+      url: `http://${SERVER.HOST}:${SERVER.PORT}${UI.PATH}/api/recognize`,
       headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       params: {
-        url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/${STORAGE.TMP.PATH}/${filename}`,
+        url: `http://${SERVER.HOST}:${SERVER.PORT}${UI.PATH}/api/${STORAGE.TMP.PATH}/${filename}`,
         type: 'mqtt',
         camera,
       },
@@ -73,7 +73,7 @@ const processMessage = ({ topic, message }) => {
 
     await axios({
       method: 'post',
-      url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/recognize`,
+      url: `http://${SERVER.HOST}:${SERVER.PORT}${UI.PATH}/api/recognize`,
       headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       data: {
         ...payload,

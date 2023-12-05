@@ -24,7 +24,7 @@ module.exports.event = async (req, res) => {
 
   const { data } = await axios({
     method: 'get',
-    url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/recognize`,
+    url: `http://${SERVER.HOST}:${SERVER.PORT}${UI.PATH}/api/recognize`,
     headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
     params: {
       url: `${SNAPSHOT.URL}`,
