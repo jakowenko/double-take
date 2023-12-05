@@ -1,3 +1,46 @@
+## [v1.13.11.9 (beta)](https://github.com/skrashevich/double-take/compare/v1.13.11.8...beta)
+
+# v1.13.11.9
+
+**Highlights of v1.13.11.9:**
+
+This release brings in much-needed flexibility for deployment configurations with the introduction of environment variables to set the server host and port. It also simplifies the integration between the API and frontend configurations, ensuring aligned service endpoints. The new `expire_after` MQTT configuration option enhances the control users have over the expiration time for MQTT messages.
+
+Under the hood, the Dockerfiles have been updated for the frontend-builder, and key dependencies have been updated to their latest versions, ensuring a smooth and efficient development experience.
+
+In terms of improvements, unnecessary code has been pruned for clarity, and the app's styles have received refinements for a better user interface.
+
+Please refer to the changelog for a complete list of changes and updates included in this version. We value the feedback from our users and the community, and we continue to strive for excellence in each release. Thank you for your continued support.
+
+This release includes several bug fixes, a major refactor, and dependency updates.
+
+## Added
+- New MQTT expiration configuration option `expire_after` for customizing the timeout for "recognized" state in Home Assistant. (PR #181)
+- Environment variables for configuring server host (`DOUBLETAKE_HOST`) and port (`DOUBLETAKE_PORT`) to allow for more flexible deployment scenarios. (Patch 26/38)
+
+## Changed
+- Updated frontend-builder Dockerfile to use `oven/bun:1.0.15` and use `apt-get` for package installations. (Patch 29/38)
+- Updated Node version in Dockerfile to `18.19-bookworm` and installed `npm@^10.2.4` with `fetch-retries` set to `20`. (Patch 30/38)
+- Updated frontend dependencies with the latest releases including `ace-builds`, `ace-code`, `@vitejs/plugin-vue`, `@vue/eslint-config-airbnb`, `@vue/eslint-config-prettier`, `eslint`, and `eslint-plugin-vue`. (Patch 24/38)
+- Updated `vite` to `5.0.5` in the frontend. (Patch 31/38)
+- Added CodeFactor badge to `README.md`. (Patch 33/38)
+
+## Fixed
+- Fixed incorrect import in `recognize.util.js`. (Patch 13/38)
+- Refactored `entrypoint.sh` script to remove unnecessary double quotes around path variables. (Patch 34/38)
+- Refactored `Toolbar.vue` styles to remove unnecessary CSS rules and improve readability. (Patch 36/38)
+- Refactored `recognize.util.js` by removing the unused `fs` module import. (Patch 35/38)
+- Application of fixes from CodeFactor analysis. (Patch 32/38)
+
+## Security
+- No security patches in this release.
+
+## Deprecated
+- No deprecations in this release.
+
+## Removed
+- No features were removed in this release.
+
 ## [1.13.11.8](https://github.com/skrashevich/double-take/compare/v1.13.11.7...v1.13.11.8)
 
 ### Bug Fixes
