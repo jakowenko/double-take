@@ -14,7 +14,7 @@ test('pages', async ({ page }) => {
 test('right-menu', async ({ page }) => {
   await page.goto('./');
   await page.getByText('Double Take').click();
-  await expect(page.getByLabel('v1.13.11.8').locator('a')).toBeVisible();
+  await expect(page.getByLabel('v1.13.11.9').locator('a')).toBeVisible();
   await page.locator('#pv_id_1_0_2 a').click();
   await page.getByText('Double Take').click();
   await expect(page.locator('#pv_id_1_0_2 a')).toBeVisible();

@@ -1,4 +1,4 @@
-## [v1.13.11.9 (beta)](https://github.com/skrashevich/double-take/compare/v1.13.11.8...beta)
+## [v1.13.11.9](https://github.com/skrashevich/double-take/compare/v1.13.11.8...v1.13.11.9)
 
 # v1.13.11.9
 
