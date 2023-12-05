@@ -115,7 +115,7 @@ AND detector IN (${database.params(filters.detectors)})
 
   const matches = db
     .prepare(
-      `SSELECT ${tmptable}.*, train.isTrained
+      `SELECT ${tmptable}.*, train.isTrained
       FROM ${tmptable}
       LEFT JOIN (
         SELECT DISTINCT filename as isTrained 
