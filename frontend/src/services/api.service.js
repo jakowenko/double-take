@@ -2,8 +2,9 @@ import axios from 'axios';
 import Constants from '@/util/constants.util';
 import emitter from '@/services/emitter.service';
 
+const baseURL = Constants().api;
 const api = axios.create({
-  baseURL: Constants().api,
+  baseURL: baseURL,
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json',
