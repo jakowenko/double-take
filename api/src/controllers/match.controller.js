@@ -53,18 +53,24 @@ module.exports.post = async (req, res) => {
   const db = database.connect();
 
   if (!filters || !Object.keys(filters).length) {
-    const [total] = db.prepare(`SELECT COUNT(*) count FROM match`).all();
-    const matches = db
-      .prepare(
-        `SELECT * FROM match
-          LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = match.filename
-          ORDER BY createdAt DESC
-          LIMIT ?,?`
-      )
-      .bind(limit * (page - 1), limit)
-      .all();
+    // Optimize by using a single query to get the count and the matches
+    const query = `
+      SELECT
+        (SELECT COUNT(*) FROM match) as count,
+        m.*,
+        t.filename as isTrained
+      FROM match m
+      LEFT JOIN (SELECT filename FROM train GROUP BY filename) t ON t.filename = m.filename
+      ORDER BY m.createdAt DESC
+      LIMIT ? OFFSET ?`;
 
-    return res.send({ total: total.count, limit, matches: await format(matches) });
+    const matches = db.prepare(query).all(limit, limit * (page - 1));
+
+    return res.send({
+      total: matches.length > 0 ? matches[0].count : 0,
+      limit,
+      matches: await format(matches),
+    });
   }
 
   const confidenceQuery =
@@ -72,18 +78,18 @@ module.exports.post = async (req, res) => {
 
   db.prepare(
     `CREATE TEMPORARY TABLE IF NOT EXISTS ${tmptable} AS SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value FROM (
-    SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results, match.response
-    FROM match, json_each( match.response)
-    ) t, json_each(t.results)
-  WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
-  AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
-  AND json_extract(t.event, '$.camera') IN (${database.params(filters.cameras)})
-  AND json_extract(t.event, '$.type') IN (${database.params(filters.types)})
-  AND (json_extract(value, '$.confidence') >= ? ${confidenceQuery})
-  AND json_extract(value, '$.box.width') >= ?
-  AND json_extract(value, '$.box.height') >= ?
-  AND detector IN (${database.params(filters.detectors)})
-        GROUP BY t.id`
+  SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results, match.response
+  FROM match, json_each( match.response)
+  ) t, json_each(t.results)
+WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
+AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
+AND json_extract(t.event, '$.camera') IN (${database.params(filters.cameras)})
+AND json_extract(t.event, '$.type') IN (${database.params(filters.types)})
+AND (json_extract(value, '$.confidence') >= ? ${confidenceQuery})
+AND json_extract(value, '$.box.width') >= ?
+AND json_extract(value, '$.box.height') >= ?
+AND detector IN (${database.params(filters.detectors)})
+      GROUP BY t.id`
   ).run(
     filters.names,
     filters.matches.map((obj) => (obj === 'match' ? 1 : 0)),
@@ -102,8 +108,8 @@ module.exports.post = async (req, res) => {
   const [total] = db
     .prepare(
       `SELECT COUNT(*) count FROM ${tmptable}
-      WHERE id > ?
-      ORDER BY createdAt DESC`
+    WHERE id > ?
+    ORDER BY createdAt DESC`
     )
     .bind(sinceId || 0)
     .all();
@@ -111,10 +117,10 @@ module.exports.post = async (req, res) => {
   const matches = db
     .prepare(
       `SELECT * FROM ${tmptable}
-    LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = ${tmptable}.filename
-        WHERE id > ?
-        ORDER BY createdAt DESC
-        LIMIT ?,?`
+  LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = ${tmptable}.filename
+      WHERE id > ?
+      ORDER BY createdAt DESC
+      LIMIT ?,?`
     )
     .bind(sinceId || 0, limit * (page - 1), limit)
     .all();
@@ -128,16 +134,18 @@ module.exports.delete = async (req, res) => {
   const { ids } = req.body;
   if (ids.length) {
     const db = database.connect();
-    const files = db
-      .prepare(`SELECT filename FROM match WHERE id IN (${database.params(ids)})`)
-      .bind(ids)
-      .all();
+    // Optimize by using a transaction for batch deletion
+    db.transaction(() => {
+      const files = db
+        .prepare(`SELECT filename FROM match WHERE id IN (${database.params(ids)})`)
+        .all(ids);
 
-    db.prepare(`DELETE FROM match WHERE id IN (${database.params(ids)})`).run(ids);
+      db.prepare(`DELETE FROM match WHERE id IN (${database.params(ids)})`).run(ids);
 
-    files.forEach(({ filename }) => {
-      filesystem.delete(`${STORAGE.MEDIA.PATH}/matches/${filename}`);
-    });
+      files.forEach(({ filename }) => {
+        filesystem.delete(`${STORAGE.MEDIA.PATH}/matches/${filename}`);
+      });
+    })();
   }
 
   res.send({ success: true });
@@ -183,9 +191,9 @@ module.exports.filters = async (req, res) => {
   const detectors = db
     .prepare(
       `SELECT json_extract(value, '$.detector') name
-        FROM match, json_each(match.response)
-        GROUP BY name
-        ORDER BY name ASC`
+      FROM match, json_each(match.response)
+      GROUP BY name
+    ORDER BY name ASC`
     )
     .all()
     .map((obj) => obj.name);
@@ -194,10 +202,10 @@ module.exports.filters = async (req, res) => {
     .prepare(
       `SELECT json_extract(value, '$.name') name FROM (
           SELECT json_extract(value, '$.results') results
-          FROM match, json_each(match.response)
+      FROM match, json_each(match.response)
           ) t, json_each(t.results)
-        GROUP BY name
-        ORDER BY name ASC`
+      GROUP BY name
+    ORDER BY name ASC`
     )
     .all()
     .map((obj) => obj.name);
@@ -206,10 +214,10 @@ module.exports.filters = async (req, res) => {
     .prepare(
       `SELECT IIF(json_extract(value, '$.match') == 1, 'match', 'miss') name FROM (
           SELECT json_extract(value, '$.results') results
-          FROM match, json_each(match.response)
+      FROM match, json_each(match.response)
           ) t, json_each(t.results)
-        GROUP BY name
-        ORDER BY name ASC`
+      GROUP BY name
+    ORDER BY name ASC`
     )
     .all()
     .map((obj) => obj.name);
@@ -219,7 +227,7 @@ module.exports.filters = async (req, res) => {
       `SELECT json_extract(event, '$.camera') name
       FROM match
       GROUP BY name
-      ORDER BY name ASC`
+    ORDER BY name ASC`
     )
     .all()
     .map((obj) => obj.name);
@@ -229,7 +237,7 @@ module.exports.filters = async (req, res) => {
       `SELECT json_extract(event, '$.type') name
       FROM match
       GROUP BY name
-      ORDER BY name ASC`
+    ORDER BY name ASC`
     )
     .all()
     .map((obj) => obj.name);
