@@ -1,9 +1,9 @@
 # syntax = docker/dockerfile:1.4
 
-FROM --platform=$BUILDPLATFORM oven/bun:1.0.11 AS frontend-builder
+FROM --platform=$BUILDPLATFORM oven/bun:1.0.15 AS frontend-builder
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /build
-RUN apt -y update && apt install -y --no-install-recommends curl bash unzip
+RUN apt-get -y update && apt-get install -y --no-install-recommends curl bash unzip
 
 COPY /frontend/package.json .
 RUN bun install
