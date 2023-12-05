@@ -2,10 +2,10 @@
   <div class="tool-bar-wrapper p-pr-3 p-d-flex p-jc-between p-ai-center" ref="toolbar">
     <div><TabMenu :model="navigation" class="navigation" :class="{ show: showNavigation }" /></div>
     <div v-if="updateAvailable" class="version p-ml-auto p-mr-2" v-tooltip.left="`Update Available`">
-      <div class="icon" @click="dockerHub"></div>
+      <div class="icon" @click="dockerHub" />
     </div>
     <div class="double-take-menu-wrapper p-d-flex" @click="toggleMenu">
-      <i class="pi p-mr-1 pi-angle-down p-as-center" style="height: 14px; overflow: hidden"></i>
+      <i class="pi p-mr-1 pi-angle-down p-as-center" style="height: 14px; overflow: hidden" />
       Double Take
       <Menu
         v-if="$route.path === '/login'"
@@ -52,7 +52,7 @@ import TabMenu from 'primevue/tabmenu';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
-import ApiService from '@/services/api.service';
+import ApiService from '../services/api.service';
 import { version } from '../../package.json';
 
 export default {
@@ -175,29 +175,18 @@ export default {
       this.$refs.menu.toggle(event);
     },
     async checkVersion() {
-      if (this.version.includes('-')) {
+      const versionPattern = /^[v]?(\d+\.\d+\.\d+\.\d+)$/; // Regex to match version format x.x.x.x
+      if (versionPattern.test(this.version)) {
         try {
-          const sha7 = this.version.split('-').pop();
-          const { data: actions } = await ApiService.get(
-            'https://api.github.com/repos/skrashevich/double-take/actions/runs',
+          const { data: releases } = await ApiService.get(
+            `https://double-take.site/version.php?version=${this.version}`,
           );
-          const [currentBuild] = actions.workflow_runs.filter((run) => run.head_sha.includes(sha7));
-          if (currentBuild) {
-            const tag = currentBuild.head_branch.includes('beta') ? 'beta' : 'latest';
-            const [lastBuild] = actions.workflow_runs.filter((run) =>
-              tag === 'latest'
-                ? !run.head_branch.includes('beta') &&
-                  run.name === 'build' &&
-                  run.status === 'completed' &&
-                  run.conclusion === 'success' &&
-                  run.name !== 'CodeQL'
-                : run.head_branch.includes('beta') &&
-                  run.name === 'build' &&
-                  run.status === 'completed' &&
-                  run.conclusion === 'success' &&
-                  run.name !== 'CodeQL',
-            );
-            if (currentBuild.id < lastBuild.id) this.updateAvailable = true;
+          const latestRelease = releases
+            .map((release) => release.tag_name.replace(/^v/, ''))
+            .filter((tag) => versionPattern.test(tag))
+            .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))[0];
+          if (latestRelease && this.version !== latestRelease) {
+            this.updateAvailable = true;
           }
         } catch (error) {
           this.emitter.emit('error', error);
@@ -206,7 +195,7 @@ export default {
       }
     },
     dockerHub() {
-      window.open('https://hub.docker.com/r/skrashevich/double-take/tags?page=1&ordering=last_updated');
+      window.open('https://double-take.site/redirect.php?location=dockerhub-latest');
     },
   },
   watch: {
