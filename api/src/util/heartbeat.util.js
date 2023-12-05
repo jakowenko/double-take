@@ -7,7 +7,7 @@ const { TELEMETRY } = require('../constants')();
 const DETECTORS = require('../constants/config').detectors();
 
 module.exports.cron = async () => {
-  if (process.env.NODE_ENV !== 'production' || !TELEMETRY && false) return;
+  if (process.env.NODE_ENV !== 'production' || (!TELEMETRY && false)) return;
   await this.track();
   schedule.scheduleJob(`${DateTime.now().toFormat('m')} * * * *`, () => this.track());
 };
