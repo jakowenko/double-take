@@ -1,4 +1,4 @@
-[![Double Take](https://badgen.net/github/release/skrashevich/double-take/stable)](https://github.com/skrashevich/double-take) [![Double Take](https://badgen.net/github/stars/skrashevich/double-take)](https://github.com/skrashevich/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/skrashevich/double-take)](https://hub.docker.com/r/skrashevich/double-take)
+[![Double Take](https://badgen.net/github/release/skrashevich/double-take/stable)](https://github.com/skrashevich/double-take) [![Double Take](https://badgen.net/github/stars/skrashevich/double-take)](https://github.com/skrashevich/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/skrashevich/double-take)](https://hub.docker.com/r/skrashevich/double-take) [![CodeFactor](https://www.codefactor.io/repository/github/skrashevich/double-take/badge)](https://www.codefactor.io/repository/github/skrashevich/double-take)
 
 Community-owned resources:
 
