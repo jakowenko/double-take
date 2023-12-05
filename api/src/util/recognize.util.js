@@ -1,4 +1,3 @@
-const fs = require('fs');
 const { copyFileSync } = require('./fs.util');
 const { STORAGE } = require('../constants')();
 
