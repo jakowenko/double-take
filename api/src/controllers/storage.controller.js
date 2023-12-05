@@ -87,6 +87,10 @@ module.exports.matches = async (req, res) => {
       });
     });
 
+    const lastModified = filesystem.getLastModified(source);
+    res.set('Cache-Control', 'public, max-age=604800'); // 1 week
+    res.set('Last-Modified', lastModified);
+
     const buffer = canvas.toBuffer('image/jpeg');
     res.set('Content-Type', 'image/jpeg');
     return res.end(buffer);
