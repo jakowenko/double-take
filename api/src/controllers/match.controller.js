@@ -55,12 +55,12 @@ module.exports.post = async (req, res) => {
   if (!filters || !Object.keys(filters).length) {
     // Optimize by using a single query to get the count and the matches
     const query = `
-      SELECT
-        (SELECT COUNT(*) FROM match) as count,
+        SELECT
+        COUNT(*) OVER () AS count,
         m.*,
         t.filename as isTrained
       FROM match m
-      LEFT JOIN (SELECT filename FROM train GROUP BY filename) t ON t.filename = m.filename
+      LEFT JOIN (SELECT DISTINCT filename FROM train) t ON t.filename = m.filename
       ORDER BY m.createdAt DESC
       LIMIT ? OFFSET ?`;
 
@@ -108,19 +108,22 @@ AND detector IN (${database.params(filters.detectors)})
   const [total] = db
     .prepare(
       `SELECT COUNT(*) count FROM ${tmptable}
-    WHERE id > ?
-    ORDER BY createdAt DESC`
+    WHERE id > ?`
     )
     .bind(sinceId || 0)
     .all();
 
   const matches = db
     .prepare(
-      `SELECT * FROM ${tmptable}
-  LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = ${tmptable}.filename
+      `SSELECT ${tmptable}.*, train.isTrained
+      FROM ${tmptable}
+      LEFT JOIN (
+        SELECT DISTINCT filename as isTrained 
+        FROM train
+      ) train ON train.isTrained = ${tmptable}.filename
       WHERE id > ?
       ORDER BY createdAt DESC
-      LIMIT ?,?`
+      LIMIT ?, ?`
     )
     .bind(sinceId || 0, limit * (page - 1), limit)
     .all();
