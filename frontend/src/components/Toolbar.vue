@@ -2,7 +2,7 @@
   <div class="tool-bar-wrapper p-pr-3 p-d-flex p-jc-between p-ai-center" ref="toolbar">
     <div><TabMenu :model="navigation" class="navigation" :class="{ show: showNavigation }" /></div>
     <div v-if="updateAvailable" class="version p-ml-auto p-mr-2" v-tooltip.left="`Update Available`">
-      <div class="icon" @click="dockerHub" />
+      <div class="icon" @click="gitHub" />
     </div>
     <div class="double-take-menu-wrapper p-d-flex" @click="toggleMenu">
       <i class="pi p-mr-1 pi-angle-down p-as-center" style="height: 14px; overflow: hidden" />
@@ -134,7 +134,7 @@ export default {
       const obj = {
         label: `v${this.version}`,
         command: () => {
-          window.open('https://github.com/skrashevich/double-take');
+          window.open('https://double-take.site/redirect.php?location=github-from-version-click');
         },
       };
 
@@ -196,6 +196,9 @@ export default {
     },
     dockerHub() {
       window.open('https://double-take.site/redirect.php?location=dockerhub-latest');
+    },
+    gitHub() {
+      window.open('https://double-take.site/redirect.php?location=github-from-upgrade-click');
     },
   },
   watch: {
