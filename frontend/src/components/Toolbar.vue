@@ -322,12 +322,12 @@ a.update.visible {
   }
 }
 
-::v-deep(.p-tabmenu) .p-tabmenuitem:not(.p-highlight):not(.p-disabled):hover .p-menuitem-link {
+.p-tabmenu .p-tabmenuitem:not(.p-highlight):not(.p-disabled):hover .p-menuitem-link {
   background: none;
 }
 
-::v-deep(.p-tabmenu) .p-tabmenuitem .p-menuitem-link {
-  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0) !important;
+.p-tabmenu .p-tabmenuitem .p-menuitem-link {
+  box-shadow: none !important;
   -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 }
 </style>
