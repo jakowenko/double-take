@@ -131,7 +131,6 @@ module.exports.save = async (event, results, filename, tmp) => {
   } catch (error) {
     error.message = `create match error: ${error.message}`;
     console.error(error);
-    return;
   }
 };
 

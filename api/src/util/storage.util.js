@@ -62,7 +62,7 @@ module.exports.setup = () => {
 
   folders.forEach((folder) => {
     if (!fs.existsSync(folder)) {
-      try { 
+      try {
         fs.mkdirSync(folder, { recursive: true });
       } catch (error) {
         error.message = `create folder error: ${error.message}`;

@@ -134,9 +134,9 @@ module.exports.subscribe = () => {
 
     const frigateTopics = isArray ? MQTT.TOPICS.FRIGATE : [MQTT.TOPICS.FRIGATE];
     topics.push(...frigateTopics);
-        frigateTopics.forEach((topic) => {
+    frigateTopics.forEach((topic) => {
       const [prefix] = topic.split('/');
-            topics.push(
+      topics.push(
         ...(FRIGATE.CAMERAS.length > 0
           ? FRIGATE.CAMERAS.map((camera) => `${prefix}/${camera}/person/snapshot`)
           : [`${prefix}/+/person/snapshot`])
@@ -270,13 +270,16 @@ module.exports.recognize = (data) => {
           message: 'home',
         });
         clearTimeout(PERSON_RESET_TIMEOUT[topic]);
-        PERSON_RESET_TIMEOUT[topic] = setTimeout(() => {
-          this.publish({
-            topic: `${MQTT.TOPICS.HOMEASSISTANT}/device_tracker/double-take/${topic}/state`,
-            retain: true,
-            message: 'not_home',
-          });
-        }, 1000 * 60 * FRIGATE.DEVICE_TRACKER_TIMEOUT); // 30 min
+        PERSON_RESET_TIMEOUT[topic] = setTimeout(
+          () => {
+            this.publish({
+              topic: `${MQTT.TOPICS.HOMEASSISTANT}/device_tracker/double-take/${topic}/state`,
+              retain: true,
+              message: 'not_home',
+            });
+          },
+          1000 * 60 * FRIGATE.DEVICE_TRACKER_TIMEOUT
+        ); // 30 min
 
         messages.push({
           topic: `${MQTT.TOPICS.HOMEASSISTANT}/sensor/double-take/${topic}/config`,
