@@ -119,6 +119,9 @@ module.exports.matches = async (req, res) => {
     buffer = fs.readFileSync(source);
   }
   res.set('Content-Type', 'image/jpeg');
+  const lastModified = filesystem.getLastModified(source);
+  res.set('Cache-Control', 'public, max-age=604800'); // 1 week
+  res.set('Last-Modified', lastModified);
   return res.end(buffer);
 };
 
