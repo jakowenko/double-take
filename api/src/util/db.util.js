@@ -12,6 +12,7 @@ function connect() {
     connection = new Database(`${STORAGE.PATH}/database.db`, {
       verbose: LOGS.SQL ? console.verbose : null,
     });
+  connection.pragma('journal_mode = WAL');
   return connection;
 }
 function createFile({ name, filename, meta }) {
@@ -114,7 +115,7 @@ async function init() {
     )`
     ).run();
 
-    db.prepare(
+    /* db.prepare(
       `create view IF NOT EXISTS match_responses as
       SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector,
       json_extract(value, '$.results') results, match.response
@@ -124,15 +125,13 @@ async function init() {
     db.prepare(
       `CREATE VIEW IF NOT EXISTS match_extended as SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value
       FROM match_responses t, json_each(t.results)`
-    ).run();
+    ).run(); */
 
     db.exec(`CREATE INDEX IF NOT EXISTS idx_file_createdAt ON file(createdAt)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_match_createdAt ON match(createdAt)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_match_filename ON match(filename)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_train_filename ON train(filename)`);
-    db.exec(
-      `CREATE INDEX IF NOT EXISTS idx_match_response_match ON match(json_extract(response, '$.match'))`
-    );
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_train_name ON train(name)`);
 
     db.prepare(`DELETE FROM train WHERE meta IS NULL`).run();
 

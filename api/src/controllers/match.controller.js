@@ -65,7 +65,7 @@ module.exports.post = async (req, res) => {
     !filters ||
     !Object.keys(filters).length
   ) {
-    // Optimize by using a single query to get the count and the matches
+    // TOODO: Optimize by using a single query to get the count and the matches
     const query = `
         SELECT
         m.*,
