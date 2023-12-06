@@ -54,22 +54,32 @@ module.exports.post = async (req, res) => {
 
   const db = database.connect();
 
-  if (!filters || !Object.keys(filters).length) {
+  if (
+    (Cache.get('filters') &&
+      Cache.get('filters').detectors.length === filters.detectors.length &&
+      Cache.get('filters').names.length === filters.names.length &&
+      Cache.get('filters').matches.length === filters.matches.length &&
+      Cache.get('filters').cameras.length === filters.cameras.length &&
+      Cache.get('filters').types.length === filters.types.length &&
+      filters.confidence + filters.width + filters.height === 0) ||
+    !filters ||
+    !Object.keys(filters).length
+  ) {
     // Optimize by using a single query to get the count and the matches
     const query = `
         SELECT
-        (SELECT COUNT(*) FROM match) as count,
         m.*,
         t.filename as isTrained
       FROM match m
       LEFT JOIN (SELECT filename FROM train GROUP BY filename) t ON t.filename = m.filename
       ORDER BY m.createdAt DESC
       LIMIT ? OFFSET ?`;
+    console.verbose('no filters, using single query');
 
     const matches = db.prepare(query).all(limit, limit * (page - 1));
 
     return res.send({
-      total: matches.length > 0 ? matches[0].count : 0,
+      total: Cache.get('filters').total ?? 0,
       limit,
       matches: await format(matches),
     });
@@ -78,6 +88,7 @@ module.exports.post = async (req, res) => {
   const confidenceQuery =
     filters.confidence === 0 ? `OR json_extract(value, '$.confidence') IS NULL` : '';
 
+  // architecture proёb :(
   db.prepare(
     `CREATE TEMPORARY TABLE IF NOT EXISTS ${tmptable} AS SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value FROM (
     SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results, match.response
