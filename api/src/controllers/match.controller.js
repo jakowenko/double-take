@@ -9,6 +9,7 @@ const process = require('../util/process.util');
 const { AUTH, STORAGE, UI } = require('../constants')();
 const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
+const Cache = require('../util/cache.util');
 
 const format = async (matches) => {
   const token = AUTH && matches.length ? jwt.sign({ route: 'storage' }) : null;
@@ -187,6 +188,8 @@ module.exports.reprocess = async (req, res) => {
 };
 
 module.exports.filters = async (req, res) => {
+  if (Cache.get('filters')) return res.send(Cache.get('filters'));
+
   const db = database.connect();
 
   const [total] = db.prepare('SELECT COUNT(*) count FROM match').all();
@@ -245,5 +248,7 @@ module.exports.filters = async (req, res) => {
     .all()
     .map((obj) => obj.name);
 
-  res.send({ total: total.count, detectors, names, matches, cameras, types });
+  const result = { total: total.count, detectors, names, matches, cameras, types };
+  Cache.set('filters', result, 120);
+  res.send(result);
 };

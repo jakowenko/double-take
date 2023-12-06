@@ -44,6 +44,7 @@
     "luxon": "^3.4.3",
     "mqtt": "^4.3.7",
     "multer": "^1.4.5-lts.1",
+    "node-cache": "^5.1.2",
     "node-schedule": "^2.1.0",
     "piexifjs": "^1.0.6",
     "probe-image-size": "^7.2.3",
