@@ -46,6 +46,7 @@
     "multer": "^1.4.5-lts.1",
     "node-cache": "^5.1.2",
     "node-schedule": "^2.1.0",
+    "object-hash": "^3.0.0",
     "piexifjs": "^1.0.6",
     "probe-image-size": "^7.2.3",
     "read-last-lines": "^1.8.0",
