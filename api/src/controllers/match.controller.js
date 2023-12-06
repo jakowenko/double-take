@@ -1,5 +1,6 @@
 const fs = require('fs');
 const sizeOf = require('probe-image-size');
+const objhasher = require('object-hash');
 const database = require('../util/db.util');
 const filesystem = require('../util/fs.util');
 const { tryParseJSON } = require('../util/validators.util');
@@ -9,7 +10,6 @@ const { AUTH, STORAGE, UI } = require('../constants')();
 const { BAD_REQUEST } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
 const Cache = require('../util/cache.util');
-const objhasher = require('object-hash');
 
 const format = async (matches) => {
   const token = AUTH && matches.length ? jwt.sign({ route: 'storage' }) : null;
