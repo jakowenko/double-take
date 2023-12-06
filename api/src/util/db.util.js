@@ -114,6 +114,18 @@ async function init() {
     )`
     ).run();
 
+    db.prepare(
+      `create view IF NOT EXISTS match_responses as
+      SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector,
+      json_extract(value, '$.results') results, match.response
+      FROM match, json_each( match.response)`
+    ).run();
+
+    db.prepare(
+      `CREATE VIEW IF NOT EXISTS match_extended as SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value
+      FROM match_responses t, json_each(t.results)`
+    ).run();
+
     db.exec(`CREATE INDEX IF NOT EXISTS idx_file_createdAt ON file(createdAt)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_match_createdAt ON match(createdAt)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_match_filename ON match(filename)`);

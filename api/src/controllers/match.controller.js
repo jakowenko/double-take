@@ -46,10 +46,10 @@ const format = async (matches) => {
 
 module.exports.post = async (req, res) => {
   const limit = UI.PAGINATION.LIMIT;
-  const { sinceId } = req.body;
+  // const { sinceId } = req.body;
   const { page } = req.query;
   const { filters } = req.body;
-  const tmptable = crypto.createHash('md5').digest('hex').toString();
+  // const tmptable = crypto.createHash('md5').digest('hex').toString();
 
   const db = database.connect();
 
@@ -57,7 +57,7 @@ module.exports.post = async (req, res) => {
     // Optimize by using a single query to get the count and the matches
     const query = `
         SELECT
-        COUNT(*) OVER () AS count,
+        COUNT(id) OVER () AS count,
         m.*,
         t.filename as isTrained
       FROM match m
@@ -77,59 +77,61 @@ module.exports.post = async (req, res) => {
   const confidenceQuery =
     filters.confidence === 0 ? `OR json_extract(value, '$.confidence') IS NULL` : '';
 
-  db.prepare(
-    `CREATE TEMPORARY TABLE IF NOT EXISTS ${tmptable} AS SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value FROM (
-  SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results, match.response
-  FROM match, json_each( match.response)
-  ) t, json_each(t.results)
-WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
-AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
-AND json_extract(t.event, '$.camera') IN (${database.params(filters.cameras)})
-AND json_extract(t.event, '$.type') IN (${database.params(filters.types)})
-AND (json_extract(value, '$.confidence') >= ? ${confidenceQuery})
-AND json_extract(value, '$.box.width') >= ?
-AND json_extract(value, '$.box.height') >= ?
-AND detector IN (${database.params(filters.detectors)})
-      GROUP BY t.id`
-  ).run(
-    filters.names,
-    filters.matches.map((obj) => (obj === 'match' ? 1 : 0)),
-    filters.cameras,
-    filters.types,
-    filters.confidence,
-    filters.width,
-    filters.height,
-    filters.detectors
-  );
-
-  db.prepare(`SELECT * FROM ${tmptable}`)
-    .all()
-    .map((obj) => obj.id);
-
   const [total] = db
     .prepare(
-      `SELECT COUNT(*) count FROM ${tmptable}
-    WHERE id > ?`
+      `SELECT COUNT(id) count FROM match_extended
+    WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
+    AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
+    AND json_extract(event, '$.camera') IN (${database.params(filters.cameras)})
+    AND json_extract(event, '$.type') IN (${database.params(filters.types)})
+    AND (json_extract(value, '$.confidence') >= ? ${confidenceQuery})
+    AND json_extract(value, '$.box.width') >= ?
+    AND json_extract(value, '$.box.height') >= ?
+    AND detector IN (${database.params(filters.detectors)})`
     )
-    .bind(sinceId || 0)
+    .bind(
+      filters.names,
+      filters.matches.map((obj) => (obj === 'match' ? 1 : 0)),
+      filters.cameras,
+      filters.types,
+      filters.confidence,
+      filters.width,
+      filters.height,
+      filters.detectors
+    )
     .all();
 
   const matches = db
     .prepare(
-      `SELECT ${tmptable}.*, train.isTrained
-      FROM ${tmptable}
+      `SELECT me.*, train.isTrained FROM match_extended me
       LEFT JOIN (
-        SELECT DISTINCT filename as isTrained 
+        SELECT filename as isTrained 
         FROM train
-      ) train ON train.isTrained = ${tmptable}.filename
-      WHERE id > ?
+      ) train ON train.isTrained = me.filename
+    WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
+    AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
+    AND json_extract(event, '$.camera') IN (${database.params(filters.cameras)})
+    AND json_extract(event, '$.type') IN (${database.params(filters.types)})
+    AND (json_extract(value, '$.confidence') >= ? ${confidenceQuery})
+    AND json_extract(value, '$.box.width') >= ?
+    AND json_extract(value, '$.box.height') >= ?
+    AND detector IN (${database.params(filters.detectors)})
       ORDER BY createdAt DESC
       LIMIT ?, ?`
     )
-    .bind(sinceId || 0, limit * (page - 1), limit)
+    .bind(
+      filters.names,
+      filters.matches.map((obj) => (obj === 'match' ? 1 : 0)),
+      filters.cameras,
+      filters.types,
+      filters.confidence,
+      filters.width,
+      filters.height,
+      filters.detectors,
+      limit * (page - 1),
+      limit
+    )
     .all();
-
-  db.exec(`DROP TABLE ${tmptable}`);
 
   res.send({ total: total.count, limit, matches: await format(matches) });
 };
