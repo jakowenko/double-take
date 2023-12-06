@@ -2,6 +2,7 @@ const fs = require('fs');
 const axios = require('axios');
 const sizeOf = require('probe-image-size');
 const { createCanvas, loadImage, registerFont } = require('canvas');
+const sanitize = require('sanitize-filename-truncate');
 const { jwt } = require('../util/auth.util');
 const filesystem = require('../util/fs.util');
 const database = require('../util/db.util');
@@ -10,12 +11,17 @@ const { BAD_REQUEST } = require('../constants/http-status');
 const { AUTH, SERVER, UI } = require('../constants')();
 const { PATH } = require('../constants')().STORAGE.MEDIA;
 const { QUALITY, WIDTH } = require('../constants')().UI.THUMBNAILS;
-const sanitize = require('sanitize-filename-truncate');
 
 module.exports.matches = async (req, res) => {
   const { box: showBox } = req.query;
-  const { filename } = sanitize(req.params);
+  let { filename } = req.params;
+  filename = sanitize(filename);
+
   const source = `${PATH}/matches/${filename}`;
+
+  if (!filename) {
+    return res.status(BAD_REQUEST).error(`Invalid filename provided`);
+  }
 
   if (!fs.existsSync(source)) {
     return res.status(BAD_REQUEST).error(`${source} does not exist`);
