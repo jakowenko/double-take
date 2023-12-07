@@ -11,8 +11,10 @@ PATHS="";
 if [ "$CONFIG_PATH" ]
 then
   PATHS="$PATHS --watch $CONFIG_PATH";
+  mkdir -p "$CONFIG_PATH";
 else
   PATHS="$PATHS --watch ./.storage/config";
+  mkdir -p ./.storage/config;
 fi
 
 if [ "$SECRETS_PATH" ]

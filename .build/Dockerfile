@@ -83,4 +83,5 @@ RUN npm install nodemon -g
 WORKDIR /double-take
 COPY .build/entrypoint.sh ./
 EXPOSE 3000
+VOLUME [ "/.storage" ]
 ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
