@@ -20,6 +20,7 @@ fi
 if [ "$SECRETS_PATH" ]
 then
   PATHS="$PATHS --watch $SECRETS_PATH";
+  mkdir -p "$SECRETS_PATH";
 elif [ "$CONFIG_PATH" ]
 then
   PATHS="$PATHS --watch ./.storage/config";

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const axios = require('axios');
 const time = require('./time.util');
 const { jwt } = require('./auth.util');
@@ -26,15 +27,15 @@ module.exports.folders = () => {
 };
 
 module.exports.files = {
-  traverse: async (path) => {
+  traverse: async (dirpath) => {
     const output = [];
-    let folders = await fs.promises.readdir(`${STORAGE.MEDIA.PATH}/${path}`, {
+    let folders = await fs.promises.readdir(`${STORAGE.MEDIA.PATH}/${dirpath}`, {
       withFileTypes: true,
     });
     folders = folders.filter((file) => file.isDirectory()).map((file) => file.name);
 
     for (const folder of folders) {
-      let images = await fs.promises.readdir(`${STORAGE.MEDIA.PATH}/${path}/${folder}`, {
+      let images = await fs.promises.readdir(`${STORAGE.MEDIA.PATH}/${dirpath}/${folder}`, {
         withFileTypes: true,
       });
       images = images
@@ -47,8 +48,8 @@ module.exports.files = {
             file.toLowerCase().includes('.png')
         );
       images.forEach((filename) => {
-        const { birthtime } = fs.statSync(`${STORAGE.MEDIA.PATH}/${path}/${folder}/${filename}`);
-        output.push({ name: folder, filename, key: `${path}/${folder}/${filename}`, birthtime });
+        const { birthtime } = fs.statSync(`${STORAGE.MEDIA.PATH}/${dirpath}/${folder}/${filename}`);
+        output.push({ name: folder, filename, key: `${dirpath}/${folder}/${filename}`, birthtime });
       });
     }
     return output.sort((a, b) => (a.birthtime < b.birthtime ? 1 : -1));
@@ -105,6 +106,9 @@ module.exports.copy = (source, destination) => {
   });
 };
 
+module.exports.existsSync = fs.existsSync;
+module.exports.rmSync = fs.rmSync;
+
 module.exports.delete = (destination) => {
   try {
     if (fs.existsSync(destination)) {
@@ -127,7 +131,7 @@ module.exports.move = (source, destination) => {
   }
 };
 
-module.exports.saveURLs = async (urls, path) => {
+module.exports.saveURLs = async (urls, dirpath) => {
   const token = AUTH ? jwt.sign({ route: 'storage' }) : null;
   const files = [];
   for (let i = 0; i < urls.length; i++) {
@@ -146,7 +150,7 @@ module.exports.saveURLs = async (urls, path) => {
         let filename = url.substring(url.lastIndexOf('/') + 1);
         const ext = `.${filename.split('.').pop()}`;
         filename = `${filename.replace(ext, '')}-${time.unix()}${ext}`;
-        fs.writeFileSync(`${STORAGE.MEDIA.PATH}/${path}/${filename}`, buffer);
+        fs.writeFileSync(`${STORAGE.MEDIA.PATH}/${dirpath}/${filename}`, buffer);
         files.push(filename);
       }
     } catch (error) {
@@ -187,3 +191,45 @@ module.exports.getLastModified = (filePath) => {
     return null;
   }
 };
+
+/**
+ * Creates a directory and all its subdirectories synchronously.
+ *
+ * @param {string} targetDir - The path of the directory to be created.
+ * @param {object} options - Optional parameters.
+ * @param {boolean} options.isRelativeToScript - Whether the targetDir path is relative to the script. Default is false.
+ * @return {string} - The path of the last created directory.
+ */
+function mkDirByPathSync(targetDir, { isRelativeToScript = false } = {}) {
+  // eslint-disable-next-line prefer-destructuring
+  const sep = path.sep;
+  const initDir = path.isAbsolute(targetDir) ? sep : '';
+  const baseDir = isRelativeToScript ? __dirname : '.';
+
+  return targetDir.split(sep).reduce((parentDir, childDir) => {
+    const curDir = path.resolve(baseDir, parentDir, childDir);
+    try {
+      fs.mkdirSync(curDir);
+    } catch (err) {
+      if (err.code === 'EEXIST') {
+        // curDir already exists!
+        return curDir;
+      }
+
+      // To avoid `EISDIR` error on Mac and `EACCES`-->`ENOENT` and `EPERM` on Windows.
+      if (err.code === 'ENOENT') {
+        // Throw the original parentDir error on curDir `ENOENT` failure.
+        throw new Error(`EACCES: permission denied, mkdir '${parentDir}'`);
+      }
+
+      const caughtErr = ['EACCES', 'EPERM', 'EISDIR'].indexOf(err.code) > -1;
+      if (!caughtErr || (caughtErr && curDir === path.resolve(targetDir))) {
+        throw err; // Throw if it's just the last created dir.
+      }
+    }
+
+    return curDir;
+  }, initDir);
+}
+
+module.exports.mkDirByPathSync = mkDirByPathSync;

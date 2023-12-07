@@ -78,6 +78,8 @@ EOT
 COPY --link --from=build /double-take /double-take
 COPY --from=build /opt/lib/* /lib/
 
+RUN mkdir /.storage && ln -s /.storage /double-take/.storage
+
 RUN npm install nodemon -g
 
 WORKDIR /double-take

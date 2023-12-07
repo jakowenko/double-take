@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('../util/fs.util');
 const filesystem = require('../util/fs.util');
 const database = require('../util/db.util');
 const { resync } = require('../util/db.util');
@@ -9,7 +9,7 @@ module.exports.folders = {
   create: (req, res) => {
     const { name } = req.params;
     if (!fs.existsSync(`${STORAGE.MEDIA.PATH}/train/${name}`)) {
-      fs.mkdirSync(`${STORAGE.MEDIA.PATH}/train/${name}`);
+      fs.mkDirByPathSync(`${STORAGE.MEDIA.PATH}/train/${name}`);
     }
     res.send({ success: true });
   },
