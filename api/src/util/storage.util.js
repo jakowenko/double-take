@@ -39,9 +39,7 @@ module.exports.purge = async () => {
       await Promise.all(promises);
 
       const ids = files.map(({ id }) => id);
-      if (ids.length) {
-        db.prepare(`DELETE FROM match WHERE id IN (${ids.join(',')})`).run();
-      }
+      db.prepare(`DELETE FROM match WHERE id IN (${ids.join(',')})`).run();
 
       if (files.length > 0) console.log(`purged ${files.length} file(s)`);
     } catch (error) {
