@@ -44,7 +44,7 @@
     "vue3-ace-editor": "2.2.4"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "4.5.1",
+    "@vitejs/plugin-vue": "4.5.2",
     "@vue/compiler-sfc": "3.3.10",
     "@vue/eslint-config-airbnb": "7.0.1",
     "@vue/eslint-config-prettier": "8.0.0",
