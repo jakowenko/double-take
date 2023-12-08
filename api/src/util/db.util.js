@@ -272,6 +272,12 @@ function getUntrained(name) {
     )
     .all(DETECTORS, name);
 }
+/**
+ * Retrieves the number of rows in a table.
+ *
+ * @param {string} name - The name of the table.
+ * @return {number} The number of rows in the table.
+ */
 function getTableRows(name) {
   const db = connect();
   try {
@@ -373,10 +379,10 @@ function updateMatch({ id, event, response }) {
       name: response ? response.name : null,
       confidence: response ? response.confidence : null,
       match: response ? response.match : null,
-      box_top: response ? response.box.top : null,
-      box_left: response ? response.box.left : null,
-      box_width: response ? response.box.width : null,
-      box_height: response ? response.box.height : null,
+      box_top: response && response.box ? response.box.top ?? null : null,
+      box_left: response && response.box ? response.box.left ?? null : null,
+      box_width: response && response.box ? response.box.width ?? null : null,
+      box_height: response && response.box ? response.box.height ?? null : null,
       id,
     });
   } catch (error) {
@@ -393,6 +399,7 @@ module.exports = {
     trained: getTrained,
     filesById: getFilesById,
     fileByFilename: getFileByFilename,
+    tableRows: getTableRows,
   },
   create: {
     file: createFile,

@@ -54,6 +54,8 @@ module.exports.post = async (req, res) => {
 
   const db = database.connect();
 
+  const filtersHash = objhasher(filters);
+
   if (
     (Cache.get('filters') &&
       Cache.get('filters').detectors.length === filters.detectors.length &&
@@ -78,8 +80,12 @@ module.exports.post = async (req, res) => {
 
     const matches = db.prepare(query).all(limit, limit * (page - 1));
 
+    const total = Cache.get('filters')
+      ? Cache.get('filters').total
+      : database.get.tableRows('match');
+
     return res.send({
-      total: Cache.get('filters').total ?? 0,
+      total,
       limit,
       matches: await format(matches),
     });
@@ -117,7 +123,6 @@ module.exports.post = async (req, res) => {
     .all()
     .map((obj) => obj.id);
 
-  const filtersHash = objhasher(filters);
   let total;
   if (Cache.get(filtersHash)) {
     total = Cache.get(filtersHash);
