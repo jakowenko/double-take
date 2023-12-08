@@ -90,10 +90,10 @@ module.exports.post = async (req, res) => {
 
   // architecture proёb :(
   db.prepare(
-    `CREATE TEMPORARY TABLE IF NOT EXISTS ${tmptable} AS SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value FROM (
+    `CREATE TEMPORARY TABLE IF NOT EXISTS ${tmptable} AS SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value, isTrained FROM (
     SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results, match.response
     FROM match, json_each( match.response)
-    ) t, json_each(t.results)
+    ) t, json_each(t.results) LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = t.filename
   WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
   AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
   AND json_extract(t.event, '$.camera') IN (${database.params(filters.cameras)})
@@ -125,8 +125,7 @@ module.exports.post = async (req, res) => {
     [total] = db
       .prepare(
         `SELECT COUNT(*) count FROM ${tmptable}
-    WHERE id > ?
-    ORDER BY createdAt DESC`
+    WHERE id > ?`
       )
       .bind(sinceId || 0)
       .all();
@@ -135,7 +134,6 @@ module.exports.post = async (req, res) => {
   const matches = db
     .prepare(
       `SELECT * FROM ${tmptable}
-  LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = ${tmptable}.filename
       WHERE id > ?
       ORDER BY createdAt DESC
       LIMIT ?,?`

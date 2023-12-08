@@ -125,6 +125,12 @@ module.exports.remove = async (name, opts = {}) => {
   }
 
   db.prepare(
+    `UPDATE responses SET isTrained = 0 WHERE filename IN (SELECT filename FROM train WHERE name = ? AND detector IN (${database.params(
+      DETECTORS
+    )}));`
+  ).run(name, DETECTORS);
+
+  db.prepare(
     `DELETE FROM train WHERE name = ? AND detector IN (${database.params(DETECTORS)})`
   ).run(name, DETECTORS);
 

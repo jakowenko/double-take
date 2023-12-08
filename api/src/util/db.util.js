@@ -46,6 +46,48 @@ function migrations() {
     db.prepare('DROP TABLE IF EXISTS match').run();
   }
 
+  if (getTableRows('responses') === 0) {
+    db.prepare(
+      `INSERT INTO responses SELECT
+    null,null,
+    t.createdAt,
+    t.filename,
+    t.event,
+    t.response,
+    t.detector,
+    json_extract(j.value, '$.name') AS name,
+    json_extract(j.value, '$.confidence') AS confidence,
+    json_extract(j.value, '$.match') AS match,
+    json_extract(j.value, '$.box.top') AS box_top,
+    json_extract(j.value, '$.box.left') AS box_left,
+    json_extract(j.value, '$.box.width') AS box_width,
+    json_extract(j.value, '$.box.height') AS box_height,
+    CASE 
+        WHEN train.filename IS NOT NULL THEN 1 
+        ELSE 0 
+    END AS isTrained
+FROM (
+    SELECT
+        match.id,
+        match.createdAt,
+        match.filename,
+        match.event,
+        json_extract(value, '$.detector') AS detector,
+        json_extract(value, '$.results') AS results,
+        match.response
+    FROM match
+    CROSS JOIN json_each(match.response)
+) t
+CROSS JOIN json_each(t.results) as j
+LEFT JOIN (
+    SELECT filename
+    FROM train
+    GROUP BY filename
+) train ON train.filename = t.filename
+GROUP BY t.id;`
+    ).run();
+  }
+
   if (fileTableInfo.some((obj) => obj.name === 'uuid')) {
     db.transaction(() => {
       db.prepare('ALTER TABLE file RENAME TO file_backup').run();
@@ -121,11 +163,85 @@ async function init() {
       json_extract(value, '$.results') results, match.response
       FROM match, json_each( match.response)`
     ).run();
+*/
+
+    db.exec(
+      `CREATE TABLE IF NOT EXISTS responses (
+        id         INTEGER,
+        event_id   INTEGER, -- REFERENCES events (id) MATCH SIMPLE,
+        createdAt  NUM,
+        filename,
+        event      JSON,
+        response   JSON,
+        detector,
+        name,
+        confidence REAL,
+        match,
+        box_top    INTEGER,
+        box_left   INTEGER,
+        box_width  INTEGER,
+        box_height INTEGER,
+        isTrained,
+        PRIMARY KEY (
+            id AUTOINCREMENT
+        )
+      );
+      CREATE INDEX IF NOT EXISTS idx_responses_name ON responses (name);
+      CREATE INDEX IF NOT EXISTS idx_responses_filename ON responses (filename);
+      CREATE INDEX IF NOT EXISTS idx_responses_confidence ON responses (confidence);
+      CREATE INDEX IF NOT EXISTS idx_responses_match ON responses (match);
+      CREATE INDEX IF NOT EXISTS idx_responses_box ON responses (box_width, box_height);`
+    );
+
+    /*
+);
+
+    )
 
     db.prepare(
       `CREATE VIEW IF NOT EXISTS match_extended as SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value
       FROM match_responses t, json_each(t.results)`
-    ).run(); */
+    ).run(); 
+    
+    db.exec(`SELECT
+    null,null,
+    t.createdAt,
+    t.filename,
+    t.event,
+    t.response,
+    t.detector,
+    json_extract(j.value, '$.name') AS name,
+    json_extract(j.value, '$.confidence') AS confidence,
+    json_extract(j.value, '$.match') AS match,
+    json_extract(j.value, '$.box.top') AS box_top,
+    json_extract(j.value, '$.box.left') AS box_left,
+    json_extract(j.value, '$.box.width') AS box_width,
+    json_extract(j.value, '$.box.height') AS box_height,
+    CASE 
+        WHEN train.filename IS NOT NULL THEN 1 
+        ELSE 0 
+    END AS isTrained
+FROM (
+    SELECT
+        match.id,
+        match.createdAt,
+        match.filename,
+        match.event,
+        json_extract(value, '$.detector') AS detector,
+        json_extract(value, '$.results') AS results,
+        match.response
+    FROM match
+    CROSS JOIN json_each(match.response)
+) t
+CROSS JOIN json_each(t.results) as j
+LEFT JOIN (
+    SELECT filename
+    FROM train
+    GROUP BY filename
+) train ON train.filename = t.filename
+GROUP BY t.id;
+`);
+    */
 
     db.exec(`CREATE INDEX IF NOT EXISTS idx_file_createdAt ON file(createdAt)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_match_createdAt ON match(createdAt)`);
@@ -155,6 +271,18 @@ function getUntrained(name) {
       )})) AND name = ? AND isActive = 1`
     )
     .all(DETECTORS, name);
+}
+function getTableRows(name) {
+  const db = connect();
+  try {
+    const stmt = db.prepare(`select sum(ncell) as rows from dbstat where name=:name;`);
+    const data = stmt.get({ name });
+    return Number(data.rows) || 0;
+  } catch (error) {
+    const stmt = db.prepare(`select count(1) as rows from ${name};`);
+    const data = stmt.get();
+    return Number(data.rows) || 0;
+  }
 }
 function getTrained(name) {
   const db = connect();
@@ -187,28 +315,74 @@ function createTrain({ id, name, filename, detector, meta }) {
     meta: meta || null,
     createdAt: time.utc(),
   });
+  db.prepare(`UPDATE responses SET isTrained = 1 WHERE filename = ?`).run(filename);
 }
 function createMatch({ filename, event, response }) {
-  const db = connect();
-  db.prepare(
-    `INSERT INTO match (id, filename, event, response, createdAt) VALUES (:id, :filename, :event, :response, :createdAt)`
-  ).run({
-    id: null,
-    filename,
-    event: event ? JSON.stringify(event) : null,
-    response: response ? JSON.stringify(response) : null,
-    createdAt: time.utc(),
-  });
+  try {
+    const db = connect();
+    db.prepare(
+      `INSERT INTO match (id, filename, event, response, createdAt) VALUES (:id, :filename, :event, :response, :createdAt)`
+    ).run({
+      id: null,
+      filename,
+      event: event ? JSON.stringify(event) : null,
+      response: response ? JSON.stringify(response) : null,
+      createdAt: time.utc(),
+    });
+    db.prepare(
+      `INSERT INTO responses (id, event_id, createdAt, filename, event, response, detector, name, confidence, match, box_top, box_left, box_width, box_height)
+      VALUES (:id, :event_id, :createdAt, :filename, :event, :response, :detector, :name, :confidence, :match, :box_top, :box_left, :box_width, :box_height)
+    `
+    ).run({
+      id: null,
+      event_id: null,
+      createdAt: time.utc(),
+      filename,
+      event: event ? JSON.stringify(event) : null,
+      response: response ? JSON.stringify(response) : null,
+      detector: response ? response.detector : null,
+      name: response ? response.name : null,
+      confidence: response ? response.confidence : null,
+      match: response ? response.match : null,
+      box_top: response && response.box ? response.box.top ?? null : null,
+      box_left: response && response.box ? response.box.left ?? null : null,
+      box_width: response && response.box ? response.box.width ?? null : null,
+      box_height: response && response.box ? response.box.height ?? null : null,
+    });
+  } catch (error) {
+    error.message = `db createMatch error: ${error.message}`;
+    console.error(error);
+  }
 }
-
 function updateMatch({ id, event, response }) {
-  event.updatedAt = time.utc();
-  const db = connect();
-  db.prepare(`UPDATE match SET event = :event, response = :response WHERE id = :id`).run({
-    event: event ? JSON.stringify(event) : null,
-    response: response ? JSON.stringify(response) : null,
-    id,
-  });
+  try {
+    event.updatedAt = time.utc();
+    const db = connect();
+    db.prepare(`UPDATE match SET event = :event, response = :response WHERE id = :id`).run({
+      event: event ? JSON.stringify(event) : null,
+      response: response ? JSON.stringify(response) : null,
+      id,
+    });
+    db.prepare(
+      `UPDATE responses SET event = :event, response = :response,
+    name = :name, confidence = :confidence, match = :match, box_top = :box_top,
+    box_left = :box_left, box_width = :box_width, box_height = :box_height WHERE id = :id`
+    ).run({
+      event: event ? JSON.stringify(event) : null,
+      response: response ? JSON.stringify(response) : null,
+      name: response ? response.name : null,
+      confidence: response ? response.confidence : null,
+      match: response ? response.match : null,
+      box_top: response ? response.box.top : null,
+      box_left: response ? response.box.left : null,
+      box_width: response ? response.box.width : null,
+      box_height: response ? response.box.height : null,
+      id,
+    });
+  } catch (error) {
+    error.message = `db updateMatch error: ${error.message}`;
+    console.error(error);
+  }
 }
 
 module.exports = {
