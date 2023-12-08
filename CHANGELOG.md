@@ -1,4 +1,4 @@
-## [v1.13.11.9](https://github.com/skrashevich/double-take/compare/v1.13.11.8...v1.13.11.9)
+## [v1.13.11.9rc0](https://github.com/skrashevich/double-take/compare/v1.13.11.8...v1.13.11.9rc0)
 
 # v1.13.11.9
 
@@ -24,6 +24,9 @@ This release includes several bug fixes, a major refactor, and dependency update
 - Updated frontend dependencies with the latest releases including `ace-builds`, `ace-code`, `@vitejs/plugin-vue`, `@vue/eslint-config-airbnb`, `@vue/eslint-config-prettier`, `eslint`, and `eslint-plugin-vue`. (Patch 24/38)
 - Updated `vite` to `5.0.5` in the frontend. (Patch 31/38)
 - Added CodeFactor badge to `README.md`. (Patch 33/38)
+- Updated primary Dockerfile to include storage directory initialization and volume for `/.storage`.
+- Updated `.github/workflows/playwright.yml` to use `actions/checkout@v4` and `actions/setup-node@v4`.
+- `entrypoint.sh` script improvements for better directory handling.     
 
 ## Fixed
 - Fixed incorrect import in `recognize.util.js`. (Patch 13/38)
@@ -31,9 +34,21 @@ This release includes several bug fixes, a major refactor, and dependency update
 - Refactored `Toolbar.vue` styles to remove unnecessary CSS rules and improve readability. (Patch 36/38)
 - Refactored `recognize.util.js` by removing the unused `fs` module import. (Patch 35/38)
 - Application of fixes from CodeFactor analysis. (Patch 32/38)
+- CodeFactor analysis fixes applied.
+- UI and Styles refinements for improved consistency.
 
 ## Security
-- No security patches in this release.
+The changes in `storage.controller.js` file reflect a security enhancement in the handling of filenames. The code modification takes place in the `matches` method of a controller that likely manages file retrieval.
+
+Previously, the server was directly using the `filename` parameter from the request parameters in `req.params`. However, user-supplied filenames can be dangerous because they may contain special characters or sequences that could lead to file path traversal attacks, where an attacker attempts to access files and directories stored outside the intended directory structure.
+
+The updated code now sanitizes the `filename` by calling the `sanitize` function, which presumably removes or escapes potentially dangerous characters in the filename. The sanitized filename is then used to construct the file's path and check its existence on the server.
+
+### Security Implication
+The addition of filename sanitation ensures that any attempt by an attacker to manipulate the file path is mitigated. The `sanitize-filename-truncate` library likely removes or encodes characters that could lead to vulnerabilities such as directory traversal, allowing file operations to be performed safely on the server.
+
+### Summary of the Security Fix
+In summary, this security fix mitigates a potential vulnerability by ensuring that user input (in this case, a filename) is properly sanitized before being used in file system operations. This helps protect the server from attacks that could exploit unsanitized input to gain unauthorized access to the file system.
 
 ## Deprecated
 - No deprecations in this release.
