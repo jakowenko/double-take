@@ -83,8 +83,8 @@ module.exports.add = async (name, opts = {}) => {
   const queue = files
     ? files.map((obj) => database.get.fileByFilename(obj.name, obj.filename)).filter((obj) => obj)
     : ids
-    ? database.get.filesById(ids)
-    : database.get.untrained(name);
+      ? database.get.filesById(ids)
+      : database.get.untrained(name);
 
   console.log(`${name}: queuing ${queue.length} file(s) for training`);
   await this.queue(queue, skip);
