@@ -66,7 +66,12 @@ module.exports = () => {
   });
 
   if (!CONFIG.auth) delete DEFAULTS.token;
-  if (!CONFIG.frigate) delete DEFAULTS.frigate;
+  if (!CONFIG.frigate) {
+    CONFIG.frigate = {
+      device_tracker_timeout: 30,
+    };
+    delete DEFAULTS.frigate;
+  }
   if (!CONFIG.mqtt) delete DEFAULTS.mqtt;
   CONFIG = _.isEmpty(CONFIG) ? DEFAULTS : _.mergeWith(DEFAULTS, CONFIG, customizer);
   if (CONFIG?.notify?.gotify)
