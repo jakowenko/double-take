@@ -16,9 +16,10 @@ router
     '/',
     jwt,
     validate({ body: { ids: Joi.array().items(Joi.number().integer()).required() } }),
+    limiter,
     controller.delete
   );
-router.patch('/reprocess/:matchId', jwt, controller.reprocess);
+router.patch('/reprocess/:matchId', jwt, limiter, controller.reprocess);
 router.get('/filters', jwt, controller.filters);
 
 module.exports = router;
