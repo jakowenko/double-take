@@ -1,14 +1,16 @@
 const fs = require('fs');
 const sizeOf = require('probe-image-size');
 const crypto = require('crypto');
+const objhasher = require('object-hash');
 const database = require('../util/db.util');
 const filesystem = require('../util/fs.util');
 const { tryParseJSON } = require('../util/validators.util');
 const { jwt } = require('../util/auth.util');
 const process = require('../util/process.util');
 const { AUTH, STORAGE, UI } = require('../constants')();
-const { BAD_REQUEST } = require('../constants/http-status');
+const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
+const Cache = require('../util/cache.util');
 
 const format = async (matches) => {
   const token = AUTH && matches.length ? jwt.sign({ route: 'storage' }) : null;
@@ -52,29 +54,52 @@ module.exports.post = async (req, res) => {
 
   const db = database.connect();
 
-  if (!filters || !Object.keys(filters).length) {
-    const [total] = db.prepare(`SELECT COUNT(*) count FROM match`).all();
-    const matches = db
-      .prepare(
-        `SELECT * FROM match
-          LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = match.filename
-          ORDER BY createdAt DESC
-          LIMIT ?,?`
-      )
-      .bind(limit * (page - 1), limit)
-      .all();
+  const filtersHash = objhasher(filters);
 
-    return res.send({ total: total.count, limit, matches: await format(matches) });
+  if (
+    !filters ||
+    !Object.keys(filters).length ||
+    (Cache.get('filters') &&
+      Cache.get('filters').detectors.length === filters.detectors.length &&
+      Cache.get('filters').names.length === filters.names.length &&
+      Cache.get('filters').matches.length === filters.matches.length &&
+      Cache.get('filters').cameras.length === filters.cameras.length &&
+      Cache.get('filters').types.length === filters.types.length &&
+      filters.confidence + filters.width + filters.height === 0)
+  ) {
+    // TOODO: Optimize by using a single query to get the count and the matches
+    const query = `
+        SELECT
+        m.*,
+        t.filename as isTrained
+      FROM match m
+      LEFT JOIN (SELECT filename FROM train GROUP BY filename) t ON t.filename = m.filename
+      ORDER BY m.createdAt DESC
+      LIMIT ? OFFSET ?`;
+    console.verbose('no filters, using single query');
+
+    const matches = db.prepare(query).all(limit, limit * (page - 1));
+
+    const total = Cache.get('filters')
+      ? Cache.get('filters').total
+      : database.get.tableRows('match');
+
+    return res.send({
+      total,
+      limit,
+      matches: await format(matches),
+    });
   }
 
   const confidenceQuery =
     filters.confidence === 0 ? `OR json_extract(value, '$.confidence') IS NULL` : '';
 
+  // architecture proёb :(
   db.prepare(
-    `CREATE TEMPORARY TABLE IF NOT EXISTS ${tmptable} AS SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value FROM (
+    `CREATE TEMPORARY TABLE IF NOT EXISTS ${tmptable} AS SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value, isTrained FROM (
     SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results, match.response
     FROM match, json_each( match.response)
-    ) t, json_each(t.results)
+    ) t, json_each(t.results) LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = t.filename
   WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
   AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
   AND json_extract(t.event, '$.camera') IN (${database.params(filters.cameras)})
@@ -94,27 +119,29 @@ module.exports.post = async (req, res) => {
     filters.height,
     filters.detectors
   );
-
   db.prepare(`SELECT * FROM ${tmptable}`)
     .all()
     .map((obj) => obj.id);
 
-  const [total] = db
-    .prepare(
-      `SELECT COUNT(*) count FROM ${tmptable}
-      WHERE id > ?
-      ORDER BY createdAt DESC`
-    )
-    .bind(sinceId || 0)
-    .all();
-
+  let total;
+  if (Cache.get(filtersHash)) {
+    total = Cache.get(filtersHash);
+  } else {
+    [total] = db
+      .prepare(
+        `SELECT COUNT(*) count FROM ${tmptable}
+    WHERE id > ?`
+      )
+      .bind(sinceId || 0)
+      .all();
+    Cache.set(filtersHash, total, 60);
+  }
   const matches = db
     .prepare(
       `SELECT * FROM ${tmptable}
-    LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = ${tmptable}.filename
-        WHERE id > ?
-        ORDER BY createdAt DESC
-        LIMIT ?,?`
+      WHERE id > ?
+      ORDER BY createdAt DESC
+      LIMIT ?,?`
     )
     .bind(sinceId || 0, limit * (page - 1), limit)
     .all();
@@ -128,16 +155,18 @@ module.exports.delete = async (req, res) => {
   const { ids } = req.body;
   if (ids.length) {
     const db = database.connect();
-    const files = db
-      .prepare(`SELECT filename FROM match WHERE id IN (${database.params(ids)})`)
-      .bind(ids)
-      .all();
+    // Optimize by using a transaction for batch deletion
+    db.transaction(() => {
+      const files = db
+        .prepare(`SELECT filename FROM match WHERE id IN (${database.params(ids)})`)
+        .all(ids);
 
-    db.prepare(`DELETE FROM match WHERE id IN (${database.params(ids)})`).run(ids);
+      db.prepare(`DELETE FROM match WHERE id IN (${database.params(ids)})`).run(ids);
 
-    files.forEach(({ filename }) => {
-      filesystem.delete(`${STORAGE.MEDIA.PATH}/matches/${filename}`);
-    });
+      files.forEach(({ filename }) => {
+        filesystem.delete(`${STORAGE.MEDIA.PATH}/matches/${filename}`);
+      });
+    })();
   }
 
   res.send({ success: true });
@@ -152,17 +181,23 @@ module.exports.reprocess = async (req, res) => {
 
   if (!match) return res.status(BAD_REQUEST).error('No match found');
 
-  const results = await process.start({
-    camera: tryParseJSON(match.event) ? tryParseJSON(match.event).camera : null,
-    filename: match.filename,
-    tmp: `${STORAGE.MEDIA.PATH}/matches/${match.filename}`,
-  });
-  database.update.match({
-    id: match.id,
-    event: JSON.parse(match.event),
-    response: results,
-  });
-  match = db
+  try {
+    const results = await process.start({
+      camera: tryParseJSON(match.event) ? tryParseJSON(match.event).camera : null,
+      filename: match.filename,
+      tmp: `${STORAGE.MEDIA.PATH}/matches/${match.filename}`,
+    });
+    database.update.match({
+      id: match.id,
+      event: JSON.parse(match.event),
+      response: results,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(SERVER_ERROR).json({ error: 'Processing failure' });
+  }
+
+  const matches = await db
     .prepare(
       `SELECT * FROM match
       LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = match.filename
@@ -170,12 +205,17 @@ module.exports.reprocess = async (req, res) => {
     )
     .bind(matchId)
     .all();
-  [match] = await format(match);
+  if (!matches.length) {
+    return res.status(NOT_FOUND).json({ error: 'No match found post-processing' });
+  }
+  [match] = await format(matches);
 
   res.send(match);
 };
 
 module.exports.filters = async (req, res) => {
+  if (Cache.get('filters')) return res.send(Cache.get('filters'));
+
   const db = database.connect();
 
   const [total] = db.prepare('SELECT COUNT(*) count FROM match').all();
@@ -183,9 +223,9 @@ module.exports.filters = async (req, res) => {
   const detectors = db
     .prepare(
       `SELECT json_extract(value, '$.detector') name
-        FROM match, json_each(match.response)
-        GROUP BY name
-        ORDER BY name ASC`
+      FROM match, json_each(match.response)
+      GROUP BY name
+    ORDER BY name ASC`
     )
     .all()
     .map((obj) => obj.name);
@@ -194,10 +234,10 @@ module.exports.filters = async (req, res) => {
     .prepare(
       `SELECT json_extract(value, '$.name') name FROM (
           SELECT json_extract(value, '$.results') results
-          FROM match, json_each(match.response)
+      FROM match, json_each(match.response)
           ) t, json_each(t.results)
-        GROUP BY name
-        ORDER BY name ASC`
+      GROUP BY name
+    ORDER BY name ASC`
     )
     .all()
     .map((obj) => obj.name);
@@ -206,10 +246,10 @@ module.exports.filters = async (req, res) => {
     .prepare(
       `SELECT IIF(json_extract(value, '$.match') == 1, 'match', 'miss') name FROM (
           SELECT json_extract(value, '$.results') results
-          FROM match, json_each(match.response)
+      FROM match, json_each(match.response)
           ) t, json_each(t.results)
-        GROUP BY name
-        ORDER BY name ASC`
+      GROUP BY name
+    ORDER BY name ASC`
     )
     .all()
     .map((obj) => obj.name);
@@ -219,7 +259,7 @@ module.exports.filters = async (req, res) => {
       `SELECT json_extract(event, '$.camera') name
       FROM match
       GROUP BY name
-      ORDER BY name ASC`
+    ORDER BY name ASC`
     )
     .all()
     .map((obj) => obj.name);
@@ -229,10 +269,12 @@ module.exports.filters = async (req, res) => {
       `SELECT json_extract(event, '$.type') name
       FROM match
       GROUP BY name
-      ORDER BY name ASC`
+    ORDER BY name ASC`
     )
     .all()
     .map((obj) => obj.name);
 
-  res.send({ total: total.count, detectors, names, matches, cameras, types });
+  const result = { total: total.count, detectors, names, matches, cameras, types };
+  Cache.set('filters', result, 120);
+  res.send(result);
 };

@@ -25,7 +25,8 @@ module.exports.init = () => {
         format: format.combine(
           format.colorize(),
           logFormat,
-          format.printf((info) => `${info.level}: ${info.message}`)
+          format.timestamp({ format: 'HH:mm:ss' }),
+          format.printf((info) => `[${info.timestamp}] ${info.level}: ${info.message}`)
         ),
       }),
       new transports.File({

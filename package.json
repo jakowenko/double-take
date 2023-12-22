@@ -1,6 +1,6 @@
 {
   "name": "double-take",
-  "version": "1.13.11.8",
+  "version": "1.13.11.9rc0",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
     "prepare": "husky install",
@@ -10,14 +10,14 @@
     "bump": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version",
     "lint:eslint": "eslint --fix",
     "lint:prettier": "prettier --write --loglevel warn",
-    "start": "cd ./frontend && npm run build && cd .. && NODE_ENV=\"development\" node api/server.js"
+    "start": "cd ./frontend && npm run build && cd .. && FRONTEND=frontend/dist/ node api/server.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/skrashevich/double-take.git"
   },
   "engines": {
-    "node": ">=18.0.0 <19.0.0"
+    "node": ">=18.0.0"
   },
   "author": "Sergei Krashevich",
   "license": "MIT",

@@ -106,17 +106,17 @@ jobs:
         GOARCH="amd64" CGO_ENABLED=0 go build -ldflags "-s -w" -trimpath -o double-take-amd64
         
     - name: Upload Artifacts armv7
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: double-take-armv7
         path: .build/bundle/double-take-armv7
     - name: Upload Artifacts arm64
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: double-take-arm64
         path: .build/bundle/double-take-arm64
     - name: Upload Artifacts amd64
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: double-take-amd64
         path: .build/bundle/double-take-amd64

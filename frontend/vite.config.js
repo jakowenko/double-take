@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import commonjsExternals from 'vite-plugin-commonjs-externals';
 // import svgLoader from 'vite-svg-loader'
+import EnvironmentPlugin from 'vite-plugin-environment';
 import { webpackStats } from 'rollup-plugin-webpack-stats';
 
 // https://vitejs.dev/config/
@@ -11,8 +12,9 @@ const path = require('path');
 const externals = ['path', /^src(\/.+)?$/];
 
 export default defineConfig(({ command }) => ({
-        plugins: [
-            vue(),
+  plugins: [
+    vue(),
+    EnvironmentPlugin({ DOUBLETAKE_HOST: null, DOUBLETAKE_PORT: 3000 }),
     // svgLoader(),
     commonjsExternals({
       externals,

@@ -10,7 +10,8 @@ const config = require('./src/constants/config');
 const shutdown = require('./src/util/shutdown.util');
 const heartbeat = require('./src/util/heartbeat.util');
 const validate = require('./src/schemas/validate');
-const opencv = require('./src/util/opencv');
+
+const opencv = typeof Bun === 'undefined' ? require('./src/util/opencv') : null;
 
 module.exports.start = async () => {
   config.setup();
@@ -21,7 +22,7 @@ module.exports.start = async () => {
   await database.init();
   const server = http.Server(require('./src/app')).listen(SERVER.PORT, async () => {
     console.verbose(`api listening on :${SERVER.PORT}`);
-    if (opencv.shouldLoad()) await opencv.load();
+    if (opencv && opencv.shouldLoad()) await opencv.load();
   });
   mqtt.connect();
   storage.purge();

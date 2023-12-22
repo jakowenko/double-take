@@ -2,6 +2,7 @@ const fs = require('fs');
 const axios = require('axios');
 const sizeOf = require('probe-image-size');
 const { createCanvas, loadImage, registerFont } = require('canvas');
+const sanitize = require('sanitize-filename-truncate');
 const { jwt } = require('../util/auth.util');
 const filesystem = require('../util/fs.util');
 const database = require('../util/db.util');
@@ -13,8 +14,14 @@ const { QUALITY, WIDTH } = require('../constants')().UI.THUMBNAILS;
 
 module.exports.matches = async (req, res) => {
   const { box: showBox } = req.query;
-  const { filename } = req.params;
+  let { filename } = req.params;
+  filename = sanitize(filename);
+
   const source = `${PATH}/matches/${filename}`;
+
+  if (!filename) {
+    return res.status(BAD_REQUEST).error(`Invalid filename provided`);
+  }
 
   if (!fs.existsSync(source)) {
     return res.status(BAD_REQUEST).error(`${source} does not exist`);
@@ -87,6 +94,10 @@ module.exports.matches = async (req, res) => {
       });
     });
 
+    const lastModified = filesystem.getLastModified(source);
+    res.set('Cache-Control', 'public, max-age=604800'); // 1 week
+    res.set('Last-Modified', lastModified);
+
     const buffer = canvas.toBuffer('image/jpeg');
     res.set('Content-Type', 'image/jpeg');
     return res.end(buffer);
@@ -108,6 +119,9 @@ module.exports.matches = async (req, res) => {
     buffer = fs.readFileSync(source);
   }
   res.set('Content-Type', 'image/jpeg');
+  const lastModified = filesystem.getLastModified(source);
+  res.set('Cache-Control', 'public, max-age=604800'); // 1 week
+  res.set('Last-Modified', lastModified);
   return res.end(buffer);
 };
 
@@ -199,7 +213,7 @@ module.exports.latest = async (req, res) => {
 
   const request = await axios({
     method: 'get',
-    url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/storage/matches/${originalFilename}?box=true`,
+    url: `http://${SERVER.HOST}:${SERVER.PORT}${UI.PATH}/api/storage/matches/${originalFilename}?box=true`,
     headers: AUTH ? { authorization: jwt.sign({ route: 'storage' }) } : null,
     responseType: 'arraybuffer',
   });

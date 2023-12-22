@@ -7,7 +7,7 @@ const database = require('./db.util');
 const { parse, digest } = require('./auth.util');
 const mask = require('./mask-image.util');
 const sleep = require('./sleep.util');
-const opencv = require('./opencv');
+const opencv = typeof Bun === 'undefined' ? require('./opencv') : null;
 const { recognize, normalize } = require('./detectors/actions');
 const { SERVER, STORAGE, UI } = require('../constants')();
 const DETECTORS = require('../constants/config').detectors();
@@ -70,7 +70,7 @@ module.exports.polling = async (
             const base64 =
               (foundMatch && MATCH.BASE64 === 'box') || (totalFaces && UNKNOWN.BASE64 === 'box')
                 ? await this.stream(
-                    `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/storage/matches/${filename}?box=true`
+                    `http://${SERVER.HOST}:${SERVER.PORT}${UI.PATH}/api/storage/matches/${filename}?box=true`
                   )
                 : stream;
             results.forEach((result) => (result.base64 = base64.toString('base64')));
@@ -131,7 +131,6 @@ module.exports.save = async (event, results, filename, tmp) => {
   } catch (error) {
     error.message = `create match error: ${error.message}`;
     console.error(error);
-    return;
   }
 };
 
@@ -139,7 +138,7 @@ module.exports.start = async ({ camera, filename, tmp, attempts = 1, errors = {}
   const processed = [];
   const promises = [];
 
-  if (opencv.shouldLoad()) await opencv.load();
+  if (opencv && opencv.shouldLoad()) await opencv.load();
 
   for (const detector of DETECTORS) {
     if (!errors[detector]) errors[detector] = 0;
@@ -149,7 +148,7 @@ module.exports.start = async ({ camera, filename, tmp, attempts = 1, errors = {}
       (detectorConfig?.cameras || [camera]).includes(camera) || !detectorConfig?.cameras.length;
     const faceCountRequired = detectorConfig?.opencv_face_required;
 
-    if (cameraAllowed) {
+    if (cameraAllowed && opencv) {
       const faceCount = faceCountRequired ? await opencv.faceCount(tmp) : null;
       if ((faceCountRequired && faceCount > 0) || !faceCountRequired) {
         promises.push(this.process({ camera, detector, tmp, errors }));

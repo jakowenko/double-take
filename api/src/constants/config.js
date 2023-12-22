@@ -3,6 +3,7 @@ const yaml = require('js-yaml');
 const fs = require('fs');
 const _ = require('lodash');
 const traverse = require('traverse');
+// const { mkDirByPathSync } = require('../util/fs.util');
 const yamlTypes = require('../util/yaml-types.util');
 const { objectKeysToUpperCase } = require('../util/object.util');
 const { detectors: DETECTORS, notify: NOTIFY, ...DEFAULTS } = require('./defaults');
@@ -26,8 +27,12 @@ const loadYaml = (file) => {
 };
 
 const setup = (file, path, message) => {
-  if (!fs.existsSync(path)) fs.mkdirSync(path, { recursive: true });
-  if (!fs.existsSync(`${path}/${file}`)) fs.writeFileSync(`${path}/${file}`, message);
+  try {
+    if (!fs.existsSync(path)) fs.mkdirSync(path, { recursive: true });
+    if (!fs.existsSync(`${path}/${file}`)) fs.writeFileSync(`${path}/${file}`, message);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 module.exports = () => {
@@ -61,7 +66,12 @@ module.exports = () => {
   });
 
   if (!CONFIG.auth) delete DEFAULTS.token;
-  if (!CONFIG.frigate) delete DEFAULTS.frigate;
+  if (!CONFIG.frigate) {
+    CONFIG.frigate = {
+      device_tracker_timeout: 30,
+    };
+    delete DEFAULTS.frigate;
+  }
   if (!CONFIG.mqtt) delete DEFAULTS.mqtt;
   CONFIG = _.isEmpty(CONFIG) ? DEFAULTS : _.mergeWith(DEFAULTS, CONFIG, customizer);
   if (CONFIG?.notify?.gotify)

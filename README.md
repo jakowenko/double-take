@@ -1,4 +1,4 @@
-[![Double Take](https://badgen.net/github/release/skrashevich/double-take/stable)](https://github.com/skrashevich/double-take) [![Double Take](https://badgen.net/github/stars/skrashevich/double-take)](https://github.com/skrashevich/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/skrashevich/double-take)](https://hub.docker.com/r/skrashevich/double-take)
+[![Double Take](https://badgen.net/github/release/skrashevich/double-take/stable)](https://github.com/skrashevich/double-take) [![Double Take](https://badgen.net/github/stars/skrashevich/double-take)](https://github.com/skrashevich/double-take/stargazers) [![Docker Pulls](https://flat.badgen.net/docker/pulls/skrashevich/double-take)](https://hub.docker.com/r/skrashevich/double-take) [![CodeFactor](https://www.codefactor.io/repository/github/skrashevich/double-take/badge)](https://www.codefactor.io/repository/github/skrashevich/double-take)
 
 Community-owned resources:
 
@@ -331,8 +331,10 @@ mqtt:
   username:
   password:
   client_id:
+  protocol: mqtt # set to mqtts to enables TLS
+  port: -1 # default value, expands to 1883 for mqtt or 8883 for mqtts
 
-  tls:
+  tls: # don't forget to set protocol: mqtts if you need secure connection
     # cert chains in PEM format: /path/to/client.crt
     cert:
     # private keys in PEM format: /path/to/client.key
@@ -703,6 +705,7 @@ mqtt:
   host: localhost
   username: mqtt
   password: !secret mqtt_password
+  expire_after: 600 # timeout of home-assistant "recognised" state
 
 detectors:
   compreface:

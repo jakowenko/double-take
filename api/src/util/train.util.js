@@ -83,8 +83,8 @@ module.exports.add = async (name, opts = {}) => {
   const queue = files
     ? files.map((obj) => database.get.fileByFilename(obj.name, obj.filename)).filter((obj) => obj)
     : ids
-    ? database.get.filesById(ids)
-    : database.get.untrained(name);
+      ? database.get.filesById(ids)
+      : database.get.untrained(name);
 
   console.log(`${name}: queuing ${queue.length} file(s) for training`);
   await this.queue(queue, skip);
@@ -123,6 +123,12 @@ module.exports.remove = async (name, opts = {}) => {
     if (addIds.length) await this.add(name, { ids: addIds, skip: ['rekognition'] });
     return { success: true };
   }
+
+  db.prepare(
+    `UPDATE responses SET isTrained = 0 WHERE filename IN (SELECT filename FROM train WHERE name = ? AND detector IN (${database.params(
+      DETECTORS
+    )}));`
+  ).run(name, DETECTORS);
 
   db.prepare(
     `DELETE FROM train WHERE name = ? AND detector IN (${database.params(DETECTORS)})`
