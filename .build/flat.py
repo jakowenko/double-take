@@ -6,8 +6,6 @@ import sys
 
 input_json = json.load(sys.stdin)
 
-# TODO: Add your code here to process the input_json object
-
 
 # Function to flatten a nested JSON object
 def flatten_json(obj, parent_key=""):
