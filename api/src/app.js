@@ -1,9 +1,9 @@
 const express = require('express');
 const fs = require('fs');
 const cors = require('cors');
-const { UI } = require('./constants')();
-const ipfilter = require('express-ipfilter').IpFilter;
 const path = require('path');
+const ipfilter = require('express-ipfilter').IpFilter;
+const { UI } = require('./constants')();
 
 require('express-async-errors');
 
