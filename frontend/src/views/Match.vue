@@ -372,7 +372,6 @@ export default {
 
 .pagination {
   position: fixed;
-  left: 300px;
   top: 100px;
   z-index: 2;
   top: 0;
