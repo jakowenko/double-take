@@ -8,7 +8,7 @@ const { tryParseJSON } = require('../util/validators.util');
 const { jwt } = require('../util/auth.util');
 const process = require('../util/process.util');
 const { AUTH, STORAGE, UI } = require('../constants')();
-const { BAD_REQUEST } = require('../constants/http-status');
+const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require('../constants/http-status');
 const DETECTORS = require('../constants/config').detectors();
 const Cache = require('../util/cache.util');
 
@@ -57,15 +57,15 @@ module.exports.post = async (req, res) => {
   const filtersHash = objhasher(filters);
 
   if (
+    !filters ||
+    !Object.keys(filters).length ||
     (Cache.get('filters') &&
       Cache.get('filters').detectors.length === filters.detectors.length &&
       Cache.get('filters').names.length === filters.names.length &&
       Cache.get('filters').matches.length === filters.matches.length &&
       Cache.get('filters').cameras.length === filters.cameras.length &&
       Cache.get('filters').types.length === filters.types.length &&
-      filters.confidence + filters.width + filters.height === 0) ||
-    !filters ||
-    !Object.keys(filters).length
+      filters.confidence + filters.width + filters.height === 0)
   ) {
     // TOODO: Optimize by using a single query to get the count and the matches
     const query = `
@@ -181,17 +181,23 @@ module.exports.reprocess = async (req, res) => {
 
   if (!match) return res.status(BAD_REQUEST).error('No match found');
 
-  const results = await process.start({
-    camera: tryParseJSON(match.event) ? tryParseJSON(match.event).camera : null,
-    filename: match.filename,
-    tmp: `${STORAGE.MEDIA.PATH}/matches/${match.filename}`,
-  });
-  database.update.match({
-    id: match.id,
-    event: JSON.parse(match.event),
-    response: results,
-  });
-  match = db
+  try {
+    const results = await process.start({
+      camera: tryParseJSON(match.event) ? tryParseJSON(match.event).camera : null,
+      filename: match.filename,
+      tmp: `${STORAGE.MEDIA.PATH}/matches/${match.filename}`,
+    });
+    database.update.match({
+      id: match.id,
+      event: JSON.parse(match.event),
+      response: results,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(SERVER_ERROR).json({ error: 'Processing failure' });
+  }
+
+  const matches = await db
     .prepare(
       `SELECT * FROM match
       LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = match.filename
@@ -199,7 +205,10 @@ module.exports.reprocess = async (req, res) => {
     )
     .bind(matchId)
     .all();
-  [match] = await format(match);
+  if (!matches.length) {
+    return res.status(NOT_FOUND).json({ error: 'No match found post-processing' });
+  }
+  [match] = await format(matches);
 
   res.send(match);
 };
