@@ -1,7 +1,13 @@
 const Joi = require('joi');
+const { rateLimit } = require('express-rate-limit');
 const { auth, jwt } = require('../util/auth.util');
 const { UNAUTHORIZED } = require('../constants/http-status');
 const { AUTH } = require('../constants')();
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+});
 
 module.exports.jwt = async (req, res, next) => {
   try {
@@ -68,3 +74,4 @@ module.exports.validate = (schemas) => (req, res, next) => {
 };
 
 module.exports.Joi = Joi;
+module.exports.limiter = limiter;
