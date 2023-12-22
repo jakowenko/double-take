@@ -48,7 +48,7 @@
     "@vue/compiler-sfc": "3.3.12",
     "@vue/eslint-config-airbnb": "7.0.1",
     "@vue/eslint-config-prettier": "8.0.0",
-    "eslint": "8.55.0",
+    "eslint": "8.56.0",
     "eslint-plugin-vue": "9.19.2",
     "rollup-plugin-webpack-stats": "^0.2.2",
     "sass": "1.69.5",
