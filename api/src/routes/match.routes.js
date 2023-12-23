@@ -9,17 +9,17 @@ router
     '/',
     jwt,
     validate({ query: { page: Joi.number().integer().default(1).min(1) } }),
-    limiter,
+    // limiter,
     controller.post
   )
   .delete(
     '/',
     jwt,
     validate({ body: { ids: Joi.array().items(Joi.number().integer()).required() } }),
-    limiter,
+    // limiter,
     controller.delete
   );
-router.patch('/reprocess/:matchId', jwt, limiter, controller.reprocess);
+router.patch('/reprocess/:matchId', jwt, /* limiter, */ controller.reprocess);
 router.get('/filters', jwt, controller.filters);
 
 module.exports = router;
