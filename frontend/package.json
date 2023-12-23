@@ -24,7 +24,7 @@
   "dependencies": {
     "ace-builds": "1.32.2",
     "ace-code": "1.32.2",
-    "ace-linters": "0.13.3",
+    "ace-linters": "1.0.1",
     "axios": "0.27.2",
     "copy-to-clipboard": "3.3.3",
     "dgram": "1.0.1",
@@ -39,7 +39,7 @@
     "socket.io-client": "4.7.2",
     "v-lazy-image": "2.1.1",
     "v-pagination-3": "0.1.7",
-    "vue": "3.3.10",
+    "vue": "3.3.13",
     "vue-router": "4.2.5",
     "vue3-ace-editor": "2.2.4"
   },
