@@ -369,7 +369,7 @@ export default {
 
 .pagination {
   position: fixed;
-  left: 300px;
+  left: 50%;
   top: 100px;
   z-index: 2;
   transform: translateX(-50%);
