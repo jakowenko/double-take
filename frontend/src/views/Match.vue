@@ -374,7 +374,6 @@ export default {
   position: fixed;
   top: 100px;
   z-index: 2;
-  top: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
