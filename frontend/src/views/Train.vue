@@ -372,8 +372,6 @@ export default {
   left: 300px;
   top: 100px;
   z-index: 2;
-  top: 0;
-  left: 50%;
   transform: translateX(-50%);
   width: 100%;
   max-width: $max-width;

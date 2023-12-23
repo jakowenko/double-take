@@ -80,6 +80,10 @@ export default {
     @media only screen and (max-width: 576px) {
       font-size: 0.9rem;
     }
+    border: none;
+    outline: none;
+    font-family: inherit;
+    cursor: pointer;
   }
   li.active > button {
     background: var(--surface-d);
@@ -91,12 +95,7 @@ export default {
       cursor: not-allowed;
     }
   }
-  li > button {
-    border: none;
-    outline: none;
-    font-family: inherit;
-    cursor: pointer;
-  }
+
   li.VuePagination__pagination-item-prev-page,
   li.VuePagination__pagination-item-prev-page-chunk,
   li.VuePagination__pagination-item-next-page,
