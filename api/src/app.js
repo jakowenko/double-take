@@ -43,4 +43,8 @@ app.use(UI.PATH, (req, res) => {
   );
 });
 
+require('express-debug')(app, {
+  extra_panels: ['other_requests', 'nav'],
+});
+
 module.exports = app;

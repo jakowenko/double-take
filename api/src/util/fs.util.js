@@ -105,6 +105,9 @@ module.exports.copy = (source, destination) => {
   });
 };
 
+// module.exports.existsSync = (...args) => fs.existsSync(args);
+// module.exports.rmSync = (...args) => fs.rmSync(args);
+
 module.exports.delete = (destination) => {
   try {
     if (fs.existsSync(destination)) {

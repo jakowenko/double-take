@@ -10,17 +10,26 @@ const { AISERVER } = DETECTORS || {};
 const recognize = async ({ key }) => {
   const { URL } = AISERVER;
   const formData = new FormData();
-  formData.append('image', fs.createReadStream(key));
+  try {
+    formData.append('image', fs.createReadStream(key));
+  } catch (error) {
+    throw new Error(`An error occurred while reading the file: ${error.message}`);
+  }
   const reqconfig = {
     method: 'post',
     timeout: AISERVER.TIMEOUT * 1000,
-    headers: formData.getHeaders(),
+    headers: { ...formData.getHeaders() },
     url: `${URL}/v1/vision/face/recognize`,
     data: formData,
-    maxContentLength: 100000000,
-    maxBodyLength: 1000000000,
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
   };
-  return axios(reqconfig);
+  try {
+    return await axios(reqconfig);
+  } catch (error) {
+    console.error('Recognition request failed:', error);
+    throw error;
+  }
 };
 
 const train = ({ name, key }) => {
@@ -32,11 +41,15 @@ const train = ({ name, key }) => {
   return axios({
     method: 'post',
     timeout: AISERVER.TIMEOUT * 1000,
-    headers: formData.getHeaders(),
+    headers: { ...formData.getHeaders() },
     url: `${URL}/v1/vision/face/register`,
     data: formData,
-    maxContentLength: 100000000,
-    maxBodyLength: 1000000000,
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
+  }).catch((error) => {
+    // Handle network errors or other axios-related issues
+    console.error('Training failed:', error);
+    throw error;
   });
 };
 
@@ -49,37 +62,44 @@ const remove = ({ name }) => {
     method: 'post',
     timeout: AISERVER.TIMEOUT * 1000,
     url: `${URL}/v1/vision/face/delete`,
-    headers: {
-      ...formData.getHeaders(),
-    },
+    headers: formData.getHeaders(),
     data: formData,
+  }).catch((error) => {
+    console.error('Error during removal:', error);
+    throw error; // Re-throw the error after logging or perform error-specific actions
   });
 };
 
 const normalize = ({ camera, data }) => {
-  if (!data.success) {
+  if (!data || !data.success) {
     // compare with CoderProjectAI sources
     // https://github.com/codeproject/CodeProject.AI-Server/blob/main/src/modules/FaceProcessing/intelligencelayer/face.py#L528
-    if (data.code === 500 && data.error === 'No face found in image') {
+    if (data?.code === 500 && data?.error === 'No face found in image') {
       console.log('ai.server found no face in image');
       return [];
     }
-    console.warn('unexpected ai.server data');
+    console.warn('unexpected ai.server data', data);
     return [];
   }
-  const { MATCH, UNKNOWN } = config.detect(camera);
-  if (!data.predictions) {
-    console.warn('unexpected ai.server predictions data');
+
+  // Ensure config.detect(camera) returns a valid object with MATCH and UNKNOWN properties
+  const detectionConfig = config.detect(camera) || {};
+  const { MATCH, UNKNOWN } = detectionConfig;
+  if (!Array.isArray(data.predictions)) {
+    console.warn('unexpected ai.server predictions data', data.predictions);
     return [];
   }
-  const normalized = data.predictions.flatMap((obj) => {
+  const normalized = data.predictions.reduce((acc, obj) => {
+    if (!obj) return acc; // skip if obj is null or undefined
+
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
-    obj.userid = obj.userid ? obj.userid : obj.plate ? obj.plate : 'unknown';
+    const userid = obj.userid || obj.plate || 'unknown';
+
     const output = {
-      name: confidence >= UNKNOWN.CONFIDENCE ? obj.userid.toLowerCase() : 'unknown',
+      name: confidence >= UNKNOWN.CONFIDENCE ? userid.toLowerCase() : 'unknown',
       confidence,
       match:
-        obj.userid !== 'unknown' &&
+        userid !== 'unknown' &&
         confidence >= MATCH.CONFIDENCE &&
         (obj.x_max - obj.x_min) * (obj.y_max - obj.y_min) >= MATCH.MIN_AREA,
       box: {
@@ -89,10 +109,13 @@ const normalize = ({ camera, data }) => {
         height: obj.y_max - obj.y_min,
       },
     };
-    const checks = actions.checks({ MATCH, UNKNOWN, ...output });
+    const checks = actions.checks({ ...detectionConfig, ...output });
     if (checks.length) output.checks = checks;
-    return checks !== false ? output : [];
-  });
+    if (checks !== false) acc.push(output);
+
+    return acc;
+  }, []);
+
   return normalized;
 };
 module.exports = { recognize, train, remove, normalize };
