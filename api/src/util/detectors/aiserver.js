@@ -7,10 +7,10 @@ const config = require('../../constants/config');
 
 const { AISERVER } = DETECTORS || {};
 
-const recognize = async ({ key }) => {
-  const { URL } = AISERVER;
+const recognize = async ({ key, test }) => {
+  const { URL, DET_PROB_THRESHOLD } = AISERVER;
   const formData = new FormData();
-  formData.append('min_confidence', '0.4'); // thnx @avbor https://github.com/codeproject/CodeProject.AI-Server/blame/main/src/modules/FaceProcessing/intelligencelayer/face.py#L292
+  formData.append('min_confidence', test ? 0.4 : DET_PROB_THRESHOLD); // thnx @avbor https://github.com/codeproject/CodeProject.AI-Server/blame/main/src/modules/FaceProcessing/intelligencelayer/face.py#L292
   try {
     formData.append('image', fs.createReadStream(key));
   } catch (error) {

@@ -565,6 +565,9 @@ detectors:
     url:
     # number of seconds before the request times out and is aborted
     timeout: 15
+    # minimum required confidence that a recognized face is actually a face
+    # value is between 0.0 and 1.0
+    det_prob_threshold: 0.4
     # require opencv to find a face before processing with detector
     opencv_face_required: false
     # only process images from specific cameras, if omitted then all cameras will be processed

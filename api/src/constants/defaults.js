@@ -60,6 +60,7 @@ module.exports = {
       opencv_face_required: false,
     },
     aiserver: {
+      det_prob_threshold: 0.4,
       timeout: 15,
       opencv_face_required: false,
     },
