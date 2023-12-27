@@ -10,6 +10,7 @@ const { AISERVER } = DETECTORS || {};
 const recognize = async ({ key }) => {
   const { URL } = AISERVER;
   const formData = new FormData();
+  formData.append('min_confidence', '0.4'); // thnx @avbor https://github.com/codeproject/CodeProject.AI-Server/blame/main/src/modules/FaceProcessing/intelligencelayer/face.py#L292
   try {
     formData.append('image', fs.createReadStream(key));
   } catch (error) {
