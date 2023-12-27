@@ -4,7 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const ipfilter = require('express-ipfilter').IpFilter;
 const { UI } = require('./constants')();
-
+require('axios-debug-log');
 require('express-async-errors');
 
 const app = express();
