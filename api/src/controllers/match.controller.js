@@ -65,7 +65,9 @@ module.exports.post = async (req, res) => {
       Cache.get('filters').matches.length === filters.matches.length &&
       Cache.get('filters').cameras.length === filters.cameras.length &&
       Cache.get('filters').types.length === filters.types.length &&
-      filters.confidence + filters.width + filters.height === 0)
+      filters.confidence + filters.width + filters.height === 0 &&
+      Cache.get('filters').gender &&
+      Cache.get('filters').gender?.value === filters.gender?.value)
   ) {
     // TOODO: Optimize by using a single query to get the count and the matches
     const query = `
@@ -107,6 +109,7 @@ module.exports.post = async (req, res) => {
   AND (json_extract(value, '$.confidence') >= ? ${confidenceQuery})
   AND json_extract(value, '$.box.width') >= ?
   AND json_extract(value, '$.box.height') >= ?
+  AND json_extract(value, '$.gender.value') == ?
   AND detector IN (${database.params(filters.detectors)})
         GROUP BY t.id`
   ).run(
@@ -117,6 +120,7 @@ module.exports.post = async (req, res) => {
     filters.confidence,
     filters.width,
     filters.height,
+    filters.gender,
     filters.detectors
   );
   db.prepare(`SELECT * FROM ${tmptable}`)
@@ -274,7 +278,9 @@ module.exports.filters = async (req, res) => {
     .all()
     .map((obj) => obj.name);
 
-  const result = { total: total.count, detectors, names, matches, cameras, types };
+  const genders = ['male', 'female'];
+
+  const result = { total: total.count, detectors, names, matches, cameras, types, genders };
   Cache.set('filters', result, 120);
   res.send(result);
 };
