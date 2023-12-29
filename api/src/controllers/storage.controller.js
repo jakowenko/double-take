@@ -68,16 +68,32 @@ module.exports.matches = async (req, res) => {
         const text = `${name} - ${confidence}%`;
         const textWidth = ctx.measureText(text).width + textPadding;
 
-        let fillStyle = '#78cc86';
-        if (detector === 'compreface') fillStyle = '#095fd7';
-        if (detector === 'deepstack') fillStyle = '#d66b11';
-        if (detector === 'aiserver') fillStyle = '#f9fc97';
-        if (detector === 'facebox') fillStyle = '#5f39a4';
+        let fillStyle = '#78cc86'; // default color
+        let textColor = '#000'; // default text color for contrast
+
+        if (detector === 'compreface') {
+          fillStyle = '#095fd7';
+          textColor = '#fff'; // White text for contrast against dark blue
+        }
+        if (detector === 'deepstack') {
+          fillStyle = '#d66b11';
+          textColor = '#fff'; // White text for contrast against dark orange
+        }
+        if (detector === 'aiserver') {
+          fillStyle = '#f9fc97';
+          textColor = '#000'; // Black text for contrast against light yellow
+        }
+        if (detector === 'facebox') {
+          fillStyle = '#5f39a4';
+          textColor = '#fff'; // White text for contrast against dark purple
+        }
 
         ctx.fillStyle = fillStyle;
         if (confidence > 0) {
           ctx.fillRect(box.left - lineWidth / 2, box.top - textHeight, textWidth, textHeight);
-          ctx.fillStyle = '#fff';
+
+          ctx.fillStyle = textColor;
+
           ctx.fillText(
             text,
             box.left + textPadding / 2 - lineWidth / 2,
