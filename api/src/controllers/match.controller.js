@@ -119,7 +119,7 @@ module.exports.post = async (req, res) => {
     filters.confidence,
     filters.width,
     filters.height,
-   // filters.genders,
+    // filters.genders,
     filters.detectors
   );
   db.prepare(`SELECT * FROM ${tmptable}`)
@@ -157,7 +157,7 @@ module.exports.post = async (req, res) => {
 module.exports.delete = async (req, res) => {
   const { ids } = req.body;
   if (ids.length) {
-        // Optimize by using a transaction for batch deletion
+    // Optimize by using a transaction for batch deletion
     db.transaction(() => {
       const files = db
         .prepare(`SELECT filename FROM match WHERE id IN (${database.params(ids)})`)
@@ -178,7 +178,7 @@ module.exports.reprocess = async (req, res) => {
   const { matchId } = req.params;
   if (!DETECTORS.length) return res.status(BAD_REQUEST).error('no detectors configured');
 
-    let [match] = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
+  let [match] = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
 
   if (!match) return res.status(BAD_REQUEST).error('No match found');
 
