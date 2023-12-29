@@ -12,6 +12,7 @@ const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require('../constants/http-stat
 const DETECTORS = require('../constants/config').detectors();
 const Cache = require('../util/cache.util');
 
+const db = database.connect();
 const format = async (matches) => {
   const token = AUTH && matches.length ? jwt.sign({ route: 'storage' }) : null;
   matches = await Promise.all(
@@ -51,8 +52,6 @@ module.exports.post = async (req, res) => {
   const { page } = req.query;
   const { filters } = req.body;
   const tmptable = crypto.createHash('md5').digest('hex').toString();
-
-  const db = database.connect();
 
   const filtersHash = objhasher(filters);
 
@@ -98,8 +97,8 @@ module.exports.post = async (req, res) => {
 
   // architecture proёb :(
   db.prepare(
-    `CREATE TEMPORARY TABLE IF NOT EXISTS ${tmptable} AS SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value, isTrained FROM (
-    SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results, match.response
+    `CREATE TEMPORARY TABLE IF NOT EXISTS ${tmptable} AS SELECT t.id, t.createdAt, t.filename, t.event, response, detector, gender, value, isTrained FROM (
+    SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results, json_extract(value, '$.gender.value') gender, match.response
     FROM match, json_each( match.response)
     ) t, json_each(t.results) LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = t.filename
   WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
@@ -109,7 +108,7 @@ module.exports.post = async (req, res) => {
   AND (json_extract(value, '$.confidence') >= ? ${confidenceQuery})
   AND json_extract(value, '$.box.width') >= ?
   AND json_extract(value, '$.box.height') >= ?
-  AND json_extract(value, '$.gender.value') == ?
+  AND gender IN (${database.params(filters.genders)})
   AND detector IN (${database.params(filters.detectors)})
         GROUP BY t.id`
   ).run(
@@ -158,7 +157,6 @@ module.exports.post = async (req, res) => {
 module.exports.delete = async (req, res) => {
   const { ids } = req.body;
   if (ids.length) {
-    const db = database.connect();
     // Optimize by using a transaction for batch deletion
     db.transaction(() => {
       const files = db
@@ -180,7 +178,6 @@ module.exports.reprocess = async (req, res) => {
   const { matchId } = req.params;
   if (!DETECTORS.length) return res.status(BAD_REQUEST).error('no detectors configured');
 
-  const db = database.connect();
   let [match] = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
 
   if (!match) return res.status(BAD_REQUEST).error('No match found');
@@ -218,69 +215,42 @@ module.exports.reprocess = async (req, res) => {
 };
 
 module.exports.filters = async (req, res) => {
-  if (Cache.get('filters')) return res.send(Cache.get('filters'));
+  const cacheKey = 'filters';
+  const cachedFilters = Cache.get(cacheKey);
+  if (cachedFilters) {
+    return res.send(cachedFilters);
+  }
 
-  const db = database.connect();
+  try {
+    const [total] = db.prepare('SELECT COUNT(*) count FROM match').all();
 
-  const [total] = db.prepare('SELECT COUNT(*) count FROM match').all();
+    // A helper function to eliminate repetitive code
+    const extractUniqueJsonField = (field, orderBy = 'ASC') => {
+      return db
+        .prepare(
+          `SELECT DISTINCT json_extract(value, '$.${field}') name
+           FROM match, json_each(match.response)
+           ORDER BY name ${orderBy}`
+        )
+        .all()
+        .filter((obj) => obj.name !== null)
+        .map((obj) => obj.name);
+    };
 
-  const detectors = db
-    .prepare(
-      `SELECT json_extract(value, '$.detector') name
-      FROM match, json_each(match.response)
-      GROUP BY name
-    ORDER BY name ASC`
-    )
-    .all()
-    .map((obj) => obj.name);
+    const detectors = extractUniqueJsonField('detector');
+    const names = extractUniqueJsonField('name');
+    const matches = extractUniqueJsonField(
+      "(CASE WHEN json_extract(value, '$.match') THEN 'match' ELSE 'miss' END)",
+      'DESC'
+    ); // Assuming you want to differentiate between 'match' and 'miss'
+    const cameras = extractUniqueJsonField('camera', 'event');
+    const types = extractUniqueJsonField('type', 'event');
+    const genders = ['male', 'female'];
 
-  const names = db
-    .prepare(
-      `SELECT json_extract(value, '$.name') name FROM (
-          SELECT json_extract(value, '$.results') results
-      FROM match, json_each(match.response)
-          ) t, json_each(t.results)
-      GROUP BY name
-    ORDER BY name ASC`
-    )
-    .all()
-    .map((obj) => obj.name);
-
-  const matches = db
-    .prepare(
-      `SELECT IIF(json_extract(value, '$.match') == 1, 'match', 'miss') name FROM (
-          SELECT json_extract(value, '$.results') results
-      FROM match, json_each(match.response)
-          ) t, json_each(t.results)
-      GROUP BY name
-    ORDER BY name ASC`
-    )
-    .all()
-    .map((obj) => obj.name);
-
-  const cameras = db
-    .prepare(
-      `SELECT json_extract(event, '$.camera') name
-      FROM match
-      GROUP BY name
-    ORDER BY name ASC`
-    )
-    .all()
-    .map((obj) => obj.name);
-
-  const types = db
-    .prepare(
-      `SELECT json_extract(event, '$.type') name
-      FROM match
-      GROUP BY name
-    ORDER BY name ASC`
-    )
-    .all()
-    .map((obj) => obj.name);
-
-  const genders = ['male', 'female'];
-
-  const result = { total: total.count, detectors, names, matches, cameras, types, genders };
-  Cache.set('filters', result, 120);
-  res.send(result);
+    const result = { total: total.count, detectors, names, matches, cameras, types, genders };
+    Cache.set(cacheKey, result, 120);
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ error: 'An error occurred while fetching filters.' });
+  }
 };
