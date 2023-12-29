@@ -62,6 +62,7 @@ function migrations() {
     json_extract(j.value, '$.box.left') AS box_left,
     json_extract(j.value, '$.box.width') AS box_width,
     json_extract(j.value, '$.box.height') AS box_height,
+    json_extract(j.value, '$.gender.value') AS gender,
     CASE 
         WHEN train.filename IS NOT NULL THEN 1 
         ELSE 0 
@@ -116,6 +117,8 @@ GROUP BY t.id;`
       db.prepare('DROP TABLE file_backup').run();
     })();
   }
+
+  addColumnIfNotExists('responses', 'gender', '');
 }
 
 async function init() {
@@ -181,6 +184,7 @@ async function init() {
         box_left   INTEGER,
         box_width  INTEGER,
         box_height INTEGER,
+        gender,
         isTrained,
         PRIMARY KEY (
             id AUTOINCREMENT
@@ -388,6 +392,19 @@ function updateMatch({ id, event, response }) {
   } catch (error) {
     error.message = `db updateMatch error: ${error.message}`;
     console.error(error);
+  }
+}
+
+function addColumnIfNotExists(tableName, columnName, columnType) {
+  const db = connect();
+  const tableInfo = db.prepare(`PRAGMA table_info(${tableName})`).all();
+  const columnExists = tableInfo.some(column => column.name === columnName);
+
+  if (!columnExists) {
+      db.prepare(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnType}`).run();
+      console.log(`Column ${columnName} added to ${tableName}`);
+  } else {
+      console.log(`Column ${columnName} already exists in ${tableName}`);
   }
 }
 
