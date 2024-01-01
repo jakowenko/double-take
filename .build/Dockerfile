@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.4
 
-FROM --platform=$BUILDPLATFORM oven/bun:1.0.15 AS frontend-builder
+FROM --platform=$BUILDPLATFORM oven/bun:1.0.20 AS frontend-builder
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /build
 RUN apt-get -y update && apt-get install -y --no-install-recommends curl bash unzip
@@ -44,26 +44,6 @@ RUN mkdir -p /opt/lib
 RUN cp /lib/*-linux-gnu*/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
 
 #COPY /.build/entrypoint.sh .
-
-FROM node:18 as debug
-ARG DEBIAN_FRONTEND=noninteractive
-# Prepare apt for buildkit cache
-RUN rm -f /etc/apt/apt.conf.d/docker-clean \
-  && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
-COPY --link --from=build /double-take /double-take
-COPY --from=build /opt/lib/* /lib/
-
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
-apt update
-apt install -y --no-install-recommends dnsutils inetutils-ping inetutils-traceroute net-tools curl jq
-EOT
-
-RUN npm install nodemon -g
-
-WORKDIR /double-take
-EXPOSE 3000
-COPY .build/entrypoint.sh ./
-ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
 
 FROM node:18-slim
 ARG DEBIAN_FRONTEND=noninteractive
