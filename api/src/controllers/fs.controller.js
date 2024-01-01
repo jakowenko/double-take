@@ -3,6 +3,7 @@ const filesystem = require('../util/fs.util');
 const database = require('../util/db.util');
 const { resync } = require('../util/db.util');
 const { STORAGE } = require('../constants')();
+const Cache = require('../util/cache.util');
 
 module.exports.folders = {
   list: async (req, res) => res.send(await filesystem.folders().train()),
@@ -11,6 +12,7 @@ module.exports.folders = {
     if (!fs.existsSync(`${STORAGE.MEDIA.PATH}/train/${name}`)) {
       fs.mkdirSync(`${STORAGE.MEDIA.PATH}/train/${name}`);
     }
+    Cache.del('filters');
     res.send({ success: true });
   },
   delete: async (req, res) => {
@@ -22,6 +24,7 @@ module.exports.folders = {
     const db = database.connect();
     db.prepare('DELETE FROM file WHERE name = ?').run(name);
     db.prepare('DELETE FROM train WHERE name = ?').run(name);
+    Cache.del('filters');
     res.send({ success: true });
   },
 };
