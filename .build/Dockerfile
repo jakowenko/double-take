@@ -3,7 +3,8 @@
 FROM --platform=$BUILDPLATFORM oven/bun:1.0.20 AS frontend-builder
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /build
-RUN apt-get -y update && apt-get install -y --no-install-recommends curl bash unzip
+RUN apt-get update -y && apt-get install -y --no-install-recommends curl bash unzip \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY /frontend/package.json .
 RUN bun install
@@ -19,51 +20,50 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN rm -f /etc/apt/apt.conf.d/docker-clean \
   && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
 
+# Cache and layer sharing for package installations through BuildKit
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
-apt -y update
-apt install -y curl bash jq unzip wget
-apt install -y gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev ccache
+apt-get update -y
+apt-get install -y --no-install-recommends curl bash jq unzip wget gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev ccache \
+rm -rf /var/lib/apt/lists/*
 EOT
 WORKDIR /double-take/api
 COPY /api/package.json .
 ENV CC="ccache gcc"
 ENV CXX="ccache g++"
-RUN npm config set fetch-retries 20 && npm install -g npm@^10.2.4 && npm install
+RUN npm config set fetch-retries 20 && npm install -g npm@latest && npm ci --prefer-offline
 
-WORKDIR /double-take/api
 COPY /api/server.js .
 COPY /api/src ./src
 
-WORKDIR /
-RUN mkdir /.storage && ln -s /.storage /double-take/.storage
+RUN ln -s /.storage /double-take/.storage -p
 
 WORKDIR /double-take
+# Copy the compiled frontend assets using the --link flag to avoid duplicate data
 COPY --link --from=frontend-builder /build/dist ./frontend
-RUN npm install nodemon -g
+RUN npm install nodemon -g && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /opt/lib
 RUN cp /lib/*-linux-gnu*/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
 
-#COPY /.build/entrypoint.sh .
-
 FROM node:18-slim
 ARG DEBIAN_FRONTEND=noninteractive
-# Prepare apt for buildkit cache
-RUN rm -f /etc/apt/apt.conf.d/docker-clean \
-  && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
-apt update
-apt install -y --no-install-recommends jq libcairo2 libpangocairo-1.0-0 'libjpeg*turbo' libgif7 librsvg2-2
-EOT
+# Prepare apt with caching enabled
+RUN echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
+# Install runtime dependencies with cache mounts and clear the apt cache after install
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked apt-get update -y \
+    && apt-get install -y --no-install-recommends jq libcairo2 libpangocairo-1.0-0 'libjpeg*turbo' libgif7 librsvg2-2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copying from build stage directly rather than copying the libraries one by one
 COPY --link --from=build /double-take /double-take
-COPY --from=build /opt/lib/* /lib/
+# This step is already performed in the build stage
+# RUN npm install -g nodemon
 
-RUN mkdir /.storage && ln -s /.storage /double-take/.storage
-
-RUN npm install nodemon -g
+# Create symbolic links
+RUN ln -s /.storage /double-take/.storage -p
 
 WORKDIR /double-take
 COPY .build/entrypoint.sh ./
 EXPOSE 3000
-VOLUME [ "/.storage" ]
+VOLUME ["/.storage"]
 ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
