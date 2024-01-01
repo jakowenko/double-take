@@ -14,5 +14,5 @@ module.exports = {
   del: (key) => {
     console.verbose(`Cache del: ${key}`);
     return DTCache.del(key);
-  }
+  },
 };
