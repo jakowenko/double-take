@@ -1,9 +1,10 @@
 const express = require('express');
 const fs = require('fs');
 const cors = require('cors');
-const path = require('path');
 const ipfilter = require('express-ipfilter').IpFilter;
 const { UI } = require('./constants')();
+const { getFrontendPath } = require('./util/helpers.util');
+
 require('axios-debug-log');
 require('express-async-errors');
 
@@ -19,8 +20,8 @@ if (process.env.HA_ADDON === 'true' && process.env.IPFILTER === 'true') {
   app.use(ipfilter(ips, { mode: 'allow' }));
 }
 
-const frontendPath = process.env.FRONTEND || `${path.join(process.cwd(), 'frontend')}/`;
-
+const frontendPath = getFrontendPath();
+console.verbose(`Frontend path: ${frontendPath}`);
 app.use(
   UI.PATH,
   express.static(frontendPath, {
