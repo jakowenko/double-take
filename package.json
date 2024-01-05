@@ -10,7 +10,11 @@
     "bump": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version",
     "lint:eslint": "eslint --fix",
     "lint:prettier": "prettier --write --loglevel warn",
-    "start": "cd ./frontend && npm run build && cd .. && FRONTEND=frontend/dist/ node api/server.js"
+    "rebuild": "electron-rebuild -f -d -m ./api/",
+    "postinstall": "npx electron-builder install-app-deps",
+    "build": "rm -rf dist && cd api && npm install && cd ../frontend && npm install && npm run build && cd ../ && npx electron-builder build -mlw",
+    "start": "cd ./frontend && npm run build && cd .. && FRONTEND=frontend/dist/ node api/server.js",
+    "publish": "npx electron-builder -p always"
   },
   "repository": {
     "type": "git",
@@ -19,6 +23,7 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "main": "./main.js",
   "author": "Sergei Krashevich",
   "license": "MIT",
   "bugs": {
@@ -28,6 +33,7 @@
   "devDependencies": {
     "@playwright/test": "^1.40.1",
     "@types/node": "^18.18.0",
+    "electron": "^28.1.1",
     "eslint": "^8.34.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.5.0",
@@ -36,6 +42,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "^8.0.1",
     "jest": "^29.7.0",
+    "node-gyp": ">=10.0.1",
     "nodemon": "^2.0.16",
     "prettier": "^2.8.4"
   },
@@ -44,7 +51,46 @@
     "axios": "^1.2.1",
     "form-data": "^4.0.0"
   },
-  "testPathIgnorePatterns" : [
+  "testPathIgnorePatterns": [
     "*.spec.ts"
-  ]
+  ],
+  "build": {
+    "appId": "site.double-take.app",
+    "productName": "Double-Take",
+    "includeSubNodeModules": true,
+    "mac": {
+      "target": [{
+        "target": "dmg",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }]
+    },
+    "win": {
+      "target": [{
+        "target": "nsis",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }]
+    },
+    "linux": {
+      "target": [{
+        "target": "tar.gz",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }]
+    },
+    "publish": {
+      "provider": "s3",
+      "bucket": "double-take-artifacts",
+      "region": "eu",
+      "endpoint": "https://s3.svk.app:9000",
+      "path": "/desktop/"
+    }
+  }
 }

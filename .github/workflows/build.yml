@@ -120,3 +120,11 @@ jobs:
       with:
         name: double-take-amd64
         path: .build/bundle/double-take-amd64
+    - name: clean artifacts
+      run: rm -rf .build/bundle/double-take-*
+    - name: build electron
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: npm run build && npm run publish

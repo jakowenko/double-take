@@ -14,6 +14,8 @@ models
 config.yml
 package-lock.json
 
+dist/
+
 *.log
 *.pid
 *.db
@@ -25,3 +27,5 @@ package-lock.json
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+out/
