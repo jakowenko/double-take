@@ -26,18 +26,21 @@
   },
   "homepage": "https://github.com/skrashevich/double-take#readme",
   "devDependencies": {
-    "@playwright/test": "^1.40.0",
+    "@playwright/test": "^1.40.1",
     "@types/node": "^18.18.0",
     "eslint": "^8.34.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-jest": "^27.6.1",
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "^8.0.1",
+    "jest": "^29.7.0",
     "nodemon": "^2.0.16",
     "prettier": "^2.8.4"
   },
   "dependencies": {
+    "@appland/appmap-agent-js": "^14.2.0",
     "axios": "^1.2.1",
     "form-data": "^4.0.0"
   }

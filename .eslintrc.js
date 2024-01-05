@@ -2,9 +2,10 @@ module.exports = {
   root: true,
   env: {
     amd: true,
+    'jest/globals': true,
   },
-  extends: ['airbnb-base', 'plugin:prettier/recommended'],
-  plugins: ['prettier'],
+  extends: ['airbnb-base', 'plugin:prettier/recommended', 'plugin:jest/recommended', 'plugin:jest/style'],
+  plugins: ['prettier', 'jest'],
   rules: {
     'linebreak-style': 0,
     'no-console': 0,
@@ -24,5 +25,10 @@ module.exports = {
     'no-param-reassign': 0,
     'no-restricted-syntax': 0,
     'no-nested-ternary': 0,
+  },
+  settings: {
+    jest: {
+      version: require('./node_modules/eslint-plugin-jest/package.json').version(),
+    },
   },
 };

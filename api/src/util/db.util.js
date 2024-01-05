@@ -12,6 +12,9 @@ function connect() {
     connection = new Database(`${STORAGE.PATH}/database.db`, {
       verbose: LOGS.SQL ? console.verbose : null,
     });
+  if (LOGS.SQL) {
+    console.verbose(`Open database: ${STORAGE.PATH}/database.db`);
+  }
   connection.pragma('journal_mode = WAL');
   return connection;
 }
@@ -398,13 +401,13 @@ function updateMatch({ id, event, response }) {
 function addColumnIfNotExists(tableName, columnName, columnType) {
   const db = connect();
   const tableInfo = db.prepare(`PRAGMA table_info(${tableName})`).all();
-  const columnExists = tableInfo.some(column => column.name === columnName);
+  const columnExists = tableInfo.some((column) => column.name === columnName);
 
   if (!columnExists) {
-      db.prepare(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnType}`).run();
-      console.log(`Column ${columnName} added to ${tableName}`);
+    db.prepare(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnType}`).run();
+    console.log(`Column ${columnName} added to ${tableName}`);
   } else {
-      console.log(`Column ${columnName} already exists in ${tableName}`);
+    console.log(`Column ${columnName} already exists in ${tableName}`);
   }
 }
 
