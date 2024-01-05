@@ -1,7 +1,5 @@
-import { jest } from '@jest/globals';
-
 const path = require('path');
-const { getFrontendPath } = require('../api/src/util/helpers.util');
+const { getFrontendPath } = require('./util/helpers.util');
 
 // Properly mocking the join function
 jest.mock('path', () => {
