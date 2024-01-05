@@ -1,5 +1,5 @@
 const path = require('path');
-const { getFrontendPath } = require('./../api/src/util/helpers.util');
+const { getFrontendPath } = require('../api/src/util/helpers.util');
 
 // Mock 'process.cwd' since it's called in your function
 jest.mock('path', () => ({
@@ -35,7 +35,7 @@ describe('getFrontendPath', () => {
 
   test('should return default frontend path if no env or cli arg is provided', () => {
     const cwd = process.cwd();
-    const defaultPath = path.join(cwd, 'frontend') + '/';
+    const defaultPath = `${path.join(cwd, 'frontend')}/`;
     expect(getFrontendPath()).toBe(defaultPath);
   });
 });
