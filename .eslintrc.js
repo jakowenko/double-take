@@ -28,7 +28,7 @@ module.exports = {
   },
   settings: {
     jest: {
-      version: require('./node_modules/eslint-plugin-jest/package.json').version(),
+      version: 27,
     },
   },
 };
