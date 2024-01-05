@@ -1,4 +1,4 @@
-import {jest} from '@jest/globals'
+import { jest } from '@jest/globals';
 
 const path = require('path');
 const { getFrontendPath } = require('../api/src/util/helpers.util');
