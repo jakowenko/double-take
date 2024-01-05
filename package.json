@@ -43,5 +43,8 @@
     "@appland/appmap-agent-js": "^14.2.0",
     "axios": "^1.2.1",
     "form-data": "^4.0.0"
-  }
+  },
+  "testPathIgnorePatterns" : [
+    "*.spec.ts"
+  ]
 }

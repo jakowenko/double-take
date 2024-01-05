@@ -1,11 +1,14 @@
 const path = require('path');
 const { getFrontendPath } = require('../api/src/util/helpers.util');
 
-// Mock 'process.cwd' since it's called in your function
-jest.mock('path', () => ({
-  ...jest.requireActual('path'),
-  join: jest.fn(),
-}));
+// Properly mocking the join function
+jest.mock('path', () => {
+  const originalPath = jest.requireActual('path');
+  return {
+    ...originalPath,
+    join: jest.fn(() => 'mocked/path'),
+  };
+});
 
 describe('getFrontendPath', () => {
   const originalEnv = process.env;
