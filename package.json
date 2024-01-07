@@ -35,6 +35,7 @@
     "@types/node": "^18.18.0",
     "electron": "28.1.1",
     "electron-builder": "^24.9.1",
+    "electron-rebuild": ">=3.2.8",
     "eslint": "^8.34.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.5.0",
@@ -51,6 +52,11 @@
     "@appland/appmap-agent-js": "^14.2.0",
     "axios": "^1.2.1",
     "form-data": "^4.0.0"
+  },
+  "overrides": {
+    "posix-socket": {
+      "node-gyp": ">=10.0.1"
+    }
   },
   "testPathIgnorePatterns": [
     "*.spec.ts"
