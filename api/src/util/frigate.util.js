@@ -21,13 +21,16 @@ module.exports.subLabel = async (topic, id, best) => {
       `Confidences must be greater than 0 and smaller than 1, but now it's ${confidences}`
     );
   }
-  await axios({
-    method: 'post',
-    url: `${this.topicURL(topic)}/api/events/${id}/sub_label`,
-    data: { subLabel: names, subLabelScore: confidences },
-  }).catch((error) =>
-    console.error(`post sublabel to frigate for event ${id} error: ${error.message}`)
-  );
+  try {
+    // eslint-disable-next-line no-unused-vars
+    const response = await axios({
+      method: 'post',
+      url: `${FRIGATE.URL}/api/events/${id}/sub_label`,
+      data: { subLabel: names, subLabelScore: confidences },
+    });
+  } catch (error) {
+    console.error(`Post sublabel to frigate for event ${id} failed: ${error.message}`);
+  }
 };
 
 module.exports.checks = async ({
