@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -10,7 +10,7 @@ process.env.FRONTEND = path.join(app.getAppPath(), 'frontend', 'dist');
 
 fs.mkdirSync(process.env.CONFIG_PATH, { recursive: true });
 
-const server = require("./api/server");
+const server = require('./api/server');
 
 let mainWindow;
 
@@ -22,26 +22,26 @@ function createWindow() {
       nodeIntegration: true,
     },
   });
- 
-  mainWindow.loadURL("http://localhost:3000");
-  mainWindow.on("closed", function () {
+
+  mainWindow.loadURL('http://localhost:3000');
+  mainWindow.on('closed', function () {
     mainWindow = null;
   });
 }
- 
-app.on("ready", createWindow);
- 
-app.on("resize", function (e, x, y) {
+
+app.on('ready', createWindow);
+
+app.on('resize', function (e, x, y) {
   mainWindow.setSize(x, y);
 });
- 
-app.on("window-all-closed", function () {
-  if (process.platform !== "darwin") {
+
+app.on('window-all-closed', function () {
+  if (process.platform !== 'darwin') {
     app.quit();
   }
 });
- 
-app.on("activate", function () {
+
+app.on('activate', function () {
   if (mainWindow === null) {
     createWindow();
   }
