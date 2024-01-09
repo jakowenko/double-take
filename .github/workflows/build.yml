@@ -123,6 +123,7 @@ jobs:
     - name: clean artifacts
       run: rm -rf .build/bundle/double-take-*
     - name: build electron
+      if: false
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
