@@ -1,0 +1,7 @@
+name: double-take
+packages:
+  - path: api
+  - path: frontend
+  - path: tests
+language: javascript
+appmap_dir: tmp/appmap

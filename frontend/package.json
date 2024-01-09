@@ -51,7 +51,7 @@
     "eslint": "8.56.0",
     "eslint-plugin-vue": "9.19.2",
     "rollup-plugin-webpack-stats": "^0.2.2",
-    "sass": "1.69.6",
+    "sass": "1.69.7",
     "vite": "5.0.10",
     "vite-plugin-commonjs-externals": "0.1.4",
     "vite-plugin-environment": "^1.1.3",
