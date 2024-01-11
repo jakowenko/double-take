@@ -9,14 +9,31 @@ updates:
     directory: "/frontend" # Location of package manifests
     target-branch: "beta"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+    open-pull-requests-limit: 10
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/api" # Location of package manifests
     target-branch: "beta"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+    open-pull-requests-limit: 10
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/" # Location of package manifests
+    target-branch: "beta"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
   - package-ecosystem: "github-actions" # See documentation for possible values
     directory: "/" # Location of package manifests
     target-branch: "beta"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 10
+  # Enable version updates for Docker
+  - package-ecosystem: "docker"
+    # Look for a `Dockerfile` in the `root` directory
+    directory: "/.build/"
+    # Check for updates once a week
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
