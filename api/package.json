@@ -22,7 +22,7 @@
   "homepage": "https://github.com/skrashevich/double-take#readme",
   "dependencies": {
     "@aws-sdk/client-rekognition": "^3.489.0",
-    "@pepperdash-products/axios-digest-auth": "github:PepperDash-Products/axios-digest-auth",
+    "@koush/axios-digest-auth": "^0.8.7",
     "archiver": "^6.0.1",
     "axios": "^1.6.5",
     "axios-debug-log": "^1.0.0",
