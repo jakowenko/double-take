@@ -3,14 +3,14 @@
   "version": "1.13.11.9rc1",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
-    "prepare": "husky install",
     "frontend": "cd ./frontend && npm run serve",
     "frontend-build": "cd ./frontend && npm run build",
     "api": "exec node api/server.js || true",
     "bump": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version",
     "lint:eslint": "eslint --fix",
     "lint:prettier": "prettier --write --loglevel warn",
-    "build": "rm -rf dist && cd api && npm install && cd ../frontend && npm install && npm run build && cd ../ && npx electron-builder build -mlw",
+    "build": "rm -rf dist && cd api && npm install && cd ../frontend && npm install && npm run build && cd ..",
+    "build:bun": "rm -rf dist && cd api && bun install && cd ../frontend && bun install && bun run build && cd ..",
     "start": "cd ./frontend && npm run build && cd .. && FRONTEND=frontend/dist/ node api/server.js",
     "publish": "npx electron-builder -p always"
   },
@@ -31,71 +31,22 @@
   "devDependencies": {
     "@playwright/test": "^1.40.1",
     "@types/node": "^18.18.0",
-   
-    "eslint": "^8.34.0",
+    "eslint": "^8.56.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-jest": "^27.6.1",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "husky": "^8.0.1",
     "jest": "^29.7.0",
     "node-gyp": ">=10.0.1",
-    "nodemon": "^2.0.16",
-    "prettier": "^2.8.4"
+    "nodemon": "^3.0.2",
+    "prettier": "^3.1.1"
   },
   "dependencies": {
-    "@appland/appmap-agent-js": "^14.2.0",
-    "axios": "^1.2.1",
-    "form-data": "^4.0.0"
+    "@appland/appmap-agent-js": "^14.2.0"
   },
- 
   "testPathIgnorePatterns": [
     "*.spec.ts"
-  ],
-  "build": {
-    "appId": "site.double-take.app",
-    "productName": "Double-Take",
-    "includeSubNodeModules": true,
-    "mac": {
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ]
-    },
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ]
-    },
-    "linux": {
-      "target": [
-        {
-          "target": "tar.gz",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ]
-    },
-    "publish": {
-      "provider": "s3",
-      "bucket": "double-take-artifacts",
-      "region": "eu",
-      "endpoint": "https://s3.svk.app:9000",
-      "path": "/desktop/"
-    }
-  }
+  ]
 }

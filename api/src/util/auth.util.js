@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const yaml = require('js-yaml');
 const { v4: uuidv4 } = require('uuid');
-const AxiosDigestAuth = require('@mhoc/axios-digest-auth').default;
+const AxiosDigestAuth = require('@koush/axios-digest-auth').default;
 const { STORAGE } = require('../constants')();
 
 const DIGEST_AUTH = [];
