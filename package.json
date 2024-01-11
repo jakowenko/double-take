@@ -10,7 +10,8 @@
     "bump": "npm version $VERSION --no-git-tag-version --allow-same-version && cd ./api && npm version $VERSION --no-git-tag-version --allow-same-version && cd ../frontend && npm version $VERSION --no-git-tag-version --allow-same-version",
     "lint:eslint": "eslint --fix",
     "lint:prettier": "prettier --write --loglevel warn",
-    "build": "rm -rf dist && cd api && npm install && cd ../frontend && npm install && npm run build && cd ../ && npx electron-builder build -mlw",
+    "build": "rm -rf dist && cd api && npm install && cd ../frontend && npm install && npm run build && cd ..",
+    "build:bun": "rm -rf dist && cd api && bun install && cd ../frontend && bun install && bun run build && cd ..",
     "start": "cd ./frontend && npm run build && cd .. && FRONTEND=frontend/dist/ node api/server.js",
     "publish": "npx electron-builder -p always"
   },

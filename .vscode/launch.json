@@ -6,12 +6,14 @@
   "configurations": [
     {
       "type": "node",
+      "env": { "FRONTEND": "frontend/dist/" },
       "request": "launch",
       "name": "API",
       "skipFiles": [
         "<node_internals>/**"
       ],
       "program": "${workspaceFolder}/api/server.js",
+      "cwd": "${workspaceFolder}",
       "restart": true
     }
   ]
