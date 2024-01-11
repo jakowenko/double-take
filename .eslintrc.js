@@ -4,7 +4,7 @@ module.exports = {
     amd: true,
     'jest/globals': true,
   },
-  extends: ['airbnb-base', 'plugin:prettier/recommended', 'plugin:jest/recommended', 'plugin:jest/style'],
+  extends: ['airbnb-base', 'plugin:prettier/recommended', 'plugin:jest/recommended', 'plugin:jest/style', "plugin:node/recommended"],
   plugins: ['prettier', 'jest', 'vuejs-accessibility'],
   rules: {
     'linebreak-style': 0,
