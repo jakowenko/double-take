@@ -4,9 +4,9 @@ module.exports = {
     sourceType: 'module',
   },
   env: {
-    es2022: true
+    es2022: true,
   },
-  extends: ['plugin:vue/vue3-essential', '@vue/prettier', '@vue/airbnb'],
+  extends: ['plugin:vue/vue3-essential', '@vue/prettier', '@vue/airbnb', 'plugin:vuejs-accessibility/recommended'],
   rules: {
     // Only allow debugger in development
     'no-debugger': process.env.PRE_COMMIT ? 'error' : 'warn',
@@ -14,7 +14,7 @@ module.exports = {
     'no-console': process.env.PRE_COMMIT
       ? ['error', { allow: ['warn', 'error'] }]
       : ['warn', { allow: ['warn', 'error'] }],
-    "vue/multi-word-component-names" : "off",
+
     'max-len': 0,
     // Allow object properties to be reassigned.
     'no-param-reassign': ['error', { props: false }],
