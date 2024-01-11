@@ -12,7 +12,7 @@ models
 .env
 .env.*.local
 config.yml
-package-lock.json
+# package-lock.json
 
 dist/
 
@@ -29,3 +29,4 @@ dist/
 /playwright/.cache/
 
 out/
+*.cpuprofile
