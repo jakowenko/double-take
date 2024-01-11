@@ -3,7 +3,6 @@
   "version": "1.13.11.9rc1",
   "description": "Unified UI and API for processing and training images for facial recognition",
   "scripts": {
-    "prepare": "husky install",
     "frontend": "cd ./frontend && npm run serve",
     "frontend-build": "cd ./frontend && npm run build",
     "api": "exec node api/server.js || true",
