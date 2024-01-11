@@ -12,7 +12,7 @@ test('pages', async ({ page }) => {
   await expect(page.locator('pre')).toBeVisible();
 });
 test('right-menu', async ({ page }) => {
-  const { version } =  require('../package.json');
+  const { version } = require('../package.json');
   await page.goto('./');
   await page.getByText('Double Take').click();
   await expect(page.getByLabel(`v${version}`).locator('a')).toBeVisible();
