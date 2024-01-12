@@ -5,7 +5,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /build
 RUN apt-get -y update && apt-get install -y --no-install-recommends curl bash unzip
 
-COPY /frontend/package.json .
+COPY /frontend/package.json /frontend/package-lock.json ./
 RUN bun install
 COPY /frontend/src ./src
 COPY /frontend/public ./public
@@ -25,7 +25,7 @@ apt install -y curl bash jq unzip wget
 apt install -y gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev ccache
 EOT
 WORKDIR /double-take/api
-COPY /api/package.json .
+COPY /api/package.json /api/package-lock.json ./
 ENV CC="ccache gcc"
 ENV CXX="ccache g++"
 RUN npm config set fetch-retries 20 && npm install -g npm@^10.2.4 && npm install
