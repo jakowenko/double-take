@@ -113,8 +113,13 @@ module.exports.set = {
 
 module.exports.detectors = () => {
   const results = [];
-  if (CONFIG.detectors)
-    for (const [detector] of Object.entries(CONFIG.detectors)) results.push(detector);
+  if (CONFIG.detectors) {
+    for (const [detectorName, detectorOptions] of Object.entries(CONFIG.detectors)) {
+      if (detectorOptions.enabled) {
+        results.push(detectorName);
+      }
+    }
+  }
   return results;
 };
 

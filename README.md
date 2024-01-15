@@ -520,6 +520,8 @@ cameras:
 # detector settings (default: shown below)
 detectors:
   compreface:
+    # Enable this detector. The default is true (enabled) if the URL below is defined.
+    enabled: true
     url:
     # recognition api key
     key:
@@ -539,6 +541,8 @@ detectors:
     #   - garage
 
   rekognition:
+    # Enable this detector. The default is true (enabled) if the URL below is defined.
+    enabled: true
     aws_access_key_id: !secret aws_access_key_id
     aws_secret_access_key: !secret aws_secret_access_key
     aws_region:
@@ -551,6 +555,8 @@ detectors:
     #   - garage
 
   deepstack:
+    # Enable this detector. The default is true (enabled) if the URL below is defined.
+    enabled: true
     url:
     key:
     # number of seconds before the request times out and is aborted
@@ -563,6 +569,8 @@ detectors:
     #   - garage
 
   aiserver:
+    # Enable this detector. The default is true (enabled) if the URL below is defined.
+    enabled: true
     url:
     # number of seconds before the request times out and is aborted
     timeout: 15
@@ -577,6 +585,8 @@ detectors:
     #   - garage
 
   facebox:
+    # Enable this detector. The default is true (enabled) if the URL below is defined.
+    enabled: true
     url:
     # number of seconds before the request times out and is aborted
     timeout: 15

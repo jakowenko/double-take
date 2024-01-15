@@ -54,24 +54,29 @@ module.exports = {
   },
   detectors: {
     compreface: {
+      enabled: true,
       det_prob_threshold: 0.8,
       timeout: 15,
       opencv_face_required: false,
     },
     deepstack: {
+      enabled: true,
       timeout: 15,
       opencv_face_required: false,
     },
     aiserver: {
+      enabled: true,
       det_prob_threshold: 0.4,
       timeout: 15,
       opencv_face_required: false,
     },
     facebox: {
       timeout: 15,
+      enabled: true,
       opencv_face_required: false,
     },
     rekognition: {
+      enabled: true,
       collection_id: 'double-take',
       opencv_face_required: true,
     },
