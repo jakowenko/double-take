@@ -2,13 +2,13 @@ import { test, expect } from '@playwright/test';
 
 test('pages', async ({ page }) => {
   await page.goto('./');
-  await page.getByLabel('Matches').click();
+  await page.getByText('Matches').click();
   await expect(page.locator('.match-wrapper')).toBeVisible();
-  await page.getByLabel('Train').click();
+  await page.getByText('Train').click();
   await expect(page.locator('.train-wrapper')).toBeVisible();
-  await page.getByLabel('Config').click();
+  await page.getByText('Config').click();
   await expect(page.locator('.ace_content')).toBeVisible({ timeout: 15000 });
-  await page.getByLabel('Logs').click();
+  await page.getByText('Logs').click();
   await expect(page.locator('pre')).toBeVisible();
 });
 test('right-menu', async ({ page }) => {

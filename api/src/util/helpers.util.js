@@ -30,7 +30,7 @@ module.exports.oxfordComma = (array) =>
 module.exports.getFrontendPath = () => {
   const envPath = process.env.FRONTEND;
   const cliArgIndex = process.argv.findIndex((arg) => arg === '--frontend-path');
-  console.table(process.argv);
+  // console.table(process.argv);
   if (envPath) {
     return `${envPath}/`;
   }
