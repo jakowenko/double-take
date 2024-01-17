@@ -30,4 +30,12 @@ module.exports = {
     'no-nested-ternary': 0,
     'global-require': 0,
   },
+  overrides: [
+    {
+      files: ['api/**/*.test.js'],
+      env: {
+        jest: true,
+      },
+    },
+  ],
 };

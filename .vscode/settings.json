@@ -1,5 +1,9 @@
 {
   "eslint.workingDirectories": [
     { "mode": "auto" }
-  ]
+  ],
+  "jest.debugMode": true,
+  "jest.disabledWorkspaceFolders": [
+    "frontend"
+  ],
 }
