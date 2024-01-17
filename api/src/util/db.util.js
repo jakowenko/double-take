@@ -407,7 +407,7 @@ function addColumnIfNotExists(tableName, columnName, columnType) {
     db.prepare(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnType}`).run();
     console.log(`Column ${columnName} added to ${tableName}`);
   } else {
-    console.log(`Column ${columnName} already exists in ${tableName}`);
+    console.debug(`Column ${columnName} already exists in ${tableName}`);
   }
 }
 
