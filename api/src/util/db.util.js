@@ -66,6 +66,7 @@ function migrations() {
     jsonb_extract(j.value, '$.box.width') AS box_width,
     jsonb_extract(j.value, '$.box.height') AS box_height,
     jsonb_extract(j.value, '$.gender.value') AS gender,
+    jsonb_extract(j.value, '$.pose') AS pose,
     CASE 
         WHEN train.filename IS NOT NULL THEN 1 
         ELSE 0 
@@ -191,6 +192,7 @@ async function init() {
         box_width  INTEGER,
         box_height INTEGER,
         gender,
+        pose JSONB,
         isTrained,
         PRIMARY KEY (
             id AUTOINCREMENT
