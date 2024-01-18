@@ -37,7 +37,7 @@
     "socket.io-client": "4.7.4",
     "v-lazy-image": "2.1.1",
     "v-pagination-3": "0.1.7",
-    "vue": "3.4.14",
+    "vue": "3.4.15",
     "vue-router": "4.2.5",
     "vue3-ace-editor": "2.2.4"
   },
