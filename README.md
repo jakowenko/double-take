@@ -534,7 +534,7 @@ detectors:
     opencv_face_required: false
     # comma-separated slugs of face plugins
     # https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)
-    # face_plugins: mask,gender,age
+    # face_plugins: mask,gender,age,pose
     # only process images from specific cameras, if omitted then all cameras will be processed
     # cameras:
     #   - front-door

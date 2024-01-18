@@ -1,5 +1,5 @@
 const express = require('express');
-const { jwt, validate, Joi, limiter } = require('../middlewares');
+const { jwt, validate, Joi } = require('../middlewares');
 const controller = require('../controllers/match.controller');
 
 const router = express.Router();
