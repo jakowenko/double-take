@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('pages', async ({ page }) => {
   await page.goto('./');
-  await page.getByText('Matches').click();
+  await page.getByRole('link', {name: /Matches/}).click();
   await expect(page.locator('.match-wrapper')).toBeVisible();
   await page.getByText('Train').click();
   await expect(page.locator('.train-wrapper')).toBeVisible();

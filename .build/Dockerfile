@@ -20,15 +20,16 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean \
   && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
-apt -y update
-apt install -y curl bash jq unzip wget
-apt install -y gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev ccache
+apt-get -y update
+apt-get install -y curl bash jq unzip wget
+apt-get install -y gcc g++ make libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev ccache
 EOT
+
 WORKDIR /double-take/api
 COPY /api/package.json /api/package-lock.json ./
 ENV CC="ccache gcc"
 ENV CXX="ccache g++"
-RUN npm config set fetch-retries 20 && npm install -g npm@^10.2.4 && npm install
+RUN npm config set fetch-retries 20 && npm update -g npm && npm install --prefer-dedupe
 
 WORKDIR /double-take/api
 COPY /api/server.js .
@@ -39,9 +40,10 @@ RUN mkdir /.storage && ln -s /.storage /double-take/.storage
 
 WORKDIR /double-take
 COPY --link --from=frontend-builder /build/dist ./frontend
-RUN npm install nodemon -g
-RUN mkdir -p /opt/lib
-RUN cp /lib/*-linux-gnu*/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
+RUN <<EOT
+mkdir -p /opt/lib
+cp /lib/*-linux-gnu*/libuuid.so.1.3.0 /opt/lib/libuuid.so.1
+EOT
 
 #COPY /.build/entrypoint.sh .
 
@@ -51,8 +53,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN rm -f /etc/apt/apt.conf.d/docker-clean \
   && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT
-apt update
-apt install -y --no-install-recommends jq libcairo2 libpangocairo-1.0-0 'libjpeg*turbo' libgif7 librsvg2-2
+apt-get update
+apt-get install -y --no-install-recommends jq libcairo2 libpangocairo-1.0-0 'libjpeg*turbo' libgif7 librsvg2-2
 EOT
 
 COPY --link --from=build /double-take /double-take
