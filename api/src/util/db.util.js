@@ -58,14 +58,15 @@ function migrations() {
     t.event,
     t.response,
     t.detector,
-    json_extract(j.value, '$.name') AS name,
-    json_extract(j.value, '$.confidence') AS confidence,
-    json_extract(j.value, '$.match') AS match,
-    json_extract(j.value, '$.box.top') AS box_top,
-    json_extract(j.value, '$.box.left') AS box_left,
-    json_extract(j.value, '$.box.width') AS box_width,
-    json_extract(j.value, '$.box.height') AS box_height,
-    json_extract(j.value, '$.gender.value') AS gender,
+    jsonb_extract(j.value, '$.name') AS name,
+    jsonb_extract(j.value, '$.confidence') AS confidence,
+    jsonb_extract(j.value, '$.match') AS match,
+    jsonb_extract(j.value, '$.box.top') AS box_top,
+    jsonb_extract(j.value, '$.box.left') AS box_left,
+    jsonb_extract(j.value, '$.box.width') AS box_width,
+    jsonb_extract(j.value, '$.box.height') AS box_height,
+    jsonb_extract(j.value, '$.gender.value') AS gender,
+    jsonb_extract(j.value, '$.pose') AS pose,
     CASE 
         WHEN train.filename IS NOT NULL THEN 1 
         ELSE 0 
@@ -76,8 +77,8 @@ FROM (
         match.createdAt,
         match.filename,
         match.event,
-        json_extract(value, '$.detector') AS detector,
-        json_extract(value, '$.results') AS results,
+        jsonb_extract(value, '$.detector') AS detector,
+        jsonb_extract(value, '$.results') AS results,
         match.response
     FROM match
     CROSS JOIN json_each(match.response)
@@ -102,7 +103,7 @@ GROUP BY t.id;`
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT,
           filename TEXT,
-          meta JSON,
+          meta JSONB,
           isActive INTEGER,
           createdAt TIMESTAMP,
           UNIQUE(name, filename)
@@ -122,6 +123,9 @@ GROUP BY t.id;`
   }
 
   addColumnIfNotExists('responses', 'gender', '');
+  db.prepare('UPDATE match SET event=jsonb(event),response=jsonb(response)').run();
+  db.prepare('UPDATE train SET meta = jsonb(meta);').run();
+  db.prepare('UPDATE responses SET event=jsonb(event),response=jsonb(response)').run();
 }
 
 async function init() {
@@ -133,7 +137,7 @@ async function init() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name,
         filename,
-        meta JSON,
+        meta JSONB,
         isActive INTEGER,
         createdAt TIMESTAMP,
         UNIQUE(name, filename)
@@ -147,7 +151,7 @@ async function init() {
         name,
         filename,
         detector,
-        meta JSON,
+        meta JSONB,
         createdAt TIMESTAMP,
         UNIQUE(fileId, detector)
     )`
@@ -157,16 +161,16 @@ async function init() {
       `CREATE TABLE IF NOT EXISTS match (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         filename,
-        event JSON,
-        response JSON,
+        event JSONB,
+        response JSONB,
         createdAt TIMESTAMP
     )`
     ).run();
 
     /* db.prepare(
       `create view IF NOT EXISTS match_responses as
-      SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector,
-      json_extract(value, '$.results') results, match.response
+      SELECT match.id, match.createdAt, match.filename, event, jsonb_extract(value, '$.detector') detector,
+      jsonb_extract(value, '$.results') results, match.response
       FROM match, json_each( match.response)`
     ).run();
 */
@@ -177,8 +181,8 @@ async function init() {
         event_id   INTEGER, -- REFERENCES events (id) MATCH SIMPLE,
         createdAt  NUM,
         filename,
-        event      JSON,
-        response   JSON,
+        event      JSONB,
+        response   JSONB,
         detector,
         name,
         confidence REAL,
@@ -188,6 +192,7 @@ async function init() {
         box_width  INTEGER,
         box_height INTEGER,
         gender,
+        pose JSONB,
         isTrained,
         PRIMARY KEY (
             id AUTOINCREMENT
@@ -217,13 +222,13 @@ async function init() {
     t.event,
     t.response,
     t.detector,
-    json_extract(j.value, '$.name') AS name,
-    json_extract(j.value, '$.confidence') AS confidence,
-    json_extract(j.value, '$.match') AS match,
-    json_extract(j.value, '$.box.top') AS box_top,
-    json_extract(j.value, '$.box.left') AS box_left,
-    json_extract(j.value, '$.box.width') AS box_width,
-    json_extract(j.value, '$.box.height') AS box_height,
+    jsonb_extract(j.value, '$.name') AS name,
+    jsonb_extract(j.value, '$.confidence') AS confidence,
+    jsonb_extract(j.value, '$.match') AS match,
+    jsonb_extract(j.value, '$.box.top') AS box_top,
+    jsonb_extract(j.value, '$.box.left') AS box_left,
+    jsonb_extract(j.value, '$.box.width') AS box_width,
+    jsonb_extract(j.value, '$.box.height') AS box_height,
     CASE 
         WHEN train.filename IS NOT NULL THEN 1 
         ELSE 0 
@@ -234,8 +239,8 @@ FROM (
         match.createdAt,
         match.filename,
         match.event,
-        json_extract(value, '$.detector') AS detector,
-        json_extract(value, '$.results') AS results,
+        jsonb_extract(value, '$.detector') AS detector,
+        jsonb_extract(value, '$.results') AS results,
         match.response
     FROM match
     CROSS JOIN json_each(match.response)

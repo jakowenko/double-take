@@ -101,14 +101,14 @@ module.exports.remove = ({ ids = [] }) => {
     ? db
         .prepare(
           `SELECT name, json_extract(value, '$.Face.FaceId') faceId
-          FROM train, json_each(json_extract(meta, '$.FaceRecords'))`
+          FROM train, json_each(jsonb_extract(meta, '$.FaceRecords'))`
         )
         .all()
         .map((obj) => obj.faceId)
     : db
         .prepare(
           `SELECT name, json_extract(value, '$.Face.FaceId') faceId
-          FROM train, json_each(json_extract(meta, '$.FaceRecords'))
+          FROM train, json_each(jsonb_extract(meta, '$.FaceRecords'))
           WHERE fileId IN (${database.params(ids)})`
         )
         .all(ids)
@@ -128,7 +128,7 @@ module.exports.normalize = ({ camera, data }) => {
     const [match] = db
       .prepare(
         `SELECT name, json_extract(value, '$.Face.FaceId') faceId
-        FROM train, json_each(json_extract(meta, '$.FaceRecords'))
+        FROM train, json_each(jsonb_extract(meta, '$.FaceRecords'))
         WHERE faceId = :faceId
         LIMIT 1`
       )
