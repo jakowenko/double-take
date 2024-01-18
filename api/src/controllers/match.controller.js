@@ -336,7 +336,7 @@ module.exports.filters = async (req, res) => {
       .map((obj) => obj.name);
     console.debug(`Types: ${types}`);
 
-    console.debug('Assigning static genders...');
+    // console.debug('Assigning static genders...');
     const genders = ['male', 'female'];
 
     const result = { total: total.count, detectors, names, matches, cameras, types, genders };
