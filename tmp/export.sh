@@ -1,4 +1,4 @@
-#!/bin/zsh                                                               
+#!/bin/sh
                                                                               
 # Specify your database file name                                         
 DATABASE_FILE="/Users/svk/Documents/Projects/double-take/.storage/database.db"                                     
