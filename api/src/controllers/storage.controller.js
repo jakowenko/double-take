@@ -197,10 +197,10 @@ module.exports.latest = async (req, res) => {
   const [nameMatch] = db
     .prepare(
       `SELECT t.id, filename, value FROM (
-          SELECT match.id, filename, json_extract(value, '$.results') results
+          SELECT match.id, filename, jsonb_extract(value, '$.results') results
           FROM match, json_each( match.response)
           ) t, json_each(t.results)
-        WHERE json_extract(value, '$.name') IN (${database.params([name])})
+        WHERE jsonb_extract(value, '$.name') IN (${database.params([name])})
         GROUP BY t.id
         ORDER BY t.id DESC
         LIMIT 1`
@@ -210,10 +210,10 @@ module.exports.latest = async (req, res) => {
   const [cameraMatch] = db
     .prepare(
       `SELECT t.id, t.event, filename, value FROM (
-          SELECT match.id, event, filename, json_extract(value, '$.results') results
+          SELECT match.id, event, filename, jsonb_extract(value, '$.results') results
           FROM match, json_each( match.response)
           ) t, json_each(t.results)
-        WHERE json_extract(t.event, '$.camera') IN (${database.params([name])})
+        WHERE jsonb_extract(t.event, '$.camera') IN (${database.params([name])})
         GROUP BY t.id
         ORDER BY t.id DESC
         LIMIT 1`

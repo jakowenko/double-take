@@ -14,15 +14,56 @@ const Cache = require('../util/cache.util');
 
 const db = database.connect();
 const format = async (matches) => {
-  const token = AUTH && matches.length ? jwt.sign({ route: 'storage' }) : null;
-  matches = await Promise.all(
+  let token;
+  try {
+    token = AUTH && matches.length ? jwt.sign({ route: 'storage' }) : null;
+  } catch (error) {
+    // Handle JWT signing errors
+    console.error('JWT signing error:', error);
+    token = null;
+  }
+
+  const formattedMatches = await Promise.all(
     matches.map(async (obj) => {
-      const { id, filename, event, response, isTrained } = obj;
-      const { camera, type, zones, updatedAt } = JSON.parse(event);
+      const { id, filename, event, response, isTrained, createdAt } = obj;
+
+      let camera;
+      let type;
+      let zones;
+      let updatedAt;
+      try {
+        const eventObject = JSON.parse(event);
+        camera = eventObject.camera;
+        type = eventObject.type;
+        zones = eventObject.zones;
+        updatedAt = eventObject.updatedAt;
+      } catch (error) {
+        // Handle JSON parsing errors for event
+        console.error('Event parsing error:', error, String(event));
+        // You may want to handle this differently depending on your use case
+      }
+
+      let parsedResponse;
+      try {
+        parsedResponse = JSON.parse(response);
+      } catch (error) {
+        // Handle JSON parsing errors for response
+        console.error('Response parsing error:', error);
+        // Again, handling may vary based on use case
+      }
+
+      let width = 0;
+      let height = 0;
       const key = `matches/${filename}`;
-      const { width, height } = await sizeOf(
-        fs.createReadStream(`${STORAGE.MEDIA.PATH}/${key}`)
-      ).catch((/* error */) => ({ width: 0, height: 0 }));
+
+      try {
+        const dimensions = await sizeOf(fs.createReadStream(`${STORAGE.MEDIA.PATH}/${key}`));
+        width = dimensions.width;
+        height = dimensions.height;
+      } catch (error) {
+        // Handle errors related to reading the file or getting its size
+        console.error('File read/size error:', error);
+      }
 
       return {
         id,
@@ -36,14 +77,15 @@ const format = async (matches) => {
           height,
         },
         isTrained: !!isTrained,
-        response: JSON.parse(response),
-        createdAt: obj.createdAt,
+        response: parsedResponse,
+        createdAt,
         updatedAt: updatedAt || null,
         token,
       };
     })
   );
-  return matches;
+
+  return formattedMatches;
 };
 
 module.exports.post = async (req, res) => {
@@ -93,22 +135,22 @@ module.exports.post = async (req, res) => {
   }
 
   const confidenceQuery =
-    filters.confidence === 0 ? `OR json_extract(value, '$.confidence') IS NULL` : '';
+    filters.confidence === 0 ? `OR jsonb_extract(value, '$.confidence') IS NULL` : '';
 
   // architecture proёb :(
   db.prepare(
-    `CREATE TEMPORARY TABLE IF NOT EXISTS ${tmptable} AS SELECT t.id, t.createdAt, t.filename, t.event, response, detector, value, isTrained FROM (
-    SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results, match.response
+    `CREATE TEMPORARY TABLE IF NOT EXISTS ${tmptable} AS SELECT t.id, t.createdAt, t.filename, json(t.event) as event, response, detector, json(value) as value, isTrained FROM (
+    SELECT match.id, match.createdAt, match.filename, event, json_extract(value, '$.detector') detector, json_extract(value, '$.results') results, json(match.response) as response
     FROM match, json_each( match.response)
     ) t, json_each(t.results) LEFT JOIN (SELECT filename as isTrained FROM train GROUP BY filename) train ON train.isTrained = t.filename
-  WHERE json_extract(value, '$.name') IN (${database.params(filters.names)})
-  AND json_extract(value, '$.match') IN (${database.params(filters.matches)})
-  AND json_extract(t.event, '$.camera') IN (${database.params(filters.cameras)})
-  AND json_extract(t.event, '$.type') IN (${database.params(filters.types)})
-  AND (json_extract(value, '$.confidence') >= ? ${confidenceQuery})
-  AND json_extract(value, '$.box.width') >= ?
-  AND json_extract(value, '$.box.height') >= ?
-  /* AND json_extract(value, '$.gender') IN (${database.params(filters.genders)}) */
+  WHERE jsonb_extract(value, '$.name') IN (${database.params(filters.names)})
+  AND jsonb_extract(value, '$.match') IN (${database.params(filters.matches)})
+  AND jsonb_extract(t.event, '$.camera') IN (${database.params(filters.cameras)})
+  AND jsonb_extract(t.event, '$.type') IN (${database.params(filters.types)})
+  AND (jsonb_extract(value, '$.confidence') >= ? ${confidenceQuery})
+  AND jsonb_extract(value, '$.box.width') >= ?
+  AND jsonb_extract(value, '$.box.height') >= ?
+  /* AND jsonb_extract(value, '$.gender') IN (${database.params(filters.genders)}) */
   AND detector IN (${database.params(filters.detectors)})
         GROUP BY t.id`
   ).run(
@@ -246,7 +288,7 @@ module.exports.filters = async (req, res) => {
     const names = db
       .prepare(
         `SELECT json_extract(value, '$.name') name FROM (
-            SELECT json_extract(value, '$.results') results
+            SELECT jsonb_extract(value, '$.results') results
         FROM match, json_each(match.response)
             ) t, json_each(t.results)
         GROUP BY name
@@ -259,8 +301,8 @@ module.exports.filters = async (req, res) => {
     console.debug('Retrieving matches from database...');
     const matches = db
       .prepare(
-        `SELECT IIF(json_extract(value, '$.match') == 1, 'match', 'miss') name FROM (
-            SELECT json_extract(value, '$.results') results
+        `SELECT IIF(jsonb_extract(value, '$.match') == 1, 'match', 'miss') name FROM (
+            SELECT jsonb_extract(value, '$.results') results
         FROM match, json_each(match.response)
             ) t, json_each(t.results)
         GROUP BY name
