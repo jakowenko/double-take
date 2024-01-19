@@ -7,6 +7,29 @@ const config = require('../../constants/config');
 
 const { COMPREFACE } = DETECTORS || {};
 
+function calculateOrientationCoefficient(
+  pitch,
+  roll,
+  yaw,
+  maxPitch = 30,
+  maxRoll = 30,
+  maxYaw = 30
+) {
+  const normalizedPitch = pitch / maxPitch;
+  const normalizedRoll = roll / maxRoll;
+  const normalizedYaw = yaw / maxYaw;
+
+  const distance = Math.sqrt(
+    normalizedPitch * normalizedPitch +
+      normalizedRoll * normalizedRoll +
+      normalizedYaw * normalizedYaw
+  );
+
+  return 1 - Math.min(distance, 1); // Ensures the coefficient stays within 0 to 1 range
+}
+
+module.exports.calculateOrientationCoefficient = calculateOrientationCoefficient;
+
 module.exports.recognize = async ({ key, test }) => {
   const { URL, KEY, DET_PROB_THRESHOLD, FACE_PLUGINS } = COMPREFACE;
   const formData = new FormData();
@@ -89,6 +112,8 @@ module.exports.normalize = ({ camera, data }) => {
         height: box.y_max - box.y_min,
       },
     };
+    const tdx = (box.x_max + box.x_min) / 2;
+    const tdy = (box.y_max + box.y_min) / 2;
     if (obj.age)
       output.age = {
         ...obj.age,
@@ -107,6 +132,12 @@ module.exports.normalize = ({ camera, data }) => {
     if (obj.pose)
       output.pose = {
         ...obj.pose,
+        yAxisX: 70 * (-Math.cos(obj.pose.yaw) * Math.sin(obj.pose.roll)) + tdx,
+        yAxisY:
+          Math.cos(obj.pose.pitch) * Math.cos(obj.pose.roll) -
+          Math.sin(obj.pose.pitch) * Math.sin(obj.pose.yaw) * Math.sin(obj.pose.roll) +
+          tdy,
+        orientation: calculateOrientationCoefficient(obj.pose.pitch, obj.pose.roll, obj.pose.yaw),
       };
     const checks = actions.checks({ MATCH, UNKNOWN, ...output });
     if (checks.length) output.checks = checks;
