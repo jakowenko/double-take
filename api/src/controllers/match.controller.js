@@ -220,7 +220,10 @@ module.exports.reprocess = async (req, res) => {
   const { matchId } = req.params;
   if (!DETECTORS.length) return res.status(BAD_REQUEST).error('no detectors configured');
 
-  let [match] = db.prepare('SELECT * FROM match WHERE id = ?').bind(matchId).all();
+  let [match] = db
+    .prepare('SELECT *,json(event) as event FROM match WHERE id = ?')
+    .bind(matchId)
+    .all();
 
   if (!match) return res.status(BAD_REQUEST).error('No match found');
 
