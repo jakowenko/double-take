@@ -24,7 +24,7 @@
     "@aws-sdk/client-rekognition": "^3.495.0",
     "@koush/axios-digest-auth": "^0.8.7",
     "archiver": "^6.0.1",
-    "axios": "^1.6.5",
+    "axios": "^1.6.7",
     "axios-debug-log": "^1.0.0",
     "better-sqlite3": ">=9.3.0",
     "canvas": "^2.11.2",
