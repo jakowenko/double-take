@@ -12,24 +12,24 @@ describe('calculateOrientationCoefficient', () => {
   });
 
   test('returns correct value for positive inputs within the max range', () => {
-    const pitch = 5, roll = 3, yaw = 2;
+    const pitch = 5;
+    const roll = 3;
+    const yaw = 2;
     const coefficient = calculateOrientationCoefficient(pitch, roll, yaw, 30, 30, 30);
-    const expected = 1 - Math.sqrt(
-      (pitch/30) * (pitch/30) +
-      (roll/30) * (roll/30) +
-      (yaw/30) * (yaw/30)
-    );
+    const expected =
+      1 -
+      Math.sqrt((pitch / 30) * (pitch / 30) + (roll / 30) * (roll / 30) + (yaw / 30) * (yaw / 30));
     expect(coefficient).toBeCloseTo(expected);
   });
 
   test('returns correct value for negative inputs within the max range', () => {
-    const pitch = -5, roll = -3, yaw = -2;
+    const pitch = -5;
+    const roll = -3;
+    const yaw = -2;
     const coefficient = calculateOrientationCoefficient(pitch, roll, yaw, 10, 10, 10);
-    const expected = 1 - Math.sqrt(
-      (pitch/10) * (pitch/10) +
-      (roll/10) * (roll/10) +
-      (yaw/10) * (yaw/10)
-    );
+    const expected =
+      1 -
+      Math.sqrt((pitch / 10) * (pitch / 10) + (roll / 10) * (roll / 10) + (yaw / 10) * (yaw / 10));
     expect(coefficient).toBeCloseTo(expected);
   });
 
@@ -39,8 +39,12 @@ describe('calculateOrientationCoefficient', () => {
   });
 
   test('allows custom max values for pitch, roll, and yaw', () => {
-    const pitch = 15, roll = 15, yaw = 15;
-    const maxPitch = 30, maxRoll = 30, maxYaw = 30;
+    const pitch = 15;
+    const roll = 15;
+    const yaw = 15;
+    const maxPitch = 30;
+    const maxRoll = 30;
+    const maxYaw = 30;
     const coefficient = calculateOrientationCoefficient(
       pitch,
       roll,
@@ -49,16 +53,18 @@ describe('calculateOrientationCoefficient', () => {
       maxRoll,
       maxYaw
     );
-    const expected = 1 - Math.sqrt(
-      (pitch/maxPitch) * (pitch/maxPitch) +
-      (roll/maxRoll) * (roll/maxRoll) +
-      (yaw/maxYaw) * (yaw/maxYaw)
-    );
+    const expected =
+      1 -
+      Math.sqrt(
+        (pitch / maxPitch) * (pitch / maxPitch) +
+          (roll / maxRoll) * (roll / maxRoll) +
+          (yaw / maxYaw) * (yaw / maxYaw)
+      );
     expect(coefficient).toBeCloseTo(expected);
   });
 
   // Additional tests could include:
-  
+
   // Test that the function returns a coefficient between 0 and 1 for any input
   // Test what happens when max values are set to 0 (if this is a valid scenario)
   // Test with extreme values for pitch, roll, and yaw
