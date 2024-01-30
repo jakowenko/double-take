@@ -2,7 +2,7 @@
 
 Community-owned resources:
 
-[WorldWide discord server](https://discord.gg/gAajTQda)
+[WorldWide discord server](https://discord.gg/3pumsskdN5)
 
 [Frigate/DoubleTake CIS Region Telegram chat](https://t.me/FrigateNVR) 🇺🇦🇰🇿🇧🇾🇷🇺🇺🇳 ~~make love, not war~~
 
