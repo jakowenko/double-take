@@ -57,6 +57,22 @@ function calculateOrientationCoefficient(pitch, roll, yaw) {
   return poseDirection.toArray();
 }
 
+/**
+ * Determines if an object with given orientation angles (pitch, roll, yaw) is facing towards the camera.
+ * This function assumes a right-handed coordinate system where the Z-axis points forward from the camera.
+ *
+ * @param {number} pitch - The rotation around the X-axis in degrees, where positive values indicate downward tilt.
+ * @param {number} roll - The rotation around the Y-axis in degrees, where positive values indicate rotation to the right.
+ * @param {number} yaw - The rotation around the Z-axis in degrees, where positive values indicate turning right.
+ * @returns {boolean} Whether the object is facing towards the camera based on its orientation.
+ * @throws {Error} Throws an error if the input parameters are not numbers or if `poseDirection` is not an array with at least three elements.
+ *
+ * @example
+ * // If an object oriented with a pitch of 0, a roll of 0, and a yaw of -90
+ * // has a pose direction that indicates it's facing the camera:
+ * const isObjectFacingCamera = isFacingCamera(0, 0, -90);
+ * console.log(isObjectFacingCamera); // Expected output: true/false depending on `calculateOrientationCoefficient` result
+ */
 function isFacingCamera(pitch, roll, yaw) {
   // Validate pitch, roll, and yaw as numbers
   if (typeof pitch !== 'number' || typeof roll !== 'number' || typeof yaw !== 'number') {
@@ -78,9 +94,6 @@ function isFacingCamera(pitch, roll, yaw) {
   // Check if the Z-component is negative and dominant
   return poseDirection[2] < 0 && zComponent > xComponent && zComponent > yComponent;
 }
-
-
-
 
 module.exports.calculateOrientationCoefficient = calculateOrientationCoefficient;
 module.exports.isFacingCamera = isFacingCamera;
@@ -192,7 +205,7 @@ module.exports.normalize = ({ camera, data }) => {
           Math.cos(obj.pose.pitch) * Math.cos(obj.pose.roll) -
           Math.sin(obj.pose.pitch) * Math.sin(obj.pose.yaw) * Math.sin(obj.pose.roll) +
           tdy,
-        orientation: calculateOrientationCoefficient(obj.pose.pitch, obj.pose.roll, obj.pose.yaw),
+        orientation: isFacingCamera(obj.pose.pitch, obj.pose.roll, obj.pose.yaw),
       };
     const checks = actions.checks({ MATCH, UNKNOWN, ...output });
     if (checks.length) output.checks = checks;
