@@ -221,7 +221,12 @@ module.exports.isValidURL = async ({ auth = false, type, url }) => {
 
 module.exports.stream = async (url) => {
   try {
-    const isDigest = digest.exists(url);
+    // Make sure digest and its methods are properly defined or imported
+    const isDigest = digest && typeof digest.exists === 'function' ? digest.exists(url) : false;
+
+    let data;
+
+    // Assuming digest requires proper arguments, update accordingly
     const digestAuth = isDigest ? digest(isDigest) : false;
     const opts = {
       method: 'GET',
@@ -229,10 +234,20 @@ module.exports.stream = async (url) => {
       responseType: 'arraybuffer',
       timeout: 5000,
     };
-    const { data } = await (isDigest ? digestAuth.request(opts) : axios(opts));
+
+    // Distinguish between digest auth and normal request
+    if (isDigest && digestAuth) {
+      const response = await digestAuth.request(opts);
+      data = response.data;
+    } else {
+      const response = await axios(opts);
+      data = response.data;
+    }
+
     return data;
   } catch (error) {
-    error.message = `stream error: ${error.message}`;
-    console.error(error);
+    // Log and rethrow or handle the error appropriately
+    console.error(`stream error: ${error.message}`);
+    throw error;
   }
 };
