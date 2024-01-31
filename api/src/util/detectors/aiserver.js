@@ -72,7 +72,7 @@ const remove = ({ name }) => {
 };
 
 const normalize = ({ camera, data }) => {
-  if (!data || !data.success) {
+  if (!data?.success) {
     // compare with CoderProjectAI sources
     // https://github.com/codeproject/CodeProject.AI-Server/blob/main/src/modules/FaceProcessing/intelligencelayer/face.py#L528
     if (data?.code === 500 && data?.error === 'No face found in image') {
@@ -83,9 +83,15 @@ const normalize = ({ camera, data }) => {
     return [];
   }
 
-  // Ensure config.detect(camera) returns a valid object with MATCH and UNKNOWN properties
-  const detectionConfig = config.detect(camera) || {};
+  // Explicitly check for presence of the MATCH and UNKNOWN properties
+  const detectionConfig = config.detect(camera);
+  if (!detectionConfig || !detectionConfig.MATCH || !detectionConfig.UNKNOWN) {
+    console.warn('Invalid detection configuration for camera:', camera);
+    return [];
+  }
+
   const { MATCH, UNKNOWN } = detectionConfig;
+
   if (!Array.isArray(data.predictions)) {
     console.warn('unexpected ai.server predictions data', data.predictions);
     return [];
