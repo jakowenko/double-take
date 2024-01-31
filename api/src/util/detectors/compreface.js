@@ -11,21 +11,40 @@ function calculateOrientationCoefficient(
   pitch,
   roll,
   yaw,
-  maxPitch = 30,
-  maxRoll = 30,
-  maxYaw = 30
+  maxPitch = 90,
+  maxRoll = 90,
+  maxYaw = 90
 ) {
-  const normalizedPitch = pitch / maxPitch;
-  const normalizedRoll = roll / maxRoll;
-  const normalizedYaw = yaw / maxYaw;
+  // Validation of input parameters to ensure they are numbers and not negative
+  if (
+    typeof pitch !== 'number' ||
+    typeof roll !== 'number' ||
+    typeof yaw !== 'number' ||
+    typeof maxPitch !== 'number' ||
+    typeof maxRoll !== 'number' ||
+    typeof maxYaw !== 'number'
+  ) {
+    throw new Error('All parameters should be numeric values.');
+  }
 
+  if (maxPitch <= 0 || maxRoll <= 0 || maxYaw <= 0) {
+    throw new Error('Maximum values for pitch, roll, and yaw must be positive.');
+  }
+
+  // Normalization of pitch, roll, and yaw values
+  const normalizedPitch = Math.abs(pitch) / maxPitch;
+  const normalizedRoll = Math.abs(roll) / maxRoll;
+  const normalizedYaw = Math.abs(yaw) / maxYaw;
+
+  // Calculation of Euclidean distance in the normalized 3D space
   const distance = Math.sqrt(
     normalizedPitch * normalizedPitch +
       normalizedRoll * normalizedRoll +
       normalizedYaw * normalizedYaw
   );
 
-  return 1 - Math.min(distance, 1); // Ensures the coefficient stays within 0 to 1 range
+  // Ensuring the coefficient remains within the range of [0, 1]
+  return 1 - Math.min(distance, 1);
 }
 
 module.exports.calculateOrientationCoefficient = calculateOrientationCoefficient;
