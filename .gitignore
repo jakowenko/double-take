@@ -12,7 +12,9 @@ models
 .env
 .env.*.local
 config.yml
-package-lock.json
+# package-lock.json
+
+dist/
 
 *.log
 *.pid
@@ -25,3 +27,6 @@ package-lock.json
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+out/
+*.cpuprofile

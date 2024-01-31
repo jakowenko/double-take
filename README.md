@@ -331,8 +331,11 @@ mqtt:
   username:
   password:
   client_id:
-
-  tls:
+  protocol: mqtt # set to mqtts to enables TLS
+  port: -1 # default value, expands to 1883 for mqtt or 8883 for mqtts
+  expire_after: 600 # timeout (in seconds) of home-assistant "recognised" state. appears to sensor.double_take_{person} sensors. 0 for never expires
+  
+  tls: # don't forget to set protocol: mqtts if you need secure connection
     # cert chains in PEM format: /path/to/client.crt
     cert:
     # private keys in PEM format: /path/to/client.key
@@ -457,11 +460,11 @@ frigate:
     # This option allows setting a custom time delay for the MQTT home
     # assistant device tracker.                                                   
                                                                                 
-    # By adjusting  device_tracker_timeout , users can determine how long they    
-    # want to wait before receiving a 'not_home' message when no person is        
-    # recognized. The time delay is implemented in minutes and the default value  
-    # is set to 30 minutes
-    device_tracker_timeout: 30
+  # By adjusting  device_tracker_timeout , users can determine how long they    
+  # want to wait before receiving a 'not_home' message when no person is        
+  # recognized. The time delay is implemented in minutes and the default value  
+  # is set to 30 minutes
+  device_tracker_timeout: 30
 ```
 
 ### `cameras`
@@ -517,6 +520,8 @@ cameras:
 # detector settings (default: shown below)
 detectors:
   compreface:
+    # Enable this detector. The default is true (enabled) if the URL below is defined.
+    enabled: true
     url:
     # recognition api key
     key:
@@ -529,13 +534,15 @@ detectors:
     opencv_face_required: false
     # comma-separated slugs of face plugins
     # https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)
-    # face_plugins: mask,gender,age
+    # face_plugins: mask,gender,age,pose
     # only process images from specific cameras, if omitted then all cameras will be processed
     # cameras:
     #   - front-door
     #   - garage
 
   rekognition:
+    # Enable this detector. The default is true (enabled) if the URL below is defined.
+    enabled: true
     aws_access_key_id: !secret aws_access_key_id
     aws_secret_access_key: !secret aws_secret_access_key
     aws_region:
@@ -548,6 +555,8 @@ detectors:
     #   - garage
 
   deepstack:
+    # Enable this detector. The default is true (enabled) if the URL below is defined.
+    enabled: true
     url:
     key:
     # number of seconds before the request times out and is aborted
@@ -560,9 +569,14 @@ detectors:
     #   - garage
 
   aiserver:
+    # Enable this detector. The default is true (enabled) if the URL below is defined.
+    enabled: true
     url:
     # number of seconds before the request times out and is aborted
     timeout: 15
+    # minimum required confidence that a recognized face is actually a face
+    # value is between 0.0 and 1.0
+    det_prob_threshold: 0.4
     # require opencv to find a face before processing with detector
     opencv_face_required: false
     # only process images from specific cameras, if omitted then all cameras will be processed
@@ -571,6 +585,8 @@ detectors:
     #   - garage
 
   facebox:
+    # Enable this detector. The default is true (enabled) if the URL below is defined.
+    enabled: true
     url:
     # number of seconds before the request times out and is aborted
     timeout: 15

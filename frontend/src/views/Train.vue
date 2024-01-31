@@ -14,7 +14,7 @@
       v-if="showLoading"
       :style="{ top: headerHeight + toolbarHeight + 'px' }"
     >
-      <i v-if="loading.files || loading.status" class="pi pi-spin pi-spinner p-as-center" style="font-size: 2.5rem"></i>
+      <i v-if="loading.files || loading.status" class="pi pi-spin pi-spinner p-as-center" style="font-size: 2.5rem" />
       <div v-if="loading.status && status.length" class="p-mt-5 p-as-center progress-holder">
         <p class="p-mb-3 p-text-bold p-text-center">Training...</p>
         <div v-for="name in status" :key="name" class="p-mb-3">
@@ -27,7 +27,7 @@
       </div>
     </div>
     <div class="p-d-flex p-jc-center p-flex-column" :class="isPaginationVisible ? 'pagination-padding' : ''">
-      <div id="pull-to-reload-message"></div>
+      <div id="pull-to-reload-message" />
       <Grid type="train" :folders="folders" :matches="{ filtered, ...matches }" style="width: 100%" />
     </div>
     <div
@@ -45,11 +45,11 @@ import PullToRefresh from 'pulltorefreshjs';
 
 import ProgressBar from 'primevue/progressbar';
 
-import Grid from '@/components/Grid.vue';
-import Sleep from '@/util/sleep.util';
-import ApiService from '@/services/api.service';
-import Header from '@/components/Header.vue';
-import Pagination from '@/components/Pagination.vue';
+import Grid from '../components/Grid.vue';
+import Sleep from '../util/sleep.util';
+import ApiService from '../services/api.service';
+import Header from '../components/Header.vue';
+import Pagination from '../components/Pagination.vue';
 
 export default {
   components: {
@@ -81,7 +81,7 @@ export default {
     headerHeight: 0,
   }),
   props: {
-    toolbarHeight: Number,
+    toolbarHeight: { type: Number, default: 0 },
   },
   computed: {
     showLoading() {
@@ -369,11 +369,9 @@ export default {
 
 .pagination {
   position: fixed;
-  left: 300px;
+  left: 50%;
   top: 100px;
   z-index: 2;
-  top: 0;
-  left: 50%;
   transform: translateX(-50%);
   width: 100%;
   max-width: $max-width;

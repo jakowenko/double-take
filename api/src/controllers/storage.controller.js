@@ -2,6 +2,7 @@ const fs = require('fs');
 const axios = require('axios');
 const sizeOf = require('probe-image-size');
 const { createCanvas, loadImage, registerFont } = require('canvas');
+const sanitize = require('sanitize-filename-truncate');
 const { jwt } = require('../util/auth.util');
 const filesystem = require('../util/fs.util');
 const database = require('../util/db.util');
@@ -13,8 +14,14 @@ const { QUALITY, WIDTH } = require('../constants')().UI.THUMBNAILS;
 
 module.exports.matches = async (req, res) => {
   const { box: showBox } = req.query;
-  const { filename } = req.params;
+  let { filename } = req.params;
+  filename = sanitize(filename);
+
   const source = `${PATH}/matches/${filename}`;
+
+  if (!filename) {
+    return res.status(BAD_REQUEST).error(`Invalid filename provided`);
+  }
 
   if (!fs.existsSync(source)) {
     return res.status(BAD_REQUEST).error(`${source} does not exist`);
@@ -61,16 +68,32 @@ module.exports.matches = async (req, res) => {
         const text = `${name} - ${confidence}%`;
         const textWidth = ctx.measureText(text).width + textPadding;
 
-        let fillStyle = '#78cc86';
-        if (detector === 'compreface') fillStyle = '#095fd7';
-        if (detector === 'deepstack') fillStyle = '#d66b11';
-        if (detector === 'aiserver') fillStyle = '#f9fc97';
-        if (detector === 'facebox') fillStyle = '#5f39a4';
+        let fillStyle = '#78cc86'; // default color
+        let textColor = '#000'; // default text color for contrast
+
+        if (detector === 'compreface') {
+          fillStyle = '#095fd7';
+          textColor = '#fff'; // White text for contrast against dark blue
+        }
+        if (detector === 'deepstack') {
+          fillStyle = '#d66b11';
+          textColor = '#fff'; // White text for contrast against dark orange
+        }
+        if (detector === 'aiserver') {
+          fillStyle = '#f9fc97';
+          textColor = '#000'; // Black text for contrast against light yellow
+        }
+        if (detector === 'facebox') {
+          fillStyle = '#5f39a4';
+          textColor = '#fff'; // White text for contrast against dark purple
+        }
 
         ctx.fillStyle = fillStyle;
         if (confidence > 0) {
           ctx.fillRect(box.left - lineWidth / 2, box.top - textHeight, textWidth, textHeight);
-          ctx.fillStyle = '#fff';
+
+          ctx.fillStyle = textColor;
+
           ctx.fillText(
             text,
             box.left + textPadding / 2 - lineWidth / 2,
@@ -86,6 +109,10 @@ module.exports.matches = async (req, res) => {
         ctx.stroke();
       });
     });
+
+    const lastModified = filesystem.getLastModified(source);
+    res.set('Cache-Control', 'public, max-age=604800'); // 1 week
+    res.set('Last-Modified', lastModified);
 
     const buffer = canvas.toBuffer('image/jpeg');
     res.set('Content-Type', 'image/jpeg');
@@ -108,6 +135,9 @@ module.exports.matches = async (req, res) => {
     buffer = fs.readFileSync(source);
   }
   res.set('Content-Type', 'image/jpeg');
+  const lastModified = filesystem.getLastModified(source);
+  res.set('Cache-Control', 'public, max-age=604800'); // 1 week
+  res.set('Last-Modified', lastModified);
   return res.end(buffer);
 };
 
@@ -167,10 +197,10 @@ module.exports.latest = async (req, res) => {
   const [nameMatch] = db
     .prepare(
       `SELECT t.id, filename, value FROM (
-          SELECT match.id, filename, json_extract(value, '$.results') results
+          SELECT match.id, filename, jsonb_extract(value, '$.results') results
           FROM match, json_each( match.response)
           ) t, json_each(t.results)
-        WHERE json_extract(value, '$.name') IN (${database.params([name])})
+        WHERE jsonb_extract(value, '$.name') IN (${database.params([name])})
         GROUP BY t.id
         ORDER BY t.id DESC
         LIMIT 1`
@@ -180,10 +210,10 @@ module.exports.latest = async (req, res) => {
   const [cameraMatch] = db
     .prepare(
       `SELECT t.id, t.event, filename, value FROM (
-          SELECT match.id, event, filename, json_extract(value, '$.results') results
+          SELECT match.id, event, filename, jsonb_extract(value, '$.results') results
           FROM match, json_each( match.response)
           ) t, json_each(t.results)
-        WHERE json_extract(t.event, '$.camera') IN (${database.params([name])})
+        WHERE jsonb_extract(t.event, '$.camera') IN (${database.params([name])})
         GROUP BY t.id
         ORDER BY t.id DESC
         LIMIT 1`
@@ -199,7 +229,7 @@ module.exports.latest = async (req, res) => {
 
   const request = await axios({
     method: 'get',
-    url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/storage/matches/${originalFilename}?box=true`,
+    url: `http://${SERVER.HOST}:${SERVER.PORT}${UI.PATH}/api/storage/matches/${originalFilename}?box=true`,
     headers: AUTH ? { authorization: jwt.sign({ route: 'storage' }) } : null,
     responseType: 'arraybuffer',
   });

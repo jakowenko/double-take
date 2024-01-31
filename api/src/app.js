@@ -1,9 +1,11 @@
 const express = require('express');
 const fs = require('fs');
 const cors = require('cors');
-const { UI } = require('./constants')();
 const ipfilter = require('express-ipfilter').IpFilter;
+const { UI } = require('./constants')();
+const { getFrontendPath } = require('./util/helpers.util');
 
+require('axios-debug-log');
 require('express-async-errors');
 
 const app = express();
@@ -17,19 +19,19 @@ if (process.env.HA_ADDON === 'true' && process.env.IPFILTER === 'true') {
   const ips = ['172.30.32.2', '127.0.0.1', '::ffff:172.30.32.2', '::ffff:127.0.0.1'];
   app.use(ipfilter(ips, { mode: 'allow' }));
 }
+
+const frontendPath = getFrontendPath();
+console.verbose(`Frontend path: ${frontendPath}`);
 app.use(
   UI.PATH,
-  express.static(`./frontend/${process.env.NODE_ENV === 'development' ? 'dist/' : ''}`, {
+  express.static(frontendPath, {
     index: false,
   })
 );
 app.use(`${UI.PATH}/api`, require('./routes'));
 
 app.use(UI.PATH, (req, res) => {
-  const html = fs.readFileSync(
-    `${process.cwd()}/frontend/${process.env.NODE_ENV === 'development' ? 'dist/' : ''}index.html`,
-    'utf8'
-  );
+  const html = fs.readFileSync(`${frontendPath}index.html`, 'utf8');
   res.send(
     html.replace(
       '</head>',

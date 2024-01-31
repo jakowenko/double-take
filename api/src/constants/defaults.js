@@ -41,6 +41,10 @@ module.exports = {
       cameras: 'double-take/cameras',
       homeassistant: 'homeassistant',
     },
+    username: process.env.MQTT_USER ?? null,
+    password: process.env.MQTT_PASSWORD ?? null,
+    host: process.env.MQTT_HOST ?? 'localhost',
+    expire_after: 600,
   },
   opencv: {
     scale_factor: 1.05,
@@ -50,23 +54,29 @@ module.exports = {
   },
   detectors: {
     compreface: {
+      enabled: true,
       det_prob_threshold: 0.8,
       timeout: 15,
       opencv_face_required: false,
     },
     deepstack: {
+      enabled: true,
       timeout: 15,
       opencv_face_required: false,
     },
     aiserver: {
+      enabled: true,
+      det_prob_threshold: 0.4,
       timeout: 15,
       opencv_face_required: false,
     },
     facebox: {
       timeout: 15,
+      enabled: true,
       opencv_face_required: false,
     },
     rekognition: {
+      enabled: true,
       collection_id: 'double-take',
       opencv_face_required: true,
     },

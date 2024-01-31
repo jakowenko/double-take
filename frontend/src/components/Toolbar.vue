@@ -1,11 +1,26 @@
 <template>
   <div class="tool-bar-wrapper p-pr-3 p-d-flex p-jc-between p-ai-center" ref="toolbar">
-    <div><TabMenu :model="navigation" class="navigation" :class="{ show: showNavigation }" /></div>
+    <div>
+      <TabMenu :model="navigation" class="navigation" :class="{ show: showNavigation }">
+        <template v-slot:item="{ item, props }">
+          <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+            <a :href="href" v-bind="props.action" @click="navigate">
+              <span v-bind="props.icon" />
+              <span v-bind="props.label">{{ item.label }}</span>
+            </a>
+          </router-link>
+          <a v-else :href="item.url" :target="item.target" v-bind="props.action">
+            <span v-bind="props.icon" />
+            <span v-bind="props.label">{{ item.label }}</span>
+          </a>
+        </template>
+      </TabMenu>
+    </div>
     <div v-if="updateAvailable" class="version p-ml-auto p-mr-2" v-tooltip.left="`Update Available`">
-      <div class="icon" @click="dockerHub"></div>
+      <div class="icon" @click="gitHub" />
     </div>
     <div class="double-take-menu-wrapper p-d-flex" @click="toggleMenu">
-      <i class="pi p-mr-1 pi-angle-down p-as-center" style="height: 14px; overflow: hidden"></i>
+      <i class="pi p-mr-1 pi-angle-down p-as-center" style="height: 14px; overflow: hidden" />
       Double Take
       <Menu
         v-if="$route.path === '/login'"
@@ -52,7 +67,7 @@ import TabMenu from 'primevue/tabmenu';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
-import ApiService from '@/services/api.service';
+import ApiService from '../services/api.service';
 import { version } from '../../package.json';
 
 export default {
@@ -75,10 +90,10 @@ export default {
       verify: null,
     },
     navigation: [
-      { label: 'Matches', icon: 'pi pi-fw fa fa-portrait', to: '/' },
-      { label: 'Train', icon: 'pi pi-fw fa fa-images', to: '/train' },
-      { label: 'Config', icon: 'pi pi-fw pi-cog', to: '/config' },
-      { label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' },
+      { label: 'Matches', icon: 'pi pi-fw fa fa-portrait', route: '/' },
+      { label: 'Train', icon: 'pi pi-fw fa fa-images', route: '/train' },
+      { label: 'Config', icon: 'pi pi-fw pi-cog', route: '/config' },
+      { label: 'Logs', icon: 'pi pi-fw pi-file', route: '/logs' },
     ],
     menu: [],
     unauthorizedMenu: [
@@ -91,7 +106,7 @@ export default {
               window.open('https://github.com/sponsors/jakowenko');
             },
           },
-          { label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' },
+          { label: 'Logs', icon: 'pi pi-fw pi-file', route: '/logs' },
         ],
       },
     ],
@@ -105,8 +120,8 @@ export default {
               window.open('https://github.com/sponsors/jakowenko');
             },
           },
-          { label: 'Logs', icon: 'pi pi-fw pi-file', to: '/logs' },
-          { label: 'Access Tokens', icon: 'pi pi-fw pi-key', to: '/tokens' },
+          { label: 'Logs', icon: 'pi pi-fw pi-file', route: '/logs' },
+          { label: 'Access Tokens', icon: 'pi pi-fw pi-key', route: '/tokens' },
           {
             label: 'Change Password',
             icon: 'pi pi-fw pi-lock',
@@ -134,7 +149,7 @@ export default {
       const obj = {
         label: `v${this.version}`,
         command: () => {
-          window.open('https://github.com/skrashevich/double-take');
+          window.open('https://double-take.site/redirect.php?location=github-from-version-click');
         },
       };
 
@@ -175,29 +190,18 @@ export default {
       this.$refs.menu.toggle(event);
     },
     async checkVersion() {
-      if (this.version.includes('-')) {
+      const versionPattern = /^[v]?(\d+\.\d+\.\d+\.\d+)$/; // Regex to match version format x.x.x.x
+      if (versionPattern.test(this.version)) {
         try {
-          const sha7 = this.version.split('-').pop();
-          const { data: actions } = await ApiService.get(
-            'https://api.github.com/repos/skrashevich/double-take/actions/runs',
+          const { data: releases } = await ApiService.get(
+            `https://double-take.site/version.php?version=${this.version}`,
           );
-          const [currentBuild] = actions.workflow_runs.filter((run) => run.head_sha.includes(sha7));
-          if (currentBuild) {
-            const tag = currentBuild.head_branch.includes('beta') ? 'beta' : 'latest';
-            const [lastBuild] = actions.workflow_runs.filter((run) =>
-              tag === 'latest'
-                ? !run.head_branch.includes('beta') &&
-                  run.name === 'build' &&
-                  run.status === 'completed' &&
-                  run.conclusion === 'success' &&
-                  run.name !== 'CodeQL'
-                : run.head_branch.includes('beta') &&
-                  run.name === 'build' &&
-                  run.status === 'completed' &&
-                  run.conclusion === 'success' &&
-                  run.name !== 'CodeQL',
-            );
-            if (currentBuild.id < lastBuild.id) this.updateAvailable = true;
+          const latestRelease = releases
+            .map((release) => release.tag_name.replace(/^v/, ''))
+            .filter((tag) => versionPattern.test(tag))
+            .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))[0];
+          if (latestRelease && this.version !== latestRelease) {
+            this.updateAvailable = true;
           }
         } catch (error) {
           this.emitter.emit('error', error);
@@ -206,7 +210,10 @@ export default {
       }
     },
     dockerHub() {
-      window.open('https://hub.docker.com/r/skrashevich/double-take/tags?page=1&ordering=last_updated');
+      window.open('https://double-take.site/redirect.php?location=dockerhub-latest');
+    },
+    gitHub() {
+      window.open('https://double-take.site/redirect.php?location=github-from-upgrade-click');
     },
   },
   watch: {
@@ -322,12 +329,12 @@ a.update.visible {
   }
 }
 
-::v-deep(.p-tabmenu) .p-tabmenuitem:not(.p-highlight):not(.p-disabled):hover .p-menuitem-link {
+.p-tabmenu .p-tabmenuitem:not(.p-highlight):not(.p-disabled):hover .p-menuitem-link {
   background: none;
 }
 
-::v-deep(.p-tabmenu) .p-tabmenuitem .p-menuitem-link {
-  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0) !important;
+.p-tabmenu .p-tabmenuitem .p-menuitem-link {
+  box-shadow: none !important;
   -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 }
 </style>

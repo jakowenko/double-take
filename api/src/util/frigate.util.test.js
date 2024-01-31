@@ -79,7 +79,7 @@ describe('checks', () => {
       expect(error).toBe('123 - camera zone not on approved list');
     }
   });
-  
+
   it('should return an error message if the label is not in the approved labels list', async () => {
     const params = {
       id: '123',

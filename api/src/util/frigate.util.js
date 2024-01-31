@@ -7,7 +7,10 @@ module.exports.subLabel = async (topic, id, best) => {
   console.verbose(
     `FRIGATE.URL: ${FRIGATE.URL}; FRIGATE.UPDATE_SUB_LABELS: ${FRIGATE.UPDATE_SUB_LABELS}; best.length: ${best.length}`
   );
-  if (!FRIGATE.URL || !FRIGATE.UPDATE_SUB_LABELS || !best.length) return;
+  if (!FRIGATE.URL || !FRIGATE.UPDATE_SUB_LABELS || !best.length) {
+    console.debug(`Sublabel for event ${id} not updated; conditions are not met.`);
+    return;
+  }
   const names = best
     .map(({ name }) => name)
     .sort()
@@ -18,13 +21,16 @@ module.exports.subLabel = async (topic, id, best) => {
       `Confidences must be greater than 0 and smaller than 1, but now it's ${confidences}`
     );
   }
-  await axios({
-    method: 'post',
-    url: `${this.topicURL(topic)}/api/events/${id}/sub_label`,
-    data: { subLabel: names, subLabelScore: confidences },
-  }).catch((error) =>
-    console.error(`post sublabel to frigate for event ${id} error: ${error.message}`)
-  );
+  try {
+    // eslint-disable-next-line no-unused-vars
+    const response = await axios({
+      method: 'post',
+      url: `${FRIGATE.URL}/api/events/${id}/sub_label`,
+      data: { subLabel: names, subLabelScore: confidences },
+    });
+  } catch (error) {
+    console.error(`Post sublabel to frigate for event ${id} failed: ${error.message}`);
+  }
 };
 
 module.exports.checks = async ({

@@ -7,20 +7,30 @@ const config = require('../../constants/config');
 
 const { AISERVER } = DETECTORS || {};
 
-const recognize = async ({ key }) => {
-  const { URL } = AISERVER;
+const recognize = async ({ key, test }) => {
+  const { URL, DET_PROB_THRESHOLD } = AISERVER;
   const formData = new FormData();
-  formData.append('image', fs.createReadStream(key));
+  formData.append('min_confidence', test ? 0.4 : DET_PROB_THRESHOLD); // thnx @avbor https://github.com/codeproject/CodeProject.AI-Server/blame/main/src/modules/FaceProcessing/intelligencelayer/face.py#L292
+  try {
+    formData.append('image', fs.createReadStream(key));
+  } catch (error) {
+    throw new Error(`An error occurred while reading the file: ${error.message}`);
+  }
   const reqconfig = {
     method: 'post',
     timeout: AISERVER.TIMEOUT * 1000,
-    headers: formData.getHeaders(),
+    headers: { ...formData.getHeaders() },
     url: `${URL}/v1/vision/face/recognize`,
     data: formData,
-    maxContentLength: 100000000,
-    maxBodyLength: 1000000000,
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
   };
-  return axios(reqconfig);
+  try {
+    return await axios(reqconfig);
+  } catch (error) {
+    console.error('Recognition request failed:', error);
+    throw error;
+  }
 };
 
 const train = ({ name, key }) => {
@@ -32,11 +42,15 @@ const train = ({ name, key }) => {
   return axios({
     method: 'post',
     timeout: AISERVER.TIMEOUT * 1000,
-    headers: formData.getHeaders(),
+    headers: { ...formData.getHeaders() },
     url: `${URL}/v1/vision/face/register`,
     data: formData,
-    maxContentLength: 100000000,
-    maxBodyLength: 1000000000,
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
+  }).catch((error) => {
+    // Handle network errors or other axios-related issues
+    console.error('Training failed:', error);
+    throw error;
   });
 };
 
@@ -49,37 +63,49 @@ const remove = ({ name }) => {
     method: 'post',
     timeout: AISERVER.TIMEOUT * 1000,
     url: `${URL}/v1/vision/face/delete`,
-    headers: {
-      ...formData.getHeaders(),
-    },
+    headers: formData.getHeaders(),
     data: formData,
+  }).catch((error) => {
+    console.error('Error during removal:', error);
+    throw error; // Re-throw the error after logging or perform error-specific actions
   });
 };
 
 const normalize = ({ camera, data }) => {
-  if (!data.success) {
+  if (!data?.success) {
     // compare with CoderProjectAI sources
     // https://github.com/codeproject/CodeProject.AI-Server/blob/main/src/modules/FaceProcessing/intelligencelayer/face.py#L528
-    if (data.code === 500 && data.error === 'No face found in image') {
+    if (data?.code === 500 && data?.error === 'No face found in image') {
       console.log('ai.server found no face in image');
       return [];
     }
-    console.warn('unexpected ai.server data');
+    console.warn('unexpected ai.server data', data);
     return [];
   }
-  const { MATCH, UNKNOWN } = config.detect(camera);
-  if (!data.predictions) {
-    console.warn('unexpected ai.server predictions data');
+
+  // Explicitly check for presence of the MATCH and UNKNOWN properties
+  const detectionConfig = config.detect(camera);
+  if (!detectionConfig || !detectionConfig.MATCH || !detectionConfig.UNKNOWN) {
+    console.warn('Invalid detection configuration for camera:', camera);
     return [];
   }
-  const normalized = data.predictions.flatMap((obj) => {
+
+  const { MATCH, UNKNOWN } = detectionConfig;
+
+  if (!Array.isArray(data.predictions)) {
+    console.warn('unexpected ai.server predictions data', data.predictions);
+    return [];
+  }
+  const normalized = data.predictions.reduce((acc, obj) => {
+    if (!obj) return acc; // skip if obj is null or undefined
+
     const confidence = parseFloat((obj.confidence * 100).toFixed(2));
-    obj.userid = obj.userid ? obj.userid : obj.plate ? obj.plate : 'unknown';
+    const userid = obj.userid || obj.plate || 'unknown';
+
     const output = {
-      name: confidence >= UNKNOWN.CONFIDENCE ? obj.userid.toLowerCase() : 'unknown',
+      name: confidence >= UNKNOWN.CONFIDENCE ? userid.toLowerCase() : 'unknown',
       confidence,
       match:
-        obj.userid !== 'unknown' &&
         confidence >= MATCH.CONFIDENCE &&
         (obj.x_max - obj.x_min) * (obj.y_max - obj.y_min) >= MATCH.MIN_AREA,
       box: {
@@ -89,10 +115,23 @@ const normalize = ({ camera, data }) => {
         height: obj.y_max - obj.y_min,
       },
     };
-    const checks = actions.checks({ MATCH, UNKNOWN, ...output });
-    if (checks.length) output.checks = checks;
-    return checks !== false ? output : [];
-  });
+    let checks;
+    try {
+      checks = actions.checks({ ...detectionConfig, ...output });
+    } catch (e) {
+      console.error('Error performing checks on output', e);
+      return acc;
+    }
+
+    if (Array.isArray(checks) && checks.length > 0) {
+      output.checks = checks;
+    }
+
+    acc.push(output);
+
+    return acc;
+  }, []);
+
   return normalized;
 };
 module.exports = { recognize, train, remove, normalize };

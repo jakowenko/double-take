@@ -148,9 +148,43 @@ module.exports.start = async (req, res) => {
       );
     }
 
-    const { best, misses, unknowns, results, attempts, counts } = recognize.normalize(
-      await Promise.all(promises)
-    );
+    let normalizedData = {};
+
+    try {
+      // Await for all promises to resolve or catch if any of them gets rejected
+      const results = await Promise.all(promises);
+
+      // Check if recognize.normalize is a function before calling it
+      if (typeof recognize.normalize === 'function') {
+        // If recognize.normalize is also async, make sure to await it
+        const normalizationResult = await recognize.normalize(results);
+
+        // Ensure that normalizationResult is an object before destructuring
+        if (normalizationResult && typeof normalizationResult === 'object') {
+          normalizedData = {
+            best: normalizationResult.best,
+            misses: normalizationResult.misses,
+            unknowns: normalizationResult.unknowns,
+            results: normalizationResult.results,
+            attempts: normalizationResult.attempts,
+            counts: normalizationResult.counts,
+          };
+        } else {
+          // Handle case where normalize function returns null, undefined, or non-objects
+          console.error('normalize function returned an unexpected result:', normalizationResult);
+          // Here you may want to throw an error or continue with alternative logic
+        }
+      } else {
+        throw new Error('recognize.normalize is not a function');
+      }
+    } catch (error) {
+      // Handle errors from Promise.all or recognize.normalize
+      console.error('An error occurred while processing promises:', error);
+      // Depending on your application's needs, you might throw the error up the stack,
+      // return a default structure, or handle it in some other way.
+    }
+
+    const { best, misses, unknowns, results, attempts, counts } = normalizedData;
 
     const duration = parseFloat((perf.stop('request').time / 1000).toFixed(2));
     const output = {
@@ -203,10 +237,10 @@ module.exports.upload = async (req, res) => {
     fs.writer(`${STORAGE.TMP.PATH}/${filename}`, buffer);
     await axios({
       method: 'get',
-      url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/recognize`,
+      url: `http://${SERVER.HOST}:${SERVER.PORT}${UI.PATH}/api/recognize`,
       headers: AUTH ? { authorization: jwt.sign({ route: 'recognize' }) } : null,
       params: {
-        url: `http://0.0.0.0:${SERVER.PORT}${UI.PATH}/api/${STORAGE.TMP.PATH}/${filename}`,
+        url: `http://${SERVER.HOST}:${SERVER.PORT}${UI.PATH}/api/${STORAGE.TMP.PATH}/${filename}`,
         camera: 'manual',
       },
       validateStatus: () => true,

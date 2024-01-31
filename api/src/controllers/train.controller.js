@@ -48,7 +48,9 @@ module.exports.get = async (req, res) => {
 
   files.forEach((file) => {
     file.results = [];
-    const trainings = db.prepare('SELECT * FROM train WHERE fileId = ?').all(file.id);
+    const trainings = db
+      .prepare('SELECT *,json(meta) as meta FROM train WHERE fileId = ?')
+      .all(file.id);
     trainings.forEach(({ detector, meta, createdAt }) => {
       meta = JSON.parse(meta);
       delete meta.detector;
