@@ -1,72 +1,99 @@
-const { calculateOrientationCoefficient } = require('./compreface');
+const math = require('mathjs');
+
+const { calculateOrientationCoefficient, isFacingCamera } = require('./compreface');
+
 
 describe('calculateOrientationCoefficient', () => {
-  test('returns 1 for zero pitch, roll, and yaw', () => {
-    const coefficient = calculateOrientationCoefficient(0, 0, 0);
-    expect(coefficient).toBe(1);
+  test('should correctly calculate pose direction for pitch=30, roll=45, yaw=60', () => {
+    const pitch = 30;
+    const roll = 45;
+    const yaw = 60;
+    const result = calculateOrientationCoefficient(pitch, roll, yaw);
+    const expected = [0.7891491309924313, -0.04736717274537655, 0.6123724356957946];
+    expect(result).toEqual(expect.arrayContaining(expected));
   });
 
-  test('returns 0 for maximum pitch, roll, and yaw', () => {
-    const coefficient = calculateOrientationCoefficient(10, 10, 10, 10, 10, 10);
-    expect(coefficient).toBeCloseTo(0, 5);
+  test('should correctly calculate pose direction for pitch=0, roll=0, yaw=0', () => {
+    const pitch = 0;
+    const roll = 0;
+    const yaw = 0;
+    const result = calculateOrientationCoefficient(pitch, roll, yaw);
+    const expected = [0, 0, 1];
+    expect(result).toEqual(expect.arrayContaining(expected));
   });
 
-  test('returns correct value for positive inputs within the max range', () => {
-    const pitch = 5;
-    const roll = 3;
-    const yaw = 2;
-    const coefficient = calculateOrientationCoefficient(pitch, roll, yaw, 30, 30, 30);
-    const expected =
-      1 -
-      Math.sqrt((pitch / 30) * (pitch / 30) + (roll / 30) * (roll / 30) + (yaw / 30) * (yaw / 30));
-    expect(coefficient).toBeCloseTo(expected);
+  test('should correctly calculate pose direction for pitch=90, roll=0, yaw=0', () => {
+    const pitch = 90;
+    const roll = 0;
+    const yaw = 0;
+    const result = calculateOrientationCoefficient(pitch, roll, yaw);
+    const expected = [1, 0, 0];
+    expect(result).toEqual(expect.arrayContaining(expected));
   });
 
-  test('returns correct value for negative inputs within the max range', () => {
-    const pitch = -5;
-    const roll = -3;
-    const yaw = -2;
-    const coefficient = calculateOrientationCoefficient(pitch, roll, yaw, 10, 10, 10);
-    const expected =
-      1 -
-      Math.sqrt((pitch / 10) * (pitch / 10) + (roll / 10) * (roll / 10) + (yaw / 10) * (yaw / 10));
-    expect(coefficient).toBeCloseTo(expected);
+  test('should correctly calculate pose direction for pitch=0, roll=90, yaw=0', () => {
+    const pitch = 0;
+    const roll = 90;
+    const yaw = 0;
+    const result = calculateOrientationCoefficient(pitch, roll, yaw);
+    const expected = [0, 0, -1];
+    expect(result).toEqual(expect.arrayContaining(expected));
   });
 
-  test('caps the coefficient at 0 if the distance exceeds 1', () => {
-    const coefficient = calculateOrientationCoefficient(20, 20, 20, 10, 10, 10);
-    expect(coefficient).toBe(0);
+  test('should correctly calculate pose direction for pitch=0, roll=0, yaw=90', () => {
+    const pitch = 0;
+    const roll = 0;
+    const yaw = 90;
+    const result = calculateOrientationCoefficient(pitch, roll, yaw);
+    const expected = [0, 1, 0];
+    expect(result).toEqual(expect.arrayContaining(expected));
+  });
+});
+
+describe('isFacingCamera', () => {
+  it('should return false when the pose is directly facing the camera', () => {
+    expect(isFacingCamera(0, 0, 0)).toBe(false);
   });
 
-  test('allows custom max values for pitch, roll, and yaw', () => {
-    const pitch = 15;
-    const roll = 15;
-    const yaw = 15;
-    const maxPitch = 30;
-    const maxRoll = 30;
-    const maxYaw = 30;
-    const coefficient = calculateOrientationCoefficient(
-      pitch,
-      roll,
-      yaw,
-      maxPitch,
-      maxRoll,
-      maxYaw
+  it('should return true when the pose is facing away from the camera', () => {
+    expect(isFacingCamera(0, 0, 180)).toBe(false);
+  });
+
+  it('should return false when the pose is upside down but facing towards the camera', () => {
+    expect(isFacingCamera(-180, 0, 0)).toBe(true);
+  });
+
+  it('should return true when the pose is upside down and facing away from the camera', () => {
+    expect(isFacingCamera(-180, 0, 180)).toBe(true);
+  });
+
+  it('should return false when the Z-component is not the dominant one (pitch)', () => {
+    expect(isFacingCamera(90, 0, 0)).toBe(false);
+  });
+
+  it('should return false when the Z-component is not the dominant one (roll)', () => {
+    expect(isFacingCamera(0, 90, 0)).toBe(false);
+  });
+
+  it('throws an error when inputs are not numbers', () => {
+    expect(() => isFacingCamera('a', 'b', 'c')).toThrow(
+      'Invalid input: pitch, roll, and yaw must be numbers'
     );
-    const expected =
-      1 -
-      Math.sqrt(
-        (pitch / maxPitch) * (pitch / maxPitch) +
-          (roll / maxRoll) * (roll / maxRoll) +
-          (yaw / maxYaw) * (yaw / maxYaw)
-      );
-    expect(coefficient).toBeCloseTo(expected);
   });
 
-  // Additional tests could include:
 
-  // Test that the function returns a coefficient between 0 and 1 for any input
-  // Test what happens when max values are set to 0 (if this is a valid scenario)
-  // Test with extreme values for pitch, roll, and yaw
-  // Test the behavior when non-numeric values are passed as arguments
+  it('returns true when Z-component is negative and dominant', () => {
+    calculateOrientationCoefficient(0, 0, -1);
+    expect(isFacingCamera(0, 0, 0)).toBe(false);
+  });
+
+  it('returns false when Z-component is positive', () => {
+    calculateOrientationCoefficient(0, 0, 1);
+    expect(isFacingCamera(0, 0, 0)).toBe(false);
+  });
+
+  it('returns false when Z-component is negative but not dominant', () => {
+    calculateOrientationCoefficient(1, 2, -0.5);
+    expect(isFacingCamera(0, 0, 0)).toBe(false);
+  });
 });
