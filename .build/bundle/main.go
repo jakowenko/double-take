@@ -39,7 +39,7 @@ import (
 //go:embed assets.tar.xz
 var assets embed.FS
 
-const Version = "1.13.11.9rc2"
+const Version = "1.13.12.0rc3"
 
 func common() []cli.Flag {
 	homedir, _ := os.UserHomeDir()

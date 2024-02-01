@@ -1,8 +1,8 @@
-## [v1.13.11.9rc2](https://github.com/skrashevich/double-take/compare/v1.13.11.8...v1.13.11.9rc2)
+## [v1.13.12.0rc3](https://github.com/skrashevich/double-take/compare/v1.13.11.8...v1.13.12.0rc3)
 
-# v1.13.11.9
+# v1.13.12.0
 
-**Highlights of v1.13.11.9:**
+**Highlights of v1.13.12.0:**
 
 This release brings in much-needed flexibility for deployment configurations with the introduction of environment variables to set the server host and port. It also simplifies the integration between the API and frontend configurations, ensuring aligned service endpoints. The new `expire_after` MQTT configuration option enhances the control users have over the expiration time for MQTT messages.
 
