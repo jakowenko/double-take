@@ -41,15 +41,19 @@ module.exports.secrets = {
 module.exports.theme = {
   get: async (req, res) => {
     const settings = config();
+    res.setHeader('Content-Type', 'application/json');
     res.send({ theme: settings.ui.theme, editor: settings.ui.editor });
   },
   patch: (req, res) => {
     const { ui: theme, editor } = req.body;
     ui.set({ theme, editor: { theme: editor } });
     config.set.ui({ theme, editor: { theme: editor } });
+    // Set Content-Type header to 'application/json'
+    res.setHeader('Content-Type', 'application/json');
     res.send();
   },
 };
+
 
 module.exports.patch = async (req, res) => {
   try {
