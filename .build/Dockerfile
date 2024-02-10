@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.4
 
-FROM --platform=$BUILDPLATFORM oven/bun:1.0.25 AS frontend-builder
+FROM --platform=$BUILDPLATFORM oven/bun:1.0.26 AS frontend-builder
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /build
 RUN apt-get -y update && apt-get install -y --no-install-recommends curl bash unzip
