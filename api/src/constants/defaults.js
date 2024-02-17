@@ -1,5 +1,8 @@
 module.exports = {
-  telemetry: false,
+  telemetry: {
+    enabled: false,
+    token: 'hbp_bVwQLAvfoZQNZDuHQp1EOqqLbKn1WN07Zih5',
+  },
   auth: false,
   token: {
     image: '24h',

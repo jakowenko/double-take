@@ -1,9 +1,16 @@
 const { createLogger, format, transports } = require('winston');
 const util = require('util');
+const Honeybadger = require('@honeybadger-io/js');
 const { core: SYSTEM_CORE } = require('../constants/system');
 const { LOGS } = require('../constants')();
 const mqtt = require('./mqtt.util');
 const redact = require('./redact-secrets.util');
+const { version } = require('../../package.json');
+
+Honeybadger.configure({
+  apiKey: 'hbp_bVwQLAvfoZQNZDuHQp1EOqqLbKn1WN07Zih5',
+  revision: version,
+});
 
 const combineMessageAndSplat = () => {
   return {
@@ -53,8 +60,10 @@ module.exports.init = () => {
         : args[0].toString()
       : args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : arg)).join(' ');
 
-    if (isError) logger.error(message);
-    else logger.error(...args);
+    if (isError) {
+      Honeybadger.notify(message);
+      logger.error(message);
+    } else logger.error(...args);
 
     mqtt.publish({
       topic: 'double-take/errors',

@@ -22,6 +22,7 @@
   "homepage": "https://github.com/skrashevich/double-take#readme",
   "dependencies": {
     "@aws-sdk/client-rekognition": "^3.502.0",
+    "@honeybadger-io/js": "^6.8.3",
     "@koush/axios-digest-auth": "^0.8.7",
     "archiver": "^6.0.1",
     "axios": "^1.6.7",

@@ -41,4 +41,7 @@ export default defineConfig(({ command }) => ({
       },
     },
   },
+  server: {
+    cors: false
+  },
 }));

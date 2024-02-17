@@ -4,11 +4,20 @@ const cors = require('cors');
 const ipfilter = require('express-ipfilter').IpFilter;
 const { UI } = require('./constants')();
 const { getFrontendPath } = require('./util/helpers.util');
+const { version } = require('../package.json');
+
+const Honeybadger = require('@honeybadger-io/js');
+Honeybadger.configure({
+  apiKey: 'hbp_bVwQLAvfoZQNZDuHQp1EOqqLbKn1WN07Zih5',
+  revision: version,
+});
 
 require('axios-debug-log');
 require('express-async-errors');
 
 const app = express();
+
+app.use(Honeybadger.requestHandler);
 
 app.use('*', cors());
 app.use(express.json({ limit: '50mb' }));
@@ -43,5 +52,7 @@ app.use(UI.PATH, (req, res) => {
     )
   );
 });
+
+app.use(Honeybadger.errorHandler);
 
 module.exports = app;
