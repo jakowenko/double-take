@@ -130,7 +130,7 @@ module.exports.add = async (req, res) => {
 
           filesystem.writer(`${STORAGE.MEDIA.PATH}/train/${name}/${filename}`, rotateResult.buffer);
         } catch (error) {
-          console.error(`An error occurred when rotating the file: ${error.message}`);
+          console.warn(`An error occurred when rotating the file: ${error.message}`);
           filesystem.writer(`${STORAGE.MEDIA.PATH}/train/${name}/${filename}`, buffer);
         }
 
